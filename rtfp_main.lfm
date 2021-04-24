@@ -1,0 +1,313 @@
+object FormDesktop: TFormDesktop
+  Left = 440
+  Height = 618
+  Top = 263
+  Width = 946
+  Caption = 'RTFP Desktop'
+  ClientHeight = 593
+  ClientWidth = 946
+  Constraints.MinHeight = 320
+  Constraints.MinWidth = 640
+  DesignTimePPI = 120
+  Menu = MainMenu
+  OnClose = FormClose
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  OnResize = FormResize
+  LCLVersion = '1.8.4.0'
+  object StatusBar: TStatusBar
+    Left = 0
+    Height = 26
+    Top = 567
+    Width = 946
+    Panels = <>
+  end
+  object PageControl_Project: TPageControl
+    AnchorSideLeft.Control = Splitter_MainV
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Splitter_RightH
+    Left = 168
+    Height = 255
+    Top = 0
+    Width = 778
+    ActivePage = TabSheet_Project_Properties
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    TabIndex = 0
+    TabOrder = 1
+    object TabSheet_Project_Properties: TTabSheet
+      Caption = '工程信息'
+      ClientHeight = 222
+      ClientWidth = 770
+      object PropertiesValueListEditor: TValueListEditor
+        AnchorSideLeft.Control = TabSheet_Project_Properties
+        AnchorSideTop.Control = TabSheet_Project_Properties
+        AnchorSideRight.Control = TabSheet_Project_Properties
+        AnchorSideRight.Side = asrCenter
+        AnchorSideBottom.Control = TabSheet_Project_Properties
+        AnchorSideBottom.Side = asrBottom
+        Left = 0
+        Height = 222
+        Top = 0
+        Width = 256
+        Anchors = [akTop, akLeft, akBottom]
+        FixedCols = 0
+        RowCount = 2
+        TabOrder = 0
+        OnEditingDone = PropertiesValueListEditorEditingDone
+        TitleCaptions.Strings = (
+          '属性'
+          '值'
+        )
+        ColWidths = (
+          80
+          172
+        )
+      end
+    end
+    object TabSheet_Project_DataGrid: TTabSheet
+      Caption = '文献节点'
+      ClientHeight = 222
+      ClientWidth = 770
+      object DBGrid_Main: TDBGrid
+        AnchorSideLeft.Control = TabSheet_Project_DataGrid
+        AnchorSideTop.Control = TabSheet_Project_DataGrid
+        AnchorSideRight.Control = TabSheet_Project_DataGrid
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = TabSheet_Project_DataGrid
+        AnchorSideBottom.Side = asrBottom
+        Left = 0
+        Height = 222
+        Top = 0
+        Width = 770
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        Color = clWindow
+        Columns = <>
+        TabOrder = 0
+      end
+    end
+    object TabSheet_Project_Classifaction: TTabSheet
+      Caption = '分类节点'
+    end
+    object TabSheet_Project_Note: TTabSheet
+      Caption = '图表节点'
+    end
+    object TabSheet_Project_AufScript: TTabSheet
+      Caption = '脚本'
+      ClientHeight = 222
+      ClientWidth = 770
+      OnResize = TabSheet_Project_AufScriptResize
+      inline Frame_AufScript1: TFrame_AufScript
+        Height = 222
+        Width = 770
+        Align = alClient
+        ClientHeight = 222
+        ClientWidth = 770
+        inherited ProgressBar: TProgressBar
+          Left = 10
+          Height = 12
+          Top = 356
+          Width = 481
+        end
+        inherited Memo_out: TMemo
+          Left = 260
+          Height = 260
+          Top = 40
+          Width = 230
+        end
+        inherited Button_run: TButton
+          Left = 9
+          Height = 40
+          Top = 310
+          Width = 85
+        end
+        inherited Button_pause: TButton
+          Left = 108
+          Height = 40
+          Top = 310
+          Width = 85
+        end
+        inherited Button_stop: TButton
+          Left = 208
+          Height = 40
+          Top = 310
+          Width = 85
+        end
+        inherited Button_ScriptLoad: TButton
+          Left = 306
+          Height = 40
+          Top = 310
+          Width = 85
+        end
+        inherited Button_ScriptSave: TButton
+          Left = 405
+          Height = 40
+          Top = 310
+          Width = 85
+        end
+        inherited Memo_cmd: TSynEdit
+          Left = 10
+          Height = 260
+          Top = 40
+          Width = 230
+          Gutter.Width = 61
+          inherited SynLeftGutterPartList1: TSynGutterPartList
+            inherited SynGutterCodeFolding1: TSynGutterCodeFolding
+              AutoSize = False
+              Width = 12
+            end
+          end
+        end
+        inherited TrackBar: TTrackBar
+          Left = 10
+          Height = 20
+          Top = 10
+          Width = 480
+        end
+      end
+    end
+  end
+  object Panel_Release: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Splitter_MainV
+    AnchorSideBottom.Control = StatusBar
+    Left = 0
+    Height = 567
+    Top = 0
+    Width = 162
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Caption = '拖动到此处添加节点'
+    TabOrder = 2
+  end
+  object Splitter_MainV: TSplitter
+    AnchorSideTop.Control = Owner
+    AnchorSideBottom.Control = StatusBar
+    Left = 162
+    Height = 567
+    Top = 0
+    Width = 6
+    Align = alNone
+    Anchors = [akTop, akLeft, akBottom]
+  end
+  object Splitter_RightH: TSplitter
+    AnchorSideLeft.Control = Splitter_MainV
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Cursor = crVSplit
+    Left = 168
+    Height = 6
+    Top = 255
+    Width = 778
+    Align = alNone
+    Anchors = [akLeft, akRight]
+    ResizeAnchor = akTop
+  end
+  object PageControl_Node: TPageControl
+    AnchorSideLeft.Control = Splitter_MainV
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Splitter_RightH
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = StatusBar
+    Left = 168
+    Height = 306
+    Top = 261
+    Width = 778
+    ActivePage = TabSheet_Node_PDF
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    TabIndex = 2
+    TabOrder = 5
+    OnChange = PageControl_NodeChange
+    object TabSheet_Node_View: TTabSheet
+      Caption = '文献预览'
+    end
+    object TabSheet_Node_Edit: TTabSheet
+      Caption = '文献编辑'
+    end
+    object TabSheet_Node_PDF: TTabSheet
+      Caption = 'PDF'
+    end
+  end
+  object MainMenu: TMainMenu
+    left = 64
+    top = 440
+    object MenuItem_project: TMenuItem
+      Caption = '工程'
+      object MenuItem_project_new: TMenuItem
+        Caption = '新建'
+        OnClick = MenuItem_project_newClick
+      end
+      object MenuItem_project_open: TMenuItem
+        Caption = '打开'
+        OnClick = MenuItem_project_openClick
+      end
+      object MenuItem_project_save: TMenuItem
+        Caption = '保存'
+        OnClick = MenuItem_project_saveClick
+      end
+      object MenuItem_project_saveas: TMenuItem
+        Caption = '另存为'
+        OnClick = MenuItem_project_saveasClick
+      end
+      object MenuItem_project_close: TMenuItem
+        Caption = '关闭'
+        OnClick = MenuItem_project_closeClick
+      end
+      object MenuItem1: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem_project_zip: TMenuItem
+        Caption = '压缩导出'
+      end
+      object MenuItem_project_unzip: TMenuItem
+        Caption = '解压导入'
+      end
+      object MenuItem3: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem_project_check: TMenuItem
+        Caption = '检查工程'
+      end
+    end
+    object MenuItem_edit: TMenuItem
+      Caption = '编辑'
+      object MenuItem_edit_newPaper: TMenuItem
+        Caption = '新建文献节点'
+      end
+      object MenuItem_edit_newClass: TMenuItem
+        Caption = '新建类型节点'
+      end
+      object MenuItem_edit_newNote: TMenuItem
+        Caption = '新建图表节点'
+      end
+    end
+    object MenuItem_option: TMenuItem
+      Caption = '选项'
+      object MenuItem_option_setting: TMenuItem
+        Caption = '通用设置'
+      end
+      object MenuItem_option_about: TMenuItem
+        Caption = '关于'
+        OnClick = MenuItem_option_aboutClick
+      end
+      object MenuItem_option_help: TMenuItem
+        Caption = '帮助'
+      end
+    end
+  end
+  object OpenDialog_Project: TOpenDialog
+    Title = '打开工程'
+    left = 64
+    top = 496
+  end
+  object SaveDialog_project: TSaveDialog
+    Title = '另存为'
+    left = 64
+    top = 384
+  end
+end
