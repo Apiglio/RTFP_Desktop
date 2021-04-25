@@ -105,7 +105,8 @@ begin
   end;
 
   CurrentRTFP:=TRTFP.Create(FormDesktop);
-  CurrentRTFP.onNewDone:=@FormDesktop.Validate;
+  FormDesktop.EventLink(CurrentRTFP);
+
   CurrentRTFP.New(Self.FileFullName,Self.FileName,'Apiglio');
 
   Self.Hide;
@@ -139,9 +140,10 @@ begin
 
   with CheckListBox_CanBuild do begin
     if TRTFP.CanBuildName(Self.FileName) then Checked[0]:=true else Checked[0]:=false;
-    if TRTFP.CanBuildPath(Self.FilePath+Self.FileName) then Checked[1]:=true else Checked[1]:=false;
+    if TRTFP.CanBuildPath(Self.FilePath+'.'+Self.FileName) then Checked[1]:=true else Checked[1]:=false;
     if TRTFP.CanBuildFile(Self.FileFullName) then Checked[2]:=true else Checked[2]:=false;
-    if TRTFP.CanBuildDisc(Self.FilePath[1]) then Checked[3]:=true else Checked[3]:=false;
+    if TRTFP.CanBuildPLen(Self.FilePath+Self.FileName) then Checked[3]:=true else Checked[3]:=false;
+    if TRTFP.CanBuildDisc(Self.FilePath[1]) then Checked[4]:=true else Checked[4]:=false;
 
     if Checked[0] and Checked[1] and Checked[2] and Checked[3] then
        Self.Button_Create.Enabled:=true

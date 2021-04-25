@@ -73,6 +73,7 @@
         <Filename Value="form_new_project.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Form_NewProject"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit5>
     </Units>
