@@ -5,15 +5,16 @@ unit RTFP_main;
 interface
 
 uses
-  Classes, SysUtils, db, dbf, FileUtil, Forms, Controls, Graphics, Dialogs,
-  ComCtrls, Menus, ExtCtrls, DBGrids, Grids, ValEdit, CheckLst, LazUTF8,
+  Classes, SysUtils, db, dbf, memds, FileUtil, Forms, Controls, Graphics,
+  Dialogs, ComCtrls, Menus, ExtCtrls, DBGrids, Grids, ValEdit, CheckLst,
+  StdCtrls, LazUTF8,
 
   Apiglio_Useful, AufScript_Frame,
 
   RTFP_definition;
 
 const
-  C_VERSION_NUMBER  = '0.1.0-alpha.2';
+  C_VERSION_NUMBER  = '0.1.0-alpha.3';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -24,10 +25,18 @@ type
 
   TFormDesktop = class(TForm)
     CheckListBox_MainAttrFilter: TCheckListBox;
+    ComboBox_Attrs_View: TComboBox;
+    DataSource_Attrs: TDataSource;
+    DataSource_Main: TDataSource;
+    DBGrid_Attrs: TDBGrid;
     DBGrid_Main: TDBGrid;
     Frame_AufScript1: TFrame_AufScript;
+    Label_Attrs_View: TLabel;
     MainMenu: TMainMenu;
+    MemDataset_Main: TMemDataset;
     MenuItem1: TMenuItem;
+    MenuItem_CIteTool: TMenuItem;
+    MenuItem4: TMenuItem;
     MenuItem_project_close: TMenuItem;
     MenuItem_project_check: TMenuItem;
     MenuItem3: TMenuItem;
@@ -56,18 +65,21 @@ type
     StatusBar: TStatusBar;
     TabSheet_Project_Properties: TTabSheet;
     TabSheet_Node_PDF: TTabSheet;
-    TabSheet_Project_Note: TTabSheet;
-    TabSheet_Project_Classifaction: TTabSheet;
+    TabSheet_Project_Class: TTabSheet;
+    TabSheet_Project_Attrs: TTabSheet;
     TabSheet_Node_Edit: TTabSheet;
     TabSheet_Node_View: TTabSheet;
     TabSheet_Project_AufScript: TTabSheet;
     TabSheet_Project_DataGrid: TTabSheet;
     PropertiesValueListEditor: TValueListEditor;
+    procedure CheckListBox_MainAttrFilterClickCheck(Sender: TObject);
+    procedure ComboBox_Attrs_ViewChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDropFiles(Sender: TObject; const FileNames: array of String);
     procedure FormResize(Sender: TObject);
+    procedure MenuItem_CIteToolClick(Sender: TObject);
     procedure MenuItem_option_aboutClick(Sender: TObject);
     procedure MenuItem_project_closeClick(Sender: TObject);
     procedure MenuItem_project_newClick(Sender: TObject);
@@ -101,7 +113,7 @@ var
   CurrentRTFP:TRTFP;
 
 implementation
-uses form_new_project;
+uses form_new_project, form_cite_trans;
 
 {$R *.lfm}
 
@@ -118,6 +130,8 @@ end;
 
 procedure TFormDesktop.Validate(Sender:TObject);
 var changed_str:string;
+    attr_i,pi:integer;
+    stmp,old_choice:string;
 begin
 
   if (Sender as TRTFP).IsChanged then changed_str:=' *'
@@ -134,9 +148,30 @@ begin
   Self.PropertiesValueListEditor.Values['创建日期']:=(Sender as TRTFP).Tag['创建日期'];
   Self.PropertiesValueListEditor.Values['修改日期']:=(Sender as TRTFP).Tag['修改日期'];
 
-  //Self.PropertiesValueListEditor.Values['属性组00']:=(Sender as TRTFP).Tag['属性组00'];
-  //Self.PropertiesValueListEditor.Values['属性组01']:=(Sender as TRTFP).Tag['属性组01'];
-  //Self.PropertiesValueListEditor.Values['属性组02']:=(Sender as TRTFP).Tag['属性组02'];
+  Self.PropertiesValueListEditor.Values['属性组00']:=(Sender as TRTFP).Tag['属性组00'];
+  Self.PropertiesValueListEditor.Values['属性组01']:=(Sender as TRTFP).Tag['属性组01'];
+  Self.PropertiesValueListEditor.Values['属性组02']:=(Sender as TRTFP).Tag['属性组02'];
+
+  pi:=Self.ComboBox_Attrs_View.ItemIndex;
+  if pi>=0 then old_choice:=Self.ComboBox_Attrs_View.Items[pi] else old_choice:='';
+  with Self.ComboBox_Attrs_View do begin
+    Clear;
+    attr_i:=0;
+    repeat
+      stmp:=CurrentRTFP.AttrsName[attr_i];
+      if stmp<>'' then ComboBox_Attrs_View.AddItem(stmp,CurrentRTFP.AttrsDB[attr_i])
+      else break;
+      inc(attr_i);
+    until attr_i>99;
+  end;
+  attr_i:=0;
+  pi:=-1;
+  for stmp in Self.ComboBox_Attrs_View.Items do
+    begin
+      if stmp=old_choice then pi:=attr_i;
+      inc(attr_i);
+    end;
+  Self.ComboBox_Attrs_View.ItemIndex:=pi;
 
 end;
 
@@ -242,6 +277,11 @@ begin
   //Self.Frame_AufScript1.FrameResize(nil);
 end;
 
+procedure TFormDesktop.MenuItem_CIteToolClick(Sender: TObject);
+begin
+  Form_CiteTrans.show;
+end;
+
 procedure TFormDesktop.MenuItem_option_aboutClick(Sender: TObject);
 begin
   MessageDlg('关于',C_SOFTWARE_NAME + #13#10 + '版本： ' + C_VERSION_NUMBER + #13#10 + '作者： ' + C_SOFTWARE_AUTHOR,mtCustom,[mbOK],0);
@@ -280,18 +320,44 @@ end;
 
 procedure TFormDesktop.FormDropFiles(Sender: TObject;
   const FileNames: array of String);
-var len:integer;
+var len,pi:integer;
 begin
   len:=Length(FileNames);
+  {
   //Self.Panel_Release.Caption:=IntToStr(len);
   if len=1 then Self.Panel_Release.Caption:=FileNames[0]
   else Self.Panel_Release.Caption:='多个文件';
+  }
+  for pi:=0 to len-1 do
+    begin
+      if CurrentRTFP.FindPaper(FileNames[pi]) = '000000' then
+        CurrentRTFP.AddPaper(FileNames[pi])
+      else
+        ShowMessage(FileNames[pi]+'已在库内。');
+    end;
 end;
 
 procedure TFormDesktop.FormClose(Sender: TObject; var CloseAction: TCloseAction
   );
 begin
   //
+end;
+
+procedure TFormDesktop.CheckListBox_MainAttrFilterClickCheck(Sender: TObject);
+begin
+  //修改属性组的显隐状态时
+  //(Sender as TCheckListBox).Checked[0];
+  {tmp}
+  if not assigned(CurrentRTFP) then exit;
+  if CurrentRTFP.IsOpen then Self.DataSource_Main.DataSet:=CurrentRTFP.PaperDB;
+
+end;
+
+procedure TFormDesktop.ComboBox_Attrs_ViewChange(Sender: TObject);
+var pi:integer;
+begin
+  pi:=(Sender as TComboBox).ItemIndex;
+  if pi>=0 then DataSource_Attrs.DataSet:=((Sender as TComboBox).Items.Objects[pi] as TDbf);
 end;
 
 procedure TFormDesktop.FormCloseQuery(Sender: TObject; var CanClose: boolean);

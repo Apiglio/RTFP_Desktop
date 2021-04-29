@@ -2,11 +2,11 @@ object FormDesktop: TFormDesktop
   Left = 659
   Height = 618
   Top = 287
-  Width = 946
+  Width = 935
   AllowDropFiles = True
   Caption = 'RTFP Desktop'
   ClientHeight = 593
-  ClientWidth = 946
+  ClientWidth = 935
   Constraints.MinHeight = 320
   Constraints.MinWidth = 640
   DesignTimePPI = 120
@@ -21,7 +21,7 @@ object FormDesktop: TFormDesktop
     Left = 0
     Height = 26
     Top = 567
-    Width = 946
+    Width = 935
     Panels = <>
   end
   object PageControl_Project: TPageControl
@@ -34,15 +34,15 @@ object FormDesktop: TFormDesktop
     Left = 168
     Height = 255
     Top = 0
-    Width = 778
-    ActivePage = TabSheet_Project_AufScript
+    Width = 767
+    ActivePage = TabSheet_Project_DataGrid
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 4
+    TabIndex = 1
     TabOrder = 1
     object TabSheet_Project_Properties: TTabSheet
       Caption = '工程信息'
       ClientHeight = 222
-      ClientWidth = 770
+      ClientWidth = 759
       object PropertiesValueListEditor: TValueListEditor
         AnchorSideLeft.Control = TabSheet_Project_Properties
         AnchorSideTop.Control = TabSheet_Project_Properties
@@ -53,7 +53,7 @@ object FormDesktop: TFormDesktop
         Left = 0
         Height = 222
         Top = 0
-        Width = 256
+        Width = 360
         Anchors = [akTop, akLeft, akBottom]
         Enabled = False
         FixedCols = 0
@@ -66,14 +66,14 @@ object FormDesktop: TFormDesktop
         )
         ColWidths = (
           80
-          172
+          276
         )
       end
     end
     object TabSheet_Project_DataGrid: TTabSheet
       Caption = '文献节点'
       ClientHeight = 222
-      ClientWidth = 770
+      ClientWidth = 759
       object DBGrid_Main: TDBGrid
         AnchorSideLeft.Control = TabSheet_Project_DataGrid
         AnchorSideTop.Control = TabSheet_Project_DataGrid
@@ -84,11 +84,13 @@ object FormDesktop: TFormDesktop
         Left = 0
         Height = 222
         Top = 0
-        Width = 620
+        Width = 609
         Anchors = [akTop, akLeft, akRight, akBottom]
+        AutoFillColumns = True
         BorderSpacing.Right = 150
         Color = clWindow
         Columns = <>
+        DataSource = DataSource_Main
         TabOrder = 0
       end
       object CheckListBox_MainAttrFilter: TCheckListBox
@@ -99,7 +101,7 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = TabSheet_Project_DataGrid
         AnchorSideBottom.Side = asrBottom
-        Left = 620
+        Left = 609
         Height = 222
         Top = 0
         Width = 150
@@ -110,29 +112,93 @@ object FormDesktop: TFormDesktop
           '注解'
         )
         ItemHeight = 21
+        ItemIndex = 0
+        MultiSelect = True
+        OnClickCheck = CheckListBox_MainAttrFilterClickCheck
         TabOrder = 1
         Data = {
           03000000000000
         }
       end
     end
-    object TabSheet_Project_Classifaction: TTabSheet
-      Caption = '分类节点'
+    object TabSheet_Project_Attrs: TTabSheet
+      Caption = '文献属性组'
+      ClientHeight = 222
+      ClientWidth = 759
+      object DBGrid_Attrs: TDBGrid
+        AnchorSideLeft.Control = TabSheet_Project_Attrs
+        AnchorSideTop.Control = TabSheet_Project_Attrs
+        AnchorSideRight.Control = TabSheet_Project_Attrs
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = ComboBox_Attrs_View
+        Left = 0
+        Height = 189
+        Top = 0
+        Width = 459
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        AutoFillColumns = True
+        BorderSpacing.Right = 300
+        BorderSpacing.Bottom = 5
+        Color = clWindow
+        Columns = <>
+        DataSource = DataSource_Attrs
+        TabOrder = 0
+      end
+      object ComboBox_Attrs_View: TComboBox
+        AnchorSideLeft.Control = Label_Attrs_View
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideRight.Control = TabSheet_Project_Attrs
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = TabSheet_Project_Attrs
+        AnchorSideBottom.Side = asrBottom
+        Left = 70
+        Height = 28
+        Top = 194
+        Width = 389
+        Anchors = [akLeft, akRight, akBottom]
+        BorderSpacing.Left = 5
+        BorderSpacing.Right = 300
+        ItemHeight = 20
+        Items.Strings = (
+          'aaaaaaaa'
+          'sssssss'
+          'ddddd'
+          'ffff'
+          'fffff'
+          'ggggg'
+          'ggggggggd'
+          'df'
+        )
+        OnChange = ComboBox_Attrs_ViewChange
+        TabOrder = 1
+      end
+      object Label_Attrs_View: TLabel
+        AnchorSideLeft.Control = TabSheet_Project_Attrs
+        AnchorSideTop.Control = ComboBox_Attrs_View
+        AnchorSideTop.Side = asrCenter
+        Left = 5
+        Height = 15
+        Top = 201
+        Width = 60
+        BorderSpacing.Left = 5
+        Caption = '预览表：'
+        ParentColor = False
+      end
     end
-    object TabSheet_Project_Note: TTabSheet
-      Caption = '图表节点'
+    object TabSheet_Project_Class: TTabSheet
+      Caption = '分类节点'
     end
     object TabSheet_Project_AufScript: TTabSheet
       Caption = '脚本'
       ClientHeight = 222
-      ClientWidth = 770
+      ClientWidth = 759
       OnResize = TabSheet_Project_AufScriptResize
       inline Frame_AufScript1: TFrame_AufScript
         Height = 222
-        Width = 770
+        Width = 759
         Align = alClient
         ClientHeight = 222
-        ClientWidth = 770
+        ClientWidth = 759
         inherited ProgressBar: TProgressBar
           Left = 10
           Height = 12
@@ -229,7 +295,7 @@ object FormDesktop: TFormDesktop
     Left = 168
     Height = 6
     Top = 255
-    Width = 778
+    Width = 767
     Align = alNone
     Anchors = [akLeft, akRight]
     ResizeAnchor = akTop
@@ -245,7 +311,7 @@ object FormDesktop: TFormDesktop
     Left = 168
     Height = 306
     Top = 261
-    Width = 778
+    Width = 767
     ActivePage = TabSheet_Node_View
     Anchors = [akTop, akLeft, akRight, akBottom]
     TabIndex = 0
@@ -263,7 +329,7 @@ object FormDesktop: TFormDesktop
   end
   object MainMenu: TMainMenu
     left = 64
-    top = 440
+    top = 416
     object MenuItem_project: TMenuItem
       Caption = '工程'
       object MenuItem_project_new: TMenuItem
@@ -318,6 +384,13 @@ object FormDesktop: TFormDesktop
       object MenuItem_edit_newNote: TMenuItem
         Caption = '新建图表节点'
       end
+      object MenuItem4: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem_CIteTool: TMenuItem
+        Caption = '引用工具'
+        OnClick = MenuItem_CIteToolClick
+      end
     end
     object MenuItem_option: TMenuItem
       Caption = '选项'
@@ -343,6 +416,20 @@ object FormDesktop: TFormDesktop
   object SaveDialog_project: TSaveDialog
     Title = '另存为'
     left = 64
-    top = 384
+    top = 456
+  end
+  object DataSource_Main: TDataSource
+    DataSet = MemDataset_Main
+    left = 64
+    top = 144
+  end
+  object MemDataset_Main: TMemDataset
+    FieldDefs = <>
+    left = 64
+    top = 200
+  end
+  object DataSource_Attrs: TDataSource
+    left = 64
+    top = 88
   end
 end

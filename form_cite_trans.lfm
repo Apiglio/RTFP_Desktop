@@ -1,0 +1,157 @@
+object Form_CiteTrans: TForm_CiteTrans
+  Left = 787
+  Height = 577
+  Top = 338
+  Width = 888
+  Caption = '引用格式转译'
+  ClientHeight = 577
+  ClientWidth = 888
+  DesignTimePPI = 120
+  OnDeactivate = FormDeactivate
+  OnHide = FormHide
+  OnShow = FormShow
+  LCLVersion = '1.8.4.0'
+  object Memo_Cite: TMemo
+    AnchorSideLeft.Control = TabControl_CiteStyle
+    AnchorSideTop.Control = TabControl_CiteStyle
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = TabControl_CiteStyle
+    AnchorSideRight.Side = asrBottom
+    Left = 413
+    Height = 360
+    Top = 32
+    Width = 470
+    Anchors = [akTop, akLeft, akRight]
+    Lines.Strings = (
+      '%0 Journal Article'
+      '%A 蔺卿 %A 罗格平 %A 陈曦'
+      '%+ 中国科学院新疆生态与地理研究所,中国科学院新疆生态与地理研究所,中国科学院新疆生态与地理研究所 新疆 乌鲁术齐 830011 中国科学院研究生院,北京 100039 ,新疆 乌鲁术齐 830011 ,新疆 乌鲁术齐 830011'
+      '%T LUCC驱动力模型研究综述'
+      '%J 地理科学进展'
+      '%D 2005'
+      '%N 05'
+      '%K 土地利用/土地覆被变化;驱动力;模型;土地利用系统'
+      '%X 驱动力研究是土地利用变化研究中的核心问题。土地利用变化驱动力模型是分析土地利用变化原因和结果的有力工具.模型通过情景分析可为土地利用规划与决策提供依据。基于不同理论的驱动力研究方法很多.论文选取了几种国内外应用较多的LUCC驱动力模型进行综述,分析了每个模型的优缺点及适用范围.最后得出结论:1)基于过程的动态模型更适于研究复杂的土地利用系统。2)基于经验的统计模型能弥补基于过程的动态模型的不足。3)基于不同学科背景的模型进一步集成将是LUCC驱动力模型未来的发展趋势。'
+      '%P 81-89'
+      '%@ 1007-6301'
+      '%L 11-3858/P'
+      '%W CNKI   '
+    )
+    ScrollBars = ssAutoVertical
+    TabOrder = 0
+  end
+  object ValueListEditor1: TValueListEditor
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    Left = 5
+    Height = 259
+    Top = 5
+    Width = 403
+    BorderSpacing.Left = 5
+    BorderSpacing.Top = 5
+    FixedCols = 0
+    RowCount = 2
+    TabOrder = 1
+    ColWidths = (
+      80
+      319
+    )
+  end
+  object Memo_Reference: TMemo
+    AnchorSideLeft.Control = TabControl_Reference_Style
+    AnchorSideTop.Control = TabControl_Reference_Style
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = TabControl_Reference_Style
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 413
+    Height = 151
+    Top = 421
+    Width = 470
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Bottom = 5
+    Lines.Strings = (
+      '[0+0D3T]张志芬,任长忠,杨海顺,郭来春,王春龙,刘俊青,徐进莲,周宇,付晓峰.基于SD-GGE双标图进行饲草燕麦品种归类和区域划分[J].中国农业大学学报,2021,26(05):10-21.'
+    )
+    ScrollBars = ssAutoVertical
+    TabOrder = 2
+  end
+  object Panel_DBGrid_Temporary: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideRight.Control = ValueListEditor1
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 5
+    Height = 252
+    Top = 320
+    Width = 403
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Left = 5
+    BorderSpacing.Bottom = 5
+    Caption = '这里用来放置总表，通过修改Parent实现'
+    TabOrder = 3
+  end
+  object TabControl_CiteStyle: TTabControl
+    AnchorSideLeft.Control = ValueListEditor1
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 413
+    Height = 24
+    Top = 8
+    Width = 470
+    TabIndex = 2
+    Tabs.Strings = (
+      'E-Study'
+      'RefWorks'
+      'EndNote'
+      'NoteExpress'
+      'NoteFirst'
+    )
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Left = 5
+    BorderSpacing.Right = 5
+    TabOrder = 4
+  end
+  object TabControl_Reference_Style: TTabControl
+    AnchorSideLeft.Control = TabControl_CiteStyle
+    AnchorSideTop.Control = Memo_Cite
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 413
+    Height = 24
+    Top = 397
+    Width = 470
+    TabIndex = 0
+    Tabs.Strings = (
+      'GB/T 7714'
+      'CAJ-CD'
+      'MLA'
+      'APA'
+      '查新'
+    )
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 5
+    BorderSpacing.Right = 5
+    TabOrder = 5
+  end
+  object Button_Import: TButton
+    Left = 88
+    Height = 38
+    Top = 272
+    Width = 112
+    Caption = '保存到库中'
+    TabOrder = 6
+  end
+  object Button_Export: TButton
+    Left = 208
+    Height = 38
+    Top = 272
+    Width = 112
+    Caption = '从库中读取'
+    TabOrder = 7
+  end
+end
