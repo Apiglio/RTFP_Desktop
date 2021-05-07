@@ -1,9 +1,11 @@
 //{$define insert}
+{$define test}
 
 unit RTFP_definition;
 
 {$mode objfpc}{$H+}
 {$inline on}
+
 
 interface
 
@@ -12,11 +14,14 @@ uses
   {$ifndef insert}
   Apiglio_Useful,
   {$endif}
-  db, dbf;
+  db, dbf, rtfp_pdfium;
+
+  //{$I pdfium\fpdfview.h}
 
 
 const
 
+  {Real Number of MessageBox}
   rnmbOK     = 1;
   rnmbCancel = 2;
   rnmbAbort  = 3;
@@ -39,6 +44,36 @@ type
   public
     RTFP:TObject;
   end;
+
+  TLastPdfData=record
+    Dublin:record
+      aTitle:string;
+      aCreator:string;
+      aDescription:string;
+      aPublisher:string;
+      aContributor:string;
+      aDate:string;
+      aType:string;
+      aFormat:string;
+      aIdentifier:string;
+      aSource:string;
+      aLanguage:string;
+      aRelation:string;
+      aCoverage:string;
+      aRights:string;
+    end;
+    Extend:record
+      Keywords,Produrer,CreationDate,ModDate:string;
+    end;
+    FileData:record
+      PageCount:int32;
+      PageHeight,PageWidth:double;
+    end;
+  end;
+
+  {
+  Title, Author, Subject, Keywords, Creator, Producer, CreationDate, or ModDate.
+  }
 
 
   TRTFP = class(TComponent)
@@ -185,12 +220,6 @@ type
 
 
 
-
-
-
-
-
-
     function AddImage(fullfilename:string):RTFP_ID;//新增一个图片到工程
     procedure DeleteImage(IID:RTFP_ID);//移除指定IID的图片
     procedure EditImageData(IID:RTFP_ID;col_name,value:string);//修改指定IID图片的属性
@@ -234,7 +263,14 @@ type
     property onFirstEdit:TNotifyEvent read FOnFirstEdit write FOnFirstEdit;
 
 
-  public {类方法}
+  {伪类方法}
+  protected
+    function GetLastPdfData:TLastPdfData;
+  public
+    property last_pdf_data:TLastPdfData read GetLastPdfData;
+
+  {类方法}
+  public
     class function NumToID(Num:dword):RTFP_ID;
     class function IDToNum(ID:RTFP_ID):dword;
 
@@ -251,6 +287,9 @@ type
     class function FileCopy(source,dest:string;bFailIfExist:boolean):boolean;//utf8的string版本
     class function FileDelete(source:string):boolean;//utf8的string版本
 
+    class function PDFCheck(filename:string):boolean;//如果成功检测pdf数据，就返回true，pdf数据保存在类属性last_pdf_data中
+
+  {构造与析构}
   public
     constructor Create(AOwner:TComponent);virtual;
     destructor Destroy;override;
@@ -262,12 +301,55 @@ type
 
 
 procedure AufScriptFuncDefineRTFP(Auf:TAuf);
+//function LastPdfDataStr:string;
 
 
 
 
 implementation
 uses RTFP_main;
+
+var _FLastPdfData:TLastPdfData;
+
+function LastPdfDataStr:string;
+begin
+  result:='';
+  with _FLastPdfData do begin
+    with Dublin do begin
+      result:=result+' Title:'+aTitle+#13#10;
+      result:=result+' Creator:'+aCreator+#13#10;
+      result:=result+' Description:'+aDescription+#13#10;
+      result:=result+' Publisher:'+aPublisher+#13#10;
+      result:=result+' Contributor:'+aContributor+#13#10;
+      result:=result+' Date:'+aDate+#13#10;
+      result:=result+' Type:'+aType+#13#10;
+      result:=result+' Format:'+aFormat+#13#10;
+      result:=result+' Identifier:'+aIdentifier+#13#10;
+      result:=result+' Source:'+aSource+#13#10;
+      result:=result+' Language:'+aLanguage+#13#10;
+      result:=result+' Relation:'+aRelation+#13#10;
+      result:=result+' Coverage:'+aCoverage+#13#10;
+      result:=result+' Rights:'+aRights+#13#10;
+
+    end;
+    with Extend do begin
+      result:=result+' Keywords:'+Keywords+#13#10;
+      result:=result+' Produrer:'+Produrer+#13#10;
+      result:=result+' CreationDate:'+CreationDate+#13#10;
+      result:=result+' ModDate:'+ModDate+#13#10;
+
+    end;
+    with FileData do begin
+      result:=result+' PageCount:'+IntToStr(PageCount)+#13#10;
+      result:=result+' Width:'+FloatToStr(PageWidth)+#13#10;
+      result:=result+' Height:'+FloatToStr(PageHeight)+#13#10;
+
+    end;
+  end;
+
+
+end;
+
 
 {
 procedure add_attr(Sender:TObject);
@@ -419,7 +501,22 @@ begin
   AufScpt:=Sender as TAufScript;
   AufScpt.writeln(CurrentRTFP.NewNoteID);
 end;
+{$ifdef test}
+procedure aufunc_test(Sender:TObject);
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    filename:string;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(2) then exit;
+  if not AAuf.TryArgToString(1,filename) then exit;
 
+  if TRTFP.PDFCheck(filename) then;
+  AufScpt.writeln(LastPdfDataStr);
+
+end;
+{$endif}
 
 
 
@@ -437,9 +534,10 @@ begin
 
 
 
+    Script.add_func('test',@aufunc_test,'filename','测试');
+
   end;
 end;
-
 
 
 
@@ -1602,6 +1700,12 @@ end;
 
 
 
+function TRTFP.GetLastPdfData:TLastPdfData;
+begin
+  result:=_FLastPdfData;
+end;
+
+
 class function TRTFP.NumToID(Num:dword):RTFP_ID;
 begin
   result:='';
@@ -1740,6 +1844,71 @@ class function TRTFP.FileDelete(source:string):boolean;
 begin
   result:=DeleteFile(pchar(UTF8ToWinCP(source)));
 end;
+
+class function TRTFP.PDFCheck(filename:string):boolean;
+var tmpPdf:pointer;
+    tmpPage:pointer;
+
+    function GetMeta(tag:pchar):unicodestring;
+    var pc:pwidechar;
+        len:uint64;
+    begin
+      GetMem(pc,250);
+      len:=248;
+      len:=FPDF_GetMetaText(tmpPdf,tag,pc,len);
+      result:=StrPas(pc);
+      FreeMem(pc,250);
+    end;
+
+begin
+  result:=false;
+  FPDF_InitLibrary;
+  tmpPdf:=FPDF_LoadDocument(pchar(UTF8toWinCP(filename)),'');
+  tmpPage:=FPDF_LoadPage(tmpPdf,0);
+
+  with _FLastPdfData do begin
+    with FileData do begin
+      PageCount:=FPDF_GetPageCount(tmpPdf);
+      PageHeight:=FPDF_GetPageHeight(tmpPage);
+      PageWidth:=FPDF_GetPageWidth(tmpPage);
+    end;
+    with Dublin do begin
+      aTitle:=GetMeta('Title');
+      aCreator:=GetMeta('Creator');
+      aDescription:=GetMeta('Description');
+      aPublisher:=GetMeta('Publisher');
+      aContributor:=GetMeta('Contributor');
+      aDate:=GetMeta('Date');
+      aType:=GetMeta('Type');
+      aFormat:=GetMeta('Format');
+      aIdentifier:=GetMeta('Identifier');
+      aSource:=GetMeta('Source');
+      aLanguage:=GetMeta('Language');
+      aRelation:=GetMeta('Relation');
+      aCoverage:=GetMeta('Coverage');
+      aRights:=GetMeta('Rights');
+    end;
+    with Extend do begin
+      Keywords:=GetMeta('Keywords');
+      Produrer:=GetMeta('Produrer');
+      CreationDate:=GetMeta('CreationDate');
+      ModDate:=GetMeta('ModDate');
+    end;
+
+  end;
+
+  FPDF_ClosePage(tmpPage);
+  {
+  if pdf<>nil then begin
+    FPDF_CloseDocument(tmpPdf);
+    result:=true;
+  end;
+  }
+
+
+
+end;
+
 
 end.
 
