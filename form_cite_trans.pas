@@ -47,12 +47,14 @@ end;
 
 procedure TForm_CiteTrans.FormHide(Sender: TObject);
 begin
-  FormDesktop.DBGrid_Main.Parent:=FormDesktop.TabSheet_Project_DataGrid;
+  FormDesktop.Panel_DBGridMain.Parent:=FormDesktop.TabSheet_Project_DataGrid;
+  FormDesktop.Panel_DBGridMain.Align:=alClient;
 end;
 
 procedure TForm_CiteTrans.FormShow(Sender: TObject);
 begin
-  FormDesktop.DBGrid_Main.Parent:=Self.Panel_DBGrid_Temporary;
+  FormDesktop.Panel_DBGridMain.Parent:=Self.Panel_DBGrid_Temporary;
+  FormDesktop.Panel_DBGridMain.Align:=alClient;
 end;
 
 end.

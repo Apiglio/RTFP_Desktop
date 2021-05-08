@@ -13,8 +13,9 @@ uses
   Classes, SysUtils, Dialogs, ValEdit, Windows, LazUTF8,
   {$ifndef insert}
   Apiglio_Useful,
+  //AufScript_Frame,
   {$endif}
-  db, dbf, rtfp_pdfium;
+  db, dbf, memds;
 
   //{$I pdfium\fpdfview.h}
 
@@ -39,41 +40,13 @@ type
 
   TAttrExtendUnit = (aeFailIfNoPID,aeFailIfNoField);
   TAttrExtend = set of TAttrExtendUnit;
+  TablesUse = set of byte;
 
   TRTFP_Auf=class(TAuf)
   public
     RTFP:TObject;
   end;
 
-  TLastPdfData=record
-    Dublin:record
-      aTitle:string;
-      aCreator:string;
-      aDescription:string;
-      aPublisher:string;
-      aContributor:string;
-      aDate:string;
-      aType:string;
-      aFormat:string;
-      aIdentifier:string;
-      aSource:string;
-      aLanguage:string;
-      aRelation:string;
-      aCoverage:string;
-      aRights:string;
-    end;
-    Extend:record
-      Keywords,Produrer,CreationDate,ModDate:string;
-    end;
-    FileData:record
-      PageCount:int32;
-      PageHeight,PageWidth:double;
-    end;
-  end;
-
-  {
-  Title, Author, Subject, Keywords, Creator, Producer, CreationDate, or ModDate.
-  }
 
 
   TRTFP = class(TComponent)
@@ -215,8 +188,8 @@ type
     procedure EditPaperData(PID:RTFP_ID;col_name,value:string);//修改指定PID文献的属性
     function ReadPaperData(PID:RTFP_ID;col_name:string):string;//读取指定PID文献的属性
     }
-    function EditAttrField(PID:RTFP_ID;AttrNo:byte;FieldName:string;FailOption:TAttrExtend;var Buffer):boolean;
-    function ReadAttrField(PID:RTFP_ID;AttrNo:byte;FieldName:string;FailOption:TAttrExtend;var Buffer):boolean;
+    function EditAttrField(PID:RTFP_ID;AttrNo:byte;FieldName:string;FailOption:TAttrExtend;value:string):boolean;
+    function ReadAttrField(PID:RTFP_ID;AttrNo:byte;FieldName:string;FailOption:TAttrExtend;var value:string):boolean;
 
 
 
@@ -237,7 +210,7 @@ type
     }
 
   public //连接显示
-    procedure TableValidate(ADataSet:TDataSet);
+    procedure TableValidate(ADataSet:TMemDataSet;table_enabled:TablesUse);
 
 
 
@@ -262,13 +235,6 @@ type
     property onCloseDone:TNotifyEvent read FOnCloseDone write FOnCloseDone;
     property onFirstEdit:TNotifyEvent read FOnFirstEdit write FOnFirstEdit;
 
-
-  {伪类方法}
-  protected
-    function GetLastPdfData:TLastPdfData;
-  public
-    property last_pdf_data:TLastPdfData read GetLastPdfData;
-
   {类方法}
   public
     class function NumToID(Num:dword):RTFP_ID;
@@ -287,8 +253,6 @@ type
     class function FileCopy(source,dest:string;bFailIfExist:boolean):boolean;//utf8的string版本
     class function FileDelete(source:string):boolean;//utf8的string版本
 
-    class function PDFCheck(filename:string):boolean;//如果成功检测pdf数据，就返回true，pdf数据保存在类属性last_pdf_data中
-
   {构造与析构}
   public
     constructor Create(AOwner:TComponent);virtual;
@@ -299,56 +263,14 @@ type
   end;
 
 
+//var CurrentRTFP:TRTFP;
+
 
 procedure AufScriptFuncDefineRTFP(Auf:TAuf);
-//function LastPdfDataStr:string;
-
-
 
 
 implementation
-uses RTFP_main;
-
-var _FLastPdfData:TLastPdfData;
-
-function LastPdfDataStr:string;
-begin
-  result:='';
-  with _FLastPdfData do begin
-    with Dublin do begin
-      result:=result+' Title:'+aTitle+#13#10;
-      result:=result+' Creator:'+aCreator+#13#10;
-      result:=result+' Description:'+aDescription+#13#10;
-      result:=result+' Publisher:'+aPublisher+#13#10;
-      result:=result+' Contributor:'+aContributor+#13#10;
-      result:=result+' Date:'+aDate+#13#10;
-      result:=result+' Type:'+aType+#13#10;
-      result:=result+' Format:'+aFormat+#13#10;
-      result:=result+' Identifier:'+aIdentifier+#13#10;
-      result:=result+' Source:'+aSource+#13#10;
-      result:=result+' Language:'+aLanguage+#13#10;
-      result:=result+' Relation:'+aRelation+#13#10;
-      result:=result+' Coverage:'+aCoverage+#13#10;
-      result:=result+' Rights:'+aRights+#13#10;
-
-    end;
-    with Extend do begin
-      result:=result+' Keywords:'+Keywords+#13#10;
-      result:=result+' Produrer:'+Produrer+#13#10;
-      result:=result+' CreationDate:'+CreationDate+#13#10;
-      result:=result+' ModDate:'+ModDate+#13#10;
-
-    end;
-    with FileData do begin
-      result:=result+' PageCount:'+IntToStr(PageCount)+#13#10;
-      result:=result+' Width:'+FloatToStr(PageWidth)+#13#10;
-      result:=result+' Height:'+FloatToStr(PageHeight)+#13#10;
-
-    end;
-  end;
-
-
-end;
+uses RTFP_main, rtfp_pdfobj;
 
 
 {
@@ -501,7 +423,52 @@ begin
   AufScpt:=Sender as TAufScript;
   AufScpt.writeln(CurrentRTFP.NewNoteID);
 end;
+
+procedure aufunc_ShowMeta(Sender:TObject);
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    filename:string;
+    RTFP_PDF:TRTFP_PDF;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(2) then exit;
+  if not AAuf.TryArgToString(1,filename) then exit;
+
+  RTFP_PDF:=TRTFP_PDF.Create(nil);
+  RTFP_PDF.LoadPdf(filename);
+
+  AufScpt.writeln(RTFP_PDF.Meta.ToString);
+
+  RTFP_PDF.ClosePdf;
+  RTFP_PDF.Free;
+
+end;
+
+procedure aufunc_ShowView(Sender:TObject);//没成功
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    filename:string;
+    RTFP_PDF:TRTFP_PDF;
+    page:dword;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(2) then exit;
+  if not AAuf.TryArgToString(1,filename) then exit;
+
+  RTFP_PDF:=TRTFP_PDF.Create(nil);
+  RTFP_PDF.LoadPdf(filename);
+
+  RTFP_PDF.ShowPage(FormDesktop.Image_PDF_View.Picture.Bitmap.Canvas.Handle,page);
+  //AufScpt.writeln(RTFP_PDF.Meta.ToString);
+
+  RTFP_PDF.ClosePdf;
+  RTFP_PDF.Free;
+end;
+
 {$ifdef test}
+
 procedure aufunc_test(Sender:TObject);
 var AufScpt:TAufScript;
     AAuf:TAuf;
@@ -512,10 +479,10 @@ begin
   if not AAuf.CheckArgs(2) then exit;
   if not AAuf.TryArgToString(1,filename) then exit;
 
-  if TRTFP.PDFCheck(filename) then;
-  AufScpt.writeln(LastPdfDataStr);
+  //
 
 end;
+
 {$endif}
 
 
@@ -532,9 +499,13 @@ begin
     Script.add_func('show.paper.notes',@aufunc_ShowPaperNote,'PID','显示Paper节点的Comment字段');
     Script.add_func('edit.attr',@aufunc_EditAttr,'PID,AttrNo,FieldName,Memo','修改PID节点中第AttrNo表的FieldName字段为Memo');
 
+    Script.add_func('pdf.meta',@aufunc_ShowMeta,'filename','检查pdf文件的meta数据');
+    Script.add_func('pdf.view',@aufunc_ShowView,'filename,page','预览pdf的page页');
 
+    {$ifdef test}
+    Script.add_func('test',@aufunc_test,'*arg','测试');
+    {$endif}
 
-    Script.add_func('test',@aufunc_test,'filename','测试');
 
   end;
 end;
@@ -945,6 +916,9 @@ begin
   Dbf.FieldDefs.Add('OID', ftAutoInc, 0, True);
   Dbf.FieldDefs.Add('PID', ftString, 8, True);
 
+  Dbf.FieldDefs.Add('Is_Read', ftSmallint, 0, True);//是否已读         否0 是1
+  Dbf.FieldDefs.Add('Is_Real', ftSmallint, 0, True);//是否为文档记录   否0 是1
+
   Dbf.FieldDefs.Add('DefaultCl', ftMemo, 8, True);//默认类型（半角逗号隔开）
 
 end;
@@ -959,8 +933,11 @@ begin
   Dbf.FieldDefs.Add('Comment', ftMemo, 0, True);//入库评价
   Dbf.FieldDefs.Add('User', ftSmallint, 0, True);//入库用户（UserID）
   Dbf.FieldDefs.Add('CreateTime', ftDateTime, 0, True);//入库日期
+  Dbf.FieldDefs.Add('ModifyTime', ftDateTime, 0, True);//修改日期
+  Dbf.FieldDefs.Add('CheckTime', ftDateTime, 0, True);//查看日期
   Dbf.FieldDefs.Add('FurtherCmt', ftMemo, 8, True);//更多评价（结构化文本格式，例如rubyHash）
   Dbf.FieldDefs.Add('Format', ftSmallint, 0, True);//预览显示格式（FormatID）
+
 
 end;
 
@@ -1391,7 +1368,7 @@ begin
 
 end;
 
-function TRTFP.EditAttrField(PID:RTFP_ID;AttrNo:byte;FieldName:string;FailOption:TAttrExtend;var Buffer):boolean;
+function TRTFP.EditAttrField(PID:RTFP_ID;AttrNo:byte;FieldName:string;FailOption:TAttrExtend;value:string):boolean;
 var tmpFieldDef:TFieldDef;
     tmpFields:TFields;
 begin
@@ -1411,18 +1388,13 @@ begin
     end;
 
   case tmpFieldDef.DataType of
-    ftString,ftMemo{,ftFmtMemo,ftFixedChar}:tmpFields[tmpFieldDef.ID].AsString:=pchar(Buffer);
-    //ftBCD:tmpFields[tmpFieldDef.ID].AsBCD:=(Buffer as TBCD);
-    ftBoolean:tmpFields[tmpFieldDef.ID].AsBoolean:=Boolean(Buffer);
-    //ftBytes,ftVarBytes,ftArray:tmpFields[tmpFieldDef.ID].AsBytes:=pbyte(Buffer);
-    //ftCurrency:tmpFields[tmpFieldDef.ID].AsCurrency:=Buffer;
-    //ftDate,ftTime,ftDateTime:tmpFields[tmpFieldDef.ID].AsDateTime:=Buffer;
-    ftFloat:tmpFields[tmpFieldDef.ID].AsFloat:=Double(Buffer);
-    ftInteger:tmpFields[tmpFieldDef.ID].AsInteger:=Longint(Buffer);
-    ftLargeint:tmpFields[tmpFieldDef.ID].AsLargeInt:=Int64(Buffer);
-    ftSmallint,ftWord:tmpFields[tmpFieldDef.ID].AsLongint:=Longint(Buffer);
-    //ftVariant:tmpFields[tmpFieldDef.ID].AsVariant:=Buffer;
-    ftWideString,ftFixedWideChar,ftWideMemo:tmpFields[tmpFieldDef.ID].AsWideString:=pwidechar(Buffer);
+    ftString,ftMemo:{tmpFields[tmpFieldDef.ID]}tmpFields.FieldByName(FieldName).AsString:=value;
+    ftBoolean:tmpFields.FieldByName(FieldName).AsBoolean:=(lowercase(value) = 'true') or (lowercase(value) = 't');
+    ftFloat:tmpFields.FieldByName(FieldName).AsFloat:=StrToFloat(value);
+    ftInteger:tmpFields.FieldByName(FieldName).AsInteger:=StrToInt(value);
+    ftLargeint:tmpFields.FieldByName(FieldName).AsLargeInt:=StrToInt(value);
+    ftSmallint,ftWord:tmpFields.FieldByName(FieldName).AsLongint:=StrToInt(value);
+    ftWideString,ftFixedWideChar,ftWideMemo:tmpFields.FieldByName(FieldName).AsWideString:=widestring(value);
     else assert(false,'ftType未预设。');
   end;
 
@@ -1430,7 +1402,7 @@ begin
 
 end;
 
-function TRTFP.ReadAttrField(PID:RTFP_ID;AttrNo:byte;FieldName:string;FailOption:TAttrExtend;var Buffer):boolean;
+function TRTFP.ReadAttrField(PID:RTFP_ID;AttrNo:byte;FieldName:string;FailOption:TAttrExtend;var value:string):boolean;
 begin
   result:=false;
 end;
@@ -1632,9 +1604,106 @@ end;
 
 
 
-procedure TRTFP.TableValidate(ADataSet:TDataSet);
+procedure TRTFP.TableValidate(ADataSet:TMemDataSet;table_enabled:TablesUse);
+var tmpDbf:TDbf;
+    tmpFieldDef:TFieldDef;
+    PID:RTFP_ID;
+    pi,pj,pcol,max_attr,ori_max:integer;
+    fields_numbers:array[0..9999] of record
+      AttrNo:byte;
+      Column:byte;
+    end;//记录总表字段与分表字段的列号关系
+    attr_range:array[0..99] of record
+      min,max:integer;
+    end;//记录分表字段在总表中的范围
+
 begin
-  //ADataSet
+  ADataSet.Clear;
+  tmpDbf:=FPaperDB;
+  for pcol:=0 to tmpDbf.FieldDefs.Count-1 do
+    begin
+      tmpFieldDef:=tmpDbf.FieldDefs[pcol];
+      ADataSet.FieldDefs.Add(tmpFieldDef.Name,tmpFieldDef.DataType,tmpFieldDef.Size);
+      fields_numbers[pcol].AttrNo:=255;//PaperDB 用 255 表示
+      fields_numbers[pcol].Column:=pcol;
+    end;
+  ori_max:=pcol;
+  inc(pcol);
+  pj:=0;
+  while FAttrGroupList[pj].Enabled do begin
+    if not (pj in table_enabled) then begin inc(pj);continue end;
+    tmpDbf:=FAttrGroupList[pj].Dbf;
+    attr_range[pj].min:=pcol;
+    for pi:=0 to tmpDbf.FieldDefs.Count-1 do
+      begin
+        tmpFieldDef:=tmpDbf.FieldDefs[pi];
+        if (tmpFieldDef.Name<>'OID') and (tmpFieldDef.Name<>'PID') then
+          begin
+            ADataSet.FieldDefs.Add(IntToStr(pj)+tmpFieldDef.Name,tmpFieldDef.DataType,tmpFieldDef.Size);
+            fields_numbers[pcol].AttrNo:=pj;
+            fields_numbers[pcol].Column:=pi;
+            attr_range[pj].max:=pcol;
+            inc(pcol);
+          end;
+      end;
+    inc(pj);
+    if pj>99 then break;
+  end;
+  if pj>99 then max_attr:=99 else max_attr:= pj-1;
+  ADataSet.CreateTable;
+  ADataSet.Open;
+  ADataSet.Last;
+  tmpDbf:=FPaperDB;
+  tmpDbf.First;
+  if not tmpDbf.EOF then repeat
+    ADataSet.Append;
+    for pi:=0 to ori_max do
+      begin
+        with ADataSet.Fields[pi] do case DataType of
+          ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo{,ftFmtMemo,ftFixedChar}:ADataSet.Fields[pi].AsString:=tmpDbf.Fields[pi].AsString;
+          ftBoolean:ADataSet.Fields[pi].AsBoolean:=tmpDbf.Fields[pi].AsBoolean;
+          ftFloat:ADataSet.Fields[pi].AsFloat:=tmpDbf.Fields[pi].AsFloat;
+          ftInteger,ftLargeint,ftSmallint,ftWord:ADataSet.Fields[pi].AsLargeInt:=tmpDbf.Fields[pi].AsLargeInt;
+          else assert(false,'ADataSet.Fields[pi].DataType未预设。');
+        end;
+      end;
+    tmpDbf.Next;
+  until tmpDbf.EOF;
+
+  for pj:=0 to max_attr do
+    begin
+      if pj in table_enabled then BEGIN
+        tmpDbf:=FAttrGroupList[pj].Dbf;
+        tmpDbf.First;
+
+        if not tmpDbf.EOF then repeat
+          PID:=tmpDbf.Fields[1].AsString;
+          ADataSet.First;
+          if not ADataSet.EOF then repeat
+            ADataSet.Next;
+            if ADataSet.Fields[1].AsString=PID then break;
+          until ADataSet.EOF;
+          if not ADataSet.EOF then begin
+            ADataSet.Edit;
+            for pi:=attr_range[pj].min to attr_range[pj].max do begin
+              case ADataSet.Fields[pi].DataType of
+                ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo{,ftFmtMemo,ftFixedChar}:
+                  ADataSet.Fields[pi].AsString:=tmpDbf.Fields[fields_numbers[pi].Column].AsString;
+                ftBoolean:
+                  ADataSet.Fields[pi].AsBoolean:=tmpDbf.Fields[fields_numbers[pi].Column].AsBoolean;
+                ftFloat:
+                  ADataSet.Fields[pi].AsFloat:=tmpDbf.Fields[fields_numbers[pi].Column].AsFloat;
+                ftInteger,ftLargeint,ftSmallint,ftWord:
+                  ADataSet.Fields[pi].AsLargeInt:=tmpDbf.Fields[fields_numbers[pi].Column].AsLargeInt;
+                else assert(false,'ADataSet.Fields[pi].DataType未预设。');
+              end;
+            end;
+            ADataSet.Post;
+          end else assert(false,'分表有主表没有的PID');
+          tmpDbf.Next;
+        until tmpDbf.EOF;
+      END;
+    end;
 end;
 
 
@@ -1696,13 +1765,6 @@ begin
   result:='';
   if index>99 then exit;
   if FAttrGroupList[index].Enabled then result:=FAttrGroupList[index].Name;
-end;
-
-
-
-function TRTFP.GetLastPdfData:TLastPdfData;
-begin
-  result:=_FLastPdfData;
 end;
 
 
@@ -1845,70 +1907,14 @@ begin
   result:=DeleteFile(pchar(UTF8ToWinCP(source)));
 end;
 
-class function TRTFP.PDFCheck(filename:string):boolean;
-var tmpPdf:pointer;
-    tmpPage:pointer;
-
-    function GetMeta(tag:pchar):unicodestring;
-    var pc:pwidechar;
-        len:uint64;
-    begin
-      GetMem(pc,250);
-      len:=248;
-      len:=FPDF_GetMetaText(tmpPdf,tag,pc,len);
-      result:=StrPas(pc);
-      FreeMem(pc,250);
-    end;
-
-begin
-  result:=false;
-  FPDF_InitLibrary;
-  tmpPdf:=FPDF_LoadDocument(pchar(UTF8toWinCP(filename)),'');
-  tmpPage:=FPDF_LoadPage(tmpPdf,0);
-
-  with _FLastPdfData do begin
-    with FileData do begin
-      PageCount:=FPDF_GetPageCount(tmpPdf);
-      PageHeight:=FPDF_GetPageHeight(tmpPage);
-      PageWidth:=FPDF_GetPageWidth(tmpPage);
-    end;
-    with Dublin do begin
-      aTitle:=GetMeta('Title');
-      aCreator:=GetMeta('Creator');
-      aDescription:=GetMeta('Description');
-      aPublisher:=GetMeta('Publisher');
-      aContributor:=GetMeta('Contributor');
-      aDate:=GetMeta('Date');
-      aType:=GetMeta('Type');
-      aFormat:=GetMeta('Format');
-      aIdentifier:=GetMeta('Identifier');
-      aSource:=GetMeta('Source');
-      aLanguage:=GetMeta('Language');
-      aRelation:=GetMeta('Relation');
-      aCoverage:=GetMeta('Coverage');
-      aRights:=GetMeta('Rights');
-    end;
-    with Extend do begin
-      Keywords:=GetMeta('Keywords');
-      Produrer:=GetMeta('Produrer');
-      CreationDate:=GetMeta('CreationDate');
-      ModDate:=GetMeta('ModDate');
-    end;
-
-  end;
-
-  FPDF_ClosePage(tmpPage);
-  {
-  if pdf<>nil then begin
-    FPDF_CloseDocument(tmpPdf);
-    result:=true;
-  end;
-  }
+{
+initialization
+  CurrentRTFP:=TRTFP.Create(FormDesktop);
+  FormDesktop.EventLink(CurrentRTFP);
 
 
-
-end;
-
-
+finalization
+  CurrentRTFP.Free;
+}
 end.
 

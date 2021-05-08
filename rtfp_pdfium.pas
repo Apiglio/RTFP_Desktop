@@ -165,7 +165,7 @@ type
 
 
 
-  { dataavail.h }
+  { fpdf_dataavail.h }
 
   FPDF_AVAIL=int32;
   size_t=uint32;
@@ -259,7 +259,7 @@ type
   //not finished
 
 
-  { dataavail.h }
+  { fpdf_dataavail.h }
 
   function FPDFAvail_Create(var file_avail:FX_FILEAVAIL;var afile:FPDF_FILEACCESS):FPDF_AVAIL;stdcall;external 'pdfium.dll';
   procedure FPDFAvail_Destroy(avail:FPDF_AVAIL);stdcall;external 'pdfium.dll';
@@ -270,6 +270,31 @@ type
   function FPDFAvail_IsFormAvail(avail:FPDF_AVAIL;var hints:FX_DOWNLOADHINTS):int32;stdcall;external 'pdfium.dll';
   function FPDFAvail_IsLinearized(avail:FPDF_AVAIL):int32;stdcall;external 'pdfium.dll';
 
+  { fpdf_structtree.h }
+
+  function FPDF_StructTree_GetForPage(page:FPDF_PAGE):FPDF_STRUCTTREE;stdcall;external 'pdfium.dll';
+  procedure FPDF_StructTree_Close(struct_tree:FPDF_STRUCTTREE);stdcall;external 'pdfium.dll';
+  function FPDF_StructTree_CountChildren(struct_tree:FPDF_STRUCTTREE):int32;stdcall;external 'pdfium.dll';
+  function FPDF_StructTree_GetChildAtIndex(struct_tree:FPDF_STRUCTTREE;index:int32):FPDF_STRUCTELEMENT;stdcall;external 'pdfium.dll';
+  function FPDF_StructElement_GetAltText(struct_element:FPDF_STRUCTELEMENT;buffer:PDF_PV;buflen:uint64):uint64;stdcall;external 'pdfium.dll';
+  function FPDF_StructElement_GetType(struct_element:FPDF_STRUCTELEMENT;buffer:PDF_PV;buflen:uint64):uint64;stdcall;external 'pdfium.dll';
+  function FPDF_StructElement_GetTitle(struct_element:FPDF_STRUCTELEMENT;buffer:PDF_PV;buflen:uint64):uint64;stdcall;external 'pdfium.dll';
+  function FPDF_StructElement_CountChildren(struct_element:FPDF_STRUCTELEMENT):int32;stdcall;external 'pdfium.dll';
+  function FPDF_StructElement_GetChildAtIndex(struct_element:FPDF_STRUCTELEMENT;index:int32):FPDF_STRUCTELEMENT;stdcall;external 'pdfium.dll';
+
+  { fpdf_attachment.h }
+
+  function FPDFDoc_GetAttachmentCount(document:FPDF_DOCUMENT):int32;stdcall;external 'pdfium.dll';
+  function FPDFDoc_AddAttachment(document:FPDF_DOCUMENT;name:FPDF_WIDESTRING):FPDF_ATTACHMENT;stdcall;external 'pdfium.dll';
+  function FPDFDoc_GetAttachment(document:FPDF_DOCUMENT;index:int32):FPDF_ATTACHMENT;stdcall;external 'pdfium.dll';
+  function FPDFDoc_DeleteAttachment(document:FPDF_DOCUMENT;index:int32):FPDF_BOOL;stdcall;external 'pdfium.dll';
+  function FPDFAttachment_GetName(attachment:FPDF_ATTACHMENT;buffer:PDF_PV;buflen:uint64):uint64;stdcall;external 'pdfium.dll';
+  function FPDFAttachment_HasKey(attachment:FPDF_ATTACHMENT;key:FPDF_BYTESTRING):FPDF_BOOL;stdcall;external 'pdfium.dll';
+  function FPDFAttachment_GetValueType(attachment:FPDF_ATTACHMENT;key:FPDF_BYTESTRING):FPDF_OBJECT_TYPE;stdcall;external 'pdfium.dll';
+  function FPDFAttachment_SetStringValue(attachment:FPDF_ATTACHMENT;key:FPDF_BYTESTRING;value:FPDF_WIDESTRING):FPDF_BOOL;stdcall;external 'pdfium.dll';
+  function FPDFAttachment_GetStringValue(attachment:FPDF_ATTACHMENT;key:FPDF_BYTESTRING;buffer:PDF_PV;buflen:uint64):uint64;stdcall;external 'pdfium.dll';
+  function FPDFAttachment_SetFile(attachment:FPDF_ATTACHMENT;document:FPDF_DOCUMENT;contents:PDF_PVC;const len:uint64):FPDF_BOOL;stdcall;external 'pdfium.dll';
+  function FPDFAttachment_GetFile(attachment:FPDF_ATTACHMENT;buffer:PDF_PV;buflen:uint64):uint64;stdcall;external 'pdfium.dll';
 
 
 implementation

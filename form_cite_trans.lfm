@@ -1,11 +1,11 @@
 object Form_CiteTrans: TForm_CiteTrans
-  Left = 787
+  Left = 727
   Height = 577
   Top = 338
-  Width = 888
+  Width = 948
   Caption = '引用格式转译'
   ClientHeight = 577
-  ClientWidth = 888
+  ClientWidth = 948
   DesignTimePPI = 120
   OnDeactivate = FormDeactivate
   OnHide = FormHide
@@ -17,10 +17,10 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = TabControl_CiteStyle
     AnchorSideRight.Side = asrBottom
-    Left = 413
+    Left = 443
     Height = 360
     Top = 32
-    Width = 470
+    Width = 500
     Anchors = [akTop, akLeft, akRight]
     Lines.Strings = (
       '%0 Journal Article'
@@ -43,18 +43,21 @@ object Form_CiteTrans: TForm_CiteTrans
   object ValueListEditor1: TValueListEditor
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = TabControl_Reference_Style
     Left = 5
     Height = 259
     Top = 5
-    Width = 403
+    Width = 433
+    Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Left = 5
     BorderSpacing.Top = 5
+    BorderSpacing.Right = 5
     FixedCols = 0
     RowCount = 2
     TabOrder = 1
     ColWidths = (
       80
-      319
+      349
     )
   end
   object Memo_Reference: TMemo
@@ -65,10 +68,10 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 413
+    Left = 443
     Height = 151
     Top = 421
-    Width = 470
+    Width = 500
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Bottom = 5
     Lines.Strings = (
@@ -86,7 +89,7 @@ object Form_CiteTrans: TForm_CiteTrans
     Left = 5
     Height = 252
     Top = 320
-    Width = 403
+    Width = 433
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 5
     BorderSpacing.Bottom = 5
@@ -98,11 +101,11 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideLeft.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 413
+    Left = 443
     Height = 24
     Top = 8
-    Width = 470
-    TabIndex = 2
+    Width = 500
+    TabIndex = 0
     Tabs.Strings = (
       'E-Study'
       'RefWorks'
@@ -110,7 +113,7 @@ object Form_CiteTrans: TForm_CiteTrans
       'NoteExpress'
       'NoteFirst'
     )
-    Anchors = [akTop, akLeft, akRight]
+    Anchors = [akTop, akRight]
     BorderSpacing.Left = 5
     BorderSpacing.Right = 5
     TabOrder = 4
@@ -121,10 +124,10 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 413
+    Left = 443
     Height = 24
     Top = 397
-    Width = 470
+    Width = 500
     TabIndex = 0
     Tabs.Strings = (
       'GB/T 7714'
@@ -139,16 +142,16 @@ object Form_CiteTrans: TForm_CiteTrans
     TabOrder = 5
   end
   object Button_Import: TButton
-    Left = 88
-    Height = 38
+    Left = 5
+    Height = 40
     Top = 272
     Width = 112
     Caption = '保存到库中'
     TabOrder = 6
   end
   object Button_Export: TButton
-    Left = 208
-    Height = 38
+    Left = 125
+    Height = 40
     Top = 272
     Width = 112
     Caption = '从库中读取'
