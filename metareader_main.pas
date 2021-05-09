@@ -35,14 +35,14 @@ var tmpPdf:pointer;
 
     function GetMeta(tag:pchar):string;
     var pc:pwidechar;
+        wchar:array[0..255]of widechar;
         len:uint64;
         ustr:unicodeString;
     begin
-      GetMem(pc,250);
+      pc:=@wchar[0];
       len:=248;
       len:=FPDF_GetMetaText(tmpPdf,tag,pc,len);
       ustr:=StrPas(pc);
-      FreeMem(pc,250);
       result:=UTF16ToUTF8(ustr);
     end;
 
@@ -68,9 +68,20 @@ begin
     for stmp in Dublin.list do begin
       pFields['DCMI:'+stmp]^:=GetMeta(pchar('dc:'+stmp));
     end;
+    {
     for stmp in Ext.list do begin
       pFields['Ext:'+stmp]^:=GetMeta(pchar('prism:'+stmp));
     end;
+    }
+    pFields['Ext:doi']^:=GetMeta(pchar('prism:doi'));
+    if pFields['Ext:doi']^='' then pFields['Ext:doi']^:=GetMeta(pchar('doi'));
+    pFields['Ext:versionIdentifier']^:=GetMeta(pchar('prism:versionIdentifier'));
+    pFields['Ext:lpage']^:=GetMeta(pchar('lpage'));
+    pFields['Ext:fpage']^:=GetMeta(pchar('fpage'));
+
+    //jav:journal_article_version
+
+    further.Add('none');
 
     //FPDF_CloseDocument(tmpPdf);//为啥就是内存错误呢
   end;

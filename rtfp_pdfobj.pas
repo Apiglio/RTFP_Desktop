@@ -7,6 +7,9 @@ interface
 uses
   Classes, SysUtils, rtfp_pdfium, Windows, LazUTF8;
 
+const
+  META_COMMA_REPLACE='&_comma_';
+
 type
 
   TPdfMeta=class
@@ -39,9 +42,10 @@ type
     Ext:record
       list:TStringList;
       DOI:string;
-      lPage,rPage:string;
+      lPage,fPage:string;
       versionIdentifier:string;
     end;
+    further:TStringList;
 
   protected
     function GetStringPtrByName(index:string):pstring;
@@ -86,6 +90,7 @@ type
 
   public
     function FileEqual(buf:pbyte;buflen:uint64):boolean;
+    procedure CopyTo(filename:string);
 
     procedure ShowPage(dc:HDC;page:uint64);
 
@@ -203,6 +208,11 @@ begin
   result:=true;
 end;
 
+procedure TRTFP_PDF.CopyTo(filename:string);
+begin
+  FMem.SaveToFile(filename);
+end;
+
 procedure TRTFP_PDF.ShowPage(dc:HDC;page:uint64);
 var a:file of byte;
 begin
@@ -254,7 +264,7 @@ begin
 
     'Ext:doi':result:=@Self.Ext.DOI;
     'Ext:versionIdentifier':result:=@Self.Ext.versionIdentifier;
-    'Ext:rpage':result:=@Self.Ext.rPage;
+    'Ext:fpage':result:=@Self.Ext.fPage;
     'Ext:lpage':result:=@Self.Ext.lPage;
 
     else assert(false,'无效的pdf元数据字段')
@@ -298,9 +308,10 @@ begin
   with Ext do begin
     DOI:='';
     lPage:='';
-    rPage:='';
+    fPage:='';
     versionIdentifier:='';
   end;
+  further.Clear;
 end;
 
 function TPdfMeta.ToString:string;
@@ -331,7 +342,12 @@ begin
     result:=result+' Width:'+FloatToStr(PageWidth)+#13#10;
     result:=result+' Height:'+FloatToStr(PageHeight)+#13#10;
   end;
-
+  result:=result+#13#10;
+  result:=result+'Further>'+#13#10;
+  for stmp in further do
+    begin
+      result:=result+' '+stmp+#13#10;
+    end;
 end;
 
 procedure TPdfMeta.LoadFromFile(filename:string);
@@ -364,7 +380,10 @@ begin
     PageWidth:=StrToFloat(ss[index]);
     inc(index);
     PageHeight:=StrToFloat(ss[index]);
+    inc(index);
   end;
+  further.CommaText:=StringReplace(ss[index],META_COMMA_REPLACE,',',[rfReplaceAll]);
+  //inc(index);
   ss.Free;
 end;
 
@@ -390,6 +409,7 @@ begin
     ss.add(FloatToStr(PageWidth));
     ss.add(FloatToStr(PageHeight));
   end;
+  ss.add(StringReplace(further.CommaText,',',META_COMMA_REPLACE,[rfReplaceAll]));
   ss.SaveToFile(filename);
   ss.Free;
 end;
@@ -400,6 +420,8 @@ begin
   DocInfo.list:=TStringList.Create;
   Dublin.list:=TStringList.Create;
   Ext.list:=TStringList.Create;
+
+  further:=TStringList.Create;
 
   DocInfo.list.Add('Title');
   DocInfo.list.Add('Author');
@@ -429,13 +451,15 @@ begin
   Ext.list.Add('doi');
   Ext.list.Add('versionIdentifier');
   Ext.list.Add('lpage');
-  Ext.list.Add('rpage');
+  Ext.list.Add('fpage');
 
 
 end;
 
 destructor TPdfMeta.Destroy;
 begin
+  further.Free;
+
   DocInfo.list.Free;
   Dublin.list.Free;
   Ext.list.Free;

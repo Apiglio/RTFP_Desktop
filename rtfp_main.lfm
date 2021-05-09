@@ -1,12 +1,12 @@
 object FormDesktop: TFormDesktop
-  Left = 659
-  Height = 618
+  Left = 629
+  Height = 616
   Top = 287
-  Width = 935
+  Width = 1038
   AllowDropFiles = True
   Caption = 'RTFP Desktop'
-  ClientHeight = 593
-  ClientWidth = 935
+  ClientHeight = 591
+  ClientWidth = 1038
   Constraints.MinHeight = 320
   Constraints.MinWidth = 640
   DesignTimePPI = 120
@@ -20,8 +20,8 @@ object FormDesktop: TFormDesktop
   object StatusBar: TStatusBar
     Left = 0
     Height = 26
-    Top = 567
-    Width = 935
+    Top = 565
+    Width = 1038
     Panels = <>
   end
   object PageControl_Project: TPageControl
@@ -32,17 +32,17 @@ object FormDesktop: TFormDesktop
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Splitter_RightH
     Left = 166
-    Height = 408
+    Height = 319
     Top = 0
-    Width = 769
+    Width = 872
     ActivePage = TabSheet_Project_DataGrid
     Anchors = [akTop, akLeft, akRight, akBottom]
     TabIndex = 1
     TabOrder = 1
     object TabSheet_Project_Properties: TTabSheet
       Caption = '工程信息'
-      ClientHeight = 375
-      ClientWidth = 761
+      ClientHeight = 286
+      ClientWidth = 864
       object PropertiesValueListEditor: TValueListEditor
         AnchorSideLeft.Control = TabSheet_Project_Properties
         AnchorSideTop.Control = TabSheet_Project_Properties
@@ -51,7 +51,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Control = TabSheet_Project_Properties
         AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 375
+        Height = 286
         Top = 0
         Width = 360
         Anchors = [akTop, akLeft, akBottom]
@@ -72,8 +72,8 @@ object FormDesktop: TFormDesktop
     end
     object TabSheet_Project_DataGrid: TTabSheet
       Caption = '文献节点'
-      ClientHeight = 375
-      ClientWidth = 761
+      ClientHeight = 286
+      ClientWidth = 864
       object Panel_DBGridMain: TPanel
         AnchorSideLeft.Control = TabSheet_Project_DataGrid
         AnchorSideTop.Control = TabSheet_Project_DataGrid
@@ -82,13 +82,13 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Control = TabSheet_Project_DataGrid
         AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 375
+        Height = 286
         Top = 0
-        Width = 761
+        Width = 864
         Anchors = [akTop, akLeft, akRight, akBottom]
         Caption = 'Panel_DBGridMain'
-        ClientHeight = 375
-        ClientWidth = 761
+        ClientHeight = 286
+        ClientWidth = 864
         TabOrder = 0
         object DBGrid_Main: TDBGrid
           AnchorSideLeft.Control = Panel_DBGridMain
@@ -97,20 +97,18 @@ object FormDesktop: TFormDesktop
           AnchorSideBottom.Control = Panel_DBGridMain
           AnchorSideBottom.Side = asrBottom
           Left = 1
-          Height = 373
+          Height = 284
           Top = 1
-          Width = 609
+          Width = 712
           Anchors = [akTop, akLeft, akRight, akBottom]
-          AutoFillColumns = True
           Color = clWindow
           Columns = <>
           DataSource = DataSource_Main
-          Options = [dgTitles, dgIndicator, dgColumnResize, dgColumnMove, dgColLines, dgRowLines, dgTabs, dgRowSelect, dgAlwaysShowSelection, dgConfirmDelete, dgCancelOnExit]
+          Options = [dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgRowSelect, dgAlwaysShowSelection, dgConfirmDelete, dgCancelOnExit, dgDblClickAutoSize]
           TabOrder = 0
-          OnEndDrag = DBGrid_MainEndDrag
-          OnMouseDown = DBGrid_MainMouseDown
-          OnMouseUp = DBGrid_MainMouseUp
-          OnStartDrag = DBGrid_MainStartDrag
+          OnCellClick = DBGrid_MainCellClick
+          OnKeyUp = DBGrid_MainKeyUp
+          OnMouseWheel = DBGrid_MainMouseWheel
         end
         object CheckListBox_MainAttrFilter: TCheckListBox
           AnchorSideLeft.Control = Panel_DBGridMain
@@ -120,8 +118,8 @@ object FormDesktop: TFormDesktop
           AnchorSideRight.Side = asrBottom
           AnchorSideBottom.Control = Panel_DBGridMain
           AnchorSideBottom.Side = asrBottom
-          Left = 610
-          Height = 373
+          Left = 713
+          Height = 284
           Top = 1
           Width = 150
           Anchors = [akTop, akRight, akBottom]
@@ -134,8 +132,8 @@ object FormDesktop: TFormDesktop
     end
     object TabSheet_Project_Attrs: TTabSheet
       Caption = '文献属性组'
-      ClientHeight = 375
-      ClientWidth = 761
+      ClientHeight = 286
+      ClientWidth = 864
       object DBGrid_Attrs: TDBGrid
         AnchorSideLeft.Control = TabSheet_Project_Attrs
         AnchorSideTop.Control = TabSheet_Project_Attrs
@@ -143,9 +141,9 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = ComboBox_Attrs_View
         Left = 0
-        Height = 342
+        Height = 253
         Top = 0
-        Width = 461
+        Width = 564
         Anchors = [akTop, akLeft, akRight, akBottom]
         AutoFillColumns = True
         BorderSpacing.Right = 300
@@ -164,8 +162,8 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrBottom
         Left = 70
         Height = 28
-        Top = 347
-        Width = 391
+        Top = 258
+        Width = 494
         Anchors = [akLeft, akRight, akBottom]
         BorderSpacing.Left = 5
         BorderSpacing.Right = 300
@@ -179,7 +177,7 @@ object FormDesktop: TFormDesktop
         AnchorSideTop.Side = asrCenter
         Left = 5
         Height = 15
-        Top = 354
+        Top = 265
         Width = 60
         BorderSpacing.Left = 5
         Caption = '预览表：'
@@ -270,7 +268,7 @@ object FormDesktop: TFormDesktop
     AnchorSideRight.Control = Splitter_MainV
     AnchorSideBottom.Control = StatusBar
     Left = 0
-    Height = 567
+    Height = 565
     Top = 0
     Width = 160
     Anchors = [akTop, akLeft, akRight, akBottom]
@@ -281,7 +279,7 @@ object FormDesktop: TFormDesktop
     AnchorSideTop.Control = Owner
     AnchorSideBottom.Control = StatusBar
     Left = 160
-    Height = 567
+    Height = 565
     Top = 0
     Width = 6
     Align = alNone
@@ -295,8 +293,8 @@ object FormDesktop: TFormDesktop
     Cursor = crVSplit
     Left = 166
     Height = 6
-    Top = 408
-    Width = 769
+    Top = 319
+    Width = 872
     Align = alNone
     Anchors = [akLeft, akRight]
     ResizeAnchor = akTop
@@ -310,31 +308,103 @@ object FormDesktop: TFormDesktop
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = StatusBar
     Left = 166
-    Height = 153
-    Top = 414
-    Width = 769
+    Height = 240
+    Top = 325
+    Width = 872
     ActivePage = TabSheet_Node_View
     Anchors = [akTop, akLeft, akRight, akBottom]
     TabIndex = 0
     TabOrder = 5
     OnChange = PageControl_NodeChange
     object TabSheet_Node_View: TTabSheet
-      Caption = '文献预览'
-    end
-    object TabSheet_Node_Edit: TTabSheet
-      Caption = '文献编辑'
+      Caption = '节点字段'
+      ClientHeight = 207
+      ClientWidth = 864
+      object ValueListEditor_NodeView: TValueListEditor
+        AnchorSideLeft.Control = TabSheet_Node_View
+        AnchorSideTop.Control = TabSheet_Node_View
+        AnchorSideRight.Control = TabSheet_Node_View
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = TabSheet_Node_View
+        AnchorSideBottom.Side = asrBottom
+        Left = 0
+        Height = 207
+        Top = 0
+        Width = 714
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        BorderSpacing.Right = 150
+        FixedCols = 0
+        RowCount = 2
+        TabOrder = 0
+        TitleCaptions.Strings = (
+          '字段'
+          '值'
+        )
+        ColWidths = (
+          80
+          630
+        )
+      end
+      object Button_NodeViewRecover: TButton
+        AnchorSideRight.Control = TabSheet_Node_View
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = TabSheet_Node_View
+        AnchorSideBottom.Side = asrBottom
+        Left = 732
+        Height = 32
+        Top = 165
+        Width = 112
+        Anchors = [akRight, akBottom]
+        BorderSpacing.Right = 20
+        BorderSpacing.Bottom = 10
+        Caption = '重置修改'
+        OnClick = Button_NodeViewRecoverClick
+        TabOrder = 1
+      end
+      object Button_NodeViewPost: TButton
+        AnchorSideLeft.Control = ValueListEditor_NodeView
+        AnchorSideRight.Control = TabSheet_Node_View
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = Button_NodeViewRecover
+        Left = 732
+        Height = 32
+        Top = 123
+        Width = 112
+        Anchors = [akRight, akBottom]
+        BorderSpacing.Right = 20
+        BorderSpacing.Bottom = 10
+        Caption = '提交修改'
+        OnClick = Button_NodeViewPostClick
+        TabOrder = 2
+      end
+      object Button_NodeViewAddAttr: TButton
+        AnchorSideRight.Control = TabSheet_Node_View
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = Button_NodeViewPost
+        Left = 732
+        Height = 32
+        Top = 81
+        Width = 112
+        Anchors = [akRight, akBottom]
+        BorderSpacing.Right = 20
+        BorderSpacing.Bottom = 10
+        Caption = '新增属性组'
+        Enabled = False
+        OnClick = Button_NodeViewAddAttrClick
+        TabOrder = 3
+      end
     end
     object TabSheet_Node_PDF: TTabSheet
-      Caption = 'PDF'
-      ClientHeight = 120
-      ClientWidth = 761
+      Caption = 'PDF预览'
+      ClientHeight = 207
+      ClientWidth = 864
       object Image_PDF_View: TImage
         AnchorSideLeft.Control = TabSheet_Node_PDF
         AnchorSideTop.Control = TabSheet_Node_PDF
         AnchorSideBottom.Control = TabSheet_Node_PDF
         AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 120
+        Height = 207
         Top = 0
         Width = 208
         Anchors = [akTop, akLeft, akBottom]
@@ -368,6 +438,13 @@ object FormDesktop: TFormDesktop
         Caption = '关闭'
         Enabled = False
         OnClick = MenuItem_project_closeClick
+      end
+      object MenuItem5: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem_project_recent: TMenuItem
+        Caption = '最近打开的工程'
+        Enabled = False
       end
       object MenuItem1: TMenuItem
         Caption = '-'
