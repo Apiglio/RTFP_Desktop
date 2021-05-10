@@ -83,7 +83,6 @@ type
     property Size:uint64 read FSize;
     property Meta:TPdfMeta read FMeta;
 
-
   public
     function LoadPdf(filename:string):boolean;
     function ClosePdf:boolean;
@@ -162,7 +161,7 @@ begin
   AssignFile(a,'MetaData.wait');
   rewrite(a);
   closeFile(a);
-  WinExec(pchar(GetCurrentDir+'\RTFP_MetaReader.exe meta "'+UTF8ToWinCP(FFilename)+'"'),SW_Hide);
+  WinExec(pchar({GetCurrentDir+'\'+}'RTFP_MetaReader.exe meta "'+UTF8ToWinCP(FFilename)+'"'),SW_Hide);
   repeat
     //这里可以增加一个取消窗口
     //sleep(100);

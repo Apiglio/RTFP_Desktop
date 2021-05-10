@@ -10,7 +10,7 @@ unit RTFP_definition;
 interface
 
 uses
-  Classes, SysUtils, Dialogs, ValEdit, Windows, LazUTF8,
+  Classes, SysUtils, Dialogs, ValEdit, Windows, LazUTF8, StdCtrls,
   {$ifndef insert}
   Apiglio_Useful, auf_ram_var,
   //AufScript_Frame,
@@ -34,6 +34,7 @@ const
 
   RTFP_ID_ORDER = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-';
   DefaultOpenExe = ''; //cmd.exe /c
+  Comma_Symbol = '&apig_comma&';
 
   _Col_OID_ = 'OID';
   _Col_PID_ = 'PID';
@@ -149,6 +150,7 @@ type
 
     FIsOpen:boolean;
     FIsChanged:boolean;
+    FIsUpdating:boolean;//true时不触发onChange
 
   protected
     procedure SetUser(str:string);
@@ -261,6 +263,9 @@ type
     procedure ReNewCheckTimeWithoutChange(PID:RTFP_ID);
 
 
+    procedure BeginUpdate;
+    procedure EndUpdate;
+
     //这些用于在属性组表中增加指定PID的记录
     //这两个会打开Edit模式：
     function FindAttrRecord(PID:RTFP_ID;AttrNo:byte):TFields;//未找到返回nil，这个函数用于调用TFields，一般用来修改数据，调用之后需要加PostAttrRecord用于保存更新和表示工程修改
@@ -319,6 +324,8 @@ type
     procedure NodeViewValidate(PID:RTFP_ID;AValueListEditor:TValueListEditor);
     procedure NodeViewDataPost(PID:RTFP_ID;AValueListEditor:TValueListEditor);
 
+    procedure FmtCmtValidate(PID:RTFP_ID;AttrNo:byte;FieldName:string;Memo:TMemo);
+    procedure FmtCmtDataPost(PID:RTFP_ID;AttrNo:byte;FieldName:string;Memo:TMemo);
 
 
 
@@ -351,6 +358,8 @@ type
 
     class function GetDateTimeStr:string;inline;
     class function GetDateDir:string;inline;
+
+    class function IsProjectFile(filename:ansistring):boolean;
 
     class function CanBuildName(projname:string):boolean;
     class function CanBuildPath(pathname:string):boolean;
@@ -685,6 +694,7 @@ begin
 
   FIsChanged:=false;
   FIsOpen:=false;
+  FIsUpdating:=false;
 
   FOnNew:=nil;
   FOnNewDone:=nil;
@@ -1261,7 +1271,7 @@ begin
   TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\format');
   TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\attr');
 
-  NewProjectFile(p_title,p_user);
+  NewProjectFile(WinCPToUTF8(p_title),WinCPToUTF8(p_user));
   NewUserList;
   NewFormatList;
 
@@ -1355,7 +1365,7 @@ procedure TRTFP.Change;
 begin
   if (not Self.FIsChanged) and (@onFirstEdit<>nil) then Self.onFirstEdit(Self);
   Self.FIsChanged:=true;
-  if FOnChange<>nil then FOnChange(Self);
+  if (not FIsUpdating) and (FOnChange<>nil) then FOnChange(Self);
 end;
 
 
@@ -1519,8 +1529,6 @@ begin
   FileStream:=TMemoryStream.Create;
   FileStream.LoadFromFile(fullfilename);
 
-
-
   with FPaperDB do begin
     First;
     repeat
@@ -1545,8 +1553,6 @@ begin
         end;
       Next;
     until EOF or (PID<>'');
-
-
   end;
 
   if cps then CpStr.Free;
@@ -1720,6 +1726,16 @@ procedure TRTFP.ReNewCheckTimeWithoutChange(PID:RTFP_ID);
 begin
   FindAttrRecord(PID,2).FieldByName(_Col_notes_CheckTime_).AsDateTime:=Now;
   FAttrGroupList[2].Dbf.Post;
+end;
+
+procedure TRTFP.BeginUpdate;
+begin
+  FIsUpdating:=true;
+end;
+
+procedure TRTFP.EndUpdate;
+begin
+  FIsUpdating:=false;
 end;
 
 function TRTFP.FindAttrRecord(PID:RTFP_ID;AttrNo:byte):TFields;
@@ -1939,6 +1955,8 @@ end;
 procedure TRTFP.TableValidate(ADataSet:TMemDataSet;table_enabled:TablesUse);
 var tmpDbf:TDbf;
     tmpFieldDef:TFieldDef;
+    tmpFieldType:TFieldType;
+    tmpSize:Longint;
     PID:RTFP_ID;
     pi,pj,pcol,max_attr,ori_max:integer;
     fields_numbers:array[0..9999] of record
@@ -1971,7 +1989,14 @@ begin
         tmpFieldDef:=tmpDbf.FieldDefs[pi];
         if (tmpFieldDef.Name<>'OID') and (tmpFieldDef.Name<>'PID') then
           begin
-            ADataSet.FieldDefs.Add(IntToStr(pj)+tmpFieldDef.Name,tmpFieldDef.DataType,tmpFieldDef.Size);
+            tmpFieldType:=tmpFieldDef.DataType;
+            tmpSize:=tmpFieldDef.Size;
+            if tmpFieldType in [ftMemo,ftWideMemo,ftFmtMemo] then
+              begin
+                tmpFieldType:=ftString;
+                tmpSIze:=250;
+              end;
+            ADataSet.FieldDefs.Add(IntToStr(pj)+tmpFieldDef.Name,tmpFieldType,tmpSize);
             fields_numbers[pcol].AttrNo:=pj;
             fields_numbers[pcol].Column:=pi;
             attr_range[pj].max:=pcol;
@@ -2099,6 +2124,7 @@ procedure TRTFP.NodeViewDataPost(PID:RTFP_ID;AValueListEditor:TValueListEditor);
 var ColName,AttrName,FieldName:string;
     pcol,posi,len:integer;
 begin
+  BeginUpdate;
   for pcol:=1 to AValueListEditor.RowCount-1 do
     begin
       ColName:=AValueListEditor.Keys[pcol];
@@ -2110,11 +2136,46 @@ begin
         delete(AttrName,posi,len);
         delete(FieldName,1,posi);
         EditAttrField(PID,AttrsByName[AttrName],FieldName,[aeFailIfNoPID,aeFailIfNoField],AValueListEditor.Values[ColName]);
-        //连续调用这个太费时间，之后修改
       end;
     end;
+  ReNewModifyTime(PID);//这一句在解决主表更新问题后移到EndUpdate之下
+  EndUpdate;
 end;
 
+procedure TRTFP.FmtCmtValidate(PID:RTFP_ID;AttrNo:byte;FieldName:string;Memo:TMemo);
+var tmpField:TField;
+    tmpFields:TFields;
+begin
+  Memo.Clear;
+  tmpFields:=FindAttrRecord(PID,attrNo);
+  if tmpFields<>nil then begin
+    tmpField:=FAttrGroupList[attrNo].Dbf.FieldByName(FieldName);
+      case tmpField.DataType of
+        ftMemo,ftWideMemo,ftFmtMemo:
+          Memo.Lines.CommaText:=StringReplace(tmpFields.FieldByName(FieldName).AsString,Comma_Symbol,#13#10,[rfReplaceAll]);
+        else exit;
+      end;
+  end;
+  ReNewCheckTimeWithoutChange(PID);//如果Change会导致Validate更新，这个需要重构以下UI逻辑，暂时先不管
+end;
+
+procedure TRTFP.FmtCmtDataPost(PID:RTFP_ID;AttrNo:byte;FieldName:string;Memo:TMemo);
+var tmpField:TField;
+    tmpFields:TFields;
+begin
+  BeginUpdate;
+  tmpFields:=FindAttrRecord(PID,attrNo);
+  if tmpFields<>nil then begin
+    tmpField:=FAttrGroupList[attrNo].Dbf.FieldByName(FieldName);
+      case tmpField.DataType of
+        ftMemo,ftWideMemo,ftFmtMemo:
+          tmpFields.FieldByName(FieldName).AsString:=StringReplace(Memo.Lines.CommaText,#13#10,Comma_Symbol,[rfReplaceAll]);
+        else exit;
+      end;
+  end;
+  ReNewModifyTime(PID);//这一句在解决主表更新问题后移到EndUpdate之下
+  EndUpdate;
+end;
 
 
 procedure TRTFP.SetUser(str:string);
@@ -2256,6 +2317,22 @@ begin
       inc(i);
     end;
   result:=true;
+end;
+
+class function TRTFP.IsProjectFile(filename:ansistring):boolean;
+var ext:ansistring;
+    po:integer;
+begin
+  result:=false;
+  if filename = '' then exit;
+  ext:=filename;
+  po:=pos('.',ext);
+  if po<=0 then exit
+  else repeat
+    delete(ext,1,po);
+    po:=pos('.',ext);
+  until po<=0;
+  if lowercase(ext)='rtfp' then result:=true;
 end;
 
 class function TRTFP.CanBuildPath(pathname:ansistring):boolean;
