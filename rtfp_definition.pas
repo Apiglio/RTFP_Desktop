@@ -32,7 +32,83 @@ const
   rnmbNo     = 7;
 
 
-  RTFP_ID_ORDER='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-';
+  RTFP_ID_ORDER = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-';
+  DefaultOpenExe = ''; //cmd.exe /c
+
+  _Col_OID_ = 'OID';
+  _Col_PID_ = 'PID';
+  _Col_IID_ = 'IID';
+  _Col_NID_ = 'NID';
+
+  _Col_Paper_Is_Backup_ = '是否备份';
+  _Col_Paper_Folder_ = '目录';
+  _Col_Paper_FileName_ = '文件名';
+  _Col_Paper_FileSize_ = '文件大小';
+  _Col_Paper_FileHash_ = '文件哈希';
+
+  _Num_Paper_OID_ = 0;
+  _Num_Paper_PID_ = 1;
+  _Num_Paper_Is_Backup_ = 2;
+  _Num_Paper_Folder_ = 3;
+  _Num_Paper_FileName_ = 4;
+  _Num_Paper_FileSize_ = 5;
+  _Num_Paper_FileHash_ = 6;
+
+  _Num_Attr_OID_ = 0;
+  _Num_Attr_PID_ = 1;
+
+  _Col_Image_FileSize_ = '文件大小';
+  _Col_Image_FileHash_ = '文件哈希';
+  _Col_Image_Folder_ = '目录';
+  _Col_Image_FileName_ = '文件名';
+  _Col_Image_Width_ = '宽度';
+  _Col_Image_Height_ = '高度';
+  _Col_Note_Folder_ = '目录';
+  _Col_Note_FileName_ = '文件名';
+  _Col_basic_RefType_ = '类型';
+  _Col_basic_Title_ = '标题';
+  _Col_basic_Author_ = '作者';
+  _Col_basic_Corresp_ = '通讯作者';
+  _Col_basic_Source_ = '来源';
+  _Col_basic_PubTime_ = '发表时间';
+  _Col_basic_Keyword_ = '关键词';
+  _Col_basic_Summary_ = '摘要';
+  _Col_basic_Organ_ = '单位';
+  _Col_basic_Year_ = '年份';
+  _Col_basic_Volume_ = '卷';
+  _Col_basic_Issue_ = '期';
+  _Col_basic_PageCount_ = '页数';
+  _Col_basic_Page_ = '页码';
+  _Col_basic_Fund_ = '基金';
+  _Col_basic_Link_ = '链接';
+  _Col_basic_doi_ = 'DOI';
+  _Col_basic_CLC_ = '中图号';
+  _Col_basic_ISBN_ISSN_ = 'ISBN';
+  _Col_basic_Note_ = '注释';
+  _Col_basic_DataProv_ = 'DataProv.';
+  _Col_basic_Has_Ext_ = 'Has_Ext';
+  _Col_metas_Title_ = 'Title';
+  _Col_metas_Authors_ = 'Authors';
+  _Col_metas_Subject_ = 'Subject';
+  _Col_metas_KeyWord_ = 'KeyWord';
+  _Col_metas_Creator_ = 'Creator';
+  _Col_metas_Produce_ = 'Produce';
+  _Col_metas_CreDate_ = 'CreDate';
+  _Col_metas_ModDate_ = 'ModDate';
+  _Col_metas_Trapped_ = 'Trapped';
+  _Col_class_Is_Read_ = '是否已读';
+  _Col_class_DefaultCl_ = '默认分类';
+  _Col_notes_Usage_ = '用途';
+  _Col_notes_Rank_ = '评分';
+  _Col_notes_Comment_ = '笔记';
+  _Col_notes_User_ = '入库用户';
+  _Col_notes_CreateTime_ = '入库时间';
+  _Col_notes_ModifyTime_ = '最近修改';
+  _Col_notes_CheckTime_ = '最近查询';
+  _Col_notes_FurtherCmt_ = 'FurtherCmt';
+  _Col_notes_Format_ = 'Format';
+
+
 
 type
 
@@ -88,6 +164,10 @@ type
     function GetAttrsName(index:byte):string;
     function GetAttrsByName(index:string):byte;//找不到返回255
 
+    function GetOpenPdfExe:ansistring;
+    function GetOpenCajExe:ansistring;
+
+
   public
     //工程基本属性
     property User:string read GetUser write SetUser;
@@ -96,6 +176,9 @@ type
     property Tag[index:string]:string read GetTag write SetTag;
     property AttrsName[index:byte]:string read GetAttrsName;
     property AttrsByName[index:string]:byte read GetAttrsByName;
+
+    property OpenPdfExe:ansistring read GetOpenPdfExe;
+    property OpenCajExe:ansistring read GetOpenCajExe;
 
 
     //工程运行状态
@@ -152,10 +235,10 @@ type
 
 
   public //工程打开关闭操作
-    procedure New(filename:string;p_title:string;p_user:string);
-    Procedure Open(filename:string);
+    procedure New(filename:ansistring;p_title:string;p_user:string);
+    Procedure Open(filename:ansistring);
     procedure Save;
-    procedure SaveAs(filename:string);
+    procedure SaveAs(filename:ansistring);
     function Close:boolean;
 
     procedure Change;//用于标记工程已经发生改变，如果之前未改变，会触发OnFirstEdit
@@ -197,6 +280,11 @@ type
     function AddPaper(fullfilename:string;AddPaperMethod:TAddPaperMethod=apmFullBackup):RTFP_ID;//新增一个文献到工程
     function FindPaper(fullfilename:string):RTFP_ID;//查找具体文件在工程中的PID，未找到返回000000
     procedure DeletePaper(PID:RTFP_ID);//移除指定PID的文献
+
+    procedure OpenPaperAsPDF(PID:RTFP_ID);
+    procedure OpenPaperAsCAJ(PID:RTFP_ID);
+
+
     {
     procedure EditPaperData(PID:RTFP_ID;col_name,value:string);//修改指定PID文献的属性
     function ReadPaperData(PID:RTFP_ID;col_name:string):string;//读取指定PID文献的属性
@@ -224,6 +312,7 @@ type
 
   public //连接显示
     procedure ProjectPropertiesValidate(AValueListEditor:TValueListEditor);
+    procedure ProjectPropertiesDataPost(AValueListEditor:TValueListEditor);
 
 
     procedure TableValidate(ADataSet:TMemDataSet;table_enabled:TablesUse);
@@ -272,6 +361,7 @@ type
     class function FileHash(AFileStream:TStream):string;//返回一个239长度的文件Hash
     class function FileCopy(source,dest:string;bFailIfExist:boolean):boolean;//utf8的string版本
     class function FileDelete(source:string):boolean;//utf8的string版本
+    class function MakeDir(filename:string):boolean;
 
   {构造与析构}
   public
@@ -832,89 +922,89 @@ end;
 
 procedure TRTFP.GenPaperAttribute(Dbf:TDbf);
 begin
-  Dbf.FieldDefs.Add('OID', ftAutoInc, 0, True);
-  Dbf.FieldDefs.Add('PID', ftString, 8, True);
+  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0, True);
+  Dbf.FieldDefs.Add(_Col_PID_, ftString, 8, True);
+
+  Dbf.FieldDefs.Add(_Col_Paper_Is_Backup_, ftBoolean, 0, True);//是否为文档记录   否0 是1
+
   //文件位置
-  Dbf.FieldDefs.Add('Folder', ftString, 8, True);
-  Dbf.FieldDefs.Add('FileName', ftString, 240, True);
+  Dbf.FieldDefs.Add(_Col_Paper_Folder_, ftString, 8, True);
+  Dbf.FieldDefs.Add(_Col_Paper_FileName_, ftString, 240, True);
   //重复检验
-  Dbf.FieldDefs.Add('FileSize', ftLargeInt, 8, True);
-  Dbf.FieldDefs.Add('FileHash', ftString, 255, True);
-  //默认的三个属性组
-  //Dbf.FieldDefs.Add('Attr_00', ftInteger, 4, false);
-  //Dbf.FieldDefs.Add('Attr_01', ftInteger, 4, false);
-  //Dbf.FieldDefs.Add('Attr_02', ftInteger, 4, false);
+  Dbf.FieldDefs.Add(_Col_Paper_FileSize_, ftLargeInt, 8, True);
+  Dbf.FieldDefs.Add(_Col_Paper_FileHash_, ftString, 255, True);
+
 end;
 
 procedure TRTFP.GenImageAttribute(Dbf:TDbf);
 begin
-  Dbf.FieldDefs.Add('OID', ftAutoInc, 0, True);
-  Dbf.FieldDefs.Add('IID', ftString, 8, True);
+  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0, True);
+  Dbf.FieldDefs.Add(_Col_IID_, ftString, 8, True);
   //重复检验
-  Dbf.FieldDefs.Add('FileSize', ftLargeInt, 8, True);
-  Dbf.FieldDefs.Add('FileHash', ftString, 255, True);
+  Dbf.FieldDefs.Add(_Col_Image_FileSize_, ftLargeInt, 8, True);
+  Dbf.FieldDefs.Add(_Col_Image_FileHash_, ftString, 255, True);
   //文件位置
-  Dbf.FieldDefs.Add('Folder', ftString, 8, True);
-  Dbf.FieldDefs.Add('FileName', ftString, 240, True);
+  Dbf.FieldDefs.Add(_Col_Image_Folder_, ftString, 8, True);
+  Dbf.FieldDefs.Add(_Col_Image_FileName_, ftString, 240, True);
   //基础信息
-  Dbf.FieldDefs.Add('Width', ftInteger, 4, True);
-  Dbf.FieldDefs.Add('Height', ftInteger, 4, True);
+  Dbf.FieldDefs.Add(_Col_Image_Width_, ftInteger, 4, True);
+  Dbf.FieldDefs.Add(_Col_Image_Height_, ftInteger, 4, True);
 
 end;
 
 procedure TRTFP.GenNoteAttribute(Dbf:TDbf);
 begin
-  Dbf.FieldDefs.Add('OID', ftAutoInc, 0, True);
-  Dbf.FieldDefs.Add('NID', ftString, 8, True);
+  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0, True);
+  Dbf.FieldDefs.Add(_Col_NID_, ftString, 8, True);
   //文件位置
-  Dbf.FieldDefs.Add('Folder', ftString, 8, True);
-  Dbf.FieldDefs.Add('FileName', ftString, 240, True);
+  Dbf.FieldDefs.Add(_Col_Note_Folder_, ftString, 8, True);
+  Dbf.FieldDefs.Add(_Col_Note_FileName_, ftString, 240, True);
 end;
 
 procedure TRTFP.GenAttrBasicAttribute(Dbf:TDbf);
 begin
-  Dbf.FieldDefs.Add('OID', ftAutoInc, 0, True);
-  Dbf.FieldDefs.Add('PID', ftString, 8, True);
+  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0, True);
+  Dbf.FieldDefs.Add(_Col_PID_, ftString, 8, True);
 
-  Dbf.FieldDefs.Add('RefType', ftString, 32, false);//引用类型（期刊、会议、专利……）
-  Dbf.FieldDefs.Add('Title', ftMemo, 0, false);//标题
-  Dbf.FieldDefs.Add('Author', ftString, 255, false);//作者，半角逗号隔开
-  Dbf.FieldDefs.Add('Corresp.', ftString, 32, false);//通讯作者
-  Dbf.FieldDefs.Add('Source', ftString, 64, false);//来源(期刊或出版社)
-  Dbf.FieldDefs.Add('PubTime', ftDate, 0, false);//发表日期
-  Dbf.FieldDefs.Add('Keyword', ftString, 255, false);//关键词，半角逗号隔开
-  Dbf.FieldDefs.Add('Summary', ftMemo, 0, false);//摘要
-  Dbf.FieldDefs.Add('Organ', ftMemo, 0, false);//单位，半角逗号隔开
-  Dbf.FieldDefs.Add('Year', ftSmallint, 0, false);//年
-  Dbf.FieldDefs.Add('Volume', ftSmallint, 0, false);//卷
-  Dbf.FieldDefs.Add('Issue', ftSmallint, 0, false);//期
-  Dbf.FieldDefs.Add('PageCount', ftSmallint, 0, false);//页数
-  Dbf.FieldDefs.Add('Page', ftString, 64, false);//页码
-  Dbf.FieldDefs.Add('Fund', ftString, 255, false);//基金
-  Dbf.FieldDefs.Add('Link', ftString, 255, false);//链接
-  Dbf.FieldDefs.Add('doi', ftString, 255, false);//DOI
-  Dbf.FieldDefs.Add('CLC', ftString, 32, false);//中图分类号
-  Dbf.FieldDefs.Add('ISBN_ISSN', ftString, 32, false);
-  Dbf.FieldDefs.Add('Note', ftString, 32, false);
-  Dbf.FieldDefs.Add('DataProv.', ftString, 255, false);//DataProvider
-  Dbf.FieldDefs.Add('Has_Ext', ftSmallint, 1, false);//是否有BasicExt数据，是1 否0
+  Dbf.FieldDefs.Add(_Col_basic_RefType_, ftString, 32, false);//引用类型（期刊、会议、专利……）
+  Dbf.FieldDefs.Add(_Col_basic_Title_, ftMemo, 0, false);//标题
+  Dbf.FieldDefs.Add(_Col_basic_Author_, ftString, 255, false);//作者，半角逗号隔开
+  Dbf.FieldDefs.Add(_Col_basic_Corresp_, ftString, 32, false);//通讯作者
+  Dbf.FieldDefs.Add(_Col_basic_Source_, ftString, 64, false);//来源(期刊或出版社)
+  Dbf.FieldDefs.Add(_Col_basic_PubTime_, ftDate, 0, false);//发表日期
+  Dbf.FieldDefs.Add(_Col_basic_Keyword_, ftString, 255, false);//关键词，半角逗号隔开
+  Dbf.FieldDefs.Add(_Col_basic_Summary_, ftMemo, 0, false);//摘要
+  Dbf.FieldDefs.Add(_Col_basic_Organ_, ftMemo, 0, false);//单位，半角逗号隔开
+  Dbf.FieldDefs.Add(_Col_basic_Year_, ftSmallint, 0, false);//年
+  Dbf.FieldDefs.Add(_Col_basic_Volume_, ftSmallint, 0, false);//卷
+  Dbf.FieldDefs.Add(_Col_basic_Issue_, ftSmallint, 0, false);//期
+  Dbf.FieldDefs.Add(_Col_basic_PageCount_, ftSmallint, 0, false);//页数
+  Dbf.FieldDefs.Add(_Col_basic_Page_, ftString, 64, false);//页码
+  Dbf.FieldDefs.Add(_Col_basic_Fund_, ftString, 255, false);//基金
+  Dbf.FieldDefs.Add(_Col_basic_Link_, ftString, 255, false);//链接
+  Dbf.FieldDefs.Add(_Col_basic_doi_, ftString, 255, false);//DOI
+  Dbf.FieldDefs.Add(_Col_basic_CLC_, ftString, 32, false);//中图分类号
+  Dbf.FieldDefs.Add(_Col_basic_ISBN_ISSN_, ftString, 32, false);
+  Dbf.FieldDefs.Add(_Col_basic_Note_, ftString, 32, false);
+  Dbf.FieldDefs.Add(_Col_basic_DataProv_, ftString, 255, false);//DataProvider
+  Dbf.FieldDefs.Add(_Col_basic_Has_Ext_, ftSmallint, 1, false);//是否有BasicExt数据，是1 否0
   //会议、专利、标准等就用BasicExt属性组好了
 
 end;
 procedure TRTFP.GenAttrMetasAttribute(Dbf:TDbf);
 begin
-  Dbf.FieldDefs.Add('OID', ftAutoInc, 0, True);
-  Dbf.FieldDefs.Add('PID', ftString, 8, True);
+  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0, True);
+  Dbf.FieldDefs.Add(_Col_PID_, ftString, 8, True);
   //pdf默认meta
-  Dbf.FieldDefs.Add('Title', ftMemo, 0, True);
-  Dbf.FieldDefs.Add('Authors', ftMemo, 0, True);
-  Dbf.FieldDefs.Add('Subject', ftMemo, 8, True);
-  Dbf.FieldDefs.Add('KeyWord', ftMemo, 8, True);
-  Dbf.FieldDefs.Add('Creator', ftMemo, 8, True);
-  Dbf.FieldDefs.Add('Produce', ftMemo, 8, True);
-  Dbf.FieldDefs.Add('CreDate', ftString, 64, True);
-  Dbf.FieldDefs.Add('ModDate', ftString, 64, True);
-  Dbf.FieldDefs.Add('Trapped', ftMemo, 0, True);
+  Dbf.FieldDefs.Add(_Col_metas_Title_, ftMemo, 0, True);
+  Dbf.FieldDefs.Add(_Col_metas_Authors_, ftMemo, 0, True);
+  Dbf.FieldDefs.Add(_Col_metas_Subject_, ftMemo, 8, True);
+  Dbf.FieldDefs.Add(_Col_metas_KeyWord_, ftMemo, 8, True);
+  Dbf.FieldDefs.Add(_Col_metas_Creator_, ftMemo, 8, True);
+  Dbf.FieldDefs.Add(_Col_metas_Produce_, ftMemo, 8, True);
+  Dbf.FieldDefs.Add(_Col_metas_CreDate_, ftString, 64, True);
+  Dbf.FieldDefs.Add(_Col_metas_ModDate_, ftString, 64, True);
+  Dbf.FieldDefs.Add(_Col_metas_Trapped_, ftMemo, 0, True);
 
 end;
 
@@ -987,38 +1077,37 @@ ER  -
 
 procedure TRTFP.GenAttrClassAttribute(Dbf:TDbf);
 begin
-  Dbf.FieldDefs.Add('OID', ftAutoInc, 0, True);
-  Dbf.FieldDefs.Add('PID', ftString, 8, True);
+  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0, True);
+  Dbf.FieldDefs.Add(_Col_PID_, ftString, 8, True);
 
-  Dbf.FieldDefs.Add('Is_Read', ftSmallint, 0, True);//是否已读         否0 是1
-  Dbf.FieldDefs.Add('Is_Real', ftSmallint, 0, True);//是否为文档记录   否0 是1
+  Dbf.FieldDefs.Add(_Col_class_Is_Read_, ftSmallint, 0, True);//是否已读         否0 是1
 
-  Dbf.FieldDefs.Add('DefaultCl', ftMemo, 8, True);//默认类型（半角逗号隔开）
+  Dbf.FieldDefs.Add(_Col_class_DefaultCl_, ftMemo, 8, True);//默认类型（半角逗号隔开）
 
 end;
 
 procedure TRTFP.GenAttrNotesAttribute(Dbf:TDbf);
 begin
-  Dbf.FieldDefs.Add('OID', ftAutoInc, 0, True);
-  Dbf.FieldDefs.Add('PID', ftString, 8, True);
+  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0, True);
+  Dbf.FieldDefs.Add(_Col_PID_, ftString, 8, True);
 
-  Dbf.FieldDefs.Add('Usage', ftString, 50, True);//主标记（例如综述、例证、消遣、反例）
-  Dbf.FieldDefs.Add('Rank', ftSmallint, 0, True);//评级1-100分，0表示未赋值
-  Dbf.FieldDefs.Add('Comment', ftMemo, 0, True);//入库评价
-  Dbf.FieldDefs.Add('User', ftSmallint, 0, True);//入库用户（UserID）
-  Dbf.FieldDefs.Add('CreateTime', ftDateTime, 0, True);//入库日期
-  Dbf.FieldDefs.Add('ModifyTime', ftDateTime, 0, True);//修改日期
-  Dbf.FieldDefs.Add('CheckTime', ftDateTime, 0, True);//查看日期
-  Dbf.FieldDefs.Add('FurtherCmt', ftMemo, 8, True);//更多评价（结构化文本格式，例如rubyHash）
-  Dbf.FieldDefs.Add('Format', ftSmallint, 0, True);//预览显示格式（FormatID）
+  Dbf.FieldDefs.Add(_Col_notes_Usage_, ftString, 50, True);//主标记（例如综述、例证、消遣、反例）
+  Dbf.FieldDefs.Add(_Col_notes_Rank_, ftSmallint, 0, True);//评级1-100分，0表示未赋值
+  Dbf.FieldDefs.Add(_Col_notes_Comment_, ftMemo, 0, True);//入库评价
+  Dbf.FieldDefs.Add(_Col_notes_User_, ftSmallint, 0, True);//入库用户（UserID）
+  Dbf.FieldDefs.Add(_Col_notes_CreateTime_, ftDateTime, 0, True);//入库日期
+  Dbf.FieldDefs.Add(_Col_notes_ModifyTime_, ftDateTime, 0, True);//修改日期
+  Dbf.FieldDefs.Add(_Col_notes_CheckTime_, ftDateTime, 0, True);//查看日期
+  Dbf.FieldDefs.Add(_Col_notes_FurtherCmt_, ftMemo, 8, True);//更多评价（结构化文本格式，例如rubyHash）
+  Dbf.FieldDefs.Add(_Col_notes_Format_, ftSmallint, 0, True);//预览显示格式（FormatID）
 
 
 end;
 
 procedure TRTFP.GenAttrDefaultAttribute(Dbf:TDbf);
 begin
-  Dbf.FieldDefs.Add('OID', ftAutoInc, 0, True);
-  Dbf.FieldDefs.Add('PID', ftString, 8, True);
+  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0, True);
+  Dbf.FieldDefs.Add(_Col_PID_, ftString, 8, True);
 
 end;
 
@@ -1036,6 +1125,9 @@ begin
   tmpProjectFile.Add('创建用户,'+p_user);
   tmpProjectFile.Add('创建日期,'+TRTFP.GetDateTimeStr);
   tmpProjectFile.Add('修改日期,'+TRTFP.GetDateTimeStr);
+
+  tmpProjectFile.Add('PDF打开方式,'+DefaultOpenExe);
+  tmpProjectFile.Add('CAJ打开方式,'+DefaultOpenExe);
 
   tmpProjectFile.Add('属性组00,文献基础信息');
   tmpProjectFile.Add('属性组01,分类');
@@ -1156,22 +1248,18 @@ end;
 
 
 
-procedure TRTFP.New(filename:string;p_title:string;p_user:string);
-{
-var attr_i:byte;
-    attr_name:string;
-    }
+procedure TRTFP.New(filename:ansistring;p_title:string;p_user:string);
 begin
   if FOnNew <> nil then FOnNew(Self);
 
-  Self.SetPaths(filename);
-  ForceDirectories(Self.FFilePath+Self.FRootFolder);
-  ForceDirectories(Self.FFilePath+Self.FRootFolder+'\paper');
-  ForceDirectories(Self.FFilePath+Self.FRootFolder+'\class');
-  ForceDirectories(Self.FFilePath+Self.FRootFolder+'\note');
-  ForceDirectories(Self.FFilePath+Self.FRootFolder+'\image');
-  ForceDirectories(Self.FFilePath+Self.FRootFolder+'\format');
-  ForceDirectories(Self.FFilePath+Self.FRootFolder+'\attr');
+  Self.SetPaths(WinCPToUTF8(filename));
+  TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder);
+  TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\paper');
+  TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\class');
+  TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\note');
+  TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\image');
+  TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\format');
+  TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\attr');
 
   NewProjectFile(p_title,p_user);
   NewUserList;
@@ -1190,11 +1278,11 @@ begin
   if FOnNewDone <> nil then FOnNewDone(Self);
 end;
 
-Procedure TRTFP.Open(filename:string);
+Procedure TRTFP.Open(filename:ansistring);
 begin
   if FOnOpen <> nil then FOnOpen(Self);
 
-  Self.SetPaths(filename);
+  Self.SetPaths(WinCPToUTF8(filename));
   OpenProjectFile;
   if not OpenUserList then NewUserList;
   if not OpenFormatList then NewFormatList;
@@ -1227,7 +1315,7 @@ begin
   if FOnSaveDone <> nil then FOnSaveDone(Self);
 end;
 
-procedure TRTFP.SaveAs(filename:string);
+procedure TRTFP.SaveAs(filename:ansistring);
 begin
   if FOnSaveAs <> nil then FOnSaveAs(Self);
 
@@ -1300,7 +1388,7 @@ var num:dword;
 begin
   FPaperDB.Last;
   if FPaperDB.BOF then num:=0
-  else num:=TRTFP.IDToNum((FPaperDB.FieldByName('PID').AsString));
+  else num:=TRTFP.IDToNum((FPaperDB.FieldByName(_Col_PID_).AsString));
   inc(num);
   result:=TRTFP.NumToID(num);
 end;
@@ -1310,7 +1398,7 @@ var num:dword;
 begin
   FImageDB.Last;
   if FImageDB.BOF then num:=0
-  else num:=TRTFP.IDToNum((FImageDB.FieldByName('IID').AsString));
+  else num:=TRTFP.IDToNum((FImageDB.FieldByName(_Col_IID_).AsString));
   inc(num);
   result:=TRTFP.NumToID(num);
 end;
@@ -1320,7 +1408,7 @@ var num:dword;
 begin
   FNoteDB.Last;
   if FNoteDB.BOF then num:=0
-  else num:=TRTFP.IDToNum((FNoteDB.FieldByName('NID').AsString));
+  else num:=TRTFP.IDToNum((FNoteDB.FieldByName(_Col_NID_).AsString));
   inc(num);
   result:=TRTFP.NumToID(num);
 end;
@@ -1353,51 +1441,55 @@ begin
   //FPaperDB.Last;//此时游标已经在Last位置
   with FPaperDB do begin
     Insert;
-    Fields[1].AsString:=PID;
-    Fields[2].AsString:=DateDir;
-    Fields[3].AsString:=FileName;
-    Fields[4].AsLargeInt:=tmpPDF.Size;
-    Fields[5].AsString:=tmpPDF.Hash;
+    Fields[_Num_Paper_PID_].AsString:=PID;
+    {
+    if AddPaperMethod=apmFullBackup then Fields[_Num_Paper_Is_Backup_].AsInteger:=1
+      else Fields[_Num_Paper_Is_Backup_].AsInteger:=0;
+    }
+    Fields[_Num_Paper_Is_Backup_].AsBoolean:=(AddPaperMethod=apmFullBackup);
+
+    Fields[_Num_Paper_Folder_].AsString:=DateDir;
+    Fields[_Num_Paper_FileName_].AsString:=FileName;
+    Fields[_Num_Paper_FileSize_].AsLargeInt:=tmpPDF.Size;
+    Fields[_Num_Paper_FileHash_].AsString:=tmpPDF.Hash;
     Post;
   end;
 
   //0-文献基本信息要专门的算法
   tmpAttr:=FindAttrRecord(PID,0);
   if tmpAttr = nil then tmpAttr:=NewAttrRecord(PID,0);
-  tmpAttr.FieldByName('Has_Ext').AsInteger:=0;
+  tmpAttr.FieldByName(_Col_basic_Has_Ext_).AsInteger:=0;
   PostAttrRecord(0);
 
   //1-分类
   tmpAttr:=FindAttrRecord(PID,1);
   if tmpAttr = nil then tmpAttr:=NewAttrRecord(PID,1);
-  tmpAttr.FieldByName('Is_Read').AsInteger:=0;
-  if AddPaperMethod=apmFullBackup then tmpAttr.FieldByName('Is_Real').AsInteger:=1
-  else tmpAttr.FieldByName('Is_Real').AsInteger:=0;
+  tmpAttr.FieldByName(_Col_class_Is_Read_).AsInteger:=0;
   PostAttrRecord(1);
 
   //2-注解
   tmpAttr:=FindAttrRecord(PID,2);
   if tmpAttr = nil then tmpAttr:=NewAttrRecord(PID,2);
   //这里之后要考虑不是pdf或者pdf读取错误的情况
-  tmpAttr.FieldByName('User').AsInteger:=0;
-  //tmpAttr.FieldByName('CreateTime').AsString:=DateTime;
-  tmpAttr.FieldByName('CreateTime').AsDateTime:=Now;
-  tmpAttr.FieldByName('ModifyTime').AsDateTime:=Now;
-  tmpAttr.FieldByName('CheckTime').AsDateTime:=Now;
+  tmpAttr.FieldByName(_Col_notes_User_).AsInteger:=0;
+  //tmpAttr.FieldByName(_Col_notes_CreateTime_).AsString:=DateTime;
+  tmpAttr.FieldByName(_Col_notes_CreateTime_).AsDateTime:=Now;
+  tmpAttr.FieldByName(_Col_notes_ModifyTime_).AsDateTime:=Now;
+  tmpAttr.FieldByName(_Col_notes_CheckTime_).AsDateTime:=Now;
   PostAttrRecord(2);
 
   //3-元数据
   tmpAttr:=FindAttrRecord(PID,3);
   if tmpAttr = nil then tmpAttr:=NewAttrRecord(PID,3);
   //这里之后要考虑不是pdf或者pdf读取错误的情况
-  tmpAttr.FieldByName('Title').AsString:=tmpPDF.Meta.pFields['DocInfo:Title']^;
-  tmpAttr.FieldByName('Authors').AsString:=tmpPDF.Meta.pFields['DocInfo:Author']^;
-  tmpAttr.FieldByName('Subject').AsString:=tmpPDF.Meta.pFields['DocInfo:Subject']^;
-  tmpAttr.FieldByName('Keyword').AsString:=tmpPDF.Meta.pFields['DocInfo:Keywords']^;
-  tmpAttr.FieldByName('Creator').AsString:=tmpPDF.Meta.pFields['DocInfo:Creator']^;
-  tmpAttr.FieldByName('Produce').AsString:=tmpPDF.Meta.pFields['DocInfo:Producer']^;
-  tmpAttr.FieldByName('CreDate').AsString:=tmpPDF.Meta.pFields['DocInfo:CreationDate']^;
-  tmpAttr.FieldByName('ModDate').AsString:=tmpPDF.Meta.pFields['DocInfo:ModDate']^;
+  tmpAttr.FieldByName(_Col_metas_Title_).AsString:=tmpPDF.Meta.pFields['DocInfo:Title']^;
+  tmpAttr.FieldByName(_Col_metas_Authors_).AsString:=tmpPDF.Meta.pFields['DocInfo:Author']^;
+  tmpAttr.FieldByName(_Col_metas_Subject_).AsString:=tmpPDF.Meta.pFields['DocInfo:Subject']^;
+  tmpAttr.FieldByName(_Col_metas_Keyword_).AsString:=tmpPDF.Meta.pFields['DocInfo:Keywords']^;
+  tmpAttr.FieldByName(_Col_metas_Creator_).AsString:=tmpPDF.Meta.pFields['DocInfo:Creator']^;
+  tmpAttr.FieldByName(_Col_metas_Produce_).AsString:=tmpPDF.Meta.pFields['DocInfo:Producer']^;
+  tmpAttr.FieldByName(_Col_metas_CreDate_).AsString:=tmpPDF.Meta.pFields['DocInfo:CreationDate']^;
+  tmpAttr.FieldByName(_Col_metas_ModDate_).AsString:=tmpPDF.Meta.pFields['DocInfo:ModDate']^;
   PostAttrRecord(3);
 
   if AddPaperMethod=apmFullBackup then begin
@@ -1432,17 +1524,17 @@ begin
   with FPaperDB do begin
     First;
     repeat
-      if Fields[4].AsLongint = FileStream.Size then
+      if Fields[_Num_Paper_FileSize_].AsLongint = FileStream.Size then
         begin
           if FHash='' then FHash:=TRTFP.FileHash(FileStream);
-          if Fields[5].AsString = FHash then
+          if Fields[_Num_Paper_FileHash_].AsString = FHash then
             begin
               if not cps then begin CpStr:=TMemoryStream.Create;cps:=true end;
-              FName:=FFilePath+FRootFolder+'\paper\'+Fields[2].AsString+'\'+Fields[3].AsString;
+              FName:=FFilePath+FRootFolder+'\paper\'+Fields[_Num_Paper_Folder_].AsString+'\'+Fields[_Num_Paper_FileName_].AsString;
               retry:=false;
               repeat try
                 CpStr.LoadFromFile(FName);
-                if CompareMem(FileStream.Memory,CpStr.Memory,FileStream.Size) then PID:=Fields[1].AsString;
+                if CompareMem(FileStream.Memory,CpStr.Memory,FileStream.Size) then PID:=Fields[_Num_Paper_PID_].AsString;
               except
                 case MessageDlg('错误','疑似相同文件被占用！',mtError,[mbRetry,mbIgnore],0) of
                   rnmbRetry:retry:=true;
@@ -1467,6 +1559,56 @@ end;
 procedure TRTFP.DeletePaper(PID:RTFP_ID);//移除指定PID的文献
 begin
 
+end;
+
+procedure TRTFP.OpenPaperAsPDF(PID:RTFP_ID);
+var filename,exename:string;
+begin
+  with FPaperDB do begin
+    First;
+    while not EOF do
+      begin
+        if Fields[_Num_Paper_PID_].AsString=PID then break;
+        Next;
+      end;
+    if EOF then begin assert(false,'未找到PID');exit;end;
+    if Fields[_Num_Paper_Is_Backup_].AsBoolean then begin
+      exename:=OpenPdfExe;
+      filename:=Utf8ToWinCP(FFilePath+FRootFolder+'\paper\'
+        +Fields[_Num_Paper_Folder_].AsString+'\'
+        +Fields[_Num_Paper_FileName_].AsString);
+      if exename='' then
+        ShellExecute(0,'open',pchar(filename),'','',SW_NORMAL)
+      else
+        ShellExecute(0,'open',pchar(exename),pchar(filename),'',SW_NORMAL);
+    end else
+      ShowMessage('非备份文献节点不能通过此方法打开！');
+  end;
+end;
+
+procedure TRTFP.OpenPaperAsCAJ(PID:RTFP_ID);
+var filename,exename:string;
+begin
+  with FPaperDB do begin
+    First;
+    while not EOF do
+      begin
+        if Fields[_Num_Paper_PID_].AsString=PID then break;
+        Next;
+      end;
+    if EOF then begin assert(false,'未找到PID');exit;end;
+    if Fields[_Num_Paper_Is_Backup_].AsBoolean then begin
+      exename:=OpenCajExe;
+      filename:=Utf8ToWinCP(FFilePath+FRootFolder+'\paper\'
+        +Fields[_Num_Paper_Folder_].AsString+'\'
+        +Fields[_Num_Paper_FileName_].AsString);
+      if exename='' then
+        ShellExecute(0,'open',pchar(filename),'','',SW_NORMAL)
+      else
+        ShellExecute(0,'open',pchar(exename),pchar(filename),'',SW_NORMAL);
+    end else
+      ShowMessage('非备份文献节点不能通过此方法打开！');
+  end;
 end;
 
 function TRTFP.EditAttrField(PID:RTFP_ID;AttrNo:byte;FieldName:string;FailOption:TAttrExtend;value:string):boolean;
@@ -1552,31 +1694,31 @@ end;
 
 procedure TRTFP.ReNewCreateTime(PID:RTFP_ID);
 begin
-  FindAttrRecord(PID,2).FieldByName('CreateTime').AsDateTime:=Now;
+  FindAttrRecord(PID,2).FieldByName(_Col_notes_CreateTime_).AsDateTime:=Now;
   PostAttrRecord(2);
 end;
 
 procedure TRTFP.ReNewModifyTime(PID:RTFP_ID);
 begin
-  FindAttrRecord(PID,2).FieldByName('ModifyTime').AsDateTime:=Now;
+  FindAttrRecord(PID,2).FieldByName(_Col_notes_ModifyTime_).AsDateTime:=Now;
   PostAttrRecord(2);
 end;
 
 procedure TRTFP.ReNewCheckTime(PID:RTFP_ID);
 begin
-  FindAttrRecord(PID,2).FieldByName('CheckTime').AsDateTime:=Now;
+  FindAttrRecord(PID,2).FieldByName(_Col_notes_CheckTime_).AsDateTime:=Now;
   PostAttrRecord(2);
 end;
 
 procedure TRTFP.ReNewModifyTimeWithoutChange(PID:RTFP_ID);
 begin
-  FindAttrRecord(PID,2).FieldByName('ModifyTime').AsDateTime:=Now;
+  FindAttrRecord(PID,2).FieldByName(_Col_notes_ModifyTime_).AsDateTime:=Now;
   FAttrGroupList[2].Dbf.Post;
 end;
 
 procedure TRTFP.ReNewCheckTimeWithoutChange(PID:RTFP_ID);
 begin
-  FindAttrRecord(PID,2).FieldByName('CheckTime').AsDateTime:=Now;
+  FindAttrRecord(PID,2).FieldByName(_Col_notes_CheckTime_).AsDateTime:=Now;
   FAttrGroupList[2].Dbf.Post;
 end;
 
@@ -1586,7 +1728,7 @@ begin
   with FAttrGroupList[AttrNo] do begin
     Dbf.First;
     while not Dbf.EOF do begin
-      if Dbf.Fields[1].AsString=PID then begin result:=Dbf.Fields;Dbf.Edit;exit end;
+      if Dbf.Fields[_Num_Attr_PID_].AsString=PID then begin result:=Dbf.Fields;Dbf.Edit;exit end;
       Dbf.Next;
     end;
   end;
@@ -1598,7 +1740,7 @@ begin
   with FAttrGroupList[AttrNo] do begin
     Dbf.Last;
     Dbf.Insert;
-    Dbf.Fields[1].AsString:=PID;
+    Dbf.Fields[_Num_Attr_PID_].AsString:=PID;
     result:=Dbf.Fields;
     Dbf.Post;
     Dbf.Edit;
@@ -1612,7 +1754,7 @@ begin
   with FAttrGroupList[AttrNo] do begin
     Dbf.First;
     while not Dbf.EOF do begin
-      if Dbf.Fields[1].AsString=PID then begin Dbf.Delete;Change;result:=true;exit end;
+      if Dbf.Fields[_Num_Attr_PID_].AsString=PID then begin Dbf.Delete;Change;result:=true;exit end;
       Dbf.Next;
     end;
   end;
@@ -1771,11 +1913,26 @@ begin
   AValueListEditor.Values['创建日期']:=Self.Tag['创建日期'];
   AValueListEditor.Values['修改日期']:=Self.Tag['修改日期'];
 
+  AValueListEditor.Values['PDF打开方式']:=Self.Tag['PDF打开方式'];
+  AValueListEditor.Values['CAJ打开方式']:=Self.Tag['CAJ打开方式'];
+
   attrNo:=0;
   repeat
     AValueListEditor.Values['属性组'+Usf.zeroplus(attrNo,2)]:=FAttrGroupList[AttrNo].Name;
     inc(attrNo);
   until (not FAttrGroupList[AttrNo].Enabled) or (attrNo>99);
+
+end;
+
+procedure TRTFP.ProjectPropertiesDataPost(AValueListEditor:TValueListEditor);
+begin
+  Self.Title:=AValueListEditor.Values['工程标题'];
+  Self.User:=AValueListEditor.Values['创建用户'];
+
+  Self.Tag['PDF打开方式']:=AValueListEditor.Values['PDF打开方式'];
+  Self.Tag['CAJ打开方式']:=AValueListEditor.Values['CAJ打开方式'];
+
+  //其他属性为只读
 
 end;
 
@@ -1853,11 +2010,11 @@ begin
         tmpDbf.First;
 
         if not tmpDbf.EOF then repeat
-          PID:=tmpDbf.Fields[1].AsString;
+          PID:=tmpDbf.Fields[_Num_Attr_PID_].AsString;
           ADataSet.First;
           if not ADataSet.EOF then repeat
             ADataSet.Next;
-            if ADataSet.Fields[1].AsString=PID then break;
+            if ADataSet.Fields[_Num_Attr_PID_].AsString=PID then break;
           until ADataSet.EOF;
           if not ADataSet.EOF then begin
             ADataSet.Edit;
@@ -2028,6 +2185,26 @@ begin
   result:=255;
 end;
 
+function TRTFP.GetOpenPdfExe:ansistring;
+begin
+  result:=Tag['PDF打开方式'];
+  if result='' then
+    begin
+      result:=DefaultOpenExe;
+      ProjectFileValue.Values['PDF打开方式']:=result;
+    end;
+end;
+
+function TRTFP.GetOpenCajExe:ansistring;
+begin
+  result:=Tag['CAJ打开方式'];
+  if result='' then
+    begin
+      result:=DefaultOpenExe;
+      ProjectFileValue.Values['CAJ打开方式']:=result;
+    end;
+end;
+
 class function TRTFP.NumToID(Num:dword):RTFP_ID;
 begin
   result:='';
@@ -2065,7 +2242,7 @@ begin
   result:=FormatDateTime('yyyymm',Now());
 end;
 
-class function TRTFP.CanBuildName(projname:string):boolean;
+class function TRTFP.CanBuildName(projname:ansistring):boolean;
 var i,len:integer;
 begin
   result:=false;
@@ -2081,23 +2258,23 @@ begin
   result:=true;
 end;
 
-class function TRTFP.CanBuildPath(pathname:string):boolean;
+class function TRTFP.CanBuildPath(pathname:ansistring):boolean;
 begin
   result:=false;
-  if DirectoryExists(pathname) then exit;
+  if DirectoryExists(WinCPToUTF8(pathname)) then exit;
   result:=true;
 end;
 
-class function TRTFP.CanBuildPLen(pathname:string):boolean;
+class function TRTFP.CanBuildPLen(pathname:ansistring):boolean;
 begin
   result:=false;
   if length(pathname)>150 then exit;
   result:=true;
 end;
 
-class function TRTFP.CanBuildFile(fullname:string):boolean;
+class function TRTFP.CanBuildFile(fullname:ansistring):boolean;
 begin
-  if fileExists(fullname) then result:=false
+  if FileExists(WinCPToUTF8(fullname)) then result:=false
   else result:=true;
 end;
 
@@ -2165,6 +2342,11 @@ end;
 class function TRTFP.FileDelete(source:string):boolean;
 begin
   result:=DeleteFile(pchar(UTF8ToWinCP(source)));
+end;
+
+class function TRTFP.MakeDir(filename:string):boolean;
+begin
+  ForceDirectories(filename);
 end;
 
 {
