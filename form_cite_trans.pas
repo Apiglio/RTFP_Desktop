@@ -22,6 +22,7 @@ type
     TabControl_Reference_Style: TTabControl;
     ValueListEditor1: TValueListEditor;
     procedure FormDeactivate(Sender: TObject);
+    procedure FormDropFiles(Sender: TObject; const FileNames: array of String);
     procedure FormHide(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
@@ -43,6 +44,12 @@ uses RTFP_main;
 procedure TForm_CiteTrans.FormDeactivate(Sender: TObject);
 begin
   Self.Hide;
+end;
+
+procedure TForm_CiteTrans.FormDropFiles(Sender: TObject;
+  const FileNames: array of String);
+begin
+  Memo_Cite.Lines.LoadFromFile(FileNames[0]);
 end;
 
 procedure TForm_CiteTrans.FormHide(Sender: TObject);

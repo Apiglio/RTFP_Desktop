@@ -6,15 +6,15 @@ interface
 
 uses
   Classes, SysUtils, db, dbf, memds, FileUtil, Forms, Controls, Graphics,
-  Dialogs, ComCtrls, Menus, ExtCtrls, DBGrids, Grids, ValEdit, CheckLst,
-  StdCtrls, DbCtrls, LazUTF8,
+  Dialogs, ComCtrls, Menus, ExtCtrls, DBGrids, ValEdit, CheckLst,
+  StdCtrls, DbCtrls, LazUTF8, LvlGraphCtrl, Clipbrd, LCLType,
 
   AufScript_Frame,
 
-  RTFP_definition, Types;
+  RTFP_definition, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.1.1-alpha.1';
+  C_VERSION_NUMBER  = '0.1.1-alpha.2';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -24,12 +24,12 @@ type
   { TFormDesktop }
 
   TFormDesktop = class(TForm)
+    Button_Project_NodeView_Fresh: TButton;
     Button_FmtCmt_Post: TButton;
     Button_FmtCmt_Recover: TButton;
     Button_NodeViewAddAttr: TButton;
     Button_NodeViewPost: TButton;
     Button_NodeViewRecover: TButton;
-    CheckBox_FmtCmtCanPost: TCheckBox;
     CheckListBox_MainAttrFilter: TCheckListBox;
     ComboBox_AttrName: TComboBox;
     ComboBox_FieldName: TComboBox;
@@ -43,6 +43,7 @@ type
     Image_PDF_View: TImage;
     Label_MainFilter: TLabel;
     Label_Attrs_View: TLabel;
+    LvlGraphControl: TLvlGraphControl;
     MainMenu: TMainMenu;
     MemDataset_Main: TMemDataset;
     Memo_FmtCmt: TMemo;
@@ -87,6 +88,7 @@ type
     StaticText_AttrNameCombo: TStaticText;
     StaticText_FieldNameCombo: TStaticText;
     StatusBar: TStatusBar;
+    TabSheet_Project_NodeView: TTabSheet;
     TabSheet_FmtCmt: TTabSheet;
     TabSheet_Project_Properties: TTabSheet;
     TabSheet_Node_PDF: TTabSheet;
@@ -102,8 +104,11 @@ type
     procedure Button_NodeViewAddAttrClick(Sender: TObject);
     procedure Button_NodeViewPostClick(Sender: TObject);
     procedure Button_NodeViewRecoverClick(Sender: TObject);
+    procedure Button_Project_NodeView_FreshClick(Sender: TObject);
     procedure CheckListBox_MainAttrFilterClickCheck(Sender: TObject);
+    procedure ComboBox_AttrNameChange(Sender: TObject);
     procedure ComboBox_Attrs_ViewChange(Sender: TObject);
+    procedure ComboBox_FieldNameChange(Sender: TObject);
     procedure DBGrid_MainCellClick(Column: TColumn);
     procedure DBGrid_MainKeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
@@ -216,7 +221,7 @@ begin
     Clear;
     attr_i:=0;
     repeat
-      stmp:=CurrentRTFP.AttrsName[attr_i];
+      stmp:=CurrentRTFP.AttrName[attr_i];
       if stmp<>'' then begin
         ComboBox_Attrs_View.AddItem(stmp,CurrentRTFP.AttrsDB[attr_i]);
         {}Self.CheckListBox_MainAttrFilter.Items.Add(stmp);
@@ -233,6 +238,7 @@ begin
     end;
   Self.ComboBox_Attrs_View.ItemIndex:=pi;
   Self.ComboBox_Attrs_View.OnChange(Self.ComboBox_Attrs_View);
+
 
 end;
 
@@ -264,6 +270,13 @@ end;
 procedure TFormDesktop.ProjectOpenDone(Sender:TObject);
 begin
   Self.Validate(Sender);
+
+  //FmtCmt选项卡
+  Self.ComboBox_AttrName.Clear;
+  Self.Button_FmtCmt_Post.Enabled:=false;
+  CurrentRTFP.AttrNameValidate(ComboBox_AttrName.Items);
+
+
   Self.MenuItem_project_new.Enabled:=false;
   Self.MenuItem_project_open.Enabled:=false;
   Self.MenuItem_project_save.Enabled:=false;
@@ -309,12 +322,19 @@ end;
 
 procedure TFormDesktop.NodeViewValidate;
 var PID:RTFP_ID;
+    attrNo:byte;
+    fieldNa:string;
 begin
   PID:=Selected_PID;
   ValueListEditor_NodeView.Clear;
   if PID='000000' then exit;
   CurrentRTFP.NodeViewValidate(PID,ValueListEditor_NodeView);
-  CurrentRTFP.FmtCmtValidate(PID,2,RTFP_definition._Col_notes_FurtherCmt_,Memo_FmtCmt);
+
+  if (ComboBox_AttrName.ItemIndex>=0) and (ComboBox_FieldName.ItemIndex>=0) then begin
+    attrNo:=CurrentRTFP.AttrNoByName[ComboBox_AttrName.Items[ComboBox_AttrName.ItemIndex]];
+    fieldNa:=ComboBox_FieldName.Items[ComboBox_FieldName.ItemIndex];
+    CurrentRTFP.FmtCmtValidate(PID,attrNo,fieldNa,Memo_FmtCmt);
+  end;
 end;
 
 procedure TFormDesktop.NodeViewDataPost;
@@ -499,6 +519,27 @@ begin
   CurrentRTFP.TableValidate(Self.MemDataset_Main,Self.MainAttrFilterSet);
 end;
 
+procedure TFormDesktop.ComboBox_AttrNameChange(Sender: TObject);
+var str:string;
+begin
+  ComboBox_FieldName.Clear;
+  with ComboBox_AttrName do begin
+    if ItemIndex<0 then exit;
+    str:=Items[ItemIndex];
+  end;
+  CurrentRTFP.FieldNameValidate(str,ComboBox_FieldName.Items);
+end;
+
+procedure TFormDesktop.ComboBox_FieldNameChange(Sender: TObject);
+var attrName,fieldName:string;
+    ty:TFieldType;
+begin
+  attrName:=ComboBox_AttrName.Items[ComboBox_AttrName.ItemIndex];
+  fieldName:=ComboBox_FieldName.Items[ComboBox_FieldName.ItemIndex];
+  ty:=CurrentRTFP.AttrFieldDataTypeS[attrName,fieldName];
+  Self.Button_FmtCmt_Post.Enabled:=(ty=ftMemo);
+end;
+
 procedure TFormDesktop.Button_NodeViewPostClick(Sender: TObject);
 begin
   StopGridConnect;
@@ -512,23 +553,43 @@ end;
 
 procedure TFormDesktop.Button_FmtCmt_PostClick(Sender: TObject);
 var PID:RTFP_ID;
+    attrNo:byte;
+    fieldNa:string;
 begin
   PID:=Selected_PID;
   if PID='000000' then exit;
-  CurrentRTFP.FmtCmtDataPost(PID,2,RTFP_definition._Col_notes_FurtherCmt_,Memo_FmtCmt);
+  if (ComboBox_AttrName.ItemIndex>=0) and (ComboBox_FieldName.ItemIndex>=0) then begin
+    attrNo:=CurrentRTFP.AttrNoByName[ComboBox_AttrName.Items[ComboBox_AttrName.ItemIndex]];
+    fieldNa:=ComboBox_FieldName.Items[ComboBox_FieldName.ItemIndex];
+    CurrentRTFP.FmtCmtDataPost(PID,attrNo,fieldNa,Memo_FmtCmt);
+  end;
 end;
 
 procedure TFormDesktop.Button_FmtCmt_RecoverClick(Sender: TObject);
 var PID:RTFP_ID;
+    attrNo:byte;
+    fieldNa:string;
 begin
   PID:=Selected_PID;
   if PID='000000' then exit;
-  CurrentRTFP.FmtCmtValidate(PID,2,RTFP_definition._Col_notes_FurtherCmt_,Memo_FmtCmt);
+  if (ComboBox_AttrName.ItemIndex>=0) and (ComboBox_FieldName.ItemIndex>=0) then begin
+    attrNo:=CurrentRTFP.AttrNoByName[ComboBox_AttrName.Items[ComboBox_AttrName.ItemIndex]];
+    fieldNa:=ComboBox_FieldName.Items[ComboBox_FieldName.ItemIndex];
+    CurrentRTFP.FmtCmtValidate(PID,attrNo,fieldNa,Memo_FmtCmt);
+  end;
 end;
 
 procedure TFormDesktop.Button_NodeViewRecoverClick(Sender: TObject);
 begin
   NodeViewValidate;
+end;
+
+procedure TFormDesktop.Button_Project_NodeView_FreshClick(Sender: TObject);
+begin
+  //LvlGraphControl.Clear;
+  //LvlGraphControl.Graph.GetEdge('AA','BB',true);
+  //LvlGraphControl.Graph.GetEdge('AA','CC',true);
+  //LvlGraphControl.Graph.GetEdge('AA','DD',true);
 end;
 
 procedure TFormDesktop.ComboBox_Attrs_ViewChange(Sender: TObject);
@@ -538,7 +599,6 @@ begin
   if pi>=0 then DataSource_Attrs.DataSet:=((Sender as TComboBox).Items.Objects[pi] as TDbf);
   //在关闭工程以后 ，这里有一个错误
 end;
-
 
 procedure TFormDesktop.DBGrid_MainCellClick(Column: TColumn);
 begin
@@ -556,7 +616,7 @@ procedure TFormDesktop.DBGrid_MainMouseWheel(Sender: TObject;
   Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint;
   var Handled: Boolean);
 begin
-  NodeViewValidate;
+  //NodeViewValidate;
 end;
 
 

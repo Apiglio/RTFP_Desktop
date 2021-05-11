@@ -3,11 +3,13 @@ object Form_CiteTrans: TForm_CiteTrans
   Height = 577
   Top = 338
   Width = 948
+  AllowDropFiles = True
   Caption = '引用格式转译'
   ClientHeight = 577
   ClientWidth = 948
   DesignTimePPI = 120
   OnDeactivate = FormDeactivate
+  OnDropFiles = FormDropFiles
   OnHide = FormHide
   OnShow = FormShow
   LCLVersion = '1.8.4.0'
