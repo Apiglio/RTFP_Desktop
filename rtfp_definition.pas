@@ -1,3 +1,17 @@
+//ImportFiles的UI语言改进
+//ImportFilesForm.Call的FFileName.Clear有问题 (solved?)
+//已读标记改成ftBoolean
+//滚轮事件记录定位有误 (skipped)
+//FmtCmt的覆盖提交保存提醒
+//总表第一行没有连接
+//引用PDF里的图片
+//字段选项化
+//进度表可以是checkboxlist的形式
+//致命问题：笔记被覆盖，没有提示
+
+
+
+
 //{$define insert}
 {$define test}
 
@@ -12,10 +26,10 @@ interface
 uses
   Classes, SysUtils, Dialogs, ValEdit, Windows, LazUTF8, StdCtrls,
   {$ifndef insert}
-  Apiglio_Useful, auf_ram_var,
+  Apiglio_Useful, auf_ram_var, rtfp_pdfobj, rtfp_files, rtfp_class, rtfp_field,
   //AufScript_Frame,
   {$endif}
-  db, dbf, dbf_fields, memds;
+  db, dbf, dbf_fields, sqldb, memds;
 
   //{$I pdfium\fpdfview.h}
 
@@ -126,21 +140,24 @@ type
     RTFP:TObject;
   end;
 
-
-
   TRTFP = class(TComponent)
   public
     //Auf:TRTFP_Auf;
     ProjectFileValue:TValueListEditor;//加载 #{project_name}.rtfp 到内存(CSV)
   private
-    FPaperDB,FImageDB,FNoteDB:TDbf;
+    FPaperDB,FImageDB,FNotesDB:TDbf;
     FUserList,FFormatList:TStringList;
     FAttrGroupList:array[0..99]of record
       Enabled:boolean;
       Name:string;//属性组名称
       DataBase:string;//路径
       Dbf:TDbf;
-    end;
+    end;//这个远期和RTFP_Field一起改成Class，现在先不动了
+
+    FClassList:TRTFP_ClassList;
+    FFileList:TRTFP_FileList;
+    FFieldList:TRTFP_FieldList;
+
 
   private
     FFilePath:string;//完整路径
@@ -172,6 +189,9 @@ type
     function GetAttrFieldDataTypeB(attrNo,fieldNo:byte):TFieldType;
     function GetAttrFieldDataTypeS(attrNa,fieldNa:string):TFieldType;
 
+    function GetAttrsConnected(index:byte):boolean;unimplemented;
+    procedure SetAttrsConnected(index:byte;value:boolean);unimplemented;
+
 
     function GetOpenPdfExe:ansistring;
     function GetOpenCajExe:ansistring;
@@ -192,7 +212,10 @@ type
 
     property PaperDB:TDbf read FPaperDB;
     property ImageDB:TDbf read FImageDB;
-    property NoteDB:TDbf read FNoteDB;
+    property NotesDB:TDbf read FNotesDB;
+
+
+    property AttrsConnected[index:byte]:boolean read GetAttrsConnected write SetAttrsConnected;unimplemented;
 
     property AttrsDB[index:byte]:TDbf read GetAttrsDB;
     property AttrsCount:byte read GetAttrCount;
@@ -203,7 +226,6 @@ type
     property AttrFieldNoByName[attrNo:byte;index:string]:byte read GetAttrFieldNoByName;
     property AttrFieldDataTypeB[attrNo,fieldNo:byte]:TFieldType read GetAttrFieldDataTypeB;
     property AttrFieldDataTypeS[attrNa,fieldNa:string]:TFieldType read GetAttrFieldDataTypeS;
-
 
 
 
@@ -281,17 +303,17 @@ type
     procedure BeginUpdate;
     procedure EndUpdate;
 
-    //这些用于在属性组表中增加指定PID的记录                           // Edit  Post  Change  defalt-result
-    function FindAttrRecord(PID:RTFP_ID;AttrNo:byte):TFields;         //  O     X      X       nil
-    function NewAttrRecord(PID:RTFP_ID;AttrNo:byte):TFields;          //  O     X      O       -
-    function PostAttrRecord(AttrNo:byte):boolean;                     //  X     O      O       false
-    function CancelAttrRecord(AttrNo:byte):boolean;                   //  X     O      X       false
-    function DeleteAttrRecord(PID:RTFP_ID;AttrNo:byte):boolean;       //  -     -      O       false
+    //这些用于在属性组表中增加指定PID的记录                              // Edit  Post  Change  defalt-result
+    function FindAttrRecord(PID:RTFP_ID;AttrNo:byte):TFields;            //  O     X      X       nil
+    function NewAttrRecord(PID:RTFP_ID;AttrNo:byte):TFields;             //  O     X      O       -
+    function PostAttrRecord(AttrNo:byte):boolean;                        //  X     O      O       false
+    function CancelAttrRecord(AttrNo:byte):boolean;                      //  X     O      X       false
+    function DeleteAttrRecord(PID:RTFP_ID;AttrNo:byte):boolean;          //  -     -      O       false
 
-    function ExistAttrField(FieldName:string;AttrNo:byte):TFieldDef;  //  -     -      O       nil
+    function ExistAttrField(FieldName:string;AttrNo:byte):TDbfFieldDef;  //  -     -      O       nil
     function AddAttrField(FieldName:string;AttrNo:byte;
-      FieldType:TFieldType;FieldSize:word):TFieldDef;                 //  -     -      O       -
-    function DeleteAttrField(FieldName:string;AttrNo:byte):boolean;   //  -     -      O       false
+      FieldType:TFieldType;FieldSize:word):TDbfFieldDef;                 //  -     -      O       -
+    function DeleteAttrField(FieldName:string;AttrNo:byte):boolean;      //  -     -      O       false
 
 
   public //记录编辑
@@ -320,15 +342,8 @@ type
     function EditAttrField(PID:RTFP_ID;AttrNo:byte;FieldName:string;FailOption:TAttrExtend;value:string):boolean;
     function ReadAttrField(PID:RTFP_ID;AttrNo:byte;FieldName:string;FailOption:TAttrExtend;var value:string):boolean;
 
-    {
-    procedure EditPaperData(PID:RTFP_ID;col_name,value:string);//修改指定PID文献的属性
-    function ReadPaperData(PID:RTFP_ID;col_name:string):string;//读取指定PID文献的属性
-    }
-
-    {
-    procedure AddAttrGroup(id:byte;group_name:string);//新增一个字段组表到工程
-    procedure DeleteAttrGroup(id:byte);//移除指定Name的字段组表
-    }
+  //public //总表更新操作
+    //procedure ExecuteSQL(SQL_Command:string);
 
   public //连接显示
     procedure ProjectPropertiesValidate(AValueListEditor:TValueListEditor);
@@ -413,7 +428,7 @@ procedure AufScriptFuncDefineRTFP(Auf:TAuf);
 
 
 implementation
-uses RTFP_main, rtfp_pdfobj;
+uses RTFP_main;
 
 
 {
@@ -748,11 +763,15 @@ begin
 
   FPaperDB:=TDbf.Create(Self);
   FImageDB:=TDbf.Create(Self);
-  FNoteDB:=TDbf.Create(Self);
+  FNotesDB:=TDbf.Create(Self);
+
+
+  FClassList:=TRTFP_ClassList.Create(Self);
+  FFileList:=TRTFP_FileList.Create(Self,'');
+  FFieldList:=TRTFP_FieldList.Create(Self);
 
   FUserList:=TStringList.Create;
   FFormatList:=TStringList.Create;
-
 
   FFilePath:='';
   FFileName:='';
@@ -783,12 +802,17 @@ end;
 
 destructor TRTFP.Destroy;
 begin
-  FPaperDB.Free;
-  FImageDB.Free;
-  FNoteDB.Free;
-
   FUserList.Free;
   FFormatList.Free;
+
+  FClassList.Free;
+  FFileList.Free;
+  FFieldList.Free;
+
+
+  FPaperDB.Free;
+  FImageDB.Free;
+  FNotesDB.Free;
 
   ProjectFileValue.Free;
 
@@ -820,9 +844,9 @@ begin
   name_no_ext:=ExtractFileName(dbfpath);
   dbfpath:=ExtractFilePath(dbfpath);
   datfile:=name_no_ext+'.dbf';
-  runfile:=name_no_ext+'.run.dbf';
+  runfile:=name_no_ext+'_run.dbf';
   dat_dbt:=name_no_ext+'.dbt';
-  run_dbt:=name_no_ext+'.run.dbt';
+  run_dbt:=name_no_ext+'_run.dbt';
 
   if not FileExists(dbfpath+datfile) then exit;
   TRTFP.FileCopy((dbfpath+datfile),(dbfpath+runfile),false);
@@ -833,7 +857,7 @@ begin
   Dbf.Exclusive:=true;
   try
     Dbf.Open;
-    Dbf.AddIndex('Id',Dbf.FieldDefs[1].Name,[ixPrimary, ixUnique]);
+    Dbf.AddIndex('Id',Dbf.DbfFieldDefs.Items[1].FieldName,[ixPrimary, ixUnique]);
   except
     exit;
   end;
@@ -848,9 +872,9 @@ begin
   name_no_ext:=ExtractFileName(dbfpath);
   dbfpath:=ExtractFilePath(dbfpath);
   datfile:=name_no_ext+'.dbf';
-  runfile:=name_no_ext+'.run.dbf';
+  runfile:=name_no_ext+'_run.dbf';
   dat_dbt:=name_no_ext+'.dbt';
-  run_dbt:=name_no_ext+'.run.dbt';
+  run_dbt:=name_no_ext+'_run.dbt';
 
   Dbf.FilePathFull:=dbfpath;
   Dbf.TableName:=runfile;
@@ -859,7 +883,7 @@ begin
     Dbf.Exclusive:=true;
     Dbf.CreateTable;
     Dbf.Open;
-    Dbf.AddIndex('Id',Dbf.FieldDefs[1].Name,[ixPrimary, ixUnique]);
+    Dbf.AddIndex('Id',Dbf.DbfFieldDefs.Items[1].FieldName,[ixPrimary, ixUnique]);
   except
     exit;
   end;
@@ -876,9 +900,9 @@ begin
   name_no_ext:=ExtractFileName(dbfpath);
   dbfpath:=ExtractFilePath(dbfpath);
   datfile:=name_no_ext+'.dbf';
-  runfile:=name_no_ext+'.run.dbf';
+  runfile:=name_no_ext+'_run.dbf';
   dat_dbt:=name_no_ext+'.dbt';
-  run_dbt:=name_no_ext+'.run.dbt';
+  run_dbt:=name_no_ext+'_run.dbt';
 
   try
     if Dbf.Active then
@@ -895,19 +919,22 @@ begin
 end;
 
 function TRTFP.CloseDbf(dbf_name_no_ext:string;Dbf:TDbf):boolean;
-var dbfpath,datfile,runfile,run_dbt,dat_dbt,name_no_ext:string;
+var dbfpath,{datfile,}runfile,run_dbt,{dat_dbt,}name_no_ext:string;
 begin
   result:=false;
   dbfpath:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext;
   name_no_ext:=ExtractFileName(dbfpath);
   dbfpath:=ExtractFilePath(dbfpath);
-  datfile:=name_no_ext+'.dbf';
-  runfile:=name_no_ext+'.run.dbf';
-  dat_dbt:=name_no_ext+'.dbt';
-  run_dbt:=name_no_ext+'.run.dbt';
+  //datfile:=name_no_ext+'.dbf';
+  runfile:=name_no_ext+'_run.dbf';
+  //dat_dbt:=name_no_ext+'.dbt';
+  run_dbt:=name_no_ext+'_run.dbt';
 
   try
-    if Dbf.Active then Dbf.Close;
+    if Dbf.Active then begin
+      Dbf.DeleteIndex('id');
+      Dbf.Close;
+    end;
     if not TRTFP.FileDelete((dbfpath+runfile)) then exit;
     if FileExists(dbfpath+run_dbt) then begin
       if not TRTFP.FileDelete((dbfpath+run_dbt)) then exit;
@@ -967,6 +994,7 @@ begin
         end;
         NewDbf(DataBase,Dbf);
       end;
+      //Dbf.MasterSource;
     end;
     inc(attr_i);
   until attr_i>99;
@@ -1352,8 +1380,8 @@ begin
   NewDbf('paper',Self.FPaperDB);
   GenImageAttribute(Self.FImageDB);
   NewDbf('image',Self.FImageDB);
-  GenNoteAttribute(Self.FNoteDB);
-  NewDbf('note',Self.FNoteDB);
+  GenNoteAttribute(Self.FNotesDB);
+  NewDbf('note',Self.FNotesDB);
 
   NewAttrDbfs;
 
@@ -1362,6 +1390,7 @@ begin
 end;
 
 Procedure TRTFP.Open(filename:ansistring);
+var stmp:TCollectionItem;
 begin
   if FOnOpen <> nil then FOnOpen(Self);
 
@@ -1371,10 +1400,17 @@ begin
   if not OpenFormatList then NewFormatList;
   if not OpenDbf('paper',Self.FPaperDB) then NewDbf('paper',Self.FPaperDB);;
   if not OpenDbf('image',Self.FImageDB) then NewDbf('image',Self.FImageDB);;
-  if not OpenDbf('note',Self.FNoteDB) then NewDbf('note',Self.FNoteDB);;
+  if not OpenDbf('note',Self.FNotesDB) then NewDbf('note',Self.FNotesDB);;
 
   OpenAttrDbfs;
-
+  {
+  FFileList.BaseDir:=Self.FFilePath+Self.FRootFolder;
+  FFileList.RunDir;
+  for stmp in FFileList do
+    begin
+      ShowMessage((stmp as TRTFP_FileItem).Name);
+    end;
+  }
   Self.FIsOpen:=true;
   if FOnOpenDone <> nil then FOnOpenDone(Self);
 end;
@@ -1390,7 +1426,7 @@ begin
   SaveFormatList;
   SaveDbf('paper',Self.FPaperDB);
   SaveDbf('image',Self.FImageDB);
-  SaveDbf('note',Self.FNoteDB);
+  SaveDbf('note',Self.FNotesDB);
 
   SaveAttrDbfs;
 
@@ -1425,7 +1461,7 @@ begin
   CloseFormatList;
   CloseDbf('paper',Self.FPaperDB);
   CloseDbf('image',Self.FImageDB);
-  CloseDbf('note',Self.FNoteDB);
+  CloseDbf('note',Self.FNotesDB);
 
   CloseAttrDbfs;
 
@@ -1505,9 +1541,9 @@ end;
 function TRTFP.NewNoteID:RTFP_ID;
 var num:dword;
 begin
-  FNoteDB.Last;
-  if FNoteDB.BOF then num:=0
-  else num:=TRTFP.IDToNum((FNoteDB.FieldByName(_Col_NID_).AsString));
+  FNotesDB.Last;
+  if FNotesDB.BOF then num:=0
+  else num:=TRTFP.IDToNum((FNotesDB.FieldByName(_Col_NID_).AsString));
   inc(num);
   result:=TRTFP.NumToID(num);
 end;
@@ -1707,17 +1743,17 @@ begin
 end;
 
 function TRTFP.EditAttrField(PID:RTFP_ID;AttrNo:byte;FieldName:string;FailOption:TAttrExtend;value:string):boolean;
-var tmpFieldDef:TFieldDef;
+var tmpDbfFieldDef:TDbfFieldDef;
     tmpFields:TFields;
 begin
   result:=false;
-  tmpFieldDef:=ExistAttrField(FieldName,AttrNo);
-  if tmpFieldDef=nil then
+  tmpDbfFieldDef:=ExistAttrField(FieldName,AttrNo);
+  if tmpDbfFieldDef=nil then
     begin
       if aeFailIfNoField in FailOption then exit
-      else tmpFieldDef:=AddAttrField(FieldName,AttrNo,ftMemo,0);
+      else tmpDbfFieldDef:=AddAttrField(FieldName,AttrNo,ftMemo,0);
     end;
-  //tmpFieldDef.ID;
+  //tmpDbfFieldDef.ID;
   tmpFields:=FindAttrRecord(PID,AttrNo);
   if tmpFields=nil then
     begin
@@ -1725,8 +1761,8 @@ begin
       else tmpFields:=NewAttrRecord(PID,AttrNo);
     end;
 
-  case tmpFieldDef.DataType of
-    ftString,ftMemo:{tmpFields[tmpFieldDef.ID]}tmpFields.FieldByName(FieldName).AsString:=value;
+  case tmpDbfFieldDef.FieldType of
+    ftString,ftMemo:{tmpFields[tmpDbfFieldDef.ID]}tmpFields.FieldByName(FieldName).AsString:=value;
     ftBoolean:tmpFields.FieldByName(FieldName).AsBoolean:=(lowercase(value) = 'true') or (lowercase(value) = 't');
     ftFloat:tmpFields.FieldByName(FieldName).AsFloat:=StrToFloat(value);
     ftInteger:tmpFields.FieldByName(FieldName).AsInteger:=StrToInt(value);
@@ -1742,17 +1778,17 @@ begin
 end;
 
 function TRTFP.ReadAttrField(PID:RTFP_ID;AttrNo:byte;FieldName:string;FailOption:TAttrExtend;var value:string):boolean;
-var tmpFieldDef:TFieldDef;
+var tmpDbfFieldDef:TDbfFieldDef;
     tmpFields:TFields;
 begin
   result:=false;
-  tmpFieldDef:=ExistAttrField(FieldName,AttrNo);
-  if tmpFieldDef=nil then
+  tmpDbfFieldDef:=ExistAttrField(FieldName,AttrNo);
+  if tmpDbfFieldDef=nil then
     begin
       if aeFailIfNoField in FailOption then exit
-      else tmpFieldDef:=AddAttrField(FieldName,AttrNo,ftMemo,0);
+      else tmpDbfFieldDef:=AddAttrField(FieldName,AttrNo,ftMemo,0);
     end;
-  //tmpFieldDef.ID;
+  //tmpDbfFieldDef.ID;
   tmpFields:=FindAttrRecord(PID,AttrNo);
   if tmpFields=nil then
     begin
@@ -1760,8 +1796,8 @@ begin
       else tmpFields:=NewAttrRecord(PID,AttrNo);
     end;
 
-  case tmpFieldDef.DataType of
-    ftString,ftMemo:value:={tmpFields[tmpFieldDef.ID]}tmpFields.FieldByName(FieldName).AsString;
+  case tmpDbfFieldDef.FieldType of
+    ftString,ftMemo:value:={tmpFields[tmpDbfFieldDef.ID]}tmpFields.FieldByName(FieldName).AsString;
     ftBoolean:if tmpFields.FieldByName(FieldName).AsBoolean then value:='true' else value:='false';
     ftFloat:value:=FormatFloat('0.00',tmpFields.FieldByName(FieldName).AsFloat);
     ftInteger:value:=IntToStr(tmpFields.FieldByName(FieldName).AsInteger);
@@ -1880,22 +1916,38 @@ begin
   result:=true;
 end;
 
-function TRTFP.ExistAttrField(FieldName:string;AttrNo:byte):TFieldDef;
+function TRTFP.ExistAttrField(FieldName:string;AttrNo:byte):TDbfFieldDef;
+var col:integer;
 begin
-  result:=FAttrGroupList[AttrNo].Dbf.FieldDefs.Find(FieldName);
+  col:=0;
+  while col<FAttrGroupList[AttrNo].Dbf.DbfFieldDefs.Count do
+    begin
+      if FAttrGroupList[AttrNo].Dbf.DbfFieldDefs.Items[col].FieldName = FieldName then
+        begin
+          result:=FAttrGroupList[AttrNo].Dbf.DbfFieldDefs.Items[col];
+          exit
+        end
+      else inc(col);
+    end;
+  result:=nil;
 end;
 
-function TRTFP.AddAttrField(FieldName:string;AttrNo:byte;FieldType:TFieldType;FieldSize:word):TFieldDef;
+function TRTFP.AddAttrField(FieldName:string;AttrNo:byte;FieldType:TFieldType;FieldSize:word):TDbfFieldDef;
 begin
   result:=nil;
-  FAttrGroupList[AttrNo].Dbf.FieldDefs.Add(FieldName,FieldType,FieldSize);
+  FAttrGroupList[AttrNo].Dbf.DbfFieldDefs.Add(FieldName,FieldType,FieldSize);
+
+  FAttrGroupList[AttrNo].Dbf.PackTable;
+  FAttrGroupList[AttrNo].Dbf.RegenerateIndexes;
+  FAttrGroupList[AttrNo].Dbf.Close;
+  FAttrGroupList[AttrNo].Dbf.Open;
 
   //用这个方法人工压缩一下文件
-  TRTFP.BackupDbf(FAttrGroupList[AttrNo].Dbf);
-  TRTFP.RecoverDbf(FAttrGroupList[AttrNo].Dbf);
+  //TRTFP.BackupDbf(FAttrGroupList[AttrNo].Dbf);
+  //TRTFP.RecoverDbf(FAttrGroupList[AttrNo].Dbf);
 
   DataChange;
-  result:=FAttrGroupList[AttrNo].Dbf.FieldDefs[FAttrGroupList[AttrNo].Dbf.FieldDefs.Count-1];
+  result:=FAttrGroupList[AttrNo].Dbf.DbfFieldDefs.Items[FAttrGroupList[AttrNo].Dbf.DbfFieldDefs.Count-1];
 end;
 
 function TRTFP.DeleteAttrField(FieldName:string;AttrNo:byte):boolean;
@@ -1906,16 +1958,26 @@ begin
   tmp:=0;
 
   with FAttrGroupList[AttrNo].Dbf do begin
+
     repeat
-      if FieldDefs[tmp].Name=FieldName then break;
+      if DbfFieldDefs.Items[tmp].FieldName=FieldName then break;
       inc(tmp);
-    until tmp>=FieldDefs.Count;
-    if tmp<FieldDefs.Count then FieldDefs.Delete(tmp);
+    until tmp>=DbfFieldDefs.Count;
+    if tmp<DbfFieldDefs.Count then DbfFieldDefs.Delete(tmp);
+
+    TryExclusive;
+    PackTable;
+    RegenerateIndexes;
+    Close;
+    Open;
+    EndExclusive;
   end;
 
+
+
   //用这个方法人工压缩一下文件
-  TRTFP.BackupDbf(FAttrGroupList[AttrNo].Dbf);
-  TRTFP.RecoverDbf(FAttrGroupList[AttrNo].Dbf);
+  //TRTFP.BackupDbf(FAttrGroupList[AttrNo].Dbf);
+  //TRTFP.RecoverDbf(FAttrGroupList[AttrNo].Dbf);
 
   DataChange;
   result:=true;
@@ -1966,61 +2028,11 @@ end;
 
 
 {
-procedure TRTFP.AddAttrGroup(id:byte;group_name:string);//新增一个字段组表到工程
+procedure TRTFP.ExecuteSQL(SQL_Command:string);
 begin
-  if id>99 then exit;
-  if not IsOpen then exit;
-  WITH Self.FAttrGroupList[id] DO BEGIN
-    Name:=group_name;
-    DataBase:=FFilePath+'\'+FFileName+'\attr\'+group_name+'.dbf';
 
-    if assigned(Dbf) then Dbf.Free;
-    Dbf:=TDbf.Create(Self);
-    Dbf.FilePathFull:=DataBase;
-
-    if FileExists(Dbf.FilePathFull) then
-      begin
-        Dbf.Open;
-        //Append;
-        //Fields[1].AsString:='28D+eS';
-        //Fields[2].AsInteger:=1;
-        //Post;
-      end
-    else
-      begin
-        Dbf.TableLevel:=7;
-        Dbf.Exclusive:=true;
-        Dbf.FieldDefs.Add('OID', ftAutoInc, 0, True);
-        Dbf.FieldDefs.Add('PID', ftString, 8, True);
-        Dbf.FieldDefs.Add('PaperLine', ftInteger, 0, True);
-        Dbf.CreateTable;
-        Dbf.Open;
-        //Dbf.Append;
-        //Dbf.Fields[1].AsString:='000000';
-        //Dbf.Fields[2].AsInteger:=0;
-        //Dbf.Post;
-      end;
-    Enabled:=true;
-  END;
-end;
-
-procedure TRTFP.DeleteAttrGroup(id:byte);//移除指定Name的字段组表
-begin
-  if id>99 then exit;
-  if not IsOpen then exit;
-  WITH Self.FAttrGroupList[id] DO BEGIN
-    Name:='';
-    DataBase:='';
-    if assigned(Dbf) then begin
-      if FileExists(Dbf.FilePathFull) then Dbf.Close;
-      Dbf.Free;
-    end;
-    Dbf:=nil;
-    Enabled:=false;
-  END;
 end;
 }
-
 procedure TRTFP.ProjectPropertiesValidate(AValueListEditor:TValueListEditor);
 var attrNo:byte;
 begin
@@ -2073,7 +2085,7 @@ begin
   tmpDbf:=FPaperDB;
   for pcol:=0 to tmpDbf.FieldDefs.Count-1 do
     begin
-      tmpFieldDef:=tmpDbf.FieldDefs[pcol];
+      tmpFieldDef:=tmpDbf.FieldDefs.Items[pcol];
       ADataSet.FieldDefs.Add(tmpFieldDef.Name,tmpFieldDef.DataType,tmpFieldDef.Size);
       fields_numbers[pcol].AttrNo:=255;//PaperDB 用 255 表示
       fields_numbers[pcol].Column:=pcol;
@@ -2087,7 +2099,7 @@ begin
     attr_range[pj].min:=pcol;
     for pi:=0 to tmpDbf.FieldDefs.Count-1 do
       begin
-        tmpFieldDef:=tmpDbf.FieldDefs[pi];
+        tmpFieldDef:=tmpDbf.FieldDefs.Items[pi];
         if (tmpFieldDef.Name<>'OID') and (tmpFieldDef.Name<>'PID') then
           begin
             tmpFieldType:=tmpFieldDef.DataType;
@@ -2189,7 +2201,7 @@ end;
 procedure TRTFP.NodeViewValidate(PID:RTFP_ID;AValueListEditor:TValueListEditor);
 var attrNo,defNo:byte;
     tmpFields:TFields;
-    tmpDefs:TFieldDefs;
+    tmpDefs:TDbfFieldDefs;
     tmpAttrName:string;
 begin
   attrNo:=0;
@@ -2198,22 +2210,22 @@ begin
     tmpAttrName:=FAttrGroupList[attrNo].Name;
     tmpFields:=FindAttrRecord(PID,attrNo);
     if tmpFields<>nil then begin
-      tmpDefs:=FAttrGroupList[attrNo].Dbf.FieldDefs;
+      tmpDefs:=FAttrGroupList[attrNo].Dbf.DbfFieldDefs;
       for defNo:=0 to tmpDefs.Count-1 do
         begin
-          if (tmpDefs[defNo].Name<>'PID') and (tmpDefs[defNo].Name<>'OID') then case tmpDefs[defNo].DataType of
+          if (tmpDefs.Items[defNo].FieldName<>'PID') and (tmpDefs.Items[defNo].FieldName<>'OID') then case tmpDefs.Items[defNo].FieldType of
             ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo{,ftFmtMemo,ftFixedChar}:
-              AValueListEditor.Values[tmpAttrName+'#'+tmpDefs[defNo].Name]:=tmpFields[defNo].AsString;
+              AValueListEditor.Values[tmpAttrName+'#'+tmpDefs.Items[defNo].FieldName]:=tmpFields[defNo].AsString;
             ftBoolean:{
               if tmpFields[defNo].AsBoolean then
                 AValueListEditor.Values[tmpAttrName+'#'+tmpDefs[defNo].Name]:='true'
               else AValueListEditor.Values[tmpAttrName+'#'+tmpDefs[defNo].Name]:='false'};
             ftFloat:
-              AValueListEditor.Values[tmpAttrName+'#'+tmpDefs[defNo].Name]:=DBConvertToString(tmpFields[defNo].AsFloat);
+              AValueListEditor.Values[tmpAttrName+'#'+tmpDefs.Items[defNo].FieldName]:=DBConvertToString(tmpFields[defNo].AsFloat);
             ftInteger,ftLargeint,ftSmallint,ftWord:
-              AValueListEditor.Values[tmpAttrName+'#'+tmpDefs[defNo].Name]:=DBConvertToString(tmpFields[defNo].AsLargeInt);
+              AValueListEditor.Values[tmpAttrName+'#'+tmpDefs.Items[defNo].FieldName]:=DBConvertToString(tmpFields[defNo].AsLargeInt);
             ftDateTime,ftDate,ftTime:
-              AValueListEditor.Values[tmpAttrName+'#'+tmpDefs[defNo].Name]:=DBConvertToString(tmpFields[defNo].AsDateTime);
+              AValueListEditor.Values[tmpAttrName+'#'+tmpDefs.Items[defNo].FieldName]:=DBConvertToString(tmpFields[defNo].AsDateTime);
             else assert(false,'ADataSet.Fields[pi].DataType未预设。');
           end;
         end;
@@ -2381,22 +2393,22 @@ end;
 function TRTFP.GetAttrFieldsCount(attrNo:byte):byte;
 var tmp:longint;
 begin
-  tmp:=FAttrGroupList[attrNo].Dbf.FieldDefs.Count;
+  tmp:=FAttrGroupList[attrNo].Dbf.DbfFieldDefs.Count;
   assert(tmp<=99,'属性组字段超过100个');
   result:=min(tmp,100);
 end;
 
 function TRTFP.GetAttrFieldName(attrNo,index:byte):string;
 begin
-  result:=FAttrGroupList[attrNo].Dbf.FieldDefs[index].Name;
+  result:=FAttrGroupList[attrNo].Dbf.DbfFieldDefs.Items[index].FieldName;
 end;
 
 function TRTFP.GetAttrFieldNoByName(attrNo:byte;index:string):byte;
 begin
   result:=0;
-  while result<FAttrGroupList[attrNo].Dbf.FieldDefs.Count do
+  while result<FAttrGroupList[attrNo].Dbf.DbfFieldDefs.Count do
     begin
-      if FAttrGroupList[attrNo].Dbf.FieldDefs[result].Name=index then exit;
+      if FAttrGroupList[attrNo].Dbf.DbfFieldDefs.Items[result].FieldName=index then exit;
       inc(result);
       if result>99 then break;
     end;
@@ -2408,7 +2420,7 @@ begin
   result:=ftUnknown;
   if attrNo>=AttrsCount then exit;
   if FieldNo>=AttrFieldsCount[attrNo] then exit;
-  result:=AttrsDB[attrNo].FieldDefs[fieldNo].DataType;
+  result:=AttrsDB[attrNo].DbfFieldDefs.Items[fieldNo].FieldType;
 end;
 
 function TRTFP.GetAttrFieldDataTypeS(attrNa,fieldNa:string):TFieldType;
@@ -2419,7 +2431,33 @@ begin
   if attrNo>=AttrsCount then exit;
   fieldNo:=AttrFieldNoByName[attrNo,fieldNa];
   if FieldNo>=AttrFieldsCount[attrNo] then exit;
-  result:=AttrsDB[attrNo].FieldDefs[fieldNo].DataType;
+  result:=AttrsDB[attrNo].DbfFieldDefs.Items[fieldNo].FieldType;
+end;
+
+function TRTFP.GetAttrsConnected(index:byte):boolean;
+begin
+  result:=false;
+  if not FAttrGroupList[index].Enabled then exit;
+  result:=not(FAttrGroupList[index].Dbf.MasterSource = nil);
+end;
+
+procedure TRTFP.SetAttrsConnected(index:byte;value:boolean);
+begin
+  if not FAttrGroupList[index].Enabled then exit;
+  {
+  with FAttrGroupList[index].Dbf do begin
+    if value then begin
+      IndexName:='id';
+      MasterSource:=FDataSource_Paper;
+      MasterFields:='PID';
+    end else begin
+      IndexName:='id';
+      MasterSource:=nil;
+      MasterFields:='';
+    end;
+  end;
+  }
+  //FDataSource_Paper
 end;
 
 function TRTFP.GetOpenPdfExe:ansistring;
@@ -2513,7 +2551,7 @@ end;
 
 class function TRTFP.BackupDbf(ADBF:TDbf):boolean;
 var tmpDbf:TDbf;
-    tmpFieldDef:TFieldDef;
+    tmpDbfFieldDef:TDbfFieldDef;
     tmpField:TField;
     col,row:integer;
 begin
@@ -2526,10 +2564,10 @@ begin
   tmpDbf.TableName:=ADBF.TableName+'.bak';
   tmpDbf.TableLevel:=ADBF.TableLevel;
   col:=0;
-  while col<ADBF.FieldDefs.Count do
+  while col<ADBF.DbfFieldDefs.Count do
     begin
-      tmpFieldDef:=ADBF.FieldDefs[col];
-      tmpDbf.FieldDefs.Add(tmpFieldDef.Name,tmpFieldDef.DataType,tmpFieldDef.Size);
+      tmpDbfFieldDef:=ADBF.DbfFieldDefs.Items[col];
+      tmpDbf.DbfFieldDefs.Add(tmpDbfFieldDef.FieldName,tmpDbfFieldDef.FieldType,tmpDbfFieldDef.Size);
       inc(col);
     end;
   tmpDbf.CreateTable;
@@ -2565,7 +2603,7 @@ begin
   runfile:=ADbf.TableName;
   name_no_ext:=runfile;
   delete(name_no_ext,length(name_no_ext)-7,8);
-  run_dbt:=name_no_ext+'.run.dbt';
+  run_dbt:=name_no_ext+'_run.dbt';
 
   //此处没有存在检验
   TRTFP.FileCopy((dbfpath+runfile+'.bak'),(dbfpath+runfile),false);

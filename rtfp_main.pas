@@ -5,16 +5,16 @@ unit RTFP_main;
 interface
 
 uses
-  Classes, SysUtils, db, dbf, memds, FileUtil, Forms, Controls, Graphics,
-  Dialogs, ComCtrls, Menus, ExtCtrls, DBGrids, ValEdit, CheckLst,
-  StdCtrls, DbCtrls, LazUTF8, LvlGraphCtrl, Clipbrd, LCLType,
+  Classes, SysUtils, db, dbf, memds, sqldb, mssqlconn, FileUtil, Forms,
+  Controls, Graphics, Dialogs, ComCtrls, Menus, ExtCtrls, DBGrids, ValEdit,
+  CheckLst, StdCtrls, DbCtrls, LazUTF8, LvlGraphCtrl, Clipbrd, LCLType,
 
   AufScript_Frame,
 
   RTFP_definition, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.1.1-alpha.2';
+  C_VERSION_NUMBER  = '0.1.1-alpha.3';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -212,6 +212,7 @@ begin
 
   CurrentRTFP.TableValidate(Self.MemDataset_Main,Self.MainAttrFilterSet);
 
+
   {}Self.DataSource_Main.DataSet:=Self.MemDataset_Main;
   {}Self.CheckListBox_MainAttrFilter.Items.Clear;
 
@@ -271,6 +272,11 @@ procedure TFormDesktop.ProjectOpenDone(Sender:TObject);
 begin
   Self.Validate(Sender);
 
+  //文献节点选项卡
+  //Self.DBGrid_Main.DataSource:=CurrentRTFP.PaperDS;
+
+
+
   //FmtCmt选项卡
   Self.ComboBox_AttrName.Clear;
   Self.Button_FmtCmt_Post.Enabled:=false;
@@ -291,6 +297,15 @@ end;
 procedure TFormDesktop.ProjectCloseDone(Sender:TObject);
 begin
   Self.Clear(Sender);
+
+  //文献节点选项卡
+  //Self.DBGrid_Main.DataSource:=nil;
+
+
+  //FmtCmt选项卡
+  Self.ComboBox_AttrName.Clear;
+  Self.ComboBox_FieldName.Clear;
+
   Self.MenuItem_project_new.Enabled:=true;
   Self.MenuItem_project_open.Enabled:=true;
   Self.MenuItem_project_save.Enabled:=false;
@@ -513,10 +528,20 @@ begin
 end;
 
 procedure TFormDesktop.CheckListBox_MainAttrFilterClickCheck(Sender: TObject);
+//var attrNo:byte;
 begin
   if not assigned(CurrentRTFP) then exit;
-  if CurrentRTFP.IsOpen then
-  CurrentRTFP.TableValidate(Self.MemDataset_Main,Self.MainAttrFilterSet);
+  if CurrentRTFP.IsOpen then begin
+    CurrentRTFP.TableValidate(Self.MemDataset_Main,Self.MainAttrFilterSet);
+    {
+    attrNo:=0;
+    with Sender as TCheckListBox do while attrNo<Items.Count do
+      begin
+        CurrentRTFP.AttrsConnected[attrNo]:=Checked[attrNo];
+        inc(attrNo);
+      end;
+    }
+  end;
 end;
 
 procedure TFormDesktop.ComboBox_AttrNameChange(Sender: TObject);
