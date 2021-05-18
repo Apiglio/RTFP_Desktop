@@ -7,14 +7,15 @@ interface
 uses
   Classes, SysUtils, db, dbf, memds, sqldb, mssqlconn, FileUtil, Forms,
   Controls, Graphics, Dialogs, ComCtrls, Menus, ExtCtrls, DBGrids, ValEdit,
-  CheckLst, StdCtrls, DbCtrls, LazUTF8, LvlGraphCtrl, Clipbrd, LCLType,
+  CheckLst, StdCtrls, DbCtrls, LazUTF8, LvlGraphCtrl, ListViewFilterEdit,
+  TreeFilterEdit, ListFilterEdit, Clipbrd, LCLType, FileCtrl,
 
-  AufScript_Frame,
+  AufScript_Frame, ACL_ListView, TreeListView,
 
   RTFP_definition, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.1.1-alpha.3';
+  C_VERSION_NUMBER  = '0.1.1-alpha.4';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -24,6 +25,8 @@ type
   { TFormDesktop }
 
   TFormDesktop = class(TForm)
+    ACL_ListView: TACL_ListView;
+    Button_temp: TButton;
     Button_Project_NodeView_Fresh: TButton;
     Button_FmtCmt_Post: TButton;
     Button_FmtCmt_Recover: TButton;
@@ -45,7 +48,6 @@ type
     Label_Attrs_View: TLabel;
     LvlGraphControl: TLvlGraphControl;
     MainMenu: TMainMenu;
-    MemDataset_Main: TMemDataset;
     Memo_FmtCmt: TMemo;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
@@ -105,6 +107,7 @@ type
     procedure Button_NodeViewPostClick(Sender: TObject);
     procedure Button_NodeViewRecoverClick(Sender: TObject);
     procedure Button_Project_NodeView_FreshClick(Sender: TObject);
+    procedure Button_tempClick(Sender: TObject);
     procedure CheckListBox_MainAttrFilterClickCheck(Sender: TObject);
     procedure ComboBox_AttrNameChange(Sender: TObject);
     procedure ComboBox_Attrs_ViewChange(Sender: TObject);
@@ -131,6 +134,14 @@ type
     procedure PageControl_NodeChange(Sender: TObject);
     procedure TabSheet_Project_AufScriptResize(Sender: TObject);
     procedure PropertiesValueListEditorEditingDone(Sender: TObject);
+
+  private
+    FLayoutMode:integer;
+  protected
+    procedure SetLayoutMode(AModeIndex:integer);
+  public
+    property LayoutMode:integer read FLayoutMode write SetLayoutMode;
+
   private
     function Selected_PID:RTFP_ID;//根据DBGrid_Main的选择返回PID
 
@@ -139,6 +150,7 @@ type
     procedure EventLink(Sender:TRTFP);//链接所有事件
 
     procedure Validate(Sender:TObject);//更新显示
+    procedure ClassListValidate(Sender:TObject);//分类更新时的操作
     procedure FirstEdit(Sender:TObject);//工程第一次编辑
     procedure Clear(Sender:TObject);//清空
 
@@ -178,12 +190,14 @@ uses form_new_project, form_cite_trans, form_import;
 
 procedure TFormDesktop.EventLink(Sender:TRTFP);//链接所有事件
 begin
-  Sender.onNewDone:=@ProjectOpenDone;
+  //Sender.onNewDone:=@ProjectOpenDone;
   Sender.onOpenDone:=@ProjectOpenDone;
   Sender.onFirstEdit:=@FirstEdit;
   Sender.onSaveDone:=@ProjectSaveDone;
   Sender.onCloseDone:=@ProjectCloseDone;
   Sender.onChange:=@Validate;
+  Sender.onClassChange:=@ClassListValidate;
+
 end;
 
 procedure TFormDesktop.Validate(Sender:TObject);
@@ -210,10 +224,10 @@ begin
   //文献节点 & 文献属性组 标签页
   //{}Self.DataSource_Main.DataSet:=CurrentRTFP.PaperDB;
 
-  CurrentRTFP.TableValidate(Self.MemDataset_Main,Self.MainAttrFilterSet);
+  CurrentRTFP.TableValidate({Self.MemDataset_Main,}Self.MainAttrFilterSet);
 
 
-  {}Self.DataSource_Main.DataSet:=Self.MemDataset_Main;
+  //{}Self.DataSource_Main.DataSet:=Self.MemDataset_Main;
   {}Self.CheckListBox_MainAttrFilter.Items.Clear;
 
   pi:=Self.ComboBox_Attrs_View.ItemIndex;
@@ -243,6 +257,16 @@ begin
 
 end;
 
+procedure TFormDesktop.ClassListValidate(Sender:TObject);
+var stmp:string;
+begin
+  ACL_ListView.Clear;
+  for stmp in CurrentRTFP.each_class do
+    begin
+      ACL_ListView.AddItem(stmp,nil);
+    end;
+end;
+
 procedure TFormDesktop.FirstEdit(Sender:TObject);
 begin
   Self.Caption:=C_SOFTWARE_NAME+' - '+(Sender as TRTFP).Title + ' *';
@@ -253,7 +277,7 @@ procedure TFormDesktop.Clear(Sender:TObject);
 begin
   Self.Caption:=C_SOFTWARE_NAME;
   Self.PropertiesValueListEditor.Clear;
-  Self.MemDataset_Main.Clear;
+  //Self.MemDataset_Main.Clear;
   Self.CheckListBox_MainAttrFilter.Clear;
   Self.CheckListBox_MainAttrFilter.ItemIndex:=-1;
 end;
@@ -270,17 +294,19 @@ end;
 
 procedure TFormDesktop.ProjectOpenDone(Sender:TObject);
 begin
-  Self.Validate(Sender);
 
   //文献节点选项卡
-  //Self.DBGrid_Main.DataSource:=CurrentRTFP.PaperDS;
+  Self.DataSource_Main.DataSet:=CurrentRTFP.PaperDS;
 
-
+  //分类节点选项卡
+  ClassListValidate(nil);
 
   //FmtCmt选项卡
   Self.ComboBox_AttrName.Clear;
   Self.Button_FmtCmt_Post.Enabled:=false;
   CurrentRTFP.AttrNameValidate(ComboBox_AttrName.Items);
+
+  Self.Validate(Sender);
 
 
   Self.MenuItem_project_new.Enabled:=false;
@@ -299,8 +325,10 @@ begin
   Self.Clear(Sender);
 
   //文献节点选项卡
-  //Self.DBGrid_Main.DataSource:=nil;
+  Self.DataSource_Main.DataSet:=nil;
 
+  //分类节点选项卡
+  ACL_ListView.Clear;
 
   //FmtCmt选项卡
   Self.ComboBox_AttrName.Clear;
@@ -321,6 +349,17 @@ procedure TFormDesktop.ProjectSaveDone(Sender:TObject);
 begin
   Self.Validate(Sender);
   Self.MenuItem_project_save.Enabled:=false;
+end;
+
+procedure TFormDesktop.SetLayoutMode(AModeIndex:integer);
+begin
+  if AModeIndex = FLayoutMode then exit;
+  case AModeIndex of
+    0:Splitter_RightH.Top:=0;
+    1:Splitter_RightH.Top:=StatusBar.Top div 2;
+    2:Splitter_RightH.Top:=StatusBar.Top-6;
+  end;
+  FLayoutMode:=AModeIndex;
 end;
 
 function TFormDesktop.Selected_PID:RTFP_ID;
@@ -532,15 +571,7 @@ procedure TFormDesktop.CheckListBox_MainAttrFilterClickCheck(Sender: TObject);
 begin
   if not assigned(CurrentRTFP) then exit;
   if CurrentRTFP.IsOpen then begin
-    CurrentRTFP.TableValidate(Self.MemDataset_Main,Self.MainAttrFilterSet);
-    {
-    attrNo:=0;
-    with Sender as TCheckListBox do while attrNo<Items.Count do
-      begin
-        CurrentRTFP.AttrsConnected[attrNo]:=Checked[attrNo];
-        inc(attrNo);
-      end;
-    }
+    CurrentRTFP.TableValidate(Self.MainAttrFilterSet);
   end;
 end;
 
@@ -615,6 +646,11 @@ begin
   //LvlGraphControl.Graph.GetEdge('AA','BB',true);
   //LvlGraphControl.Graph.GetEdge('AA','CC',true);
   //LvlGraphControl.Graph.GetEdge('AA','DD',true);
+end;
+
+procedure TFormDesktop.Button_tempClick(Sender: TObject);
+begin
+  LayoutMode:=(LayoutMode+1) mod 3;
 end;
 
 procedure TFormDesktop.ComboBox_Attrs_ViewChange(Sender: TObject);

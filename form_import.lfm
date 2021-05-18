@@ -927,13 +927,4 @@ object Form_ImportFiles: TForm_ImportFiles
     Align = alNone
     Anchors = [akTop, akBottom]
   end
-  object Timer_Animation: TTimer
-    Enabled = False
-    Interval = 20
-    OnTimer = Timer_AnimationTimer
-    OnStartTimer = Timer_AnimationStartTimer
-    OnStopTimer = Timer_AnimationStopTimer
-    left = 576
-    top = 488
-  end
 end

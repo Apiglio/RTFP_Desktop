@@ -50,7 +50,6 @@ type
     TabSheet_AddImage: TTabSheet;
     TabSheet_AddNote: TTabSheet;
     TabSheet_AddPaper: TTabSheet;
-    Timer_Animation: TTimer;
     procedure Button_BackToPrevClick(Sender: TObject);
     procedure Button_ImportFileNamesCheckClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -64,9 +63,11 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure Panel_FilesFullBackupMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    {
     procedure Timer_AnimationStartTimer(Sender: TObject);
     procedure Timer_AnimationStopTimer(Sender: TObject);
     procedure Timer_AnimationTimer(Sender: TObject);
+    }
   private
     FFilenames:TStringList;
     FAnimationRightOrt:boolean;
@@ -102,6 +103,7 @@ begin
   SplitterImportFilesV.Left:=Width-6;
   Button_ImportFileNamesCheck.Enabled:=true;
   Button_ImportFileNamesCheck.Caption:='确认导入';
+  ProgressBar_ImportFiles.Position:=0;
   Self.Show;
 end;
 
@@ -268,6 +270,7 @@ begin
   Phase2;
 end;
 
+{
 procedure TForm_ImportFiles.Timer_AnimationStartTimer(Sender: TObject);
 begin
   //Self.BeginFormUpdate;
@@ -295,6 +298,7 @@ begin
   end;
   SplitterImportFilesV.Left:=newPos;
 end;
+}
 
 end.
 
