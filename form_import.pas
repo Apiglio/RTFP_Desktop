@@ -55,6 +55,7 @@ type
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure Image_MouseDown(Sender: TObject;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure Image_MouseUp(Sender: TObject;
@@ -101,8 +102,8 @@ begin
       FFilenames.Add(AFileNames[pi]);
     end;
   SplitterImportFilesV.Left:=Width-6;
-  Button_ImportFileNamesCheck.Enabled:=true;
-  Button_ImportFileNamesCheck.Caption:='确认导入';
+  //Button_ImportFileNamesCheck.Enabled:=true;
+  //Button_ImportFileNamesCheck.Caption:='确认导入';
   ProgressBar_ImportFiles.Position:=0;
   Self.Show;
 end;
@@ -157,6 +158,11 @@ begin
   Self.Hide;
 end;
 
+procedure TForm_ImportFiles.FormDestroy(Sender: TObject);
+begin
+  FFileNames.Free;
+end;
+
 procedure TForm_ImportFiles.FormCreate(Sender: TObject);
 begin
   FFileNames:=TStringList.Create;
@@ -165,7 +171,7 @@ end;
 procedure TForm_ImportFiles.FormClose(Sender: TObject;
   var CloseAction: TCloseAction);
 begin
-  FFileNames.Free;
+  //
 end;
 
 procedure TForm_ImportFiles.Button_BackToPrevClick(Sender: TObject);
@@ -202,8 +208,11 @@ begin
     Clear;
     Self.Hide;
   end else begin
-    Button_ImportFileNamesCheck.Caption:='手动退出';
-    Button_ImportFileNamesCheck.Enabled:=false;
+    MessageDlg('警告','部分文件导入失败！',mtWarning,[mbOK],0);
+    Clear;
+    Self.Hide;
+    //Button_ImportFileNamesCheck.Caption:='手动退出';
+    //Button_ImportFileNamesCheck.Enabled:=false;
   end;
 
 end;
@@ -241,6 +250,7 @@ begin
       begin
         CheckBox_AddPaperMethod.Checked:=true;
         PageControl_ImportFiles.PageIndex:=TabSheet_AddPaper.PageIndex;
+        CheckListBox_ImportFileNames.Clear;
         pi:=0;
         for stmp in FFileNames do begin
           CheckListBox_ImportFileNames.AddItem(stmp,nil);
@@ -253,6 +263,7 @@ begin
       begin
         CheckBox_AddPaperMethod.Checked:=false;
         PageControl_ImportFiles.PageIndex:=TabSheet_AddPaper.PageIndex;
+        CheckListBox_ImportFileNames.Clear;
         pi:=0;
         for stmp in FFileNames do begin
           CheckListBox_ImportFileNames.AddItem(stmp,nil);

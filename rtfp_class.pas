@@ -15,10 +15,12 @@ type
   private
     FName,FFullPath:string;
     FDbf:TDbf;
+    FFilterEnabled:boolean;
   public
     property Name:string read FName;
     property FullPath:string read FFullPath;
     property Dbf:Tdbf read FDbf;
+    property FilterEnabled:boolean read FFilterEnabled write FFilterEnabled;//如果为true，RecordFilter会以此为筛选条件
   public
     constructor Create(ACollection:TCollection);override;
     destructor Destroy;override;
@@ -40,6 +42,7 @@ type
   private
     FOwner:TComponent;
     FFullPath:string;
+    FFiltersEnabled:boolean;
   private
     function GetItems(Index: integer): TRTFP_ClassItem;
     procedure SetItems(Index: integer; AValue: TRTFP_ClassItem);
@@ -56,6 +59,9 @@ type
   public
     procedure LoadFromPath(APath:string='\');//相对地址
     //procedure SaveToPath(APath:string='\');//暂未发现此方法的必要性
+
+  public
+    property FiltersEnabled:boolean read FFiltersEnabled write FFiltersEnabled;//如果为true，RecordFilter会以此为筛选条件（列表总开关）
 
   end;
 
@@ -113,7 +119,7 @@ end;
 
 constructor TRTFP_ClassList.Create(AOwner:TComponent);
 begin
-  inherited Create(TRTFP_ClassItem);
+  inherited Create(TRTFP_ClassItem);//why???
 end;
 
 function TRTFP_ClassList.Add: TRTFP_ClassItem;

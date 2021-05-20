@@ -1,6 +1,5 @@
 //ImportFiles的UI语言改进
-//ImportFilesForm.Call的FFileName.Clear有问题（导入窗口打开后不导入直接关闭窗口，之后filesdrop机会出问题）
-//已读标记改成ftBoolean
+//已读标记改成ftBoolean (solved)
 //滚轮事件记录定位有误 (skipped)
 //FmtCmt的覆盖提交保存提醒
 //引用PDF里的图片
@@ -47,6 +46,7 @@ const
 
 
   RTFP_ID_ORDER = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-';
+  RTFP_ID_CHARSET = ['0'..'9','A'..'Z','a'..'z','+','-'];
   DefaultOpenExe = ''; //cmd.exe /c
   Comma_Symbol = '&apig_comma&';
 
@@ -122,6 +122,10 @@ const
   _Col_notes_CheckTime_ = '最近查询';
   _Col_notes_FurtherCmt_ = 'FurtherCmt';
   _Col_notes_Format_ = 'Format';
+  _Col_relat_Parent_ = '父节点';
+  _Col_relat_Children_ = '子节点';
+  _Col_relat_Cited_ = '引证文献';
+  _Col_relat_References_ = '参考文献';
 
 
 
@@ -156,7 +160,7 @@ type
 
     FClassList:TRTFP_ClassList;
     FFileList:TRTFP_FileList;
-    FFieldList:TRTFP_FieldList;
+    FFieldList:TAttrsFieldList;
 
 
   private
@@ -257,6 +261,7 @@ type
     procedure GenAttrClassAttribute(Dbf:TDbf);inline;
     procedure GenAttrNotesAttribute(Dbf:TDbf);inline;
     procedure GenAttrDefaultAttribute(Dbf:TDbf);inline;
+    procedure GenAttrRelationAttribute(Dbf:TDbf);
 
 
 
@@ -314,7 +319,7 @@ type
     //Paper
     function AddPaper(fullfilename:string;AddPaperMethod:TAddPaperMethod=apmFullBackup):RTFP_ID;//新增一个文献到工程
     function FindPaper(fullfilename:string):RTFP_ID;//查找具体文件在工程中的PID，未找到返回000000
-    procedure DeletePaper(PID:RTFP_ID);//移除指定PID的文献
+    function DeletePaper(PID:RTFP_ID):boolean;//移除指定PID的文献
 
     procedure OpenPaperAsPDF(PID:RTFP_ID);
     procedure OpenPaperAsCAJ(PID:RTFP_ID);
@@ -363,7 +368,8 @@ type
     procedure ProjectPropertiesValidate(AValueListEditor:TValueListEditor);
     procedure ProjectPropertiesDataPost(AValueListEditor:TValueListEditor);
 
-    procedure TableValidate({ADataSet:TMemDataSet;}table_enabled:TablesUse);
+    procedure TableValidate(table_enabled:TablesUse);
+    procedure TableFilter(cmd:string);
 
     procedure NodeViewValidate(PID:RTFP_ID;AValueListEditor:TValueListEditor);
     procedure NodeViewDataPost(PID:RTFP_ID;AValueListEditor:TValueListEditor);
@@ -420,6 +426,7 @@ type
     class function GetDateDir:string;inline;
 
     class function IsProjectFile(filename:ansistring):boolean;
+    class function IsRTFPID(PID:string):boolean;
 
     //class function BackupDbf(ADBF:TDbf):boolean;
     //class function RecoverDbf(ADBF:TDbf):boolean;
@@ -493,6 +500,21 @@ begin
   if not AAuf.TryArgToString(1,filename) then exit;
 
   AufScpt.writeln(CurrentRTFP.AddPaper(filename));
+
+end;
+
+procedure aufunc_DeletePaper(Sender:TObject);
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    PID:string;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(2) then exit;
+  if not AAuf.TryArgToString(1,PID) then exit;
+
+  if CurrentRTFP.DeletePaper(PID) then
+  AufScpt.writeln('成功');
 
 end;
 
@@ -829,6 +851,8 @@ begin
 
 
     //Script.add_func('paper.add',@aufunc_AddPaper,'filename','新建Paper节点');
+    Script.add_func('paper.delete',@aufunc_DeletePaper,'PID','删除Paper节点');
+
     Script.add_func('attrs.rec.edit',@aufunc_EditAttr,'PID,AttrNo,FieldName,Memo','修改PID节点中第AttrNo表的FieldName字段为Memo');
     Script.add_func('attrs.rec.read',@aufunc_ReadAttr,'PID,AttrNo,FieldName,arv','修改PID节点中第AttrNo表的FieldName字段为Memo');
 
@@ -884,7 +908,7 @@ begin
 
   FClassList:=TRTFP_ClassList.Create(Self);
   FFileList:=TRTFP_FileList.Create(Self,'');
-  FFieldList:=TRTFP_FieldList.Create(Self);
+  FFieldList:=TAttrsFieldList.Create(Self);
 
   FUserList:=TStringList.Create;
   FFormatList:=TStringList.Create;
@@ -1084,6 +1108,7 @@ begin
         1:GenAttrClassAttribute(Dbf);
         2:GenAttrNotesAttribute(Dbf);
         3:GenAttrMetasAttribute(Dbf);
+        4:GenAttrRelationAttribute(Dbf);
         else assert(false,'新建工程不能出现非默认属性组。');
       end;
       NewDbf(DataBase,Dbf);
@@ -1336,6 +1361,20 @@ begin
 
 end;
 
+procedure TRTFP.GenAttrRelationAttribute(Dbf:TDbf);
+begin
+  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0, True);
+  Dbf.FieldDefs.Add(_Col_PID_, ftString, 8, True);
+
+  Dbf.FieldDefs.Add(_Col_relat_Parent_, ftMemo, 8, True);//父节点
+  Dbf.FieldDefs.Add(_Col_relat_Children_, ftMemo, 8, True);//子节点
+
+  Dbf.FieldDefs.Add(_Col_relat_Cited_, ftMemo, 8, True);//引证文献
+  Dbf.FieldDefs.Add(_Col_relat_References_, ftMemo, 8, True);//参考文献
+
+end;
+
+
 procedure TRTFP.GenAttrDefaultAttribute(Dbf:TDbf);
 begin
   Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0, True);
@@ -1365,6 +1404,7 @@ begin
   tmpProjectFile.Add('属性组01,分类');
   tmpProjectFile.Add('属性组02,注解');
   tmpProjectFile.Add('属性组03,元数据');
+  tmpProjectFile.Add('属性组04,关系');
 
 
   repeat
@@ -1373,7 +1413,7 @@ begin
       tmpProjectFile.SaveToFile(FFileFullName);
       ProjectFileValue.LoadFromCSVFile(FFileFullName);
     except
-      case MessageDlg('错误','文件占用导致工程文档创建异常！',mtConfirmation,[mbRetry,mbCancel],0) of
+      case MessageDlg('错误','文件占用导致工程文档创建异常！',mtError,[mbRetry,mbCancel],0) of
         rnmbRetry:retry:=true;
         rnmbCancel:begin tmpProjectFile.Free;exit end;
       end;
@@ -1817,9 +1857,43 @@ begin
   FileStream.Free;
 end;
 
-procedure TRTFP.DeletePaper(PID:RTFP_ID);//移除指定PID的文献
+function TRTFP.DeletePaper(PID:RTFP_ID):boolean;//移除指定PID的文献
+var attrNo:byte;
 begin
-
+  result:=false;
+  if not TRTFP.IsRTFPID(PID) then exit;
+  with FPaperDB do begin
+    if not Active then Open;
+    First;
+    while not EOF do
+      begin
+        if FieldByName(_Col_PID_).AsString=PID then begin
+          Delete;
+          break;
+        end;
+        Next;
+      end;
+  end;
+  attrNo:=0;
+  while FAttrGroupList[attrNo].Enabled do
+    begin
+      with FAttrGroupList[attrNo].Dbf do
+        begin
+          if not Active then Open;
+          First;
+          while not EOF do
+            begin
+              if FieldByName(_Col_PID_).AsString=PID then begin
+                Delete;
+                break;
+              end;
+              Next;
+            end;
+        end;
+      inc(attrNo);
+    end;
+  RecordChange;
+  result:=true;
 end;
 
 procedure TRTFP.OpenPaperAsPDF(PID:RTFP_ID);
@@ -2240,12 +2314,6 @@ begin
 end;
 
 
-{
-procedure TRTFP.ExecuteSQL(SQL_Command:string);
-begin
-
-end;
-}
 procedure TRTFP.ProjectPropertiesValidate(AValueListEditor:TValueListEditor);
 var attrNo:byte;
 begin
@@ -2322,7 +2390,7 @@ begin
                 tmpFieldType:=ftString;
                 tmpSIze:=250;
               end;
-            FPaperDS.FieldDefs.Add(IntToStr(pj)+tmpFieldDef.Name,tmpFieldType,tmpSize);
+            FPaperDS.FieldDefs.Add(Usf.zeroplus(pj,2)+tmpFieldDef.Name,tmpFieldType,tmpSize);
             fields_numbers[pcol].AttrNo:=pj;
             fields_numbers[pcol].Column:=pi;
             attr_range[pj].max:=pcol;
@@ -2330,7 +2398,6 @@ begin
           end;
       end;
     inc(pj);
-    //if pj>99 then break;
   until (not FAttrGroupList[pj].Enabled) or (pj>99);
   if pj>99 then max_attr:=99 else max_attr:= pj-1;
   FPaperDS.CreateTable;
@@ -2392,11 +2459,67 @@ begin
     end;
 end;
 
+procedure TRTFP.TableFilter(cmd:string);
+var colname,method,value,stmp:string;
+    col_num:integer;
+begin
+  //= eql         相等
+  //!= <> neq     不相等
+  //has           包含有
+  //in            在其内
+  StringReplace(cmd,'=',' eql ',[rfReplaceAll]);
+  StringReplace(cmd,'!=',' neq ',[rfReplaceAll]);
+  StringReplace(cmd,'<>',' neq ',[rfReplaceAll]);
+
+  Auf.Script.IO_fptr.error:=nil;
+  Auf.Script.IO_fptr.print:=nil;
+  Auf.Script.IO_fptr.echo:=nil;
+  Auf.ReadArgs(cmd);
+  if Auf.ArgsCount<3 then exit;
+
+  colname:=Auf.nargs[0].arg;
+  method:=Auf.nargs[1].arg;
+  value:=Auf.nargs[2].arg;
+
+  col_num:=0;
+  while col_num<FPaperDS.FieldDefs.Count do
+    begin
+      if FPaperDS.FieldDefs[col_num].Name=colname then break;
+      inc(col_num);
+    end;
+  if col_num>=FPaperDS.FieldDefs.Count then exit;
+  case FPaperDS.FieldDefs[col_num].DataType of
+    ftMemo,ftString:;
+    else begin assert(false,'暂不支持的筛选格式');exit end;
+  end;
+
+  with FPaperDS do
+    begin
+      if not Active then Open;//没有必要吧
+      BeginUpdate;
+      First;
+      while not EOF do
+        begin
+          stmp:=Fields[Col_num].AsString;
+          case lowercase(method) of
+            'eql':if stmp<>value then Delete else Next;
+            'neq':if stmp=value then Delete else Next;
+            'in':if pos(stmp,value)<=0 then Delete else Next;
+            'has':if pos(value,stmp)<=0 then Delete else Next;
+            else exit;
+          end;
+        end;
+      EndUpdate;
+    end;
+end;
+
+{
 function DBConvertToString(inp:boolean):string;
 begin
   if inp then result:='true'
   else result:='false';
 end;
+}
 function DBConvertToString(inp:int64):string;
 begin
   result:=IntToStr(inp);
@@ -2761,6 +2884,16 @@ begin
   until po<=0;
   if lowercase(ext)='rtfp' then result:=true;
 end;
+
+class function TRTFP.IsRTFPID(PID:string):boolean;
+var pi:integer;
+begin
+  result:=false;
+  if length(PID)<>6 then exit;
+  for pi:=1 to 6 do if not (PID[pi] in RTFP_ID_CHARSET) then exit;
+  result:=true;
+end;
+
 {
 class function TRTFP.BackupDbf(ADBF:TDbf):boolean;
 var tmpDbf:TDbf;

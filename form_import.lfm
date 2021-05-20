@@ -11,6 +11,7 @@ object Form_ImportFiles: TForm_ImportFiles
   OnClose = FormClose
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
+  OnDestroy = FormDestroy
   Position = poScreenCenter
   LCLVersion = '1.8.4.0'
   object ProgressBar_ImportFiles: TProgressBar

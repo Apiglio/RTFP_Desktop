@@ -5,17 +5,17 @@ unit RTFP_main;
 interface
 
 uses
-  Classes, SysUtils, db, dbf, memds, sqldb, mssqlconn, FileUtil, Forms,
+  Classes, SysUtils, db, dbf, sqldb, mssqlconn, FileUtil, Forms,
   Controls, Graphics, Dialogs, ComCtrls, Menus, ExtCtrls, DBGrids, ValEdit,
-  CheckLst, StdCtrls, DbCtrls, LazUTF8, LvlGraphCtrl, ListViewFilterEdit,
-  TreeFilterEdit, ListFilterEdit, Clipbrd, LCLType, FileCtrl,
+  CheckLst, StdCtrls, DbCtrls, LazUTF8, LvlGraphCtrl,
+  Clipbrd, LCLType,
 
   AufScript_Frame, ACL_ListView, TreeListView,
 
   RTFP_definition, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.1.1-alpha.4';
+  C_VERSION_NUMBER  = '0.1.1-alpha.5';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -25,7 +25,8 @@ type
   { TFormDesktop }
 
   TFormDesktop = class(TForm)
-    ACL_ListView: TACL_ListView;
+    ACL_ListView_Klass: TACL_ListView;
+    ACL_ListView_Attrs: TACL_ListView;
     Button_temp: TButton;
     Button_Project_NodeView_Fresh: TButton;
     Button_FmtCmt_Post: TButton;
@@ -36,16 +37,13 @@ type
     CheckListBox_MainAttrFilter: TCheckListBox;
     ComboBox_AttrName: TComboBox;
     ComboBox_FieldName: TComboBox;
-    ComboBox_Attrs_View: TComboBox;
     DataSource_Attrs: TDataSource;
     DataSource_Main: TDataSource;
-    DBGrid_Attrs: TDBGrid;
     DBGrid_Main: TDBGrid;
     Edit_DBGridMain_Filter: TEdit;
     Frame_AufScript1: TFrame_AufScript;
     Image_PDF_View: TImage;
     Label_MainFilter: TLabel;
-    Label_Attrs_View: TLabel;
     LvlGraphControl: TLvlGraphControl;
     MainMenu: TMainMenu;
     Memo_FmtCmt: TMemo;
@@ -78,24 +76,25 @@ type
     MenuItem_edit: TMenuItem;
     MenuItem_project_open: TMenuItem;
     OpenDialog_Project: TOpenDialog;
+    PageControl_Filter: TPageControl;
     PageControl_Node: TPageControl;
     PageControl_Project: TPageControl;
     Panel_DBGridMain: TPanel;
-    Panel_Release: TPanel;
     PopupMenu_MainDBGrid: TPopupMenu;
     SaveDialog_project: TSaveDialog;
+    Splitter_LeftH: TSplitter;
     Splitter_PropertiesV: TSplitter;
     Splitter_RightH: TSplitter;
     Splitter_MainV: TSplitter;
     StaticText_AttrNameCombo: TStaticText;
     StaticText_FieldNameCombo: TStaticText;
     StatusBar: TStatusBar;
+    TabSheet_Filter_Klass: TTabSheet;
+    TabSheet_Filter_Field: TTabSheet;
     TabSheet_Project_NodeView: TTabSheet;
     TabSheet_FmtCmt: TTabSheet;
     TabSheet_Project_Properties: TTabSheet;
     TabSheet_Node_PDF: TTabSheet;
-    TabSheet_Project_Class: TTabSheet;
-    TabSheet_Project_Attrs: TTabSheet;
     TabSheet_Node_View: TTabSheet;
     TabSheet_Project_AufScript: TTabSheet;
     TabSheet_Project_DataGrid: TTabSheet;
@@ -117,6 +116,7 @@ type
       Shift: TShiftState);
     procedure DBGrid_MainMouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
+    procedure Edit_DBGridMain_FilterChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
@@ -221,38 +221,19 @@ begin
   //工程信息 标签页
   CurrentRTFP.ProjectPropertiesValidate(Self.PropertiesValueListEditor);
 
-  //文献节点 & 文献属性组 标签页
-  //{}Self.DataSource_Main.DataSet:=CurrentRTFP.PaperDB;
+  //文献节点 标签页
 
-  CurrentRTFP.TableValidate({Self.MemDataset_Main,}Self.MainAttrFilterSet);
+  CurrentRTFP.TableValidate(Self.MainAttrFilterSet);
 
-
-  //{}Self.DataSource_Main.DataSet:=Self.MemDataset_Main;
-  {}Self.CheckListBox_MainAttrFilter.Items.Clear;
-
-  pi:=Self.ComboBox_Attrs_View.ItemIndex;
-  if pi>=0 then old_choice:=Self.ComboBox_Attrs_View.Items[pi] else old_choice:='';
-  with Self.ComboBox_Attrs_View do begin
-    Clear;
-    attr_i:=0;
-    repeat
-      stmp:=CurrentRTFP.AttrName[attr_i];
-      if stmp<>'' then begin
-        ComboBox_Attrs_View.AddItem(stmp,CurrentRTFP.AttrsDB[attr_i]);
-        {}Self.CheckListBox_MainAttrFilter.Items.Add(stmp);
-      end else break;
-      inc(attr_i);
-    until attr_i>99;
-  end;
+  CheckListBox_MainAttrFilter.Items.Clear;
   attr_i:=0;
-  pi:=-1;
-  for stmp in Self.ComboBox_Attrs_View.Items do
-    begin
-      if stmp=old_choice then pi:=attr_i;
-      inc(attr_i);
-    end;
-  Self.ComboBox_Attrs_View.ItemIndex:=pi;
-  Self.ComboBox_Attrs_View.OnChange(Self.ComboBox_Attrs_View);
+  repeat
+    stmp:=CurrentRTFP.AttrName[attr_i];
+    if stmp<>'' then begin
+      Self.CheckListBox_MainAttrFilter.Items.Add(stmp);
+    end else break;
+    inc(attr_i);
+  until attr_i>99;
 
 
 end;
@@ -260,10 +241,10 @@ end;
 procedure TFormDesktop.ClassListValidate(Sender:TObject);
 var stmp:string;
 begin
-  ACL_ListView.Clear;
+  ACL_ListView_Klass.Clear;
   for stmp in CurrentRTFP.each_class do
     begin
-      ACL_ListView.AddItem(stmp,nil);
+      ACL_ListView_Klass.AddItem(stmp,nil);
     end;
 end;
 
@@ -328,7 +309,7 @@ begin
   Self.DataSource_Main.DataSet:=nil;
 
   //分类节点选项卡
-  ACL_ListView.Clear;
+  ACL_ListView_Klass.Clear;
 
   //FmtCmt选项卡
   Self.ComboBox_AttrName.Clear;
@@ -366,7 +347,7 @@ function TFormDesktop.Selected_PID:RTFP_ID;
 begin
   result:='000000';
   if not DBGrid_Main.DataSource.DataSet.Active then exit;
-  result:=DBGrid_Main.DataSource.DataSet.Fields.FieldByName('PID').AsString;
+  result:=DBGrid_Main.DataSource.DataSet.Fields.FieldByName(_Col_PID_).AsString;
 end;
 
 procedure TFormDesktop.ViewPdfValidate;
@@ -382,6 +363,7 @@ begin
   PID:=Selected_PID;
   ValueListEditor_NodeView.Clear;
   if PID='000000' then exit;
+  StatusBar.Panels[0].Text:=PID;
   CurrentRTFP.NodeViewValidate(PID,ValueListEditor_NodeView);
 
   if (ComboBox_AttrName.ItemIndex>=0) and (ComboBox_FieldName.ItemIndex>=0) then begin
@@ -663,7 +645,6 @@ end;
 
 procedure TFormDesktop.DBGrid_MainCellClick(Column: TColumn);
 begin
-  //ShowMessage(IntToStr((Self.DBGrid_Main).DataSource.DataSet.RecNo));
   NodeViewValidate;
 end;
 
@@ -678,6 +659,12 @@ procedure TFormDesktop.DBGrid_MainMouseWheel(Sender: TObject;
   var Handled: Boolean);
 begin
   //NodeViewValidate;
+end;
+
+procedure TFormDesktop.Edit_DBGridMain_FilterChange(Sender: TObject);
+begin
+  //有点激进的筛选方式
+  CurrentRTFP.TableFilter((Sender as TEdit).Caption);
 end;
 
 
