@@ -24,13 +24,15 @@ type
   TAttrsField = class(TCollectionItem)
   private
     FFieldName:string;
-    FDataType:TFieldType;
+    //FDataType:TFieldType;
+    FFieldDef:TFieldDef;
     FAttrsGroup:TAttrsGroup;
     FShown:boolean;
   public
     constructor Create(ACollection: TCollection);
     property Shown:boolean read FShown write FShown;
-    property DataType:TFieldType read FDataType write FDataType;
+    //property DataType:TFieldType read FDataType write FDataType;
+    property FieldDef:TFieldDef read FFieldDef;
     property FieldName:string read FFieldName write FFieldName;
     property AttrsGroup:TAttrsGroup read FAttrsGroup;
   end;
@@ -41,9 +43,9 @@ type
     FPosition: Integer;
   public
     constructor Create(ACollection: TCollection);
-    function GetCurrent:string;
+    function GetCurrent:TAttrsField;
     function MoveNext: Boolean;
-    property Current:string read GetCurrent;
+    property Current:TAttrsField read GetCurrent;
   end;
 
   TAttrsFieldList = class(TCollection)
@@ -56,9 +58,11 @@ type
     constructor Create(AOwner:TComponent);
   public
     function Add: TAttrsField;
-    function AddEx(AFieldName:string): TAttrsField;
+    function AddEx(AFieldDef:TFieldDef): TAttrsField;
     procedure Clear;
     function GetEnumerator:TAttrsFieldEnumerator;
+    function FindItemIndexByName(AName:string):integer;
+    function FindItemByName(AName:string):TAttrsField;
     property Items[Index: integer]: TAttrsField read GetItems write SetItems; default;
   end;
 
@@ -68,15 +72,18 @@ type
   private
     FName,FFullPath:string;
     FDbf:TDbf;
+    FFieldList:TAttrsFieldList;
     FGroupShown:boolean;
   public
     property Name:string read FName;
     property FullPath:string read FFullPath;
+    property FieldList:TAttrsFieldList read FFieldList;
     property Dbf:Tdbf read FDbf;
     property GroupShown:boolean read FGroupShown write FGroupShown;//如果为true，FieldFilter会以此为筛选条件
   public
     constructor Create(ACollection:TCollection);override;
     destructor Destroy;override;
+    procedure LoadFieldListFromDbf;
   end;
 
 
@@ -86,9 +93,9 @@ type
     FPosition: Integer;
   public
     constructor Create(ACollection: TCollection);
-    function GetCurrent:string;
+    function GetCurrent:TAttrsGroup;
     function MoveNext: Boolean;
-    property Current:string read GetCurrent;
+    property Current:TAttrsGroup read GetCurrent;
   end;
 
   TAttrsGroupList = class(TCollection)
@@ -106,11 +113,11 @@ type
     procedure Clear;
     function GetEnumerator: TAttrsGroupEnumerator;
     function FindItemIndexByName(AName:string):integer;
+    function FindItemByName(AName:string):TAttrsGroup;
     property Items[Index: integer]: TAttrsGroup read GetItems write SetItems; default;
     property Path:string read FFullPath write FFullPath;
   public
     procedure LoadFromPath(APath:string='\');//相对地址
-
   end;
 
 
@@ -136,9 +143,9 @@ begin
   else raise Exception.Create('TAttrsFieldEnumerator.Create: unassigned');
 end;
 
-function TAttrsFieldEnumerator.GetCurrent:string;
+function TAttrsFieldEnumerator.GetCurrent:TAttrsField;
 begin
-  result:=(inherited GetCurrent as TAttrsField).FFieldName;
+  result:=(inherited GetCurrent as TAttrsField);
 end;
 
 function TAttrsFieldEnumerator.MoveNext: Boolean;
@@ -173,10 +180,11 @@ begin
   Result := inherited Add as TAttrsField;
 end;
 
-function TAttrsFieldList.AddEx(AFieldName:string): TAttrsField;
+function TAttrsFieldList.AddEx(AFieldDef:TFieldDef): TAttrsField;
 begin
   Result := inherited Add as TAttrsField;
-  result.FFieldName:=AFieldName;
+  Result.FFieldName:=AFieldDef.Name;
+  Result.FFieldDef:=AFieldDef;
 end;
 
 procedure TAttrsFieldList.Clear;
@@ -184,6 +192,23 @@ begin
   inherited Clear;
 end;
 
+function TAttrsFieldList.FindItemIndexByName(AName:string):integer;
+begin
+  result:=0;
+  while result<Count do begin
+    if Items[result].FieldName=AName then exit;
+    inc(result);
+  end;
+  result:=-1;
+end;
+
+function TAttrsFieldList.FindItemByName(AName:string):TAttrsField;
+var index:integer;
+begin
+  index:=FindItemIndexByName(AName);
+  if index<0 then result:=nil
+  else result:=Items[index];
+end;
 
 
 
@@ -197,12 +222,29 @@ begin
     inherited Create(ACollection)
   else raise Exception.Create('TAttrsGroup.Create: unassigned');
   FDbf:=TDbf.Create(nil);
+  FFieldList:=TAttrsFieldList.Create(nil);
 end;
 
 destructor TAttrsGroup.Destroy;
 begin
+  FFieldList.Free;
   FDbf.Free;
   Inherited Destroy;
+end;
+
+procedure TAttrsGroup.LoadFieldListFromDbf;
+var pi:integer;
+begin
+  with FDbf do
+    begin
+      if not Active then Open;
+      pi:=0;
+      while pi<FieldDefs.Count do
+        begin
+          FFieldList.AddEx(FieldDefs[pi]);
+          inc(pi);
+        end;
+    end;
 end;
 
 { TAttrsGroupEnumerator }
@@ -214,9 +256,9 @@ begin
   else raise Exception.Create('TRTFP_ClassEnumerator.Create: unassigned');
 end;
 
-function TAttrsGroupEnumerator.GetCurrent:string;
+function TAttrsGroupEnumerator.GetCurrent:TAttrsGroup;
 begin
-  result:=(inherited GetCurrent as TAttrsGroup).FFullPath;
+  result:=(inherited GetCurrent as TAttrsGroup);
 end;
 
 function TAttrsGroupEnumerator.MoveNext: Boolean;
@@ -274,6 +316,15 @@ begin
   result:=-1;
 end;
 
+function TAttrsGroupList.FindItemByName(AName:string):TAttrsGroup;
+var index:integer;
+begin
+  index:=FindItemIndexByName(AName);
+  if index<0 then result:=nil
+  else result:=Items[index];
+end;
+
+
 procedure TAttrsGroupList.LoadFromPath(APath:string='\');
 var tmpFileList:TRTFP_FileList;
     stmp:TCollectionItem;
@@ -290,10 +341,12 @@ begin
       begin
         pathname:=(stmp as TRTFP_FileItem).Name;
         groupname:=ExtractFilename(pathname);
+        if pos('.dbf',pathname)<>length(pathname)-3 then continue;
+        if pos('_run.dbf',pathname)=length(pathname)-7 then continue;
         if lowercase(ExtractFileExt(groupname))='.dbf' then groupname:=Copy(groupname,1,length(groupname)-4);
         if lowercase(ExtractFileExt(pathname))='.dbf' then pathname:=Copy(pathname,1,length(pathname)-4);
         //ShowMessage(groupname+#13#10+pathname);
-        Self.AddEx(pathname,groupname);
+        Self.AddEx(APath+'\'+pathname,groupname);
       end;
 
   finally
@@ -301,7 +354,6 @@ begin
   end;
 
 end;
-
 
 
 end.

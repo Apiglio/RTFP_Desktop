@@ -15,7 +15,7 @@ uses
   RTFP_definition, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.1.1-alpha.5';
+  C_VERSION_NUMBER  = '0.1.1-alpha.6';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -182,7 +182,8 @@ var
   CurrentRTFP:TRTFP;
 
 implementation
-uses form_new_project, form_cite_trans, form_import;
+uses form_new_project, form_cite_trans, form_import,
+     rtfp_field;
 
 {$R *.lfm}
 
@@ -204,6 +205,7 @@ procedure TFormDesktop.Validate(Sender:TObject);
 var changed_str:string;
     attr_i,pi:integer;
     stmp,old_choice:string;
+    AG:TAttrsGroup;
     //此处刷新CheckBoxMainFilter的勾选就会重置，需解决
 
 begin
@@ -226,6 +228,7 @@ begin
   CurrentRTFP.TableValidate(Self.MainAttrFilterSet);
 
   CheckListBox_MainAttrFilter.Items.Clear;
+  {
   attr_i:=0;
   repeat
     stmp:=CurrentRTFP.AttrName[attr_i];
@@ -234,7 +237,11 @@ begin
     end else break;
     inc(attr_i);
   until attr_i>99;
-
+  }
+  for AG in CurrentRTFP.each_attrs do
+    begin
+      CheckListBox_MainAttrFilter.Items.Add(AG.Name);
+    end;
 
 end;
 
@@ -357,8 +364,7 @@ end;
 
 procedure TFormDesktop.NodeViewValidate;
 var PID:RTFP_ID;
-    attrNo:byte;
-    fieldNa:string;
+    attrNa,fieldNa:string;
 begin
   PID:=Selected_PID;
   ValueListEditor_NodeView.Clear;
@@ -367,9 +373,9 @@ begin
   CurrentRTFP.NodeViewValidate(PID,ValueListEditor_NodeView);
 
   if (ComboBox_AttrName.ItemIndex>=0) and (ComboBox_FieldName.ItemIndex>=0) then begin
-    attrNo:=CurrentRTFP.AttrNoByName[ComboBox_AttrName.Items[ComboBox_AttrName.ItemIndex]];
+    attrNa:=ComboBox_AttrName.Items[ComboBox_AttrName.ItemIndex];
     fieldNa:=ComboBox_FieldName.Items[ComboBox_FieldName.ItemIndex];
-    CurrentRTFP.FmtCmtValidate(PID,attrNo,fieldNa,Memo_FmtCmt);
+    CurrentRTFP.FmtCmtValidate(PID,attrNa,fieldNa,Memo_FmtCmt);
   end;
 end;
 
@@ -591,29 +597,27 @@ end;
 
 procedure TFormDesktop.Button_FmtCmt_PostClick(Sender: TObject);
 var PID:RTFP_ID;
-    attrNo:byte;
-    fieldNa:string;
+    attrNa,fieldNa:string;
 begin
   PID:=Selected_PID;
   if PID='000000' then exit;
   if (ComboBox_AttrName.ItemIndex>=0) and (ComboBox_FieldName.ItemIndex>=0) then begin
-    attrNo:=CurrentRTFP.AttrNoByName[ComboBox_AttrName.Items[ComboBox_AttrName.ItemIndex]];
+    attrNa:=ComboBox_AttrName.Items[ComboBox_AttrName.ItemIndex];
     fieldNa:=ComboBox_FieldName.Items[ComboBox_FieldName.ItemIndex];
-    CurrentRTFP.FmtCmtDataPost(PID,attrNo,fieldNa,Memo_FmtCmt);
+    CurrentRTFP.FmtCmtDataPost(PID,attrNa,fieldNa,Memo_FmtCmt);
   end;
 end;
 
 procedure TFormDesktop.Button_FmtCmt_RecoverClick(Sender: TObject);
 var PID:RTFP_ID;
-    attrNo:byte;
-    fieldNa:string;
+    attrNa,fieldNa:string;
 begin
   PID:=Selected_PID;
   if PID='000000' then exit;
   if (ComboBox_AttrName.ItemIndex>=0) and (ComboBox_FieldName.ItemIndex>=0) then begin
-    attrNo:=CurrentRTFP.AttrNoByName[ComboBox_AttrName.Items[ComboBox_AttrName.ItemIndex]];
+    attrNa:=ComboBox_AttrName.Items[ComboBox_AttrName.ItemIndex];
     fieldNa:=ComboBox_FieldName.Items[ComboBox_FieldName.ItemIndex];
-    CurrentRTFP.FmtCmtValidate(PID,attrNo,fieldNa,Memo_FmtCmt);
+    CurrentRTFP.FmtCmtValidate(PID,attrNa,fieldNa,Memo_FmtCmt);
   end;
 end;
 
