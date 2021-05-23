@@ -7,15 +7,15 @@ interface
 uses
   Classes, SysUtils, db, dbf, sqldb, mssqlconn, FileUtil, Forms,
   Controls, Graphics, Dialogs, ComCtrls, Menus, ExtCtrls, DBGrids, ValEdit,
-  CheckLst, StdCtrls, DbCtrls, LazUTF8, LvlGraphCtrl,
+  StdCtrls, DbCtrls, LazUTF8, LvlGraphCtrl,
   Clipbrd, LCLType,
 
   AufScript_Frame, ACL_ListView, TreeListView,
 
-  RTFP_definition, simpleipc, Types;
+  RTFP_definition, rtfp_constants, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.1.1-alpha.6';
+  C_VERSION_NUMBER  = '0.1.1-alpha.7';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -31,10 +31,8 @@ type
     Button_Project_NodeView_Fresh: TButton;
     Button_FmtCmt_Post: TButton;
     Button_FmtCmt_Recover: TButton;
-    Button_NodeViewAddAttr: TButton;
     Button_NodeViewPost: TButton;
     Button_NodeViewRecover: TButton;
-    CheckListBox_MainAttrFilter: TCheckListBox;
     ComboBox_AttrName: TComboBox;
     ComboBox_FieldName: TComboBox;
     DataSource_Attrs: TDataSource;
@@ -47,19 +45,24 @@ type
     LvlGraphControl: TLvlGraphControl;
     MainMenu: TMainMenu;
     Memo_FmtCmt: TMemo;
-    MenuItem1: TMenuItem;
-    MenuItem2: TMenuItem;
-    MenuItem5: TMenuItem;
+    MenuItem_main_div02: TMenuItem;
+    MenuItem_main_div03: TMenuItem;
+    MenuItem_main_div01: TMenuItem;
+    MenuItem_Mark_IsRead_Yes: TMenuItem;
+    MenuItem_Mark_IsRead_No: TMenuItem;
+    MenuItem_Mark: TMenuItem;
+    MenuItem_pop_div01: TMenuItem;
+    MenuItem_OpenDefault: TMenuItem;
     MenuItem_OpenAsPdf: TMenuItem;
     MenuItem_OpenAsCaj: TMenuItem;
     MenuItem_project_recent: TMenuItem;
     MenuItem_ImportFromOther: TMenuItem;
     MenuItem_ExportToOther: TMenuItem;
     MenuItem_CiteTool: TMenuItem;
-    MenuItem4: TMenuItem;
+    MenuItem_main_div05: TMenuItem;
     MenuItem_project_close: TMenuItem;
     MenuItem_project_check: TMenuItem;
-    MenuItem3: TMenuItem;
+    MenuItem_main_div04: TMenuItem;
     MenuItem_project_saveas: TMenuItem;
     MenuItem_project_save: TMenuItem;
     MenuItem_option_help: TMenuItem;
@@ -100,6 +103,8 @@ type
     TabSheet_Project_DataGrid: TTabSheet;
     PropertiesValueListEditor: TValueListEditor;
     ValueListEditor_NodeView: TValueListEditor;
+    procedure ACL_ListView_AttrsItemChecked(Sender: TObject; Item: TListItem);
+    procedure ACL_ListView_KlassItemChecked(Sender: TObject; Item: TListItem);
     procedure Button_FmtCmt_PostClick(Sender: TObject);
     procedure Button_FmtCmt_RecoverClick(Sender: TObject);
     procedure Button_NodeViewAddAttrClick(Sender: TObject);
@@ -117,14 +122,16 @@ type
     procedure DBGrid_MainMouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     procedure Edit_DBGridMain_FilterChange(Sender: TObject);
-    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDropFiles(Sender: TObject; const FileNames: array of String);
     procedure FormResize(Sender: TObject);
     procedure MenuItem_CiteToolClick(Sender: TObject);
+    procedure MenuItem_Mark_IsRead_NoClick(Sender: TObject);
+    procedure MenuItem_Mark_IsRead_YesClick(Sender: TObject);
     procedure MenuItem_OpenAsCajClick(Sender: TObject);
     procedure MenuItem_OpenAsPdfClick(Sender: TObject);
+    procedure MenuItem_OpenDefaultClick(Sender: TObject);
     procedure MenuItem_option_aboutClick(Sender: TObject);
     procedure MenuItem_project_closeClick(Sender: TObject);
     procedure MenuItem_project_newClick(Sender: TObject);
@@ -151,6 +158,8 @@ type
 
     procedure Validate(Sender:TObject);//更新显示
     procedure ClassListValidate(Sender:TObject);//分类更新时的操作
+    procedure FieldListValidate(Sender:TObject);//分类更新时的操作
+
     procedure FirstEdit(Sender:TObject);//工程第一次编辑
     procedure Clear(Sender:TObject);//清空
 
@@ -169,12 +178,6 @@ type
     procedure NodeViewDataPost;
     //将NodeView的数据提交到工程中
 
-  protected
-    function GetMainAttrFilterSet:TablesUse;
-  public
-    property MainAttrFilterSet:TablesUse read GetMainAttrFilterSet;
-
-
   end;
 
 var
@@ -183,7 +186,7 @@ var
 
 implementation
 uses form_new_project, form_cite_trans, form_import,
-     rtfp_field;
+     rtfp_field, rtfp_class;
 
 {$R *.lfm}
 
@@ -198,61 +201,34 @@ begin
   Sender.onCloseDone:=@ProjectCloseDone;
   Sender.onChange:=@Validate;
   Sender.onClassChange:=@ClassListValidate;
+  Sender.onFieldChange:=@FieldListValidate;
 
 end;
 
 procedure TFormDesktop.Validate(Sender:TObject);
 var changed_str:string;
-    attr_i,pi:integer;
-    stmp,old_choice:string;
-    AG:TAttrsGroup;
-    //此处刷新CheckBoxMainFilter的勾选就会重置，需解决
-
 begin
-
   if (Sender as TRTFP).IsChanged then changed_str:=' *'
   else changed_str:='';
-
   //标题
   if (Sender as TRTFP).Title <> '' then
     Self.Caption:=C_SOFTWARE_NAME+' - '+(Sender as TRTFP).Title + changed_str
   else
     Self.Caption:=C_SOFTWARE_NAME;
-
-
   //工程信息 标签页
   CurrentRTFP.ProjectPropertiesValidate(Self.PropertiesValueListEditor);
-
   //文献节点 标签页
-
-  CurrentRTFP.TableValidate(Self.MainAttrFilterSet);
-
-  CheckListBox_MainAttrFilter.Items.Clear;
-  {
-  attr_i:=0;
-  repeat
-    stmp:=CurrentRTFP.AttrName[attr_i];
-    if stmp<>'' then begin
-      Self.CheckListBox_MainAttrFilter.Items.Add(stmp);
-    end else break;
-    inc(attr_i);
-  until attr_i>99;
-  }
-  for AG in CurrentRTFP.each_attrs do
-    begin
-      CheckListBox_MainAttrFilter.Items.Add(AG.Name);
-    end;
-
+  CurrentRTFP.TableValidate;
 end;
 
 procedure TFormDesktop.ClassListValidate(Sender:TObject);
-var stmp:string;
 begin
-  ACL_ListView_Klass.Clear;
-  for stmp in CurrentRTFP.each_class do
-    begin
-      ACL_ListView_Klass.AddItem(stmp,nil);
-    end;
+  CurrentRTFP.KlassListValidate(ACL_ListView_Klass);
+end;
+
+procedure TFormDesktop.FieldListValidate(Sender:TObject);
+begin
+  CurrentRTFP.FieldListValidate(ACL_ListView_Attrs);
 end;
 
 procedure TFormDesktop.FirstEdit(Sender:TObject);
@@ -265,9 +241,6 @@ procedure TFormDesktop.Clear(Sender:TObject);
 begin
   Self.Caption:=C_SOFTWARE_NAME;
   Self.PropertiesValueListEditor.Clear;
-  //Self.MemDataset_Main.Clear;
-  Self.CheckListBox_MainAttrFilter.Clear;
-  Self.CheckListBox_MainAttrFilter.ItemIndex:=-1;
 end;
 
 procedure TFormDesktop.StopGridConnect;
@@ -386,20 +359,6 @@ begin
   CurrentRTFP.NodeViewDataPost(PID,ValueListEditor_NodeView);
 end;
 
-
-
-function TFormDesktop.GetMainAttrFilterSet:TablesUse;
-var pi,max:byte;
-begin
-  result:=[];
-  if CheckListBox_MainAttrFilter.Count<=0 then exit;
-  max:=CheckListBox_MainAttrFilter.Count-1;
-  if max>99 then max:=99;
-  for pi:=0 to max do
-    if Self.CheckListBox_MainAttrFilter.Checked[pi] then result:=result+[pi];
-
-end;
-
 ////////////////////////////////////////////////////////////////////////////////
 //菜单事件
 
@@ -458,18 +417,35 @@ begin
   Form_CiteTrans.show;
 end;
 
+procedure TFormDesktop.MenuItem_Mark_IsRead_NoClick(Sender: TObject);
+begin
+  //
+end;
+
+procedure TFormDesktop.MenuItem_Mark_IsRead_YesClick(Sender: TObject);
+begin
+  //
+end;
+
 procedure TFormDesktop.MenuItem_OpenAsCajClick(Sender: TObject);
 begin
   if not assigned(CurrentRTFP) then exit;
   if not CurrentRTFP.IsOpen then exit;
-  CurrentRTFP.OpenPaperAsCaj(Self.DataSource_Main.DataSet.FieldByName(_Col_PID_).AsString);
+  CurrentRTFP.OpenPaperAsCaj(Selected_PID);
 end;
 
 procedure TFormDesktop.MenuItem_OpenAsPdfClick(Sender: TObject);
 begin
   if not assigned(CurrentRTFP) then exit;
   if not CurrentRTFP.IsOpen then exit;
-  CurrentRTFP.OpenPaperAsPdf(Self.DataSource_Main.DataSet.FieldByName(_Col_PID_).AsString);
+  CurrentRTFP.OpenPaperAsPdf(Selected_PID);
+end;
+
+procedure TFormDesktop.MenuItem_OpenDefaultClick(Sender: TObject);
+begin
+  if not assigned(CurrentRTFP) then exit;
+  if not CurrentRTFP.IsOpen then exit;
+  CurrentRTFP.OpenPaper(Selected_PID,'');
 end;
 
 procedure TFormDesktop.MenuItem_option_aboutClick(Sender: TObject);
@@ -548,18 +524,12 @@ begin
 
 end;
 
-procedure TFormDesktop.FormClose(Sender: TObject; var CloseAction: TCloseAction
-  );
-begin
-  //
-end;
-
 procedure TFormDesktop.CheckListBox_MainAttrFilterClickCheck(Sender: TObject);
 //var attrNo:byte;
 begin
   if not assigned(CurrentRTFP) then exit;
   if CurrentRTFP.IsOpen then begin
-    CurrentRTFP.TableValidate(Self.MainAttrFilterSet);
+    CurrentRTFP.TableValidate;
   end;
 end;
 
@@ -607,6 +577,22 @@ begin
     CurrentRTFP.FmtCmtDataPost(PID,attrNa,fieldNa,Memo_FmtCmt);
   end;
 end;
+
+procedure TFormDesktop.ACL_ListView_AttrsItemChecked(Sender: TObject;
+  Item: TListItem);
+begin
+  TAttrsField(Item.Data).Shown:=Item.Checked;
+  CurrentRTFP.TableValidate;
+end;
+
+procedure TFormDesktop.ACL_ListView_KlassItemChecked(Sender: TObject;
+  Item: TListItem);
+begin
+  TKlass(Item.Data).FilterEnabled:=Item.Checked;
+  CurrentRTFP.TableValidate;
+end;
+
+
 
 procedure TFormDesktop.Button_FmtCmt_RecoverClick(Sender: TObject);
 var PID:RTFP_ID;

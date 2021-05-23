@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, Buttons,
-  ComCtrls, ExtCtrls, StdCtrls, CheckLst;
+  ComCtrls, ExtCtrls, StdCtrls;
 
 const
   AnimationStepLen = 50;
@@ -19,7 +19,7 @@ type
     Button_ImportFileNamesCheck: TButton;
     Button_BackToPrev: TButton;
     CheckBox_AddPaperMethod: TCheckBox;
-    CheckListBox_ImportFileNames: TCheckListBox;
+    CheckListBox_ImportFileNames: TListView;
     Image_FileFullBackup: TImage;
     Image_FileReference: TImage;
     Image_TestFiles: TImage;
@@ -56,6 +56,8 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormHide(Sender: TObject);
+    procedure FormResize(Sender: TObject);
     procedure Image_MouseDown(Sender: TObject;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure Image_MouseUp(Sender: TObject;
@@ -71,7 +73,6 @@ type
     }
   private
     FFilenames:TStringList;
-    FAnimationRightOrt:boolean;
     FPhase:integer;
   public
     procedure Call(AFileNames: array of String);
@@ -102,8 +103,8 @@ begin
       FFilenames.Add(AFileNames[pi]);
     end;
   SplitterImportFilesV.Left:=Width-6;
-  //Button_ImportFileNamesCheck.Enabled:=true;
-  //Button_ImportFileNamesCheck.Caption:='确认导入';
+  Button_ImportFileNamesCheck.Enabled:=true;
+  Button_ImportFileNamesCheck.Caption:='开始导入';
   ProgressBar_ImportFiles.Position:=0;
   Self.Show;
 end;
@@ -137,6 +138,7 @@ procedure TForm_ImportFiles.Phase2;
 var newPos:integer;
 begin
   PageControl_ImportFiles.BeginUpdateBounds;
+  CheckListBox_ImportFileNames.BeginUpdate;
   repeat
     newPos:=SplitterImportFilesV.Left - AnimationStepLen;
     if newPos < 0 then begin
@@ -149,8 +151,10 @@ begin
   until newPos <= 0;
   SplitterImportFilesV.Left:=0;
   PageControl_ImportFiles.EndUpdateBounds;
+  CheckListBox_ImportFileNames.EndUpdate;
   FPhase:=2;
   Application.ProcessMessages;
+  Self.OnResize(Self);
 end;
 
 procedure TForm_ImportFiles.FormDeactivate(Sender: TObject);
@@ -161,6 +165,19 @@ end;
 procedure TForm_ImportFiles.FormDestroy(Sender: TObject);
 begin
   FFileNames.Free;
+end;
+
+procedure TForm_ImportFiles.FormHide(Sender: TObject);
+begin
+  Clear;
+end;
+
+procedure TForm_ImportFiles.FormResize(Sender: TObject);
+begin
+  with CheckListBox_ImportFileNames do begin
+    Columns[1].Width:=100;
+    Columns[0].Width:=TabSheet_AddPaper.Width-10-100;
+  end;
 end;
 
 procedure TForm_ImportFiles.FormCreate(Sender: TObject);
@@ -183,6 +200,7 @@ end;
 procedure TForm_ImportFiles.Button_ImportFileNamesCheckClick(Sender: TObject);
 var pi:integer;
     all_success:boolean;
+    newPID:RTFP_ID;
 begin
   ProgressBar_ImportFiles.Max:=FFileNames.Count;
   all_success:=true;
@@ -191,28 +209,34 @@ begin
       if CurrentRTFP.FindPaper(FFileNames[pi]) = '000000' then
         begin
           if CheckBox_AddPaperMethod.Checked then
-            CurrentRTFP.AddPaper(FFileNames[pi],apmFullBackup)
+            newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmFullBackup)
           else
-            CurrentRTFP.AddPaper(FFileNames[pi],apmReference);
-          CheckListBox_ImportFileNames.Checked[pi]:=true;
+            newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmReference);
+          if newPID<>'000000' then begin
+            //CheckListBox_ImportFileNames.Items[pi].Checked:=true
+            CheckListBox_ImportFileNames.Items[pi].SubItems[0]:='导入成功';
+          end else begin
+            all_success:=false;
+            CheckListBox_ImportFileNames.Items[pi].SubItems[0]:='导入失败';
+          end;
           ProgressBar_ImportFiles.Position:=pi+1;
           Application.ProcessMessages;
         end
       else
         begin
           all_success:=false;
-          //ShowMessage(FileNames[pi]+'已在库内。');
+          CheckListBox_ImportFileNames.Items[pi].SubItems[0]:='已在库内';
         end;
     end;
   if all_success then begin
-    Clear;
+    //Clear;
     Self.Hide;
   end else begin
     MessageDlg('警告','部分文件导入失败！',mtWarning,[mbOK],0);
-    Clear;
-    Self.Hide;
-    //Button_ImportFileNamesCheck.Caption:='手动退出';
-    //Button_ImportFileNamesCheck.Enabled:=false;
+    //Clear;
+    //Self.Hide;
+    Button_ImportFileNamesCheck.Caption:='手动退出';
+    Button_ImportFileNamesCheck.Enabled:=false;
   end;
 
 end;
@@ -254,7 +278,8 @@ begin
         pi:=0;
         for stmp in FFileNames do begin
           CheckListBox_ImportFileNames.AddItem(stmp,nil);
-          CheckListBox_ImportFileNames.Checked[pi]:=false;
+          //CheckListBox_ImportFileNames.Items[pi].Checked:=false;
+          CheckListBox_ImportFileNames.Items[pi].SubItems.Add('待导入');
           inc(pi);
         end;
 
@@ -267,7 +292,9 @@ begin
         pi:=0;
         for stmp in FFileNames do begin
           CheckListBox_ImportFileNames.AddItem(stmp,nil);
-          CheckListBox_ImportFileNames.Checked[pi]:=false;
+          //CheckListBox_ImportFileNames.Items[pi].Checked:=false;
+          CheckListBox_ImportFileNames.Items[pi].SubItems.Add('待导入');
+
           inc(pi);
         end;
 
