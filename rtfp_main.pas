@@ -15,7 +15,7 @@ uses
   RTFP_definition, rtfp_constants, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.1.1-alpha.7';
+  C_VERSION_NUMBER  = '0.1.1-alpha.8';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -27,6 +27,7 @@ type
   TFormDesktop = class(TForm)
     ACL_ListView_Klass: TACL_ListView;
     ACL_ListView_Attrs: TACL_ListView;
+    Button_MainFilter: TButton;
     Button_temp: TButton;
     Button_Project_NodeView_Fresh: TButton;
     Button_FmtCmt_Post: TButton;
@@ -45,6 +46,12 @@ type
     LvlGraphControl: TLvlGraphControl;
     MainMenu: TMainMenu;
     Memo_FmtCmt: TMemo;
+    MenuItem_DelePaper: TMenuItem;
+    MenuItem_pop_div03: TMenuItem;
+    MenuItem_Tree_Into: TMenuItem;
+    MenuItem_Tree_Back: TMenuItem;
+    MenuItem_pop_div02: TMenuItem;
+    MenuItem_Tree: TMenuItem;
     MenuItem_main_div02: TMenuItem;
     MenuItem_main_div03: TMenuItem;
     MenuItem_main_div01: TMenuItem;
@@ -107,6 +114,7 @@ type
     procedure ACL_ListView_KlassItemChecked(Sender: TObject; Item: TListItem);
     procedure Button_FmtCmt_PostClick(Sender: TObject);
     procedure Button_FmtCmt_RecoverClick(Sender: TObject);
+    procedure Button_MainFilterClick(Sender: TObject);
     procedure Button_NodeViewAddAttrClick(Sender: TObject);
     procedure Button_NodeViewPostClick(Sender: TObject);
     procedure Button_NodeViewRecoverClick(Sender: TObject);
@@ -122,11 +130,14 @@ type
     procedure DBGrid_MainMouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     procedure Edit_DBGridMain_FilterChange(Sender: TObject);
+    procedure Edit_DBGridMain_FilterKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDropFiles(Sender: TObject; const FileNames: array of String);
     procedure FormResize(Sender: TObject);
     procedure MenuItem_CiteToolClick(Sender: TObject);
+    procedure MenuItem_DelePaperClick(Sender: TObject);
     procedure MenuItem_Mark_IsRead_NoClick(Sender: TObject);
     procedure MenuItem_Mark_IsRead_YesClick(Sender: TObject);
     procedure MenuItem_OpenAsCajClick(Sender: TObject);
@@ -163,8 +174,6 @@ type
     procedure FirstEdit(Sender:TObject);//工程第一次编辑
     procedure Clear(Sender:TObject);//清空
 
-    procedure StopGridConnect;//断开展示连接
-    procedure ResetGridConnect;//重新连接数据展示
 
     procedure ProjectOpenDone(Sender:TObject);//工程打开或新建
     procedure ProjectCloseDone(Sender:TObject);//工程关闭
@@ -243,16 +252,6 @@ begin
   Self.PropertiesValueListEditor.Clear;
 end;
 
-procedure TFormDesktop.StopGridConnect;
-begin
-  //Self.ProjectCloseDone(CurrentRTFP);
-end;
-
-procedure TFormDesktop.ResetGridConnect;
-begin
-  //Self.ProjectOpenDone(CurrentRTFP);
-end;
-
 procedure TFormDesktop.ProjectOpenDone(Sender:TObject);
 begin
 
@@ -326,6 +325,7 @@ end;
 function TFormDesktop.Selected_PID:RTFP_ID;
 begin
   result:='000000';
+  if DBGrid_Main.DataSource.DataSet=nil then exit;
   if not DBGrid_Main.DataSource.DataSet.Active then exit;
   result:=DBGrid_Main.DataSource.DataSet.Fields.FieldByName(_Col_PID_).AsString;
 end;
@@ -353,10 +353,8 @@ begin
 end;
 
 procedure TFormDesktop.NodeViewDataPost;
-var PID:RTFP_ID;
 begin
-  PID:=ValueListEditor_NodeView.Values['PID'];
-  CurrentRTFP.NodeViewDataPost(PID,ValueListEditor_NodeView);
+  CurrentRTFP.NodeViewDataPost(Selected_PID,ValueListEditor_NodeView);
 end;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -417,14 +415,19 @@ begin
   Form_CiteTrans.show;
 end;
 
+procedure TFormDesktop.MenuItem_DelePaperClick(Sender: TObject);
+begin
+  CurrentRTFP.DeletePaper(Selected_PID);
+end;
+
 procedure TFormDesktop.MenuItem_Mark_IsRead_NoClick(Sender: TObject);
 begin
-  //
+  CurrentRTFP.EditFieldAsBoolean(_Col_class_Is_Read_,_Attrs_Class_,Selected_PID,false);
 end;
 
 procedure TFormDesktop.MenuItem_Mark_IsRead_YesClick(Sender: TObject);
 begin
-  //
+  CurrentRTFP.EditFieldAsBoolean(_Col_class_Is_Read_,_Attrs_Class_,Selected_PID,true);
 end;
 
 procedure TFormDesktop.MenuItem_OpenAsCajClick(Sender: TObject);
@@ -556,7 +559,8 @@ end;
 
 procedure TFormDesktop.Button_NodeViewPostClick(Sender: TObject);
 begin
-  StopGridConnect;
+  if not assigned(CurrentRTFP) then exit;
+  if not CurrentRTFP.IsOpen then exit;
   NodeViewDataPost;
 end;
 
@@ -569,6 +573,8 @@ procedure TFormDesktop.Button_FmtCmt_PostClick(Sender: TObject);
 var PID:RTFP_ID;
     attrNa,fieldNa:string;
 begin
+  if not assigned(CurrentRTFP) then exit;
+  if not CurrentRTFP.IsOpen then exit;
   PID:=Selected_PID;
   if PID='000000' then exit;
   if (ComboBox_AttrName.ItemIndex>=0) and (ComboBox_FieldName.ItemIndex>=0) then begin
@@ -598,6 +604,8 @@ procedure TFormDesktop.Button_FmtCmt_RecoverClick(Sender: TObject);
 var PID:RTFP_ID;
     attrNa,fieldNa:string;
 begin
+  if not assigned(CurrentRTFP) then exit;
+  if not CurrentRTFP.IsOpen then exit;
   PID:=Selected_PID;
   if PID='000000' then exit;
   if (ComboBox_AttrName.ItemIndex>=0) and (ComboBox_FieldName.ItemIndex>=0) then begin
@@ -607,8 +615,19 @@ begin
   end;
 end;
 
+procedure TFormDesktop.Button_MainFilterClick(Sender: TObject);
+begin
+  //温和的筛选方式
+  if not assigned(CurrentRTFP) then exit;
+  if not CurrentRTFP.IsOpen then exit;
+  CurrentRTFP.TableValidate;
+  CurrentRTFP.TableFilter(Edit_DBGridMain_Filter.Caption);
+end;
+
 procedure TFormDesktop.Button_NodeViewRecoverClick(Sender: TObject);
 begin
+  if not assigned(CurrentRTFP) then exit;
+  if not CurrentRTFP.IsOpen then exit;
   NodeViewValidate;
 end;
 
@@ -654,7 +673,17 @@ end;
 procedure TFormDesktop.Edit_DBGridMain_FilterChange(Sender: TObject);
 begin
   //有点激进的筛选方式
-  CurrentRTFP.TableFilter((Sender as TEdit).Caption);
+  //CurrentRTFP.TableValidate;
+  //CurrentRTFP.TableFilter((Sender as TEdit).Caption);
+end;
+
+procedure TFormDesktop.Edit_DBGridMain_FilterKeyDown(Sender: TObject;
+  var Key: Word; Shift: TShiftState);
+begin
+  if (Shift = []) and (Key=13) then
+    begin
+      Button_MainFilterClick(nil);
+    end;
 end;
 
 

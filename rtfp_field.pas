@@ -211,7 +211,7 @@ end;
 function TAttrsFieldList.AddEx(AFieldDef:TFieldDef): TAttrsField;
 begin
   Result := inherited Add as TAttrsField;
-  Result.FFieldName:=AFieldDef.Name;
+  Result.FFieldName:=UpperCase(AFieldDef.Name);
   Result.FFieldDef:=AFieldDef;
 end;
 
@@ -227,7 +227,7 @@ function TAttrsFieldList.FindItemIndexByName(AName:string):integer;
 begin
   result:=0;
   while result<Count do begin
-    if Items[result].FieldName=AName then exit;
+    if Items[result].FieldName=UpperCase(AName) then exit;
     inc(result);
   end;
   result:=-1;

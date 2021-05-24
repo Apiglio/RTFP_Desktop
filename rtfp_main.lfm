@@ -133,15 +133,19 @@ object FormDesktop: TFormDesktop
         end
         object Edit_DBGridMain_Filter: TEdit
           AnchorSideLeft.Control = Panel_DBGridMain
+          AnchorSideRight.Control = DBGrid_Main
+          AnchorSideRight.Side = asrBottom
           AnchorSideBottom.Control = Panel_DBGridMain
           AnchorSideBottom.Side = asrBottom
           Left = 71
           Height = 28
           Top = 300
-          Width = 481
+          Width = 636
           Anchors = [akLeft, akRight, akBottom]
           BorderSpacing.Left = 70
+          BorderSpacing.Right = 60
           OnChange = Edit_DBGridMain_FilterChange
+          OnKeyDown = Edit_DBGridMain_FilterKeyDown
           TabOrder = 1
           Text = 'PID=*'
         end
@@ -153,11 +157,30 @@ object FormDesktop: TFormDesktop
           AnchorSideBottom.Side = asrBottom
           Left = 6
           Height = 15
+          Hint = '字段名+运算符+对比值（空格隔开）'#13#10'【数值】gtr表示“大于”；gtq表示“大等于”；les表示“小于”；leq表示“小等于”。 '#13#10'【字符串】eql表示“相等”；neq表示“不相等”；has表示“包含有”；in表示“在其内”。'#13#10'【布尔型】true表示“真”；false表示“假”。'
           Top = 307
           Width = 56
           BorderSpacing.Left = 5
           Caption = 'Filter:'
           ParentColor = False
+          ParentShowHint = False
+          ShowHint = True
+        end
+        object Button_MainFilter: TButton
+          AnchorSideLeft.Control = Edit_DBGridMain_Filter
+          AnchorSideTop.Control = Edit_DBGridMain_Filter
+          AnchorSideRight.Control = DBGrid_Main
+          AnchorSideRight.Side = asrBottom
+          AnchorSideBottom.Control = Edit_DBGridMain_Filter
+          AnchorSideBottom.Side = asrBottom
+          Left = 707
+          Height = 28
+          Top = 300
+          Width = 60
+          Anchors = [akTop, akRight, akBottom]
+          Caption = '筛选'
+          OnClick = Button_MainFilterClick
+          TabOrder = 2
         end
       end
     end
@@ -324,9 +347,9 @@ object FormDesktop: TFormDesktop
     Height = 197
     Top = 368
     Width = 776
-    ActivePage = TabSheet_Node_View
+    ActivePage = TabSheet_FmtCmt
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 4
     OnChange = PageControl_NodeChange
     object TabSheet_Node_View: TTabSheet
@@ -536,14 +559,15 @@ object FormDesktop: TFormDesktop
   end
   object Splitter_LeftH: TSplitter
     AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
     AnchorSideRight.Control = Splitter_MainV
     Cursor = crVSplit
     Left = 0
     Height = 6
-    Top = 208
+    Top = 0
     Width = 256
     Align = alNone
-    Anchors = [akLeft, akRight]
+    Anchors = [akTop, akLeft, akRight]
     ResizeAnchor = akTop
     ResizeStyle = rsPattern
   end
@@ -554,13 +578,13 @@ object FormDesktop: TFormDesktop
     AnchorSideRight.Control = Splitter_MainV
     AnchorSideBottom.Control = StatusBar
     Left = 0
-    Height = 351
-    Top = 214
+    Height = 559
+    Top = 6
     Width = 256
-    ActivePage = TabSheet_Filter_Klass
+    ActivePage = TabSheet_Filter_Field
     Anchors = [akTop, akLeft, akRight, akBottom]
     Constraints.MinWidth = 200
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 7
     object TabSheet_Filter_Klass: TTabSheet
       Caption = '分类节点'
@@ -593,7 +617,7 @@ object FormDesktop: TFormDesktop
     end
     object TabSheet_Filter_Field: TTabSheet
       Caption = '属性节点'
-      ClientHeight = 318
+      ClientHeight = 526
       ClientWidth = 248
       object ACL_ListView_Attrs: TACL_ListView
         AnchorSideLeft.Control = TabSheet_Filter_Field
@@ -603,7 +627,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Control = TabSheet_Filter_Field
         AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 318
+        Height = 526
         Top = 0
         Width = 248
         Anchors = [akTop, akLeft, akRight, akBottom]
@@ -765,6 +789,25 @@ object FormDesktop: TFormDesktop
         Caption = '标为未读'
         OnClick = MenuItem_Mark_IsRead_NoClick
       end
+    end
+    object MenuItem_pop_div02: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem_Tree: TMenuItem
+      Caption = '从属关系'
+      object MenuItem_Tree_Into: TMenuItem
+        Caption = '显示子节点'
+      end
+      object MenuItem_Tree_Back: TMenuItem
+        Caption = '返回父节点'
+      end
+    end
+    object MenuItem_pop_div03: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem_DelePaper: TMenuItem
+      Caption = '删除文献节点'
+      OnClick = MenuItem_DelePaperClick
     end
   end
 end
