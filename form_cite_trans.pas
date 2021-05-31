@@ -6,21 +6,26 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ValEdit, DBGrids, ExtCtrls, ComCtrls;
+  DBGrids, ExtCtrls, ComCtrls;
 
 type
 
   { TForm_CiteTrans }
 
   TForm_CiteTrans = class(TForm)
-    Button_Import: TButton;
-    Button_Export: TButton;
+    Button_ImportRefs: TButton;
+    Button_ExportRefs: TButton;
+    Button_ImportCite: TButton;
+    Button_ExportCite: TButton;
     Memo_Reference: TMemo;
     Memo_Cite: TMemo;
     Panel_DBGrid_Temporary: TPanel;
     TabControl_CiteStyle: TTabControl;
     TabControl_Reference_Style: TTabControl;
-    ValueListEditor1: TValueListEditor;
+    procedure Button_ExportCiteClick(Sender: TObject);
+    procedure Button_ExportRefsClick(Sender: TObject);
+    procedure Button_ImportCiteClick(Sender: TObject);
+    procedure Button_ImportRefsClick(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
     procedure FormDropFiles(Sender: TObject; const FileNames: array of String);
     procedure FormHide(Sender: TObject);
@@ -35,7 +40,7 @@ var
   Form_CiteTrans: TForm_CiteTrans;
 
 implementation
-uses RTFP_main;
+uses RTFP_main, RTFP_definition;
 
 {$R *.lfm}
 
@@ -44,6 +49,27 @@ uses RTFP_main;
 procedure TForm_CiteTrans.FormDeactivate(Sender: TObject);
 begin
   Self.Hide;
+end;
+
+procedure TForm_CiteTrans.Button_ExportCiteClick(Sender: TObject);
+begin
+  /////////
+end;
+
+procedure TForm_CiteTrans.Button_ExportRefsClick(Sender: TObject);
+begin
+  ////////////
+end;
+
+procedure TForm_CiteTrans.Button_ImportCiteClick(Sender: TObject);
+begin
+  CurrentRTFP.LoadFromEndNote(FormDesktop.Selected_PID,Memo_Cite.Lines);
+  FormDesktop.Validate(CurrentRTFP);
+end;
+
+procedure TForm_CiteTrans.Button_ImportRefsClick(Sender: TObject);
+begin
+  ///////////
 end;
 
 procedure TForm_CiteTrans.FormDropFiles(Sender: TObject;

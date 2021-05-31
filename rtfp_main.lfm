@@ -70,7 +70,7 @@ object FormDesktop: TFormDesktop
         )
         ColWidths = (
           80
-          678
+          657
         )
       end
       object Splitter_PropertiesV: TSplitter
@@ -378,7 +378,7 @@ object FormDesktop: TFormDesktop
         )
         ColWidths = (
           80
-          534
+          513
         )
       end
       object Button_NodeViewRecover: TButton
@@ -581,14 +581,14 @@ object FormDesktop: TFormDesktop
     Height = 559
     Top = 6
     Width = 256
-    ActivePage = TabSheet_Filter_Field
+    ActivePage = TabSheet_Filter_Klass
     Anchors = [akTop, akLeft, akRight, akBottom]
     Constraints.MinWidth = 200
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 7
     object TabSheet_Filter_Klass: TTabSheet
       Caption = '分类节点'
-      ClientHeight = 318
+      ClientHeight = 526
       ClientWidth = 248
       object ACL_ListView_Klass: TACL_ListView
         AnchorSideLeft.Control = TabSheet_Filter_Klass
@@ -598,7 +598,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Control = TabSheet_Filter_Klass
         AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 318
+        Height = 526
         Top = 0
         Width = 248
         Anchors = [akTop, akLeft, akRight, akBottom]
@@ -612,7 +612,7 @@ object FormDesktop: TFormDesktop
           end>
         ReadOnly = True
         TabOrder = 0
-        OnItemChecked = ACL_ListView_KlassItemChecked
+        OnNodeChecked = ACL_ListView_KlassNodeChecked
       end
     end
     object TabSheet_Filter_Field: TTabSheet
@@ -631,6 +631,7 @@ object FormDesktop: TFormDesktop
         Top = 0
         Width = 248
         Anchors = [akTop, akLeft, akRight, akBottom]
+        AutoSort = False
         Columns = <        
           item
             AutoSize = True
@@ -640,7 +641,7 @@ object FormDesktop: TFormDesktop
           end>
         ReadOnly = True
         TabOrder = 0
-        OnItemChecked = ACL_ListView_AttrsItemChecked
+        OnNodeChecked = ACL_ListView_AttrsNodeChecked
       end
     end
   end
@@ -776,22 +777,15 @@ object FormDesktop: TFormDesktop
       Caption = '作为PDF打开'
       OnClick = MenuItem_OpenAsPdfClick
     end
+    object MenuItem_OpenDir: TMenuItem
+      Caption = '打开所在文件夹'
+      OnClick = MenuItem_OpenDirClick
+    end
     object MenuItem_pop_div01: TMenuItem
       Caption = '-'
     end
-    object MenuItem_Mark: TMenuItem
-      Caption = '标记'
-      object MenuItem_Mark_IsRead_Yes: TMenuItem
-        Caption = '标位已读'
-        OnClick = MenuItem_Mark_IsRead_YesClick
-      end
-      object MenuItem_Mark_IsRead_No: TMenuItem
-        Caption = '标为未读'
-        OnClick = MenuItem_Mark_IsRead_NoClick
-      end
-    end
-    object MenuItem_pop_div02: TMenuItem
-      Caption = '-'
+    object MenuItem_BasicReferences: TMenuItem
+      Caption = '基础信息'
     end
     object MenuItem_Tree: TMenuItem
       Caption = '从属关系'
@@ -801,6 +795,23 @@ object FormDesktop: TFormDesktop
       object MenuItem_Tree_Back: TMenuItem
         Caption = '返回父节点'
       end
+    end
+    object MenuItem_pop_div02: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem_Mark: TMenuItem
+      Caption = '标记'
+      object MenuItem_Mark_IsRead_Yes: TMenuItem
+        Caption = '标为已读'
+        OnClick = MenuItem_Mark_IsRead_YesClick
+      end
+      object MenuItem_Mark_IsRead_No: TMenuItem
+        Caption = '标为未读'
+        OnClick = MenuItem_Mark_IsRead_NoClick
+      end
+    end
+    object MenuItem_Klass: TMenuItem
+      Caption = '分类'
     end
     object MenuItem_pop_div03: TMenuItem
       Caption = '-'

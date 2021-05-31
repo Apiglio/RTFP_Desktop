@@ -15,7 +15,7 @@ uses
   RTFP_definition, rtfp_constants, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.1.1-alpha.8';
+  C_VERSION_NUMBER  = '0.1.1-alpha.9';//如果增加了CheckAttrs的机制，请改成0.1.2
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -46,6 +46,9 @@ type
     LvlGraphControl: TLvlGraphControl;
     MainMenu: TMainMenu;
     Memo_FmtCmt: TMemo;
+    MenuItem_Klass: TMenuItem;
+    MenuItem_BasicReferences: TMenuItem;
+    MenuItem_OpenDir: TMenuItem;
     MenuItem_DelePaper: TMenuItem;
     MenuItem_pop_div03: TMenuItem;
     MenuItem_Tree_Into: TMenuItem;
@@ -110,8 +113,10 @@ type
     TabSheet_Project_DataGrid: TTabSheet;
     PropertiesValueListEditor: TValueListEditor;
     ValueListEditor_NodeView: TValueListEditor;
-    procedure ACL_ListView_AttrsItemChecked(Sender: TObject; Item: TListItem);
-    procedure ACL_ListView_KlassItemChecked(Sender: TObject; Item: TListItem);
+    procedure ACL_ListView_AttrsNodeChecked(Sender: TObject; Item: TACL_TreeNode
+      );
+    procedure ACL_ListView_KlassNodeChecked(Sender: TObject; Item: TACL_TreeNode
+      );
     procedure Button_FmtCmt_PostClick(Sender: TObject);
     procedure Button_FmtCmt_RecoverClick(Sender: TObject);
     procedure Button_MainFilterClick(Sender: TObject);
@@ -143,6 +148,7 @@ type
     procedure MenuItem_OpenAsCajClick(Sender: TObject);
     procedure MenuItem_OpenAsPdfClick(Sender: TObject);
     procedure MenuItem_OpenDefaultClick(Sender: TObject);
+    procedure MenuItem_OpenDirClick(Sender: TObject);
     procedure MenuItem_option_aboutClick(Sender: TObject);
     procedure MenuItem_project_closeClick(Sender: TObject);
     procedure MenuItem_project_newClick(Sender: TObject);
@@ -160,7 +166,8 @@ type
   public
     property LayoutMode:integer read FLayoutMode write SetLayoutMode;
 
-  private
+  //private
+  public
     function Selected_PID:RTFP_ID;//根据DBGrid_Main的选择返回PID
 
   public
@@ -250,6 +257,10 @@ procedure TFormDesktop.Clear(Sender:TObject);
 begin
   Self.Caption:=C_SOFTWARE_NAME;
   Self.PropertiesValueListEditor.Clear;
+  ACL_ListView_Attrs.Clear;
+  ACL_ListView_Klass.Clear;
+  ComboBox_AttrName.Clear;
+  ComboBox_FieldName.Clear;
 end;
 
 procedure TFormDesktop.ProjectOpenDone(Sender:TObject);
@@ -417,7 +428,10 @@ end;
 
 procedure TFormDesktop.MenuItem_DelePaperClick(Sender: TObject);
 begin
-  CurrentRTFP.DeletePaper(Selected_PID);
+  case MessageDlg('删除确认','是否删除此文献节点？',mtInformation,[mbYes,mbNo],0) of
+    rnmbYes:CurrentRTFP.DeletePaper(Selected_PID);
+    rnmbNo:;
+  end;
 end;
 
 procedure TFormDesktop.MenuItem_Mark_IsRead_NoClick(Sender: TObject);
@@ -449,6 +463,13 @@ begin
   if not assigned(CurrentRTFP) then exit;
   if not CurrentRTFP.IsOpen then exit;
   CurrentRTFP.OpenPaper(Selected_PID,'');
+end;
+
+procedure TFormDesktop.MenuItem_OpenDirClick(Sender: TObject);
+begin
+  if not assigned(CurrentRTFP) then exit;
+  if not CurrentRTFP.IsOpen then exit;
+  CurrentRTFP.OpenPaperDir(Selected_PID);
 end;
 
 procedure TFormDesktop.MenuItem_option_aboutClick(Sender: TObject);
@@ -584,17 +605,21 @@ begin
   end;
 end;
 
-procedure TFormDesktop.ACL_ListView_AttrsItemChecked(Sender: TObject;
-  Item: TListItem);
+procedure TFormDesktop.ACL_ListView_AttrsNodeChecked(Sender: TObject;
+  Item: TACL_TreeNode);
+var tmpAF:TAttrsField;
 begin
-  TAttrsField(Item.Data).Shown:=Item.Checked;
+  tmpAF:=TAttrsField(Item.Data);
+  if tmpAF<>nil then tmpAF.Shown:=Item.Checked;
   CurrentRTFP.TableValidate;
 end;
 
-procedure TFormDesktop.ACL_ListView_KlassItemChecked(Sender: TObject;
-  Item: TListItem);
+procedure TFormDesktop.ACL_ListView_KlassNodeChecked(Sender: TObject;
+  Item: TACL_TreeNode);
+var tmpKL:TKlass;
 begin
-  TKlass(Item.Data).FilterEnabled:=Item.Checked;
+  tmpKL:=TKlass(Item.Data);
+  if tmpKL<>nil then tmpKL.FilterEnabled:=Item.Checked;
   CurrentRTFP.TableValidate;
 end;
 

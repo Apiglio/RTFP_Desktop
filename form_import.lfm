@@ -1,7 +1,7 @@
 object Form_ImportFiles: TForm_ImportFiles
-  Left = 678
+  Left = 617
   Height = 572
-  Top = 351
+  Top = 372
   Width = 909
   Caption = '创建节点'
   ClientHeight = 572
