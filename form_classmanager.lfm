@@ -1,0 +1,63 @@
+object ClassManagerForm: TClassManagerForm
+  Left = 641
+  Height = 443
+  Top = 394
+  Width = 1032
+  Caption = '分类管理器'
+  ClientHeight = 443
+  ClientWidth = 1032
+  DesignTimePPI = 120
+  OnDeactivate = FormDeactivate
+  OnHide = FormHide
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '1.8.4.0'
+  object Panel_DBGrid_Temporary: TPanel
+    AnchorSideLeft.Control = Panel_ListView_Temporary
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 250
+    Height = 433
+    Top = 5
+    Width = 777
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Left = 5
+    BorderSpacing.Top = 5
+    BorderSpacing.Right = 5
+    BorderSpacing.Bottom = 5
+    Caption = '这里用来放置总表，通过修改Parent实现'
+    TabOrder = 0
+  end
+  object Panel_ListView_Temporary: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 5
+    Height = 433
+    Top = 5
+    Width = 240
+    Anchors = [akTop, akLeft, akBottom]
+    BorderSpacing.Left = 5
+    BorderSpacing.Top = 5
+    BorderSpacing.Bottom = 5
+    Caption = '分类表，通过修改Parent实现'
+    TabOrder = 1
+  end
+  object PopupMenu_ClassManager: TPopupMenu
+    left = 144
+    top = 64
+    object MenuItem_ClsMgr_Include: TMenuItem
+      Caption = '所选纳入分类'
+      OnClick = MenuItem_ClsMgr_IncludeClick
+    end
+    object MenuItem_ClsMgr_Exclude: TMenuItem
+      Caption = '所选排除分类'
+      OnClick = MenuItem_ClsMgr_ExcludeClick
+    end
+  end
+end

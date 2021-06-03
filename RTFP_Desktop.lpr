@@ -8,7 +8,7 @@ uses
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
   Forms, {pack_powerpdf, }RTFP_main,{ dbflaz, memdslaz,}
-  form_new_project, form_cite_trans, form_import, lazcontrols;
+  form_new_project, form_cite_trans, form_import, lazcontrols, form_classmanager;
 
 {$R *.res}
 
@@ -19,6 +19,7 @@ begin
   Application.CreateForm(TForm_NewProject, Form_NewProject);
   Application.CreateForm(TForm_CiteTrans, Form_CiteTrans);
   Application.CreateForm(TForm_ImportFiles, Form_ImportFiles);
+  Application.CreateForm(TClassManagerForm, ClassManagerForm);
   Application.Run;
 end.
 
