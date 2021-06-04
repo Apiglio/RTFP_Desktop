@@ -1,5 +1,3 @@
-//ImportFiles的UI语言改进 (partially solved)
-//已读标记改成ftBoolean (solved)
 //FmtCmt的覆盖提交保存提醒
 //引用PDF里的图片
 //字段选项化，进度表可以是checkboxlist的形式
@@ -224,11 +222,13 @@ type
     function AddPaper(fullfilename:string;AddPaperMethod:TAddPaperMethod=apmFullBackup):RTFP_ID;//新增一个文献到工程
     function FindPaper(fullfilename:string):RTFP_ID;//查找具体文件在工程中的PID，未找到返回000000
     function DeletePaper(PID:RTFP_ID):boolean;//移除指定PID的文献
+    function UpdatePaper(PID:RTFP_ID;fullfilename:string):boolean;//更新指定PID的文件
 
     procedure OpenPaper(PID:RTFP_ID;exename:string='');
     procedure OpenPaperAsPDF(PID:RTFP_ID);inline;
     procedure OpenPaperAsCAJ(PID:RTFP_ID);inline;
     procedure OpenPaperDir(PID:RTFP_ID);inline;
+    procedure OpenPaperLink(PID:RTFP_ID);inline;
 
     //Image
     function AddImage(fullfilename:string):RTFP_ID;//新增一个图片到工程
@@ -370,6 +370,7 @@ type
     class function MakeDir(filename:string):boolean;inline;
     class function OpenDir(pathname:string):boolean;inline;
     class function OpenFile(filename:string;exefile:string=''):boolean;inline;
+    class function OpenLink(linkage:string):boolean;inline;
 
   {构造与析构}
   public
@@ -1420,7 +1421,17 @@ begin
   Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0, True);
   Dbf.FieldDefs.Add(_Col_PID_, ftString, 8, True);
 
-  Dbf.FieldDefs.Add(_Col_basic_RefType_, ftString, 32, false);//引用类型（期刊、会议、专利……）
+  //0 Unknown                                         未知
+  //1 Journal Article / JournalArticle                期刊论文
+  //2 Thesis                                          学位论文
+  //3 Conference Proceeding(s)                        会议论文
+  //4 Newspaper Article                               报纸
+  //5 Book                                            图书
+  //6 Standard / Legal Rule or Regulation / Reference 年鉴
+  //60 Patent                                         专利
+  //61 Other Article / TechReport                     其他成果
+  //62 Standard / Legal Rule or Regulation            标准规范
+  Dbf.FieldDefs.Add(_Col_basic_RefType_, ftString, 32, false);//引用类型
   Dbf.FieldDefs.Add(_Col_basic_Title_, ftMemo, 0, false);//标题
   Dbf.FieldDefs.Add(_Col_basic_Author_, ftString, 255, false);//作者，半角逗号隔开
   Dbf.FieldDefs.Add(_Col_basic_Corresp_, ftString, 32, false);//通讯作者
@@ -1997,6 +2008,96 @@ begin
   result:=true;
 end;
 
+function TRTFP.UpdatePaper(PID:RTFP_ID;fullfilename:string):boolean;//更新指定PID的文件
+var old_dir,old_file:string;
+    old_backup:boolean;
+    DateDir,FileName,TargetDir:string;
+    tmpPDF:TRTFP_PDF;
+begin
+  result:=false;
+  if not TRTFP.IsRTFPID(PID) then exit;
+
+  with FPaperDB do begin
+    if not Active then Open;
+    First;
+    while not EOF do
+      begin
+        if FieldByName(_Col_PID_).AsString=PID then begin
+          break;
+        end;
+        Next;
+      end;
+    if EOF then begin
+      MessageDlg('未找到记录','没有找到PID为'+PID+'的文献节点',mtError,[mbCancel],0);
+      exit;
+    end;
+    old_backup:=FieldByName(_Col_Paper_Is_Backup_).AsBoolean;
+    if old_backup then begin
+      old_file:=FieldByName(_Col_Paper_FileName_).AsString;
+      old_dir:=FieldByName(_Col_Paper_Folder_).AsString;
+    end;
+  end;
+
+  DateDir:=TRTFP.GetDateDir;
+  FileName:=ExtractFileName(fullfilename);
+
+  TargetDir:=FFilePath+FRootFolder+'\paper\'+DateDir;
+  if FileExists(TargetDir+'\'+FileName) then
+    case MessageDlg('相同的备份路径','正在导入的文件“'+fullfilename
+    +'”的默认备份地址存在重名，覆盖会导致两个文献节点共用一个备份文件。'
+    +'若两个文件不相同，会导致旧版本备份文件被覆盖，且难以复原。'
+    +'是否覆盖？',mtWarning,[mbYes,mbNo],0) of
+      rnmbYes:{do nothing};
+      rnmbNo:exit;
+  end;
+
+  tmpPDF:=TRTFP_PDF.Create(nil);
+  tmpPDF.LoadPdf(fullfilename);
+
+  BeginUpdate;
+
+  //此时游标已经在PID位置
+  with FPaperDB do begin
+    Edit;
+    FieldByName(_Col_Paper_Is_Backup_).AsBoolean:=true;
+    FieldByName(_Col_Paper_Folder_).AsString:=DateDir;
+    FieldByName(_Col_Paper_FileName_).AsString:=FileName;
+    FieldByName(_Col_Paper_FileSize_).AsLargeInt:=tmpPDF.Size;
+    FieldByName(_Col_Paper_FileHash_).AsString:=tmpPDF.Hash;
+    Post;
+  end;
+
+  //2-注解
+  EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now);
+
+  //3-元数据
+  //这里之后要考虑不是pdf或者pdf读取错误的情况
+  //这不是一个好做法，会大量浪费算力，但是现在先让他爬起来吧，再优化
+  EditFieldAsString(_Col_metas_Title_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Title']^);
+  EditFieldAsString(_Col_metas_Authors_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Author']^);
+  EditFieldAsString(_Col_metas_Subject_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Subject']^);
+  EditFieldAsString(_Col_metas_Keyword_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Keywords']^);
+  EditFieldAsString(_Col_metas_Creator_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Creator']^);
+  EditFieldAsString(_Col_metas_Produce_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Producer']^);
+  EditFieldAsString(_Col_metas_CreDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:CreationDate']^);
+  EditFieldAsString(_Col_metas_ModDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:ModDate']^);
+
+  EndUpdate;
+
+  ForceDirectories(TargetDir);
+  tmpPDF.CopyTo(TargetDir+'\'+FileName);//尚未加入长度检验
+  if old_backup then begin
+    TRTFP.FileDelete(FFilePath+FRootFolder+'\paper\'+old_dir+'\'+old_file);
+    FPaperDB.FieldByName(_Col_Paper_Is_Backup_).AsBoolean:=true;
+  end;
+
+  tmpPDF.ClosePdf;
+  tmpPDF.Free;
+
+  RecordChange;
+  result:=true;
+end;
+
 procedure TRTFP.OpenPaper(PID:RTFP_ID;exename:string='');
 var filename:string;
 begin
@@ -2052,6 +2153,13 @@ begin
     end else
       ShowMessage('非备份文献节点不能通过此方法打开！');
   end;
+end;
+
+procedure TRTFP.OpenPaperLink(PID:RTFP_ID);
+var linkage:string;
+begin
+  linkage:=ReadFieldAsString(_Col_basic_Link_,_Attrs_Basic_,PID);
+  if linkage<>'' then TRTFP.OpenLink(Linkage);
 end;
 
 function TRTFP.KlassInclude(klassname:string;PID:RTFP_ID):boolean;
@@ -2217,9 +2325,122 @@ begin
   AG.Dbf.Edit;
 end;
 
-procedure TRTFP.LoadFromEStudy(PID:RTFP_ID;str:TStrings);
+function decodeEStudyRefType(str:string):string;
 begin
-  ShowMessage('unimplemented');
+  case str of
+    '1':result:='期刊论文';
+    '2':result:='学位论文';
+    '3':result:='会议论文';
+    '4':result:='报纸';
+    '5':result:='专著';
+    '6':result:='年鉴';
+    '60':result:='专利';
+    '61':result:='其他文献';
+    '62':result:='标准规范';
+    else result:='未知';
+  end;
+end;
+
+function encodeEStudyRefType(str:string):string;
+begin
+  case str of
+    '期刊论文':result:='1';
+    '学位论文':result:='2';
+    '会议论文':result:='3';
+    '报纸':result:='4';
+    '专著':result:='5';
+    '年鉴':result:='6';
+    '专利':result:='60';
+    '其他文献':result:='61';
+    '标准规范':result:='62';
+    else result:='0';
+  end;
+end;
+
+function decodeEndNoteRefType(str:string):string;
+begin
+  case str of
+    'Journal Article':result:='期刊论文';
+    'Thesis':result:='学位论文';
+    'Conference Proceedings':result:='会议论文';
+    'Newspaper Article':result:='报纸';
+    'Book':result:='专著';
+    //'Legal Rule or Regulation':result:='年鉴';
+    'Patent':result:='专利';
+    'Other Article':result:='其他文献';
+    'Legal Rule or Regulation':result:='标准规范';
+    else result:='未知';
+  end;
+end;
+
+function encodeEndNoteRefType(str:string):string;
+begin
+  case str of
+    '期刊论文':result:='Journal Article';
+    '学位论文':result:='Thesis';
+    '会议论文':result:='Conference Proceedings';
+    '报纸':result:='Newspaper Article';
+    '专著':result:='Book';
+    '年鉴':result:='Legal Rule or Regulation';
+    '专利':result:='Patent';
+    '其他文献':result:='Other Article';
+    '标准规范':result:='Legal Rule or Regulation';
+    else result:='Unknown';
+  end;
+end;
+
+procedure TRTFP.LoadFromEStudy(PID:RTFP_ID;str:TStrings);
+var stmp,header,attr:string;
+    poss:integer;
+    tmpDate:TDate;
+begin
+  with InitBasic(PID) do begin
+    for stmp in str do begin
+      poss:=pos(': ',stmp);
+      if poss<=0 then continue;
+      header:=stmp;
+      attr:=stmp;
+      delete(header,poss,length(stmp));
+      delete(attr,1,poss+1);
+      if attr='' then continue;
+
+      case header of
+        'DataType':FieldByName(_Col_basic_RefType_).AsString:=decodeEStudyRefType(attr);
+        'Author-作者','Author','作者':
+          begin
+            while attr[length(attr)]=';' do
+              begin
+                delete(attr,length(attr),1);
+                if attr='' then break;
+              end;
+            FieldByName(_Col_basic_Author_).AsString:=attr;
+          end;
+        'Title-题名','Title','题名':FieldByName(_Col_basic_Title_).AsString:=attr;
+        'Source-刊名','Source','刊名':FieldByName(_Col_basic_Source_).AsString:=attr;
+        'Year-年','Year','年':FieldByName(_Col_basic_Year_).AsString:=attr;
+        'PubTime-出版时间','PubTime','出版时间':
+          begin
+            try
+              TryStrToDate(attr,tmpDate,'YYYYMMDD','-');
+            except
+            end;
+            FieldByName(_Col_basic_PubTime_).AsDateTime:=tmpDate;
+          end;
+        'Period-期','Period','期':FieldByName(_Col_basic_Issue_).AsString:=attr;
+        'Roll-卷','Roll','卷':FieldByName(_Col_basic_Volume_).AsString:=attr;
+        'Keyword-关键词','Keyword','关键词':FieldByName(_Col_basic_Keyword_).AsString:=attr;
+        'Summary-摘要','Summary','摘要':FieldByName(_Col_basic_Summary_).AsString:=attr;
+        'PageCount-页数','PageCount','页数':FieldByName(_Col_basic_PageCount_).AsString:=attr;
+        'Page-页码','Page','页码':FieldByName(_Col_basic_Page_).AsString:=attr;
+        //'SrcDatabase-来源库':FieldByName(_Col_basic_来源库_).AsString:=attr;
+        'Organ-机构','Organ','机构':FieldByName(_Col_basic_Organ_).AsString:=attr;
+        'Link-链接','Link','链接':FieldByName(_Col_basic_Link_).AsString:=attr;
+
+      end;
+      ReEditBasic;
+    end;
+  end;
+  PostBasic;
 end;
 procedure TRTFP.LoadFromRefWork(PID:RTFP_ID;str:TStrings);
 begin
@@ -2237,7 +2458,7 @@ begin
       attr:=stmp;
       delete(attr,1,3);
       case stmp[2] of
-        '0':FieldByName(_Col_basic_RefType_).AsString:=attr;
+        '0':FieldByName(_Col_basic_RefType_).AsString:=decodeEndNoteRefType(attr);
         'A':
           begin
             attr:=StringReplace(attr,' %A ',';',[rfReplaceAll]);
@@ -2291,7 +2512,7 @@ begin
   str.Clear;
   with InitBasic(PID) do begin
     stmp:=FieldByName(_Col_basic_RefType_).AsString;
-    if stmp<>'' then str.Add('%0 '+stmp);
+    if stmp<>'' then str.Add('%0 '+encodeEndNoteRefType(stmp));
     stmp:=FieldByName(_Col_basic_Author_).AsString;
     if stmp<>'' then str.Add('%A '+StringReplace(stmp,';',' %A ',[rfReplaceAll]));
     stmp:=FieldByName(_Col_basic_Organ_).AsString;
@@ -2946,6 +3167,13 @@ end;
 class function TRTFP.FieldOptWidth(AFieldDef:TFieldDef):integer;
 var NameSize:integer;
 begin
+  case AFieldDef.Name of
+    _Col_Paper_Folder_:begin result:=0;exit end;
+    _Col_Paper_FileHash_:begin result:=0;exit end;
+    _Col_Paper_FileSize_:begin result:=0;exit end;
+    _Col_OID_:begin result:=0;exit end;
+    else ;
+  end;
   result:=40;
   NameSize:=length(AFieldDef.Name)*8+16;
   if NameSize>80 then NameSize:=80;
@@ -3124,15 +3352,20 @@ end;
 
 class function TRTFP.OpenDir(pathname:string):boolean;
 begin
-  ShellExecute(0,'open','explorer.exe',pchar('"'+pathname+'"'),'',SW_NORMAL);
+  ShellExecute(0,'open','explorer.exe',pchar('"'+pathname+'"'),'',SW_RESTORE);
 end;
 
 class function TRTFP.OpenFile(filename:string;exefile:string=''):boolean;
 begin
   if exefile='' then
-    ShellExecute(0,'open',pchar('"'+filename+'"'),'','',SW_NORMAL)
+    ShellExecute(0,'open',pchar('"'+filename+'"'),'','',SW_RESTORE)
   else
-    ShellExecute(0,'open',pchar(exefile),pchar('"'+filename+'"'),'',SW_NORMAL);
+    ShellExecute(0,'open',pchar(exefile),pchar('"'+filename+'"'),'',SW_RESTORE);
+end;
+
+class function TRTFP.OpenLink(linkage:string):boolean;
+begin
+  ShellExecute(0,'open',pchar(linkage),'','',SW_RESTORE);
 end;
 
 end.

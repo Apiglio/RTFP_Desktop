@@ -5,7 +5,7 @@ unit rtfp_pdfobj;
 interface
 
 uses
-  Classes, SysUtils, rtfp_pdfium, Windows, LazUTF8;
+  Classes, SysUtils, rtfp_pdfium, Windows, Dialogs, LazUTF8;
 
 const
   META_COMMA_REPLACE='&_comma_';
@@ -158,6 +158,11 @@ end;
 function TRTFP_PDF.CalcMeta:boolean;
 var a:file of byte;
 begin
+  result:=false;
+  if not FileExists('RTFP_MetaReader.exe') then begin
+    MessageDlg('未找到RTFP_MetaReader.exe','元数据获取失败！',mtWarning,[mbIgnore],0);
+    exit;
+  end;
   AssignFile(a,'MetaData.wait');
   rewrite(a);
   closeFile(a);

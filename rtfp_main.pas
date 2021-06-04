@@ -15,7 +15,7 @@ uses
   RTFP_definition, rtfp_constants, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.1.1-alpha.10';//如果增加了CheckAttrs的机制，请改成0.1.2
+  C_VERSION_NUMBER  = '0.1.1-alpha.11';//如果增加了CheckAttrs的机制，请改成0.1.2
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -46,10 +46,14 @@ type
     LvlGraphControl: TLvlGraphControl;
     MainMenu: TMainMenu;
     Memo_FmtCmt: TMemo;
+    MenuItem_AdvOpen_PDF: TMenuItem;
+    MenuItem_AdvOpen_CAJ: TMenuItem;
+    MenuItem_AdvOpen_Dir: TMenuItem;
+    MenuItem_AdvOpen_Link: TMenuItem;
+    MenuItem_AdvOpen: TMenuItem;
     MenuItem_ClassTool: TMenuItem;
     MenuItem_Klass: TMenuItem;
     MenuItem_BasicReferences: TMenuItem;
-    MenuItem_OpenDir: TMenuItem;
     MenuItem_DelePaper: TMenuItem;
     MenuItem_pop_div03: TMenuItem;
     MenuItem_Tree_Into: TMenuItem;
@@ -64,8 +68,6 @@ type
     MenuItem_Mark: TMenuItem;
     MenuItem_pop_div01: TMenuItem;
     MenuItem_OpenDefault: TMenuItem;
-    MenuItem_OpenAsPdf: TMenuItem;
-    MenuItem_OpenAsCaj: TMenuItem;
     MenuItem_project_recent: TMenuItem;
     MenuItem_ImportFromOther: TMenuItem;
     MenuItem_ExportToOther: TMenuItem;
@@ -143,6 +145,11 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDropFiles(Sender: TObject; const FileNames: array of String);
     procedure FormResize(Sender: TObject);
+    procedure MenuItem_AdvOpen_CAJClick(Sender: TObject);
+    procedure MenuItem_AdvOpen_DirClick(Sender: TObject);
+    procedure MenuItem_AdvOpen_LinkClick(Sender: TObject);
+    procedure MenuItem_AdvOpen_PDFClick(Sender: TObject);
+    procedure MenuItem_BasicReferencesClick(Sender: TObject);
     procedure MenuItem_CiteToolClick(Sender: TObject);
     procedure MenuItem_ClassToolClick(Sender: TObject);
     procedure MenuItem_DelePaperClick(Sender: TObject);
@@ -153,6 +160,7 @@ type
     procedure MenuItem_OpenAsPdfClick(Sender: TObject);
     procedure MenuItem_OpenDefaultClick(Sender: TObject);
     procedure MenuItem_OpenDirClick(Sender: TObject);
+    procedure MenuItem_OpenLinkClick(Sender: TObject);
     procedure MenuItem_option_aboutClick(Sender: TObject);
     procedure MenuItem_project_closeClick(Sender: TObject);
     procedure MenuItem_project_newClick(Sender: TObject);
@@ -173,6 +181,7 @@ type
   //private
   public
     function Selected_PID:RTFP_ID;//根据DBGrid_Main的选择返回PID
+    function Selected_FileName:string;//根据DBGrid_Main的选择返回文件名
 
   public
     //RTFP类事件，Sender参数为TRTFP类
@@ -346,6 +355,14 @@ begin
   result:=DBGrid_Main.DataSource.DataSet.Fields.FieldByName(_Col_PID_).AsString;
 end;
 
+function TFormDesktop.Selected_FileName:string;
+begin
+  result:='';
+  if DBGrid_Main.DataSource.DataSet=nil then exit;
+  if not DBGrid_Main.DataSource.DataSet.Active then exit;
+  result:=DBGrid_Main.DataSource.DataSet.Fields.FieldByName(_Col_Paper_FileName_).AsString;
+end;
+
 procedure TFormDesktop.ViewPdfValidate;
 begin
   //
@@ -426,6 +443,39 @@ begin
   //Self.Frame_AufScript1.FrameResize(nil);
 end;
 
+procedure TFormDesktop.MenuItem_AdvOpen_CAJClick(Sender: TObject);
+begin
+  if not assigned(CurrentRTFP) then exit;
+  if not CurrentRTFP.IsOpen then exit;
+  CurrentRTFP.OpenPaperAsCaj(Selected_PID);
+end;
+
+procedure TFormDesktop.MenuItem_AdvOpen_DirClick(Sender: TObject);
+begin
+  if not assigned(CurrentRTFP) then exit;
+  if not CurrentRTFP.IsOpen then exit;
+  CurrentRTFP.OpenPaperDir(Selected_PID);
+end;
+
+procedure TFormDesktop.MenuItem_AdvOpen_LinkClick(Sender: TObject);
+begin
+  if not assigned(CurrentRTFP) then exit;
+  if not CurrentRTFP.IsOpen then exit;
+  CurrentRTFP.OpenPaperLink(Selected_PID);
+end;
+
+procedure TFormDesktop.MenuItem_AdvOpen_PDFClick(Sender: TObject);
+begin
+  if not assigned(CurrentRTFP) then exit;
+  if not CurrentRTFP.IsOpen then exit;
+  CurrentRTFP.OpenPaperAsPdf(Selected_PID);
+end;
+
+procedure TFormDesktop.MenuItem_BasicReferencesClick(Sender: TObject);
+begin
+  Form_CiteTrans.Show;
+end;
+
 procedure TFormDesktop.MenuItem_CiteToolClick(Sender: TObject);
 begin
   Form_CiteTrans.show;
@@ -485,6 +535,13 @@ begin
   if not assigned(CurrentRTFP) then exit;
   if not CurrentRTFP.IsOpen then exit;
   CurrentRTFP.OpenPaperDir(Selected_PID);
+end;
+
+procedure TFormDesktop.MenuItem_OpenLinkClick(Sender: TObject);
+begin
+  if not assigned(CurrentRTFP) then exit;
+  if not CurrentRTFP.IsOpen then exit;
+  CurrentRTFP.OpenPaperLink(Selected_PID);
 end;
 
 procedure TFormDesktop.MenuItem_option_aboutClick(Sender: TObject);
