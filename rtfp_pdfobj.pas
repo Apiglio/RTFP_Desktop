@@ -159,10 +159,12 @@ function TRTFP_PDF.CalcMeta:boolean;
 var a:file of byte;
 begin
   result:=false;
+  {
   if not FileExists('RTFP_MetaReader.exe') then begin
     MessageDlg('未找到RTFP_MetaReader.exe','元数据获取失败！',mtWarning,[mbIgnore],0);
     exit;
   end;
+  }//很奇怪，调试可以用，直接打开运行不行
   AssignFile(a,'MetaData.wait');
   rewrite(a);
   closeFile(a);

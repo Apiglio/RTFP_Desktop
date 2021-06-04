@@ -206,6 +206,7 @@ var pi:integer;
 begin
   ProgressBar_ImportFiles.Max:=FFileNames.Count;
   all_success:=true;
+  //CurrentRTFP.BeginUpdate;
   for pi:=0 to FFileNames.Count-1 do
     begin
       if CurrentRTFP.FindPaper(FFileNames[pi]) = '000000' then
@@ -237,6 +238,7 @@ begin
           CheckListBox_ImportFileNames.Items[pi].SubItems[0]:='已在库内';
         end;
     end;
+  //CurrentRTFP.EndUpdate;
   if all_success then begin
     //Clear;
     Self.Hide;

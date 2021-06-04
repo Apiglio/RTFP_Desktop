@@ -147,7 +147,7 @@ object FormDesktop: TFormDesktop
           OnChange = Edit_DBGridMain_FilterChange
           OnKeyDown = Edit_DBGridMain_FilterKeyDown
           TabOrder = 1
-          Text = 'PID=*'
+          Text = '文件名 has ".pdf"'
         end
         object Label_MainFilter: TLabel
           AnchorSideLeft.Control = Panel_DBGridMain
