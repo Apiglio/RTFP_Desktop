@@ -11,6 +11,7 @@ object FormDesktop: TFormDesktop
   Constraints.MinWidth = 640
   DesignTimePPI = 120
   Menu = MainMenu
+  OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDropFiles = FormDropFiles
@@ -247,40 +248,37 @@ object FormDesktop: TFormDesktop
         inherited Memo_out: TMemo
           AnchorSideRight.Control = Frame_AufScript1
           Left = 448
+          Height = 245
           Top = 30
           Width = 315
         end
         inherited Button_run: TButton
           Left = 448
-          Height = 40
-          Top = 267
+          Top = 280
           Width = 85
         end
         inherited Button_pause: TButton
           Left = 563
-          Height = 40
-          Top = 267
+          Top = 280
           Width = 85
         end
         inherited Button_stop: TButton
           Left = 678
-          Height = 40
-          Top = 267
+          Top = 280
           Width = 85
         end
         inherited Button_ScriptLoad: TButton
-          Height = 40
-          Top = 267
+          Top = 280
           Width = 85
         end
         inherited Button_ScriptSave: TButton
           Left = 182
-          Height = 40
-          Top = 267
+          Top = 280
           Width = 85
         end
         inherited Memo_cmd: TSynEdit
           AnchorSideLeft.Control = Frame_AufScript1
+          Height = 245
           Top = 30
           Width = 262
           Gutter.Width = 61
@@ -419,31 +417,34 @@ object FormDesktop: TFormDesktop
       ClientHeight = 164
       ClientWidth = 768
       object Button_FmtCmt_Post: TButton
+        AnchorSideLeft.Control = ComboBox_AttrName
         AnchorSideRight.Control = TabSheet_FmtCmt
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = Button_FmtCmt_Recover
-        Left = 636
+        Left = 621
         Height = 32
         Top = 80
-        Width = 112
-        Anchors = [akRight, akBottom]
-        BorderSpacing.Right = 20
+        Width = 142
+        Anchors = [akLeft, akRight, akBottom]
+        BorderSpacing.Right = 5
         BorderSpacing.Bottom = 10
         Caption = '提交FmtCmt'
+        Enabled = False
         OnClick = Button_FmtCmt_PostClick
         TabOrder = 0
       end
       object Button_FmtCmt_Recover: TButton
+        AnchorSideLeft.Control = ComboBox_AttrName
         AnchorSideRight.Control = TabSheet_FmtCmt
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = TabSheet_FmtCmt
         AnchorSideBottom.Side = asrBottom
-        Left = 636
+        Left = 621
         Height = 32
         Top = 122
-        Width = 112
-        Anchors = [akRight, akBottom]
-        BorderSpacing.Right = 20
+        Width = 142
+        Anchors = [akLeft, akRight, akBottom]
+        BorderSpacing.Right = 5
         BorderSpacing.Bottom = 10
         Caption = '重置FmtCmt'
         OnClick = Button_FmtCmt_RecoverClick
@@ -459,9 +460,10 @@ object FormDesktop: TFormDesktop
         Left = 0
         Height = 164
         Top = 0
-        Width = 553
+        Width = 543
         Anchors = [akTop, akLeft, akRight, akBottom]
-        BorderSpacing.Right = 215
+        BorderSpacing.Right = 225
+        OnChange = Memo_FmtCmtChange
         ScrollBars = ssAutoBoth
         TabOrder = 2
         WordWrap = False
@@ -470,12 +472,12 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Control = TabSheet_FmtCmt
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = ComboBox_FieldName
-        Left = 636
+        Left = 621
         Height = 28
         Top = 4
         Width = 112
         Anchors = [akRight, akBottom]
-        BorderSpacing.Right = 20
+        BorderSpacing.Right = 35
         BorderSpacing.Bottom = 10
         ItemHeight = 20
         ItemIndex = 0
@@ -490,12 +492,12 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Control = TabSheet_FmtCmt
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = Button_FmtCmt_Post
-        Left = 636
+        Left = 621
         Height = 28
         Top = 42
         Width = 112
         Anchors = [akRight, akBottom]
-        BorderSpacing.Right = 20
+        BorderSpacing.Right = 35
         BorderSpacing.Bottom = 10
         ItemHeight = 20
         ItemIndex = 0
@@ -510,7 +512,7 @@ object FormDesktop: TFormDesktop
         AnchorSideTop.Control = ComboBox_AttrName
         AnchorSideTop.Side = asrCenter
         AnchorSideRight.Control = ComboBox_AttrName
-        Left = 568
+        Left = 553
         Height = 21
         Top = 8
         Width = 68
@@ -522,13 +524,55 @@ object FormDesktop: TFormDesktop
         AnchorSideTop.Control = ComboBox_FieldName
         AnchorSideTop.Side = asrCenter
         AnchorSideRight.Control = ComboBox_FieldName
-        Left = 568
+        Left = 553
         Height = 21
         Top = 46
         Width = 68
         Anchors = [akTop, akRight]
         Caption = '字段名：'
         TabOrder = 6
+      end
+      object Label_FmtCmtPID: TLabel
+        AnchorSideLeft.Control = StaticText_AttrNameCombo
+        AnchorSideTop.Control = Button_FmtCmt_Post
+        Left = 553
+        Height = 15
+        Top = 110
+        Width = 48
+        BorderSpacing.Top = 30
+        Caption = '000000'
+        ParentColor = False
+      end
+      object Image_IsMemo: TImage
+        AnchorSideLeft.Control = ComboBox_FieldName
+        AnchorSideTop.Control = ComboBox_FieldName
+        AnchorSideTop.Side = asrCenter
+        AnchorSideRight.Control = TabSheet_FmtCmt
+        AnchorSideRight.Side = asrBottom
+        Left = 739
+        Height = 24
+        Hint = '该字段不支持FmtCmt'
+        Top = 44
+        Width = 24
+        Anchors = [akTop, akRight]
+        BorderSpacing.Right = 5
+        Enabled = False
+        ParentShowHint = False
+        Picture.Data = {
+          1754506F727461626C654E6574776F726B477261706869635401000089504E47
+          0D0A1A0A0000000D494844520000001800000018080600000197700D6E000000
+          097048597300000B1300000B1301009A9C180000001974455874536F66747761
+          72650041646F626520496D616765526561647971C9653C000000E14944415478
+          DA626040028C20E23F1831303021CB0004102602AA49406500014000E156852C
+          00B3012F00082082B6FF47B783095912AB1DE8124C484625A21B0B6229A09B00
+          104094B918DD7E586040B102418D508C3FBCB168F84F487102BE602219000410
+          1D11D40F09F812084A8C620B46BC218516A409048315573C909444F0C6328E64
+          815B13BA33D0FD849221D04A044628BD009649488D1FCA321140800D68D252A0
+          8937B1248E044AD4321161E77C2C691E5610CFA734F7FD271227D0CAA2046A94
+          21D4773D1E8313F0C91195DC88D58CC72205527C90404DB543130000AD611C74
+          61EA06AD0000000049454E44AE426082
+        }
+        ShowHint = True
       end
     end
     object TabSheet_Node_PDF: TTabSheet
@@ -545,6 +589,80 @@ object FormDesktop: TFormDesktop
         Top = 0
         Width = 208
         Anchors = [akTop, akLeft, akBottom]
+      end
+    end
+    object TabSheet_Node_FormatEdit: TTabSheet
+      Caption = 'FormatEdit'
+      ClientHeight = 164
+      ClientWidth = 768
+      object ScrollBox_Node_FormatEdit: TScrollBox
+        AnchorSideLeft.Control = TabSheet_Node_FormatEdit
+        AnchorSideTop.Control = TabSheet_Node_FormatEdit
+        AnchorSideRight.Control = TabSheet_Node_FormatEdit
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = TabSheet_Node_FormatEdit
+        AnchorSideBottom.Side = asrBottom
+        Left = 0
+        Height = 128
+        Top = 0
+        Width = 768
+        HorzScrollBar.Page = 1
+        HorzScrollBar.Visible = False
+        VertScrollBar.Page = 1
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        BorderSpacing.Bottom = 36
+        TabOrder = 0
+      end
+      object Button_FormatEditPost: TButton
+        AnchorSideLeft.Control = Button_FormatEditLock
+        AnchorSideTop.Control = TabSheet_Node_FormatEdit
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = Button_FormatEditLock
+        AnchorSideBottom.Control = TabSheet_Node_FormatEdit
+        AnchorSideBottom.Side = asrBottom
+        Left = 244
+        Height = 26
+        Top = 133
+        Width = 90
+        Anchors = [akRight, akBottom]
+        BorderSpacing.Right = 5
+        BorderSpacing.Bottom = 5
+        Caption = '提交修改'
+        TabOrder = 1
+      end
+      object Button_FormatEditRecover: TButton
+        AnchorSideLeft.Control = Button_FormatEditLock
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = ScrollBox_Node_FormatEdit
+        AnchorSideTop.Side = asrCenter
+        AnchorSideBottom.Control = TabSheet_Node_FormatEdit
+        AnchorSideBottom.Side = asrBottom
+        Left = 434
+        Height = 26
+        Top = 133
+        Width = 90
+        Anchors = [akLeft, akBottom]
+        BorderSpacing.Left = 5
+        BorderSpacing.Bottom = 5
+        Caption = '重置修改'
+        TabOrder = 2
+      end
+      object Button_FormatEditLock: TButton
+        AnchorSideLeft.Control = TabSheet_Node_FormatEdit
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Control = ScrollBox_Node_FormatEdit
+        AnchorSideTop.Side = asrCenter
+        AnchorSideBottom.Control = TabSheet_Node_FormatEdit
+        AnchorSideBottom.Side = asrBottom
+        Left = 339
+        Height = 26
+        Top = 133
+        Width = 90
+        Anchors = [akLeft, akBottom]
+        BorderSpacing.Left = 5
+        BorderSpacing.Bottom = 5
+        Caption = '锁定'
+        TabOrder = 3
       end
     end
   end
@@ -761,10 +879,6 @@ object FormDesktop: TFormDesktop
   object DataSource_Main: TDataSource
     OnUpdateData = DataSource_MainUpdateData
     left = 96
-    top = 64
-  end
-  object DataSource_Attrs: TDataSource
-    left = 24
     top = 64
   end
   object PopupMenu_MainDBGrid: TPopupMenu

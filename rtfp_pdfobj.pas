@@ -157,18 +157,20 @@ end;
 
 function TRTFP_PDF.CalcMeta:boolean;
 var a:file of byte;
+    localpath:string;
 begin
   result:=false;
-  {
-  if not FileExists('RTFP_MetaReader.exe') then begin
+  localpath:=ExtractFilePath(ParamStr(0));
+  //{
+  if not FileExists(localpath+'RTFP_MetaReader.exe') then begin
     MessageDlg('未找到RTFP_MetaReader.exe','元数据获取失败！',mtWarning,[mbIgnore],0);
     exit;
   end;
-  }//很奇怪，调试可以用，直接打开运行不行
+  //}//很奇怪，调试可以用，直接打开运行不行
   AssignFile(a,'MetaData.wait');
   rewrite(a);
   closeFile(a);
-  WinExec(pchar({GetCurrentDir+'\'+}'RTFP_MetaReader.exe meta "'+UTF8ToWinCP(FFilename)+'"'),SW_Hide);
+  WinExec(pchar({localpath+}'RTFP_MetaReader.exe meta "'+UTF8ToWinCP(FFilename)+'"'),SW_Hide);
   repeat
     //这里可以增加一个取消窗口
     //sleep(100);
