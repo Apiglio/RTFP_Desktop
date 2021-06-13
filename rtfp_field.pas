@@ -218,16 +218,14 @@ end;
 procedure TAttrsFieldList.Clear;
 begin
   inherited Clear;
-  //Self.BeginUpdate;
-  //while Self.Count>0 do Self.Delete(0);
-  //Self.EndUpdate;
 end;
 
 function TAttrsFieldList.FindItemIndexByName(AName:string):integer;
 begin
   result:=0;
+  AName:=UpperCase(AName);
   while result<Count do begin
-    if Items[result].FieldName=UpperCase(AName) then exit;
+    if Uppercase(Items[result].FieldName)=AName then exit;
     inc(result);
   end;
   result:=-1;

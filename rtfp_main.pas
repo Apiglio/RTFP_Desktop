@@ -15,7 +15,7 @@ uses
   RTFP_definition, rtfp_constants, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.1.1-alpha.13';//如果增加了CheckAttrs的机制，请改成0.1.2
+  C_VERSION_NUMBER  = '0.1.1-alpha.14';//如果增加了CheckAttrs的机制，请改成0.1.2
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -563,12 +563,12 @@ end;
 
 procedure TFormDesktop.MenuItem_Mark_IsRead_NoClick(Sender: TObject);
 begin
-  CurrentRTFP.EditFieldAsBoolean(_Col_class_Is_Read_,_Attrs_Class_,Selected_PID,false);
+  CurrentRTFP.EditFieldAsBoolean(_Col_class_Is_Read_,_Attrs_Class_,Selected_PID,false,[]);
 end;
 
 procedure TFormDesktop.MenuItem_Mark_IsRead_YesClick(Sender: TObject);
 begin
-  CurrentRTFP.EditFieldAsBoolean(_Col_class_Is_Read_,_Attrs_Class_,Selected_PID,true);
+  CurrentRTFP.EditFieldAsBoolean(_Col_class_Is_Read_,_Attrs_Class_,Selected_PID,true,[]);
 end;
 
 procedure TFormDesktop.MenuItem_OpenAsCajClick(Sender: TObject);
@@ -719,7 +719,7 @@ var attrName,fieldName:string;
 begin
   attrName:=ComboBox_AttrName.Items[ComboBox_AttrName.ItemIndex];
   fieldName:=ComboBox_FieldName.Items[ComboBox_FieldName.ItemIndex];
-  ty:=CurrentRTFP.AttrFieldDataTypeS[attrName,fieldName];
+  ty:=CurrentRTFP.GetFieldType(attrName,fieldName);
   if ty=ftMemo then begin
     Image_IsMemo.Picture.LoadFromFile(LocalPath+'Icon\checked_true.png');
     Image_IsMemo.Hint:='该字段可支持FmtCmt';

@@ -4,7 +4,7 @@
     <PathDelim Value="\"/>
     <Version Value="10"/>
     <BuildModes Active="Default"/>
-    <Units Count="65">
+    <Units Count="62">
       <Unit0>
         <Filename Value="RTFP_Desktop.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -19,8 +19,8 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="RTFP_main"/>
-        <TopLine Value="173"/>
-        <CursorPos X="56" Y="141"/>
+        <IsVisibleTab Value="True"/>
+        <CursorPos Y="445"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -29,11 +29,10 @@
         <Filename Value="..\FPC_Unit\Auf\apiglio_useful.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="Apiglio_Useful"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="1436"/>
         <CursorPos Y="1390"/>
         <UsageCount Value="201"/>
-        <Loaded Value="True"/>
       </Unit2>
       <Unit3>
         <Filename Value="..\FPC_Unit\Auf\aufscript_frame.pas"/>
@@ -50,10 +49,9 @@
         <Filename Value="rtfp_definition.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="RTFP_definition"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
-        <TopLine Value="540"/>
-        <CursorPos X="9" Y="561"/>
+        <TopLine Value="1666"/>
+        <CursorPos X="8" Y="1495"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
       </Unit4>
@@ -115,10 +113,11 @@
       <Unit10>
         <Filename Value="rtfp_field.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="188"/>
-        <CursorPos Y="204"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="354"/>
+        <CursorPos Y="361"/>
         <UsageCount Value="206"/>
+        <Loaded Value="True"/>
       </Unit10>
       <Unit11>
         <Filename Value="rtfp_class.pas"/>
@@ -141,7 +140,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="4"/>
         <CursorPos X="37" Y="13"/>
-        <UsageCount Value="165"/>
+        <UsageCount Value="192"/>
       </Unit13>
       <Unit14>
         <Filename Value="form_classmanager.pas"/>
@@ -152,7 +151,7 @@
         <EditorIndex Value="6"/>
         <TopLine Value="45"/>
         <CursorPos X="44" Y="83"/>
-        <UsageCount Value="121"/>
+        <UsageCount Value="148"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit14>
@@ -162,7 +161,7 @@
         <EditorIndex Value="5"/>
         <TopLine Value="65"/>
         <CursorPos X="17" Y="79"/>
-        <UsageCount Value="63"/>
+        <UsageCount Value="90"/>
         <Loaded Value="True"/>
       </Unit15>
       <Unit16>
@@ -170,476 +169,453 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="1756"/>
         <CursorPos X="3" Y="1770"/>
-        <UsageCount Value="6"/>
+        <UsageCount Value="3"/>
       </Unit16>
       <Unit17>
         <Filename Value="D:\Lazarus\fpc\3.0.4\source\packages\fcl-db\src\base\db.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="43"/>
         <CursorPos X="3" Y="58"/>
-        <UsageCount Value="37"/>
+        <UsageCount Value="34"/>
       </Unit17>
       <Unit18>
         <Filename Value="D:\Lazarus\fpc\3.0.4\source\packages\fcl-db\src\dbase\dbf.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="1610"/>
         <CursorPos X="33" Y="1620"/>
-        <UsageCount Value="7"/>
+        <UsageCount Value="4"/>
       </Unit18>
       <Unit19>
-        <Filename Value="D:\Lazarus\lcl\dbgrids.pas"/>
-        <UnitName Value="DBGrids"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="3941"/>
-        <CursorPos Y="3955"/>
-        <UsageCount Value="1"/>
-      </Unit19>
-      <Unit20>
-        <Filename Value="D:\Lazarus\lcl\include\menuitem.inc"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="72"/>
-        <CursorPos Y="85"/>
-        <UsageCount Value="2"/>
-      </Unit20>
-      <Unit21>
         <Filename Value="rtfp_enumerator.pas"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="16"/>
-        <UsageCount Value="4"/>
-      </Unit21>
-      <Unit22>
+        <UsageCount Value="1"/>
+      </Unit19>
+      <Unit20>
         <Filename Value="D:\Lazarus\lcl\comctrls.pp"/>
         <UnitName Value="ComCtrls"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="1120"/>
         <CursorPos X="14" Y="1133"/>
-        <UsageCount Value="7"/>
-      </Unit22>
-      <Unit23>
+        <UsageCount Value="4"/>
+      </Unit20>
+      <Unit21>
         <Filename Value="..\FPC_Unit\ACL\ListViewEx\acl_listview.pas"/>
         <UnitName Value="ACL_ListView"/>
         <EditorIndex Value="1"/>
         <CursorPos X="19" Y="23"/>
         <UsageCount Value="100"/>
         <Loaded Value="True"/>
-      </Unit23>
-      <Unit24>
+      </Unit21>
+      <Unit22>
         <Filename Value="D:\Lazarus\lcl\include\customlistview.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="355"/>
         <CursorPos Y="368"/>
-        <UsageCount Value="7"/>
-      </Unit24>
-      <Unit25>
+        <UsageCount Value="4"/>
+      </Unit22>
+      <Unit23>
         <Filename Value="D:\Lazarus\lcl\include\listitem.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="441"/>
         <CursorPos Y="455"/>
-        <UsageCount Value="7"/>
-      </Unit25>
-      <Unit26>
+        <UsageCount Value="4"/>
+      </Unit23>
+      <Unit24>
         <Filename Value="D:\Lazarus\fpc\3.0.4\source\packages\fcl-db\src\base\dataset.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="1860"/>
         <CursorPos X="18" Y="1874"/>
-        <UsageCount Value="10"/>
-      </Unit26>
-      <Unit27>
+        <UsageCount Value="7"/>
+      </Unit24>
+      <Unit25>
         <Filename Value="D:\Lazarus\lcl\grids.pas"/>
         <UnitName Value="Grids"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="7766"/>
         <CursorPos Y="7780"/>
-        <UsageCount Value="7"/>
-      </Unit27>
-      <Unit28>
+        <UsageCount Value="4"/>
+      </Unit25>
+      <Unit26>
         <Filename Value="D:\Lazarus\fpc\3.0.4\source\rtl\objpas\sysutils\datih.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="129"/>
         <CursorPos X="65" Y="142"/>
-        <UsageCount Value="9"/>
-      </Unit28>
-      <Unit29>
+        <UsageCount Value="6"/>
+      </Unit26>
+      <Unit27>
         <Filename Value="D:\Lazarus\fpc\3.0.4\source\rtl\objpas\sysutils\sysinth.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="28"/>
         <CursorPos X="3" Y="33"/>
-        <UsageCount Value="8"/>
-      </Unit29>
-      <Unit30>
+        <UsageCount Value="5"/>
+      </Unit27>
+      <Unit28>
         <Filename Value="D:\Lazarus\lcl\valedit.pas"/>
         <UnitName Value="ValEdit"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="1211"/>
         <CursorPos Y="1226"/>
-        <UsageCount Value="7"/>
-      </Unit30>
-      <Unit31>
+        <UsageCount Value="4"/>
+      </Unit28>
+      <Unit29>
         <Filename Value="D:\Lazarus\fpc\3.0.4\source\rtl\inc\wstringh.inc"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="28" Y="12"/>
-        <UsageCount Value="10"/>
-      </Unit31>
-      <Unit32>
+        <UsageCount Value="7"/>
+      </Unit29>
+      <Unit30>
         <Filename Value="D:\Lazarus\fpc\3.0.4\source\rtl\win64\system.pp"/>
         <UnitName Value="System"/>
         <EditorIndex Value="-1"/>
         <CursorPos Y="16"/>
-        <UsageCount Value="9"/>
-      </Unit32>
-      <Unit33>
+        <UsageCount Value="6"/>
+      </Unit30>
+      <Unit31>
         <Filename Value="D:\Lazarus\lcl\controls.pp"/>
         <UnitName Value="Controls"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="3238"/>
         <CursorPos Y="3261"/>
-        <UsageCount Value="7"/>
-      </Unit33>
-      <Unit34>
+        <UsageCount Value="4"/>
+      </Unit31>
+      <Unit32>
         <Filename Value="D:\Lazarus\lcl\widgetset\wscomctrls.pp"/>
         <UnitName Value="WSComCtrls"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="502"/>
         <CursorPos X="3" Y="510"/>
-        <UsageCount Value="10"/>
-      </Unit34>
-      <Unit35>
+        <UsageCount Value="7"/>
+      </Unit32>
+      <Unit33>
         <Filename Value="D:\Lazarus\fpc\3.0.4\source\rtl\inc\objpash.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="180"/>
         <CursorPos X="23" Y="194"/>
-        <UsageCount Value="10"/>
-      </Unit35>
-      <Unit36>
+        <UsageCount Value="7"/>
+      </Unit33>
+      <Unit34>
         <Filename Value="D:\Lazarus\fpc\3.0.4\source\rtl\objpas\sysutils\sysutilh.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="90"/>
         <CursorPos X="4" Y="104"/>
-        <UsageCount Value="10"/>
-      </Unit36>
-      <Unit37>
-        <Filename Value="D:\Lazarus\fpc\3.0.4\source\rtl\inc\systemh.inc"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="429"/>
-        <CursorPos X="3" Y="443"/>
-        <UsageCount Value="2"/>
-      </Unit37>
-      <Unit38>
+        <UsageCount Value="7"/>
+      </Unit34>
+      <Unit35>
         <Filename Value="D:\Lazarus\fpc\3.0.4\source\rtl\inc\astrings.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="64"/>
         <CursorPos X="81" Y="79"/>
-        <UsageCount Value="10"/>
-      </Unit38>
-      <Unit39>
+        <UsageCount Value="7"/>
+      </Unit35>
+      <Unit36>
         <Filename Value="D:\Lazarus\fpc\3.0.4\source\rtl\inc\system.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="1548"/>
         <CursorPos X="11" Y="1549"/>
-        <UsageCount Value="10"/>
-      </Unit39>
-      <Unit40>
-        <Filename Value="D:\Lazarus\lcl\graphics.pp"/>
-        <UnitName Value="Graphics"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="675"/>
-        <CursorPos X="3" Y="638"/>
-        <UsageCount Value="2"/>
-      </Unit40>
-      <Unit41>
-        <Filename Value="D:\Lazarus\fpc\3.0.4\source\packages\fcl-db\src\base\fields.inc"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="326"/>
-        <CursorPos X="3" Y="329"/>
-        <UsageCount Value="2"/>
-      </Unit41>
-      <Unit42>
+        <UsageCount Value="7"/>
+      </Unit36>
+      <Unit37>
         <Filename Value="D:\Lazarus\fpc\3.0.4\source\rtl\objpas\sysutils\dati.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="1402"/>
         <CursorPos X="28" Y="1415"/>
-        <UsageCount Value="8"/>
-      </Unit42>
-      <Unit43>
+        <UsageCount Value="5"/>
+      </Unit37>
+      <Unit38>
         <Filename Value="D:\Lazarus\fpc\3.0.4\source\rtl\win\wininc\defines.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="2685"/>
         <CursorPos X="16" Y="2690"/>
-        <UsageCount Value="3"/>
-      </Unit43>
-      <Unit44>
+        <UsageCount Value="10"/>
+      </Unit38>
+      <Unit39>
         <Filename Value="D:\Lazarus\lcl\include\customform.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="2049"/>
         <CursorPos Y="2063"/>
-        <UsageCount Value="7"/>
-      </Unit44>
-      <Unit45>
+        <UsageCount Value="4"/>
+      </Unit39>
+      <Unit40>
         <Filename Value="D:\Lazarus\lcl\include\wincontrol.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="5385"/>
         <CursorPos Y="5398"/>
-        <UsageCount Value="7"/>
-      </Unit45>
-      <Unit46>
+        <UsageCount Value="4"/>
+      </Unit40>
+      <Unit41>
         <Filename Value="D:\Lazarus\lcl\extctrls.pp"/>
         <UnitName Value="ExtCtrls"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="476"/>
         <CursorPos X="3" Y="487"/>
-        <UsageCount Value="4"/>
-      </Unit46>
-      <Unit47>
+        <UsageCount Value="1"/>
+      </Unit41>
+      <Unit42>
         <Filename Value="..\FPC_Unit\downloaded\lnet\lazaruspackage\lnetcomponents.pas"/>
         <UnitName Value="lNetComponents"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="35"/>
         <CursorPos X="29" Y="39"/>
-        <UsageCount Value="5"/>
-      </Unit47>
-      <Unit48>
+        <UsageCount Value="2"/>
+      </Unit42>
+      <Unit43>
         <Filename Value="..\FPC_Unit\downloaded\lnet\lib\lnet.pp"/>
         <UnitName Value="lNet"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="360"/>
         <CursorPos X="3" Y="344"/>
-        <UsageCount Value="5"/>
-      </Unit48>
-      <Unit49>
+        <UsageCount Value="2"/>
+      </Unit43>
+      <Unit44>
         <Filename Value="D:\Lazarus\lcl\include\customedit.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="85"/>
-        <CursorPos Y="99"/>
-        <UsageCount Value="5"/>
-      </Unit49>
-      <Unit50>
+        <CursorPos Y="100"/>
+        <UsageCount Value="8"/>
+      </Unit44>
+      <Unit45>
         <Filename Value="D:\Lazarus\lcl\forms.pp"/>
         <UnitName Value="Forms"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="50"/>
         <CursorPos X="5" Y="64"/>
-        <UsageCount Value="7"/>
-      </Unit50>
-      <Unit51>
+        <UsageCount Value="4"/>
+      </Unit45>
+      <Unit46>
         <Filename Value="D:\Lazarus\fpc\3.0.4\source\rtl\objpas\fgl.pp"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="89"/>
         <CursorPos X="48" Y="103"/>
-        <UsageCount Value="6"/>
-      </Unit51>
-      <Unit52>
+        <UsageCount Value="3"/>
+      </Unit46>
+      <Unit47>
         <Filename Value="D:\Lazarus\lcl\include\control.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="4243"/>
         <CursorPos Y="4264"/>
-        <UsageCount Value="10"/>
-      </Unit52>
-      <Unit53>
+        <UsageCount Value="7"/>
+      </Unit47>
+      <Unit48>
         <Filename Value="D:\Lazarus\lcl\lclclasses.pp"/>
         <UnitName Value="LCLClasses"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="28"/>
         <CursorPos X="3" Y="42"/>
-        <UsageCount Value="6"/>
-      </Unit53>
-      <Unit54>
+        <UsageCount Value="3"/>
+      </Unit48>
+      <Unit49>
         <Filename Value="D:\Lazarus\lcl\include\listitems.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="212"/>
         <CursorPos Y="229"/>
-        <UsageCount Value="7"/>
-      </Unit54>
-      <Unit55>
+        <UsageCount Value="4"/>
+      </Unit49>
+      <Unit50>
         <Filename Value="D:\Lazarus\lcl\lclmessageglue.pas"/>
         <UnitName Value="LCLMessageGlue"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="109"/>
         <CursorPos Y="123"/>
-        <UsageCount Value="7"/>
-      </Unit55>
-      <Unit56>
+        <UsageCount Value="4"/>
+      </Unit50>
+      <Unit51>
         <Filename Value="D:\Lazarus\lcl\interfaces\win32\win32callback.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="2652"/>
         <CursorPos Y="2675"/>
-        <UsageCount Value="7"/>
-      </Unit56>
-      <Unit57>
+        <UsageCount Value="4"/>
+      </Unit51>
+      <Unit52>
         <Filename Value="D:\Lazarus\lcl\interfaces\win32\win32pagecontrol.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="90"/>
         <CursorPos Y="106"/>
-        <UsageCount Value="7"/>
-      </Unit57>
-      <Unit58>
+        <UsageCount Value="4"/>
+      </Unit52>
+      <Unit53>
         <Filename Value="D:\Lazarus\lcl\interfaces\win32\win32winapi.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="243"/>
         <CursorPos Y="259"/>
-        <UsageCount Value="7"/>
-      </Unit58>
-      <Unit59>
+        <UsageCount Value="4"/>
+      </Unit53>
+      <Unit54>
         <Filename Value="D:\Lazarus\lcl\widgetset\wscontrols.pp"/>
         <UnitName Value="WSControls"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="250"/>
         <CursorPos Y="264"/>
-        <UsageCount Value="7"/>
-      </Unit59>
-      <Unit60>
+        <UsageCount Value="4"/>
+      </Unit54>
+      <Unit55>
         <Filename Value="D:\Lazarus\lcl\interfaces\win32\win32wscustomlistview.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="643"/>
         <CursorPos Y="657"/>
-        <UsageCount Value="7"/>
-      </Unit60>
-      <Unit61>
+        <UsageCount Value="4"/>
+      </Unit55>
+      <Unit56>
         <Filename Value="D:\Lazarus\fpc\3.0.4\source\rtl\objpas\sysutils\diskh.inc"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="17" Y="17"/>
-        <UsageCount Value="8"/>
-      </Unit61>
-      <Unit62>
+        <UsageCount Value="5"/>
+      </Unit56>
+      <Unit57>
         <Filename Value="D:\Lazarus\fpc\3.0.4\source\rtl\win\sysutils.pp"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="616"/>
         <CursorPos X="31" Y="636"/>
-        <UsageCount Value="8"/>
-      </Unit62>
-      <Unit63>
+        <UsageCount Value="5"/>
+      </Unit57>
+      <Unit58>
         <Filename Value="D:\Lazarus\fpc\3.0.4\source\rtl\win\wininc\redef.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="479"/>
         <CursorPos X="169" Y="493"/>
-        <UsageCount Value="8"/>
-      </Unit63>
-      <Unit64>
+        <UsageCount Value="5"/>
+      </Unit58>
+      <Unit59>
         <Filename Value="..\FPC_Unit\Auf\auf_ram_var.pas"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="3" Y="13"/>
-        <UsageCount Value="10"/>
-      </Unit64>
+        <UsageCount Value="7"/>
+      </Unit59>
+      <Unit60>
+        <Filename Value="D:\Lazarus\lcl\include\picture.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="497"/>
+        <CursorPos Y="511"/>
+        <UsageCount Value="11"/>
+      </Unit60>
+      <Unit61>
+        <Filename Value="D:\Lazarus\lcl\interfaces\win32\win32memostrings.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="104"/>
+        <CursorPos Y="120"/>
+        <UsageCount Value="11"/>
+      </Unit61>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="27">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="2621" TopLine="2610"/>
+        <Caret Line="1175" TopLine="1157"/>
       </Position1>
       <Position2>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="2622" TopLine="2610"/>
+        <Caret Line="1177" TopLine="1166"/>
       </Position2>
       <Position3>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="2623" TopLine="2610"/>
+        <Caret Line="1178" TopLine="1166"/>
       </Position3>
       <Position4>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="2624" TopLine="2610"/>
+        <Caret Line="1179" TopLine="1166"/>
       </Position4>
       <Position5>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="2625" TopLine="2610"/>
+        <Caret Line="1180" TopLine="1166"/>
       </Position5>
       <Position6>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="2626" TopLine="2610"/>
+        <Caret Line="1174" TopLine="1166"/>
       </Position6>
       <Position7>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="2625" TopLine="2610"/>
+        <Caret Line="1378" TopLine="1364"/>
       </Position7>
       <Position8>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="2666" TopLine="2653"/>
+        <Caret Line="1174" TopLine="1160"/>
       </Position8>
       <Position9>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="2620" TopLine="2606"/>
+        <Caret Line="1175" TopLine="1160"/>
       </Position9>
       <Position10>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="2621" TopLine="2606"/>
+        <Caret Line="1177" TopLine="1160"/>
       </Position10>
       <Position11>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="2622" TopLine="2606"/>
+        <Caret Line="1385" Column="53" TopLine="1373"/>
       </Position11>
       <Position12>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="2623" TopLine="2606"/>
+        <Caret Line="1378" TopLine="1373"/>
       </Position12>
       <Position13>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="2624" TopLine="2606"/>
+        <Caret Line="1174" TopLine="1160"/>
       </Position13>
       <Position14>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="2625" TopLine="2606"/>
+        <Caret Line="1175" TopLine="1160"/>
       </Position14>
       <Position15>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="2648" TopLine="2635"/>
+        <Caret Line="1177" TopLine="1160"/>
       </Position15>
       <Position16>
-        <Filename Value="form_cite_trans.pas"/>
-        <Caret Line="204" Column="25" TopLine="184"/>
+        <Filename Value="rtfp_definition.pas"/>
+        <Caret Line="1178" TopLine="1160"/>
       </Position16>
       <Position17>
-        <Filename Value="form_cite_trans.pas"/>
-        <Caret Line="178" Column="4" TopLine="142"/>
+        <Filename Value="rtfp_definition.pas"/>
+        <Caret Line="1179" TopLine="1160"/>
       </Position17>
       <Position18>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="14" Column="24"/>
+        <Caret Line="1180" TopLine="1160"/>
       </Position18>
       <Position19>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1440" TopLine="1431"/>
+        <Caret Line="1174" TopLine="1160"/>
       </Position19>
       <Position20>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="762" Column="10" TopLine="752"/>
+        <Caret Line="865" Column="3" TopLine="843"/>
       </Position20>
       <Position21>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="768" Column="34" TopLine="752"/>
+        <Caret Line="670" Column="58" TopLine="644"/>
       </Position21>
       <Position22>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="780" Column="29" TopLine="760"/>
+        <Caret Line="175" Column="14" TopLine="162"/>
       </Position22>
       <Position23>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="592" Column="41" TopLine="577"/>
+        <Caret Line="654" Column="29" TopLine="654"/>
       </Position23>
       <Position24>
-        <Filename Value="..\FPC_Unit\Auf\apiglio_useful.pas"/>
-        <Caret Line="3129" Column="35" TopLine="3117"/>
+        <Filename Value="rtfp_definition.pas"/>
+        <Caret Line="175" Column="19" TopLine="162"/>
       </Position24>
       <Position25>
-        <Filename Value="..\FPC_Unit\Auf\apiglio_useful.pas"/>
-        <Caret Line="1390" TopLine="1436"/>
+        <Filename Value="rtfp_definition.pas"/>
+        <Caret Line="1174" Column="85" TopLine="1168"/>
       </Position25>
       <Position26>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="764" Column="27" TopLine="742"/>
+        <Caret Line="1391" TopLine="1382"/>
       </Position26>
       <Position27>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1233" Column="32" TopLine="1216"/>
+        <Caret Line="1471" Column="54" TopLine="1458"/>
       </Position27>
       <Position28>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="562" Column="37" TopLine="541"/>
+        <Caret Line="1511" Column="55" TopLine="1497"/>
       </Position28>
       <Position29>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="184" Column="15" TopLine="171"/>
+        <Caret Line="1551" Column="52" TopLine="1537"/>
       </Position29>
       <Position30>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1287" Column="3" TopLine="1283"/>
+        <Caret Line="181" Column="20" TopLine="164"/>
       </Position30>
     </JumpHistory>
   </ProjectSession>
@@ -650,7 +626,7 @@
         <WatchScope Value="wpsLocal"/>
         <WatchKind Value="wpkWrite"/>
         <Source Value="rtfp_definition.pas"/>
-        <Line Value="722"/>
+        <Line Value="740"/>
       </Item1>
       <Item2>
         <Kind Value="bpkSource"/>
