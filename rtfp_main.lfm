@@ -27,6 +27,9 @@ object FormDesktop: TFormDesktop
         Width = 60
       end    
       item
+        Width = 200
+      end    
+      item
         Width = 50
       end>
     SimplePanel = False

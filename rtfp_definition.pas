@@ -471,14 +471,25 @@ procedure aufunc_AddPaper(Sender:TObject);
 var AufScpt:TAufScript;
     AAuf:TAuf;
     filename:string;
+    arv:TAufRamVar;
+    PID:string;
 begin
   AufScpt:=Sender as TAufScript;
   AAuf:=AufScpt.Auf as TAuf;
   if not AAuf.CheckArgs(2) then exit;
   if not AAuf.TryArgToString(1,filename) then exit;
-
-  AufScpt.writeln(CurrentRTFP.AddPaper(filename));
-
+  if AAuf.ArgsCount>2 then
+    begin
+      if not AAuf.TryArgToARV(2,6,6,[ARV_Char],arv) then exit;
+    end
+  else arv.VarType:=ARV_Raw;
+  PID:=CurrentRTFP.AddPaper(filename);
+  if arv.VarType=ARV_Raw then
+    begin
+      if PID<>'000000' then AufScpt.writeln('新节点['+PID+']已生成。')
+      else AufScpt.writeln('节点创建失败！');
+    end
+  else initiate_arv_str(PID,arv);
 end;
 
 procedure aufunc_DeletePaper(Sender:TObject);
@@ -490,9 +501,8 @@ begin
   AAuf:=AufScpt.Auf as TAuf;
   if not AAuf.CheckArgs(2) then exit;
   if not AAuf.TryArgToString(1,PID) then exit;
-
-  if CurrentRTFP.DeletePaper(PID) then
-  AufScpt.writeln('成功');
+  if CurrentRTFP.DeletePaper(PID) then AufScpt.writeln('节点['+PID+']删除成功。')
+  else AufScpt.writeln('节点['+PID+']删除失败！');
 
 end;
 
@@ -843,8 +853,8 @@ begin
     //Script.add_func('dbf.recover',@aufunc_RecoverDBF,'AttrNo','还原第AttrNo个属性组');
 
 
-    //Script.add_func('paper.add',@aufunc_AddPaper,'filename','新建Paper节点');
-    //Script.add_func('paper.delete',@aufunc_DeletePaper,'PID','删除Paper节点');
+    Script.add_func('paper.add',@aufunc_AddPaper,'filename','新建Paper节点');
+    Script.add_func('paper.del',@aufunc_DeletePaper,'PID','删除Paper节点');
 
     Script.add_func('attrs.rec.edit',@aufunc_EditAttr,'PID,AttrName,FieldName,Memo','修改PID节点中第AttrNo表的FieldName字段为Memo');
     Script.add_func('attrs.rec.read',@aufunc_ReadAttr,'PID,AttrName,FieldName,arv','修改PID节点中第AttrNo表的FieldName字段为Memo');
@@ -2395,13 +2405,14 @@ begin
     while not EOF do
       begin
         if FieldByName(_Col_PID_).AsString=PID then begin
-          case MessageDlg('删除确认','删除文献节点对应的文件可能会导致其他共用此文件的节点失去文件连接，并且操作后无法恢复，是否继续？',mtWarning,[mbYes,mbNo],0) of
-            rnmbYes:TRTFP.FileDelete(FFilePath+FRootFolder+'\paper\'
-                                    +FieldByName(_Col_Paper_Folder_).AsString
-                                    +'\'+FieldByName(_Col_Paper_FileName_).AsString
-                                    );
-            rnmbNo:;
-          end;
+          if FieldByName(_Col_Paper_Is_Backup_).AsBoolean then
+            case MessageDlg('删除确认','删除文献节点对应的文件可能会导致其他共用此文件的节点失去文件连接，并且操作后无法恢复，是否继续？',mtWarning,[mbYes,mbNo],0) of
+              rnmbYes:TRTFP.FileDelete(FFilePath+FRootFolder+'\paper\'
+                                      +FieldByName(_Col_Paper_Folder_).AsString
+                                      +'\'+FieldByName(_Col_Paper_FileName_).AsString
+                                      );
+              rnmbNo:;
+            end;
           Delete;
           break;
         end;
@@ -2530,12 +2541,6 @@ begin
       filename:=Utf8ToWinCP(FFilePath+FRootFolder+'\paper\'
         +FieldByName(_Col_Paper_Folder_).AsString+'\'
         +FieldByName(_Col_Paper_FileName_).AsString);
-      {
-      if exename='' then
-        ShellExecute(0,'open',pchar('"'+filename+'"'),'','',SW_NORMAL)
-      else
-        ShellExecute(0,'open',pchar(exename),pchar('"'+filename+'"'),'',SW_NORMAL);
-      }
       TRTFP.OpenFile(filename,exename);
     end else
       ShowMessage('非备份文献节点不能通过此方法打开！');

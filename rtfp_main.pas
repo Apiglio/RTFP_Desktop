@@ -15,7 +15,7 @@ uses
   RTFP_definition, rtfp_constants, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.1.1-alpha.14';//如果增加了CheckAttrs的机制，请改成0.1.2
+  C_VERSION_NUMBER  = '0.1.1-alpha.15';//如果增加了CheckAttrs的机制，请改成0.1.2
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -419,6 +419,7 @@ begin
   PID:=Selected_PID;
   if PID='000000' then exit;
   StatusBar.Panels[0].Text:=PID;
+  StatusBar.Panels[1].Text:=Selected_FileName;
 
   //节点字段
   //ValueListEditor_NodeView.Clear;
