@@ -14,7 +14,7 @@ uses
   RTFP_definition;
 
 const
-  C_VERSION_NUMBER  = '0.1.0-alpha.3';
+  C_VERSION_NUMBER  = '0.1.0-alpha.4';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -74,6 +74,13 @@ type
     PropertiesValueListEditor: TValueListEditor;
     procedure CheckListBox_MainAttrFilterClickCheck(Sender: TObject);
     procedure ComboBox_Attrs_ViewChange(Sender: TObject);
+    procedure DBGrid_MainEndDrag(Sender, Target: TObject; X, Y: Integer);
+    procedure DBGrid_MainMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure DBGrid_MainMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure DBGrid_MainStartDrag(Sender: TObject; var DragObject: TDragObject
+      );
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
@@ -137,11 +144,13 @@ begin
   if (Sender as TRTFP).IsChanged then changed_str:=' *'
   else changed_str:='';
 
+  //标题
   if (Sender as TRTFP).Title <> '' then
     Self.Caption:=C_SOFTWARE_NAME+' - '+(Sender as TRTFP).Title + changed_str
   else
     Self.Caption:=C_SOFTWARE_NAME;
 
+  //工程信息 标签页
   Self.PropertiesValueListEditor.Values['工程标题']:=(Sender as TRTFP).Title;
   Self.PropertiesValueListEditor.Values['创建用户']:=(Sender as TRTFP).User;
 
@@ -152,6 +161,10 @@ begin
   Self.PropertiesValueListEditor.Values['属性组01']:=(Sender as TRTFP).Tag['属性组01'];
   Self.PropertiesValueListEditor.Values['属性组02']:=(Sender as TRTFP).Tag['属性组02'];
 
+  //文献节点 & 文献属性组 标签页
+  {}Self.DataSource_Main.DataSet:=CurrentRTFP.PaperDB;
+  {}Self.CheckListBox_MainAttrFilter.Items.Clear;
+
   pi:=Self.ComboBox_Attrs_View.ItemIndex;
   if pi>=0 then old_choice:=Self.ComboBox_Attrs_View.Items[pi] else old_choice:='';
   with Self.ComboBox_Attrs_View do begin
@@ -159,8 +172,10 @@ begin
     attr_i:=0;
     repeat
       stmp:=CurrentRTFP.AttrsName[attr_i];
-      if stmp<>'' then ComboBox_Attrs_View.AddItem(stmp,CurrentRTFP.AttrsDB[attr_i])
-      else break;
+      if stmp<>'' then begin
+        ComboBox_Attrs_View.AddItem(stmp,CurrentRTFP.AttrsDB[attr_i]);
+        {}Self.CheckListBox_MainAttrFilter.Items.Add(stmp);
+      end else break;
       inc(attr_i);
     until attr_i>99;
   end;
@@ -172,6 +187,7 @@ begin
       inc(attr_i);
     end;
   Self.ComboBox_Attrs_View.ItemIndex:=pi;
+  Self.ComboBox_Attrs_View.OnChange(Self.ComboBox_Attrs_View);
 
 end;
 
@@ -348,8 +364,7 @@ begin
   //修改属性组的显隐状态时
   //(Sender as TCheckListBox).Checked[0];
   {tmp}
-  if not assigned(CurrentRTFP) then exit;
-  if CurrentRTFP.IsOpen then Self.DataSource_Main.DataSet:=CurrentRTFP.PaperDB;
+  //
 
 end;
 
@@ -358,6 +373,30 @@ var pi:integer;
 begin
   pi:=(Sender as TComboBox).ItemIndex;
   if pi>=0 then DataSource_Attrs.DataSet:=((Sender as TComboBox).Items.Objects[pi] as TDbf);
+end;
+
+procedure TFormDesktop.DBGrid_MainEndDrag(Sender, Target: TObject; X, Y: Integer
+  );
+begin
+  //Self.Caption:='BBBBBBBBB';
+end;
+
+procedure TFormDesktop.DBGrid_MainMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  //Self.Caption:='AAAAAAAAA';
+end;
+
+procedure TFormDesktop.DBGrid_MainMouseUp(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  //Self.Caption:='BBBBBBBBB';
+end;
+
+procedure TFormDesktop.DBGrid_MainStartDrag(Sender: TObject;
+  var DragObject: TDragObject);
+begin
+  //Self.Caption:='AAAAAAAAA';
 end;
 
 procedure TFormDesktop.FormCloseQuery(Sender: TObject; var CanClose: boolean);

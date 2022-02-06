@@ -8,7 +8,7 @@ uses
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
   Forms, pack_powerpdf, RTFP_main, dbflaz, memdslaz, RTFP_definition,
-  form_new_project, form_cite_trans;
+  form_new_project, form_cite_trans, rtfp_pdfium;
 
 {$R *.res}
 

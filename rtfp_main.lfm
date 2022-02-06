@@ -66,7 +66,7 @@ object FormDesktop: TFormDesktop
         )
         ColWidths = (
           80
-          276
+          255
         )
       end
     end
@@ -91,7 +91,12 @@ object FormDesktop: TFormDesktop
         Color = clWindow
         Columns = <>
         DataSource = DataSource_Main
+        Options = [dgTitles, dgIndicator, dgColumnResize, dgColumnMove, dgColLines, dgRowLines, dgTabs, dgRowSelect, dgAlwaysShowSelection, dgConfirmDelete, dgCancelOnExit]
         TabOrder = 0
+        OnEndDrag = DBGrid_MainEndDrag
+        OnMouseDown = DBGrid_MainMouseDown
+        OnMouseUp = DBGrid_MainMouseUp
+        OnStartDrag = DBGrid_MainStartDrag
       end
       object CheckListBox_MainAttrFilter: TCheckListBox
         AnchorSideLeft.Control = DBGrid_Main
@@ -106,19 +111,10 @@ object FormDesktop: TFormDesktop
         Top = 0
         Width = 150
         Anchors = [akTop, akRight, akBottom]
-        Items.Strings = (
-          '文件基础信息'
-          '分类'
-          '注解'
-        )
-        ItemHeight = 21
-        ItemIndex = 0
+        ItemHeight = 0
         MultiSelect = True
         OnClickCheck = CheckListBox_MainAttrFilterClickCheck
         TabOrder = 1
-        Data = {
-          03000000000000
-        }
       end
     end
     object TabSheet_Project_Attrs: TTabSheet
