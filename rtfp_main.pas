@@ -9,12 +9,12 @@ uses
   Dialogs, ComCtrls, Menus, ExtCtrls, DBGrids, Grids, ValEdit, CheckLst,
   StdCtrls, LazUTF8,
 
-  Apiglio_Useful, AufScript_Frame,
+  AufScript_Frame,
 
   RTFP_definition;
 
 const
-  C_VERSION_NUMBER  = '0.1.0-alpha.4';
+  C_VERSION_NUMBER  = '0.1.0-alpha.5';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -31,10 +31,14 @@ type
     DBGrid_Attrs: TDBGrid;
     DBGrid_Main: TDBGrid;
     Frame_AufScript1: TFrame_AufScript;
+    Image_PDF_View: TImage;
     Label_Attrs_View: TLabel;
     MainMenu: TMainMenu;
     MemDataset_Main: TMemDataset;
     MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
+    MenuItem_ImportFromOther: TMenuItem;
+    MenuItem_ExportToOther: TMenuItem;
     MenuItem_CIteTool: TMenuItem;
     MenuItem4: TMenuItem;
     MenuItem_project_close: TMenuItem;
@@ -58,6 +62,7 @@ type
     OpenDialog_Project: TOpenDialog;
     PageControl_Node: TPageControl;
     PageControl_Project: TPageControl;
+    Panel_DBGridMain: TPanel;
     Panel_Release: TPanel;
     SaveDialog_project: TSaveDialog;
     Splitter_RightH: TSplitter;
@@ -110,7 +115,12 @@ type
     procedure ProjectCloseDone(Sender:TObject);//工程关闭
     procedure ProjectSaveDone(Sender:TObject);//工程保存
 
+    procedure ViewPdf(filename:string;page:dword);//预览pdf的page页
 
+  protected
+    function GetMainAttrFilterSet:TablesUse;
+  public
+    property MainAttrFilterSet:TablesUse read GetMainAttrFilterSet;
 
 
   end;
@@ -162,7 +172,10 @@ begin
   Self.PropertiesValueListEditor.Values['属性组02']:=(Sender as TRTFP).Tag['属性组02'];
 
   //文献节点 & 文献属性组 标签页
-  {}Self.DataSource_Main.DataSet:=CurrentRTFP.PaperDB;
+  //{}Self.DataSource_Main.DataSet:=CurrentRTFP.PaperDB;
+
+  CurrentRTFP.TableValidate(Self.MemDataset_Main,Self.MainAttrFilterSet);
+  {}Self.DataSource_Main.DataSet:=Self.MemDataset_Main;
   {}Self.CheckListBox_MainAttrFilter.Items.Clear;
 
   pi:=Self.ComboBox_Attrs_View.ItemIndex;
@@ -201,6 +214,9 @@ procedure TFormDesktop.Clear(Sender:TObject);
 begin
   Self.Caption:=C_SOFTWARE_NAME;
   Self.PropertiesValueListEditor.Clear;
+  Self.MemDataset_Main.Clear;
+  Self.CheckListBox_MainAttrFilter.Clear;
+  Self.CheckListBox_MainAttrFilter.ItemIndex:=-1;
 end;
 
 procedure TFormDesktop.ProjectOpenDone(Sender:TObject);
@@ -237,8 +253,27 @@ begin
   Self.MenuItem_project_save.Enabled:=false;
 end;
 
+procedure TFormDesktop.ViewPdf(filename:string;page:dword);
+begin
+  {
+  FPDF_RenderPage(
+    Self.Image_PDF_View.Picture.Bitmap.Canvas.Handle,
+    );
+    }
+end;
 
 
+function TFormDesktop.GetMainAttrFilterSet:TablesUse;
+var pi,max:byte;
+begin
+  result:=[];
+  if CheckListBox_MainAttrFilter.Count<=0 then exit;
+  max:=CheckListBox_MainAttrFilter.Count-1;
+  if max>99 then max:=99;
+  for pi:=0 to max do
+    if Self.CheckListBox_MainAttrFilter.Checked[pi] then result:=result+[pi];
+
+end;
 
 ////////////////////////////////////////////////////////////////////////////////
 //菜单事件
@@ -361,11 +396,9 @@ end;
 
 procedure TFormDesktop.CheckListBox_MainAttrFilterClickCheck(Sender: TObject);
 begin
-  //修改属性组的显隐状态时
-  //(Sender as TCheckListBox).Checked[0];
-  {tmp}
-  //
-
+  if not assigned(CurrentRTFP) then exit;
+  if CurrentRTFP.IsOpen then
+  CurrentRTFP.TableValidate(Self.MemDataset_Main,Self.MainAttrFilterSet);
 end;
 
 procedure TFormDesktop.ComboBox_Attrs_ViewChange(Sender: TObject);
@@ -373,6 +406,7 @@ var pi:integer;
 begin
   pi:=(Sender as TComboBox).ItemIndex;
   if pi>=0 then DataSource_Attrs.DataSet:=((Sender as TComboBox).Items.Objects[pi] as TDbf);
+  //在关闭工程以后 ，这里有一个错误
 end;
 
 procedure TFormDesktop.DBGrid_MainEndDrag(Sender, Target: TObject; X, Y: Integer

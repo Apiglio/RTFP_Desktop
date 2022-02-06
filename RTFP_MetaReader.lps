@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectSession>
+    <PathDelim Value="\"/>
+    <Version Value="10"/>
+    <BuildModes Active="Default"/>
+    <Units Count="7">
+      <Unit0>
+        <Filename Value="RTFP_MetaReader.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="2"/>
+        <UsageCount Value="21"/>
+        <Loaded Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="metareader_main.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form_MetaReader"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <IsVisibleTab Value="True"/>
+        <CursorPos X="28" Y="9"/>
+        <UsageCount Value="21"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="rtfp_pdfium.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="3"/>
+        <CursorPos X="17" Y="3"/>
+        <UsageCount Value="21"/>
+        <Loaded Value="True"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="rtfp_definition.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="RTFP_definition"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="175"/>
+        <UsageCount Value="21"/>
+        <Loaded Value="True"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="D:\Lazarus\fpc\3.0.4\source\rtl\inc\objpash.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="228"/>
+        <CursorPos X="20" Y="243"/>
+        <UsageCount Value="10"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="..\FPC_Unit\Auf\apiglio_useful.pas"/>
+        <UnitName Value="Apiglio_Useful"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="19"/>
+        <CursorPos X="26" Y="13"/>
+        <UsageCount Value="10"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="D:\Lazarus\lcl\include\customform.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="911"/>
+        <CursorPos X="24" Y="943"/>
+        <UsageCount Value="10"/>
+      </Unit6>
+    </Units>
+    <JumpHistory Count="30" HistoryIndex="29">
+      <Position1>
+        <Filename Value="rtfp_definition.pas"/>
+        <Caret Line="1928" Column="36" TopLine="1920"/>
+      </Position1>
+      <Position2>
+        <Filename Value="rtfp_definition.pas"/>
+        <Caret Line="285" Column="23" TopLine="266"/>
+      </Position2>
+      <Position3>
+        <Filename Value="rtfp_definition.pas"/>
+        <Caret Line="280" Column="76" TopLine="266"/>
+      </Position3>
+      <Position4>
+        <Filename Value="rtfp_definition.pas"/>
+        <Caret Line="490" Column="74" TopLine="477"/>
+      </Position4>
+      <Position5>
+        <Filename Value="metareader_main.pas"/>
+        <Caret Line="50" Column="31" TopLine="36"/>
+      </Position5>
+      <Position6>
+        <Filename Value="metareader_main.pas"/>
+        <Caret Line="58" Column="52" TopLine="43"/>
+      </Position6>
+      <Position7>
+        <Filename Value="metareader_main.pas"/>
+        <Caret Line="63" Column="6" TopLine="42"/>
+      </Position7>
+      <Position8>
+        <Filename Value="rtfp_definition.pas"/>
+        <Caret Line="88" Column="19" TopLine="74"/>
+      </Position8>
+      <Position9>
+        <Filename Value="rtfp_definition.pas"/>
+        <Caret Line="2067" Column="37" TopLine="2052"/>
+      </Position9>
+      <Position10>
+        <Filename Value="metareader_main.pas"/>
+        <Caret Line="34" TopLine="26"/>
+      </Position10>
+      <Position11>
+        <Filename Value="rtfp_definition.pas"/>
+        <Caret Line="496" Column="6" TopLine="482"/>
+      </Position11>
+      <Position12>
+        <Filename Value="metareader_main.pas"/>
+        <Caret Line="34" TopLine="26"/>
+      </Position12>
+      <Position13>
+        <Filename Value="metareader_main.pas"/>
+        <Caret Line="35" TopLine="26"/>
+      </Position13>
+      <Position14>
+        <Filename Value="metareader_main.pas"/>
+        <Caret Line="37" TopLine="26"/>
+      </Position14>
+      <Position15>
+        <Filename Value="metareader_main.pas"/>
+        <Caret Line="38" TopLine="26"/>
+      </Position15>
+      <Position16>
+        <Filename Value="metareader_main.pas"/>
+        <Caret Line="39" TopLine="26"/>
+      </Position16>
+      <Position17>
+        <Filename Value="metareader_main.pas"/>
+        <Caret Line="49" TopLine="29"/>
+      </Position17>
+      <Position18>
+        <Filename Value="metareader_main.pas"/>
+        <Caret Line="50" TopLine="29"/>
+      </Position18>
+      <Position19>
+        <Filename Value="metareader_main.pas"/>
+        <Caret Line="62" TopLine="42"/>
+      </Position19>
+      <Position20>
+        <Filename Value="metareader_main.pas"/>
+        <Caret Line="63" TopLine="42"/>
+      </Position20>
+      <Position21>
+        <Filename Value="metareader_main.pas"/>
+        <Caret Line="64" Column="27" TopLine="42"/>
+      </Position21>
+      <Position22>
+        <Filename Value="metareader_main.pas"/>
+        <Caret Line="58" Column="24" TopLine="42"/>
+      </Position22>
+      <Position23>
+        <Filename Value="metareader_main.pas"/>
+        <Caret Line="66" TopLine="42"/>
+      </Position23>
+      <Position24>
+        <Filename Value="metareader_main.pas"/>
+        <Caret Line="55" TopLine="36"/>
+      </Position24>
+      <Position25>
+        <Filename Value="metareader_main.pas"/>
+        <Caret Line="56" TopLine="36"/>
+      </Position25>
+      <Position26>
+        <Filename Value="metareader_main.pas"/>
+        <Caret Line="33" TopLine="19"/>
+      </Position26>
+      <Position27>
+        <Filename Value="metareader_main.pas"/>
+        <Caret Line="59" TopLine="42"/>
+      </Position27>
+      <Position28>
+        <Filename Value="metareader_main.pas"/>
+        <Caret Line="57" Column="3" TopLine="43"/>
+      </Position28>
+      <Position29>
+        <Filename Value="metareader_main.pas"/>
+        <Caret Line="101" Column="33" TopLine="85"/>
+      </Position29>
+      <Position30>
+        <Filename Value="metareader_main.pas"/>
+        <Caret Line="34" Column="13" TopLine="2"/>
+      </Position30>
+    </JumpHistory>
+  </ProjectSession>
+  <Debugging>
+    <Watches Count="1">
+      <Item1>
+        <Expression Value="RTFP_definition._FLastPdfData"/>
+      </Item1>
+    </Watches>
+  </Debugging>
+</CONFIG>

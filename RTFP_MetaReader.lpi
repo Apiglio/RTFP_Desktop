@@ -6,7 +6,7 @@
     <General>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
-      <Title Value="RTFP_Desktop"/>
+      <Title Value="RTFP_MetaReader"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
       <Icon Value="0"/>
@@ -20,91 +20,48 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
+        <CommandLineParams Value="meta &quot;K:\LAB_Pascal\RTFP Desktop\convert\Springer.pdf&quot;"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="6">
+    <RequiredPackages Count="2">
       <Item1>
-        <PackageName Value="MemDSLaz"/>
+        <PackageName Value="SynEdit"/>
       </Item1>
       <Item2>
-        <PackageName Value="pack_powerpdf"/>
-      </Item2>
-      <Item3>
-        <PackageName Value="SynEdit"/>
-      </Item3>
-      <Item4>
-        <PackageName Value="DBFLaz"/>
-      </Item4>
-      <Item5>
-        <PackageName Value="FCL"/>
-      </Item5>
-      <Item6>
         <PackageName Value="LCL"/>
-      </Item6>
+      </Item2>
     </RequiredPackages>
-    <Units Count="9">
+    <Units Count="4">
       <Unit0>
-        <Filename Value="RTFP_Desktop.lpr"/>
+        <Filename Value="RTFP_MetaReader.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
-        <Filename Value="rtfp_main.pas"/>
+        <Filename Value="metareader_main.pas"/>
         <IsPartOfProject Value="True"/>
-        <ComponentName Value="FormDesktop"/>
+        <ComponentName Value="Form_MetaReader"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="RTFP_main"/>
       </Unit1>
       <Unit2>
-        <Filename Value="..\FPC_Unit\Auf\apiglio_useful.pas"/>
+        <Filename Value="rtfp_pdfium.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="Apiglio_Useful"/>
       </Unit2>
       <Unit3>
-        <Filename Value="..\FPC_Unit\Auf\aufscript_frame.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="Frame_AufScript"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Frame"/>
-      </Unit3>
-      <Unit4>
         <Filename Value="rtfp_definition.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="RTFP_definition"/>
-      </Unit4>
-      <Unit5>
-        <Filename Value="form_new_project.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="Form_NewProject"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-      </Unit5>
-      <Unit6>
-        <Filename Value="form_cite_trans.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="Form_CiteTrans"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-      </Unit6>
-      <Unit7>
-        <Filename Value="rtfp_pdfium.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit7>
-      <Unit8>
-        <Filename Value="rtfp_pdfobj.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit8>
+      </Unit3>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="RTFP_Desktop"/>
+      <Filename Value="RTFP_MetaReader"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="..\FPC_Unit\Auf"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>
