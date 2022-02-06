@@ -1,14 +1,15 @@
 object FormReportTool: TFormReportTool
   Left = 646
-  Height = 300
-  Top = 424
+  Height = 332
+  Top = 392
   Width = 600
   Caption = '导出报表'
-  ClientHeight = 300
+  ClientHeight = 332
   ClientWidth = 600
   Constraints.MinHeight = 300
   Constraints.MinWidth = 600
   DesignTimePPI = 120
+  OnCreate = FormCreate
   Position = poScreenCenter
   LCLVersion = '1.8.4.0'
   object ListBox_List: TListBox
@@ -19,7 +20,7 @@ object FormReportTool: TFormReportTool
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 20
-    Height = 235
+    Height = 267
     Top = 45
     Width = 150
     Anchors = [akTop, akLeft, akRight, akBottom]
@@ -46,7 +47,7 @@ object FormReportTool: TFormReportTool
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Button_Report
     Left = 180
-    Height = 189
+    Height = 221
     Top = 45
     Width = 400
     Anchors = [akTop, akLeft, akRight, akBottom]
@@ -76,7 +77,7 @@ object FormReportTool: TFormReportTool
     AnchorSideBottom.Side = asrBottom
     Left = 460
     Height = 36
-    Top = 244
+    Top = 276
     Width = 120
     Anchors = [akRight, akBottom]
     BorderSpacing.Right = 20
@@ -91,7 +92,7 @@ object FormReportTool: TFormReportTool
     AnchorSideBottom.Side = asrBottom
     Left = 320
     Height = 36
-    Top = 244
+    Top = 276
     Width = 120
     Anchors = [akRight, akBottom]
     BorderSpacing.Right = 20
@@ -106,7 +107,7 @@ object FormReportTool: TFormReportTool
     AnchorSideBottom.Side = asrBottom
     Left = 180
     Height = 36
-    Top = 244
+    Top = 276
     Width = 120
     Anchors = [akRight, akBottom]
     BorderSpacing.Right = 20

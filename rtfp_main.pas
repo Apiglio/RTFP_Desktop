@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_dialog, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.1.2-alpha.5';
+  C_VERSION_NUMBER  = '0.1.2-alpha.6';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -673,6 +673,7 @@ end;
 procedure TFormDesktop.MenuItem_project_newClick(Sender: TObject);
 begin
   Form_NewProject.ShowModal;//Form_NewProject.Show;
+  SetFocus;
 end;
 
 procedure TFormDesktop.MenuItem_project_openClick(Sender: TObject);
@@ -856,7 +857,9 @@ end;
 
 procedure TFormDesktop.MenuItem_CiteToolClick(Sender: TObject);
 begin
+  if ProjectInvalid then exit;
   Form_CiteTrans.ShowModal;//Form_CiteTrans.Show;
+  SetFocus;
 end;
 
 procedure TFormDesktop.MenuItem_ClassMgr_CDirClick(Sender: TObject);
@@ -929,7 +932,9 @@ end;
 
 procedure TFormDesktop.MenuItem_ClassToolClick(Sender: TObject);
 begin
+  if ProjectInvalid then exit;
   ClassManagerForm.ShowModal;//ClassManagerForm.show;
+  SetFocus;
 end;
 
 procedure TFormDesktop.MenuItem_DBGC_TitleClick(Sender: TObject);
@@ -948,6 +953,7 @@ end;
 
 procedure TFormDesktop.MenuItem_ExportToolClick(Sender: TObject);
 begin
+  if ProjectInvalid then exit;
   FormReportTool.ShowModal;
   SetFocus;
 end;
@@ -1116,6 +1122,8 @@ begin
   CurrentRTFP.UpdatePIDExpr('000000',Self.Frame_AufScript1.Auf.Script);
 
   LocalPath:=ExtractFilePath(ParamStr(0));
+  if Self.Height>Screen.Height then Self.Height:=trunc(Screen.Height*0.8);
+  if Self.Width>Screen.Width then Self.Height:=trunc(Screen.Width*0.8);
 
   FShowWaitForm:=true;
   FWaitForm:=TForm.Create(Self);

@@ -7,6 +7,7 @@ object AppearanceForm: TAppearanceForm
   ClientHeight = 374
   ClientWidth = 523
   DesignTimePPI = 120
+  OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   Position = poScreenCenter
   LCLVersion = '1.8.4.0'

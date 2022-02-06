@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ComCtrls, CheckLst, Menus;
+  ComCtrls, CheckLst, Menus, ExtCtrls;
 
 type
 
@@ -14,11 +14,12 @@ type
 
   TFormRepeatedChecker = class(TForm)
     Button_ApplyCombination: TButton;
-    Button_ChkOption: TButton;
+    Button_ApplyAll: TButton;
     Button_SelectAll: TButton;
     Button_FindRepeated: TButton;
     Button_UnSelectAll: TButton;
     Button_RecommandSelection: TButton;
+    CheckGroup_ColMode: TCheckGroup;
     ListBox_RepeatedPIDPair: TListBox;
     ListView_AttrsCompare: TListView;
     MenuItem_KeepMain: TMenuItem;
@@ -26,12 +27,18 @@ type
     MenuItem_LinearComb: TMenuItem;
     MenuItem_DeleteAll: TMenuItem;
     PopupMenu_CombinationMode: TPopupMenu;
-    ProgressBar1: TProgressBar;
     ProgressBar_Chk: TProgressBar;
+    RadioGroup_SelMode: TRadioGroup;
+    RadioGroup_FitMode: TRadioGroup;
+    Splitter_Opt: TSplitter;
+    procedure Button_ApplyCombinationClick(Sender: TObject);
+    procedure Button_ApplyAllClick(Sender: TObject);
     procedure Button_FindRepeatedClick(Sender: TObject);
     procedure Button_RecommandSelectionClick(Sender: TObject);
     procedure Button_SelectAllClick(Sender: TObject);
     procedure Button_UnSelectAllClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure ListBox_RepeatedPIDPairSelectionChange(Sender: TObject;
       User: boolean);
     procedure MenuItem_DeleteAllClick(Sender: TObject);
@@ -49,7 +56,8 @@ var
   FormRepeatedChecker: TFormRepeatedChecker;
 
 implementation
-uses RTFP_main, RTFP_definition, rtfp_field, rtfp_constants, dbf_common;
+uses RTFP_main, RTFP_definition, rtfp_field, rtfp_constants,
+     dbf_common, rtfp_dialog;
 
 {$R *.lfm}
 
@@ -59,11 +67,115 @@ uses RTFP_main, RTFP_definition, rtfp_field, rtfp_constants, dbf_common;
 { TFormRepeatedChecker }
 
 procedure TFormRepeatedChecker.Button_FindRepeatedClick(Sender: TObject);
+var vOption:TSimChkOptions;
+    tmpProc:TNotifyEvent;
+    cnt_total:integer;
 begin
+
+  ListView_AttrsCompare.Clear;
+  vOption:=[scoTitle,scoFileName];
+  case RadioGroup_FitMode.ItemIndex of
+    0:vOption:=vOption+[scoEqual];
+    1:vOption:=vOption+[scoContain];
+    2:vOption:=vOption+[scoHalffit];
+  end;
+  case RadioGroup_SelMode.ItemIndex of
+    0:vOption:=vOption+[scoDS];
+    1:vOption:=vOption+[scoDB];
+  end;
+  if CheckGroup_ColMode.Checked[0] then vOption:=vOption+[scoFileName];
+  if CheckGroup_ColMode.Checked[1] then vOption:=vOption+[scoFileHash];
+  if CheckGroup_ColMode.Checked[2] then vOption:=vOption+[scoTitle];
+  if CheckGroup_ColMode.Checked[3] then vOption:=vOption+[scoWeblnk];
+  if CheckGroup_ColMode.Checked[4] then vOption:=vOption+[scoDOI];
+
+  if scoDB in vOption then cnt_total:=CurrentRTFP.CountPaper
+  else cnt_total:=CurrentRTFP.PaperDS.RecordCount;
+  if cnt_total>400 then begin
+    if ShowMsgYesNoAll('查重','需要查重的节点过多，可能耗时较旧，是否继续？')<>'Yes' then exit;
+  end;
+
+  FormDesktop.ShowWaitForm:=false;
+  AllState.Enable;
+  tmpProc:=CurrentRTFP.onChange;
+  CurrentRTFP.onChange:=nil;
+  Enabled:=false;
+
   ListBox_RepeatedPIDPair.Clear;
   ListBox_RepeatedPIDPair.Items.BeginUpdate;
-  CurrentRTFP.GetSimilarPIDList(ListBox_RepeatedPIDPair.Items,[scoTitle,scoFileName,scoHalffit,scoDS],ProgressBar_Chk);
+  CurrentRTFP.GetSimilarPIDList(ListBox_RepeatedPIDPair.Items,vOption,ProgressBar_Chk);
   ListBox_RepeatedPIDPair.Items.EndUpdate;
+
+  Enabled:=true;
+  CurrentRTFP.onChange:=tmpProc;
+  FormDesktop.ShowWaitForm:=true;
+  AllState.Disable;
+
+end;
+
+procedure TFormRepeatedChecker.Button_ApplyCombinationClick(Sender: TObject);
+var vFieldSelectOptions:TFieldSelectOptions;
+    ListViewIndex:integer;
+    tmpAF:TAttrsField;
+    tmpFS:PFieldSelectOption;
+    id1,id2:RTFP_ID;
+begin
+  vFieldSelectOptions:=TFieldSelectOptions.Create;
+  with vFieldSelectOptions do
+    try
+      id1:=ListView_AttrsCompare.Items[0].SubItems[0];
+      id2:=ListView_AttrsCompare.Items[0].SubItems[1];
+      for ListViewIndex:=0 to ListView_AttrsCompare.Items.Count-1 do
+        begin
+          tmpAF:=TAttrsField(ListView_AttrsCompare.Items[ListViewIndex].Data);
+          if tmpAF=nil then continue;
+          getmem(tmpFS,sizeof(TFieldSelectOption));
+          tmpFS^.field:=tmpAF;
+          case ListView_AttrsCompare.Items[ListViewIndex].SubItems[2] of
+            '主要属性':tmpFS^.select_mode:=fsmMain;
+            '次要属性':tmpFS^.select_mode:=fsmVice;
+            '文本追加':tmpFS^.select_mode:=fsmBoth;
+            '都不保留':tmpFS^.select_mode:=fsmNone;
+          end;
+          Add(tmpFS);
+        end;
+      CurrentRTFP.MergePaper(id1,id2,vFieldSelectOptions);
+    finally
+      while Count>0 do
+        begin
+          freemem(Items[0],sizeof(TFieldSelectOption));
+          Delete(0);
+        end;
+      Free;
+    end;
+
+end;
+
+procedure TFormRepeatedChecker.Button_ApplyAllClick(Sender: TObject);
+var index:integer;
+    tmpProc:TNotifyEvent;
+begin
+  if ShowMsgYesNoAll('批量合并','请再三确认是否合并左栏所有重复项。')<>'Yes' then exit;
+
+  FormDesktop.ShowWaitForm:=false;
+  AllState.Enable;
+  tmpProc:=CurrentRTFP.onChange;
+  CurrentRTFP.onChange:=nil;
+  Enabled:=false;
+
+  index:=0;
+  while index<ListBox_RepeatedPIDPair.Items.Count do
+    begin
+      ListBox_RepeatedPIDPair.ItemIndex:=index;
+      Button_ApplyCombinationClick(Button_ApplyCombination);
+      inc(index);
+    end;
+
+  Enabled:=true;
+  CurrentRTFP.onChange:=tmpProc;
+  FormDesktop.ShowWaitForm:=true;
+  AllState.Disable;
+
 end;
 
 procedure TFormRepeatedChecker.Button_RecommandSelectionClick(Sender: TObject);
@@ -135,6 +247,17 @@ begin
   ListView_AttrsCompare.EndUpdate;
 end;
 
+procedure TFormRepeatedChecker.FormCreate(Sender: TObject);
+begin
+  if Self.Height>Screen.Height then Self.Height:=trunc(Screen.Height*0.8);
+  if Self.Width>Screen.Width then Self.Height:=trunc(Screen.Width*0.8);
+end;
+
+procedure TFormRepeatedChecker.FormShow(Sender: TObject);
+begin
+  ListView_AttrsCompare.Clear;
+end;
+
 procedure TFormRepeatedChecker.ListBox_RepeatedPIDPairSelectionChange(
   Sender: TObject; User: boolean);
 var SelPair,id1,id2,v1,v2,bo:string;
@@ -190,11 +313,14 @@ begin
           if b2 then bo:='次要属性' else bo:='都不保留';
         end;
         ListView_AttrsCompare.Items[index].SubItems.Add(bo);
+        if v1<>v2 then ListView_AttrsCompare.Items[index].SubItems.Add('x')
+        else ListView_AttrsCompare.Items[index].SubItems.Add(' ');
       end;
   ListView_AttrsCompare.Column[0].Width:=160;
   ListView_AttrsCompare.Column[1].Width:=450;
   ListView_AttrsCompare.Column[2].Width:=450;
   ListView_AttrsCompare.Column[3].Width:=120;
+  ListView_AttrsCompare.Column[3].Width:=60;
   ListView_AttrsCompare.EndUpdate;
 end;
 
@@ -233,6 +359,7 @@ begin
   ListView_AttrsCompare.Items[index].SubItems[2]:='文本追加';
 
 end;
+
 
 end.
 

@@ -1,11 +1,11 @@
 object FormDesktop: TFormDesktop
-  Left = 217
-  Height = 616
-  Top = 272
+  Left = 658
+  Height = 622
+  Top = 245
   Width = 1038
   AllowDropFiles = True
   Caption = 'RTFP Desktop'
-  ClientHeight = 591
+  ClientHeight = 597
   ClientWidth = 1038
   Constraints.MinHeight = 320
   Constraints.MinWidth = 640
@@ -21,7 +21,7 @@ object FormDesktop: TFormDesktop
   object StatusBar: TStatusBar
     Left = 0
     Height = 26
-    Top = 565
+    Top = 571
     Width = 1038
     Panels = <    
       item
@@ -43,7 +43,7 @@ object FormDesktop: TFormDesktop
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Splitter_RightH
     Left = 206
-    Height = 362
+    Height = 366
     Top = 0
     Width = 832
     ActivePage = TabSheet_Project_DataGrid
@@ -95,7 +95,7 @@ object FormDesktop: TFormDesktop
     end
     object TabSheet_Project_DataGrid: TTabSheet
       Caption = '文献节点'
-      ClientHeight = 329
+      ClientHeight = 333
       ClientWidth = 824
       object Panel_DBGridMain: TPanel
         AnchorSideLeft.Control = TabSheet_Project_DataGrid
@@ -105,12 +105,12 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Control = TabSheet_Project_DataGrid
         AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 329
+        Height = 333
         Top = 0
         Width = 824
         Anchors = [akTop, akLeft, akRight, akBottom]
         Caption = 'Panel_DBGridMain'
-        ClientHeight = 329
+        ClientHeight = 333
         ClientWidth = 824
         TabOrder = 0
         object DBGrid_Main: TDBGrid
@@ -121,7 +121,7 @@ object FormDesktop: TFormDesktop
           AnchorSideBottom.Control = Panel_DBGridMain
           AnchorSideBottom.Side = asrBottom
           Left = 1
-          Height = 299
+          Height = 303
           Top = 1
           Width = 822
           Anchors = [akTop, akLeft, akRight, akBottom]
@@ -146,7 +146,7 @@ object FormDesktop: TFormDesktop
           AnchorSideBottom.Side = asrBottom
           Left = 71
           Height = 28
-          Top = 300
+          Top = 304
           Width = 692
           Anchors = [akLeft, akRight, akBottom]
           BorderSpacing.Left = 70
@@ -165,7 +165,7 @@ object FormDesktop: TFormDesktop
           Left = 6
           Height = 15
           Hint = '字段名+运算符+对比值（空格隔开）'#13#10'【数值】gtr表示“大于”；gtq表示“大等于”；les表示“小于”；leq表示“小等于”。 '#13#10'【字符串】eql表示“相等”；neq表示“不相等”；has表示“包含有”；in表示“在其内”。'#13#10'【布尔型】true表示“真”；false表示“假”。'
-          Top = 307
+          Top = 311
           Width = 56
           BorderSpacing.Left = 5
           Caption = 'Filter:'
@@ -182,7 +182,7 @@ object FormDesktop: TFormDesktop
           AnchorSideBottom.Side = asrBottom
           Left = 763
           Height = 28
-          Top = 300
+          Top = 304
           Width = 60
           Anchors = [akTop, akRight, akBottom]
           Caption = '筛选'
@@ -317,7 +317,7 @@ object FormDesktop: TFormDesktop
     AnchorSideTop.Control = Owner
     AnchorSideBottom.Control = StatusBar
     Left = 200
-    Height = 565
+    Height = 571
     Top = 0
     Width = 6
     Align = alNone
@@ -332,7 +332,7 @@ object FormDesktop: TFormDesktop
     Cursor = crVSplit
     Left = 206
     Height = 6
-    Top = 362
+    Top = 366
     Width = 832
     Align = alNone
     Anchors = [akLeft, akRight]
@@ -348,8 +348,8 @@ object FormDesktop: TFormDesktop
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = StatusBar
     Left = 206
-    Height = 197
-    Top = 368
+    Height = 199
+    Top = 372
     Width = 832
     ActivePage = TabSheet_Node_FormatEdit
     Anchors = [akTop, akLeft, akRight, akBottom]
@@ -575,7 +575,7 @@ object FormDesktop: TFormDesktop
     end
     object TabSheet_Node_FormatEdit: TTabSheet
       Caption = '编辑属性(样式)'
-      ClientHeight = 164
+      ClientHeight = 166
       ClientWidth = 824
       object ScrollBox_Node_FormatEdit: TScrollBox
         AnchorSideLeft.Control = TabSheet_Node_FormatEdit
@@ -585,7 +585,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Control = TabSheet_Node_FormatEdit
         AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 128
+        Height = 130
         Top = 0
         Width = 824
         HorzScrollBar.Page = 1
@@ -604,7 +604,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrCenter
         Left = 257
         Height = 28
-        Top = 132
+        Top = 134
         Width = 90
         Anchors = [akRight, akBottom]
         BorderSpacing.Right = 5
@@ -622,7 +622,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrCenter
         Left = 477
         Height = 28
-        Top = 132
+        Top = 134
         Width = 90
         Anchors = [akLeft, akBottom]
         BorderSpacing.Left = 5
@@ -640,7 +640,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrBottom
         Left = 352
         Height = 28
-        Top = 132
+        Top = 134
         Width = 120
         Anchors = [akLeft, akBottom]
         BorderSpacing.Left = 5
@@ -682,7 +682,7 @@ object FormDesktop: TFormDesktop
     AnchorSideRight.Control = Splitter_MainV
     AnchorSideBottom.Control = StatusBar
     Left = 0
-    Height = 559
+    Height = 565
     Top = 6
     Width = 200
     ActivePage = TabSheet_Filter_Field
@@ -781,7 +781,7 @@ object FormDesktop: TFormDesktop
     end
     object TabSheet_Filter_Field: TTabSheet
       Caption = '属性节点'
-      ClientHeight = 528
+      ClientHeight = 534
       ClientWidth = 192
       object AListView_Attrs: TACL_ListView
         AnchorSideLeft.Control = TabSheet_Filter_Field
@@ -791,7 +791,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Control = TabSheet_Filter_Field
         AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 420
+        Height = 426
         Top = 0
         Width = 192
         Anchors = [akTop, akLeft, akRight, akBottom]
@@ -822,7 +822,7 @@ object FormDesktop: TFormDesktop
         Left = 166
         Height = 26
         Hint = '长度限制在12个字节（4个汉字），'#13#10'可使用的特殊符号包括：_-'
-        Top = 463
+        Top = 469
         Width = 26
         Anchors = [akRight, akBottom]
         BorderSpacing.Bottom = 8
@@ -840,7 +840,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrCenter
         Left = 66
         Height = 26
-        Top = 463
+        Top = 469
         Width = 100
         Anchors = [akLeft, akRight, akBottom]
         BorderSpacing.Bottom = 5
@@ -852,7 +852,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrCenter
         Left = 2
         Height = 18
-        Top = 467
+        Top = 473
         Width = 64
         Anchors = [akLeft, akBottom]
         BorderSpacing.Left = 2
@@ -869,7 +869,7 @@ object FormDesktop: TFormDesktop
         Left = 166
         Height = 26
         Hint = '长度限制在20个字节（约6个汉字），'#13#10'可使用的特殊符号包括：_-'
-        Top = 429
+        Top = 435
         Width = 26
         Anchors = [akRight, akBottom]
         BorderSpacing.Bottom = 8
@@ -885,7 +885,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrCenter
         Left = 2
         Height = 18
-        Top = 433
+        Top = 439
         Width = 64
         Anchors = [akLeft, akBottom]
         BorderSpacing.Left = 2
@@ -900,7 +900,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrCenter
         Left = 66
         Height = 26
-        Top = 429
+        Top = 435
         Width = 100
         Anchors = [akLeft, akRight, akBottom]
         ItemHeight = 18
@@ -914,7 +914,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrCenter
         Left = 66
         Height = 26
-        Top = 497
+        Top = 503
         Width = 100
         Anchors = [akLeft, akRight, akBottom]
         ItemHeight = 18
@@ -937,7 +937,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrBottom
         Left = 166
         Height = 26
-        Top = 497
+        Top = 503
         Width = 26
         Anchors = [akRight, akBottom]
         BorderSpacing.Bottom = 5
@@ -951,7 +951,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrCenter
         Left = 2
         Height = 18
-        Top = 501
+        Top = 507
         Width = 64
         Anchors = [akLeft, akBottom]
         BorderSpacing.Left = 2

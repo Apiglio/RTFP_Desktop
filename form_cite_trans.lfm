@@ -1,13 +1,16 @@
 object Form_CiteTrans: TForm_CiteTrans
-  Left = 766
-  Height = 574
-  Top = 314
-  Width = 1037
+  Left = 545
+  Height = 558
+  Top = 181
+  Width = 993
   AllowDropFiles = True
   Caption = '引用格式转译'
-  ClientHeight = 574
-  ClientWidth = 1037
+  ClientHeight = 558
+  ClientWidth = 993
+  Constraints.MinHeight = 320
+  Constraints.MinWidth = 640
   DesignTimePPI = 120
+  OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   OnDropFiles = FormDropFiles
   OnHide = FormHide
@@ -20,9 +23,9 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = TabControl_Reference_Style
     AnchorSideBottom.Side = asrBottom
-    Left = 557
+    Left = 513
     Height = 99
-    Top = 377
+    Top = 361
     Width = 475
     Anchors = [akLeft, akRight, akBottom]
     BorderSpacing.Bottom = 25
@@ -35,27 +38,12 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideRight.Control = TabControl_CiteStyle
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Button_ExportCite
-    Left = 557
-    Height = 340
+    Left = 513
+    Height = 324
     Top = 32
     Width = 475
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Bottom = 5
-    Lines.Strings = (
-      '%0 Journal Article'
-      '%A 蔺卿 %A 罗格平 %A 陈曦'
-      '%+ 中国科学院新疆生态与地理研究所,中国科学院新疆生态与地理研究所,中国科学院新疆生态与地理研究所 新疆 乌鲁术齐 830011 中国科学院研究生院,北京 100039 ,新疆 乌鲁术齐 830011 ,新疆 乌鲁术齐 830011'
-      '%T LUCC驱动力模型研究综述'
-      '%J 地理科学进展'
-      '%D 2005'
-      '%N 05'
-      '%K 土地利用/土地覆被变化;驱动力;模型;土地利用系统'
-      '%X 驱动力研究是土地利用变化研究中的核心问题。土地利用变化驱动力模型是分析土地利用变化原因和结果的有力工具.模型通过情景分析可为土地利用规划与决策提供依据。基于不同理论的驱动力研究方法很多.论文选取了几种国内外应用较多的LUCC驱动力模型进行综述,分析了每个模型的优缺点及适用范围.最后得出结论:1)基于过程的动态模型更适于研究复杂的土地利用系统。2)基于经验的统计模型能弥补基于过程的动态模型的不足。3)基于不同学科背景的模型进一步集成将是LUCC驱动力模型未来的发展趋势。'
-      '%P 81-89'
-      '%@ 1007-6301'
-      '%L 11-3858/P'
-      '%W CNKI   '
-    )
     ScrollBars = ssAutoVertical
     TabOrder = 0
     WordWrap = False
@@ -68,15 +56,12 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 557
+    Left = 513
     Height = 68
-    Top = 501
+    Top = 485
     Width = 475
     Anchors = [akLeft, akRight, akBottom]
     BorderSpacing.Bottom = 5
-    Lines.Strings = (
-      '[0+0D3T]张志芬,任长忠,杨海顺,郭来春,王春龙,刘俊青,徐进莲,周宇,付晓峰.基于SD-GGE双标图进行饲草燕麦品种归类和区域划分[J].中国农业大学学报,2021,26(05):10-21.'
-    )
     ScrollBars = ssAutoVertical
     TabOrder = 1
     WordWrap = False
@@ -88,9 +73,9 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 5
-    Height = 564
+    Height = 548
     Top = 5
-    Width = 547
+    Width = 503
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 5
     BorderSpacing.Top = 5
@@ -103,7 +88,7 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideLeft.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 557
+    Left = 513
     Height = 24
     Top = 8
     Width = 475
@@ -128,9 +113,9 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Memo_Reference
-    Left = 557
+    Left = 513
     Height = 24
-    Top = 477
+    Top = 461
     Width = 475
     TabIndex = 0
     Tabs.Strings = (
@@ -153,9 +138,9 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideRight.Control = TabControl_CiteStyle
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Button_ImportRefs
-    Left = 777
+    Left = 733
     Height = 32
-    Top = 392
+    Top = 376
     Width = 120
     Anchors = [akLeft, akBottom]
     BorderSpacing.Left = 50
@@ -173,9 +158,9 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideRight.Control = Panel_DBGrid_Temporary
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Button_ImportRefs
-    Left = 607
+    Left = 563
     Height = 32
-    Top = 377
+    Top = 361
     Width = 120
     Anchors = [akLeft, akBottom]
     BorderSpacing.Left = 50
@@ -193,9 +178,9 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = TabControl_Reference_Style
     AnchorSideBottom.Side = asrBottom
-    Left = 777
+    Left = 733
     Height = 32
-    Top = 429
+    Top = 413
     Width = 120
     Anchors = [akLeft, akBottom]
     BorderSpacing.Top = 5
@@ -210,9 +195,9 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideTop.Side = asrBottom
     AnchorSideBottom.Control = TabControl_Reference_Style
     AnchorSideBottom.Side = asrBottom
-    Left = 607
+    Left = 563
     Height = 32
-    Top = 444
+    Top = 428
     Width = 120
     Anchors = [akLeft, akBottom]
     BorderSpacing.Top = 5
@@ -229,9 +214,9 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Button_ImportRefs
     AnchorSideBottom.Side = asrBottom
-    Left = 957
+    Left = 913
     Height = 49
-    Top = 402
+    Top = 386
     Width = 65
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 60

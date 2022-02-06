@@ -21,6 +21,7 @@ type
     TrackBar: TTrackBar;
     procedure Button1Click(Sender: TObject);
     procedure ColorBoxChange(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
     procedure TrackBarChange(Sender: TObject);
   private
@@ -57,6 +58,12 @@ begin
   //FormDesktop.TabSheet_Filter_Field.Color:=(Sender as TColorBox).Selected;
   //FormDesktop.TabSheet_Filter_Klass.Color:=(Sender as TColorBox).Selected;
 
+end;
+
+procedure TAppearanceForm.FormCreate(Sender: TObject);
+begin
+  if Self.Height>Screen.Height then Self.Height:=trunc(Screen.Height*0.8);
+  if Self.Width>Screen.Width then Self.Height:=trunc(Screen.Width*0.8);
 end;
 
 procedure TAppearanceForm.Button1Click(Sender: TObject);

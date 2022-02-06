@@ -25,6 +25,7 @@ type
     procedure Button_ClsMgr_SelectAllClick(Sender: TObject);
     procedure Button_ClsMgr_UnSelectClick(Sender: TObject);
     procedure Button_ClsMgr_XorSelectClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
     procedure FormHide(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -192,6 +193,12 @@ begin
       DataSource.DataSet.EnableControls;
       DataSource.DataSet.GotoBookmark(bm);
     end;
+end;
+
+procedure TClassManagerForm.FormCreate(Sender: TObject);
+begin
+  if Self.Height>Screen.Height then Self.Height:=trunc(Screen.Height*0.8);
+  if Self.Width>Screen.Width then Self.Height:=trunc(Screen.Width*0.8);
 end;
 
 end.
