@@ -43,11 +43,22 @@ type
   RTFP_ID=string;//六位64进制数
 
   TFieldTypeSet = set of TFieldType;
-  TAttrExtendUnit = (aeFailIfNoPID,aeFailIfNoField);
+  TAttrExtendUnit = (aeFailIfNoPID,aeFailIfNoField,aeFailIfTypeDismatch,
+                     aeCreateIfNoField,aeForceEditIfTypeDismatch);
   TAttrExtend = set of TAttrExtendUnit;
   TablesUse = set of byte;
   TAddPaperMethod = (apmFullBackup,apmAddress,apmWebsite,apmReference);
   //几种文档入库方式: 复制备份/本地链接/网址链接/数据入库
+
+
+  AttrsError=class(Exception)
+  end;
+  AttrsNoPIDErr=class(AttrsError)
+  end;
+  AttrsNoFieldErr=class(AttrsError)
+  end;
+  AttrsTypeDismatchErr=class(AttrsError)
+  end;
 
   TRTFP_Auf=class(TAuf)
   public
@@ -88,7 +99,6 @@ type
     function GetTag(index:string):string;
 
 
-    function GetAttrFieldDataTypeS(attrNa,fieldNa:string):TFieldType;
 
 
     function GetOpenPdfExe:ansistring;
@@ -111,10 +121,6 @@ type
     property PaperDB:TDbf read FPaperDB;
     property ImageDB:TDbf read FImageDB;
     property NotesDB:TDbf read FNotesDB;
-
-    property AttrFieldDataTypeS[attrNa,fieldNa:string]:TFieldType read GetAttrFieldDataTypeS;
-
-
 
   private
     procedure SetPaths(filename:string);
@@ -161,13 +167,13 @@ type
     function FindAttrs(AName:string):TAttrsGroup;
     procedure DeleteAttrs(AName:string);
 
-    function AddField(AName:string;AAttrsName:string;AType:TFieldType;ASize:word):TAttrsField;
+    function AddField(AName:string;AAttrsName:string;AType:TFieldType{;ASize:word}):TAttrsField;
     function FindField(AName:string;AAttrsName:string):TAttrsField;
     procedure DeleteField(AName:string;AAttrsName:string);
 
     function CheckField(AName:string;AAttrsName:string;AType:TFieldType):boolean;
     function CheckField(AName:string;AAttrsName:string;ATypes:TFieldTypeSet):boolean;
-    function GetField(AName:string;AAttrsName:string;PID:RTFP_ID):TField;
+    function GetField(AName:string;AAttrsName:string;PID:RTFP_ID;NewPidIfNotExists:boolean):TField;
 
     procedure LoadAttrs;//包含了原先的New
     procedure SaveAttrs;
@@ -175,21 +181,23 @@ type
     procedure CheckAttrs;unimplemented;//用于存档版本检验，追加和修改字段
 
   public
-    function ReadFieldAsString(AName,AAttrsName:string;PID:RTFP_ID):string;
-    function ReadFieldAsInteger(AName,AAttrsName:string;PID:RTFP_ID):int64;
-    function ReadFieldAsBoolean(AName,AAttrsName:string;PID:RTFP_ID):boolean;
-    function ReadFieldAsDateTime(AName,AAttrsName:string;PID:RTFP_ID):TDateTime;
-    function ReadFieldAsDouble(AName,AAttrsName:string;PID:RTFP_ID):double;
 
-    procedure EditFieldAsString(AName,AAttrsName:string;PID:RTFP_ID;value:string);
-    procedure EditFieldAsInteger(AName,AAttrsName:string;PID:RTFP_ID;value:int64);
-    procedure EditFieldAsBoolean(AName,AAttrsName:string;PID:RTFP_ID;value:boolean);
-    procedure EditFieldAsDateTime(AName,AAttrsName:string;PID:RTFP_ID;value:TDateTime);
-    procedure EditFieldAsDouble(AName,AAttrsName:string;PID:RTFP_ID;value:double);
+    function GetFieldType(attrNa,fieldNa:string):TFieldType;
 
-    procedure ReadFieldAsMemo(AName,AAttrsName:string;PID:RTFP_ID;buf:TStrings);
-    procedure EditFieldAsMemo(AName,AAttrsName:string;PID:RTFP_ID;buf:TStrings);
+    function ReadFieldAsString(AName,AAttrsName:string;PID:RTFP_ID;AE:TAttrExtend):string;
+    function ReadFieldAsInteger(AName,AAttrsName:string;PID:RTFP_ID;AE:TAttrExtend):int64;
+    function ReadFieldAsBoolean(AName,AAttrsName:string;PID:RTFP_ID;AE:TAttrExtend):boolean;
+    function ReadFieldAsDateTime(AName,AAttrsName:string;PID:RTFP_ID;AE:TAttrExtend):TDateTime;
+    function ReadFieldAsDouble(AName,AAttrsName:string;PID:RTFP_ID;AE:TAttrExtend):double;
 
+    procedure EditFieldAsString(AName,AAttrsName:string;PID:RTFP_ID;value:string;AE:TAttrExtend);
+    procedure EditFieldAsInteger(AName,AAttrsName:string;PID:RTFP_ID;value:int64;AE:TAttrExtend);
+    procedure EditFieldAsBoolean(AName,AAttrsName:string;PID:RTFP_ID;value:boolean;AE:TAttrExtend);
+    procedure EditFieldAsDateTime(AName,AAttrsName:string;PID:RTFP_ID;value:TDateTime;AE:TAttrExtend);
+    procedure EditFieldAsDouble(AName,AAttrsName:string;PID:RTFP_ID;value:double;AE:TAttrExtend);
+
+    procedure ReadFieldAsMemo(AName,AAttrsName:string;PID:RTFP_ID;buf:TStrings;AE:TAttrExtend);
+    procedure EditFieldAsMemo(AName,AAttrsName:string;PID:RTFP_ID;buf:TStrings;AE:TAttrExtend);
 
     //Klass
   private
@@ -316,7 +324,7 @@ type
 
 
     procedure NodeViewValidate(PID:RTFP_ID;AValueListEditor:TValueListEditor);
-    procedure NodeViewDataPost(PID:RTFP_ID;AValueListEditor:TValueListEditor);unimplemented;
+    procedure NodeViewDataPost(PID:RTFP_ID;AValueListEditor:TValueListEditor);
 
 
     procedure FmtCmtValidate(PID:RTFP_ID;AttrName,FieldName:string;Memo:TMemo);
@@ -556,13 +564,13 @@ begin
   if not AAuf.TryArgToString(3,AFieldName) then exit;
   if not AAuf.TryArgToString(4,AMEMO) then exit;
 
-  if CurrentRTFP.CheckField(AFieldName,AAttrName,[ftString,ftMemo]) then
-    begin
+  //if CurrentRTFP.CheckField(AFieldName,AAttrName,[ftString,ftMemo]) then
+    //begin
       //CurrentRTFP.GetField(AFieldName,AAttrName,APID).AsString:=AMEMO;
-      CurrentRTFP.EditFieldAsString(AFieldName,AAttrName,APID,AMEMO);
+      CurrentRTFP.EditFieldAsString(AFieldName,AAttrName,APID,AMEMO,[aeCreateIfNoField,aeForceEditIfTypeDismatch]);
       //AufScpt.writeln('属性修改成功。');
-    end
-  else AufScpt.writeln('属性类型不符，修改失败。');
+    //end
+  //else AufScpt.writeln('属性类型不符，修改失败。');
 
 end;
 procedure aufunc_ReadAttr(Sender:TObject);//attr.read PID,AttrName,FieldName,out
@@ -585,14 +593,17 @@ begin
     end
   else show_message:=true;
 
-
-  if CurrentRTFP.CheckField(AFieldName,AAttrName,[ftString,ftMemo]) then
-    begin
-      AValue:=CurrentRTFP.GetField(AFieldName,AAttrName,APID).AsString;
-      if show_message then AufScpt.writeln('Fields['+AAttrName+','+AFieldName+']='+AValue)
-      else initiate_arv_str(AValue,arv);
-    end
-  else AufScpt.writeln('属性类型不符，读取失败。');
+  try
+    AValue:=CurrentRTFP.ReadFieldAsString(AFieldName,AAttrName,APID,[aeFailIfNoPID,aeFailIfNoField]);
+  except
+    on AttrsNoPIDErr do begin AufScpt.writeln('找不到节点，读取失败。');AValue:='~NPErr';end;
+    on AttrsNoFieldErr do begin AufScpt.writeln('找不到字段，读取失败。');AValue:='~NFErr';end;
+    on AttrsTypeDismatchErr do begin AufScpt.writeln('属性类型不符，读取失败。');AValue:='~TDErr';end;
+    //AufScpt.writeln('读取失败。');
+    //AValue:='~Error';
+  end;
+  if show_message then AufScpt.writeln('Fields['+AAttrName+','+AFieldName+']='+AValue)
+  else initiate_arv_str(AValue,arv);
 
 end;
 
@@ -630,16 +641,16 @@ procedure aufunc_AddAttrField(Sender:TObject);//attrs.field.add AttrName,FieldNa
 var AufScpt:TAufScript;
     AAuf:TAuf;
     AFieldName,AAttrName,AFieldType:string;
-    AFieldSize:byte;
+    //AFieldSize:byte;
     dt:TFieldType;
 begin
   AufScpt:=Sender as TAufScript;
   AAuf:=AufScpt.Auf as TAuf;
-  if not AAuf.CheckArgs(5) then exit;
+  if not AAuf.CheckArgs({5}4) then exit;
   if not AAuf.TryArgToString(1,AAttrName) then exit;
   if not AAuf.TryArgToString(2,AFieldName) then exit;
   if not AAuf.TryArgToString(3,AFieldType) then exit;
-  if not AAuf.TryArgToByte(4,AFieldSize) then exit;
+  //if not AAuf.TryArgToByte(4,AFieldSize) then exit;
 
   case lowercase(AFieldType) of
     'memo':dt:=ftMemo;
@@ -647,11 +658,18 @@ begin
     'largeint','long':dt:=ftLargeInt;
     'boolean','bool':dt:=ftBoolean;
     'smallint','small':dt:=ftSmallInt;
-    else dt:=ftMemo;
+    'float','double':dt:=ftFloat;
+    'date':dt:=ftDate;
+    'time':dt:=ftTime;
+    'datetime':dt:=ftDateTime;
+    else begin
+      AufScpt.writeln('无效的字段类型，字段未创建。');
+      exit;
+    end;
   end;
 
-  CurrentRTFP.AddField(AFieldName,AAttrName,dt,AFieldSize);
-  AufScpt.writeln('成功。');
+  CurrentRTFP.AddField(AFieldName,AAttrName,dt{,AFieldSize});
+  AufScpt.writeln('字段创建成功。');
 end;
 
 procedure aufunc_DelAttrField(Sender:TObject);//attrs.field.drop AttrNo,FieldName
@@ -667,7 +685,7 @@ begin
   if not AAuf.TryArgToString(2,AFieldName) then exit;
 
   CurrentRTFP.DeleteField(AFieldName,AAttrName);
-  AufScpt.writeln('成功。');
+  AufScpt.writeln('字段删除成功。');
 end;
 
 
@@ -788,7 +806,7 @@ begin
       AufScpt.jump_addr(addr);
     end else begin
       initiate_arv_str('000000',arv);
-      AufScpt.next_addr;
+      //AufScpt.next_addr;
     end;
   end;
 end;
@@ -1148,7 +1166,7 @@ begin
   FieldChange;
 end;
 
-function TRTFP.AddField(AName:string;AAttrsName:string;AType:TFieldType;ASize:word):TAttrsField;
+function TRTFP.AddField(AName:string;AAttrsName:string;AType:TFieldType{;ASize:word}):TAttrsField;
 var tmpAG:TAttrsGroup;
     tmpAF:TAttrsField;
 begin
@@ -1159,7 +1177,7 @@ begin
     with tmpAG do begin
       if not Dbf.Active then Dbf.Open;
       Dbf.TryExclusive;
-      Dbf.DbfFieldDefs.Add(AName,AType,ASize);
+      Dbf.DbfFieldDefs.Add(AName,AType{,ASize});
       Dbf.PackTable;
       Dbf.Close;
       Dbf.Open;
@@ -1228,7 +1246,7 @@ begin
   result:=tmpAF.FieldDef.DataType in ATypes;
 end;
 
-function TRTFP.GetField(AName:string;AAttrsName:string;PID:RTFP_ID):TField;
+function TRTFP.GetField(AName:string;AAttrsName:string;PID:RTFP_ID;NewPidIfNotExists:boolean):TField;
 var tmpAG:TAttrsGroup;
     tmpAF:TAttrsField;
 begin
@@ -1246,6 +1264,7 @@ begin
           Next;
         end;
       if EOF then begin
+        if not NewPidIfNotExists then exit;
         Append;
         Edit;
         FieldByName(_Col_PID_).AsString:=PID;
@@ -1255,108 +1274,359 @@ begin
     end;
 end;
 
-function TRTFP.ReadFieldAsString(AName,AAttrsName:string;PID:RTFP_ID):string;
+function TRTFP.GetFieldType(attrNa,fieldNa:string):TFieldType;
+var tmpAG:TAttrsGroup;
+    tmpAF:TAttrsField;
 begin
-  result:=GetField(AName,AAttrsName,PID).AsString;
+  result:=ftUnknown;
+  tmpAG:=FFieldList.FindItemByName(attrNa);
+  if tmpAG=nil then exit;
+  tmpAF:=tmpAG.FieldList.FindItemByName(fieldNa);
+  if tmpAF=nil then exit;
+  result:=tmpAF.FieldDef.DataType;
 end;
 
-function TRTFP.ReadFieldAsInteger(AName,AAttrsName:string;PID:RTFP_ID):int64;
+function TRTFP.ReadFieldAsString(AName,AAttrsName:string;PID:RTFP_ID;AE:TAttrExtend):string;
+var tmpField:TField;
 begin
-  result:=GetField(AName,AAttrsName,PID).AsLargeInt;
+  result:='';
+  if GetFieldType(AAttrsName,AName)=ftUnknown then
+    begin
+      if aeFailIfNoField in AE then
+        raise AttrsNoFieldErr.Create('找不到字段'+AAttrsName+'.'+AName+'！')
+      else exit;
+    end;
+  tmpField:=GetField(AName,AAttrsName,PID,not (aeFailIfNoPID in AE));
+  if tmpField<>nil then
+    result:=tmpField.AsString
+  else begin
+    if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
+  end;
 end;
 
-function TRTFP.ReadFieldAsBoolean(AName,AAttrsName:string;PID:RTFP_ID):boolean;
+function TRTFP.ReadFieldAsInteger(AName,AAttrsName:string;PID:RTFP_ID;AE:TAttrExtend):int64;
+var tmpField:TField;
 begin
-  result:=GetField(AName,AAttrsName,PID).AsBoolean;
+  result:=0;
+  if GetFieldType(AAttrsName,AName)=ftUnknown then
+    begin
+      if aeFailIfNoField in AE then raise AttrsNoFieldErr.Create('找不到字段'+AAttrsName+'.'+AName+'！')
+      else exit;
+    end;
+  tmpField:=GetField(AName,AAttrsName,PID,not (aeFailIfNoPID in AE));
+  if tmpField<>nil then
+    result:=tmpField.AsLargeInt
+  else begin
+    if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
+  end;
 end;
 
-function TRTFP.ReadFieldAsDateTime(AName,AAttrsName:string;PID:RTFP_ID):TDateTime;
+function TRTFP.ReadFieldAsBoolean(AName,AAttrsName:string;PID:RTFP_ID;AE:TAttrExtend):boolean;
+var tmpField:TField;
 begin
-  result:=GetField(AName,AAttrsName,PID).AsDateTime;
+  result:=false;
+  if GetFieldType(AAttrsName,AName)=ftUnknown then
+    begin
+      if aeFailIfNoField in AE then raise AttrsNoFieldErr.Create('找不到字段'+AAttrsName+'.'+AName+'！')
+      else exit;
+    end;
+  tmpField:=GetField(AName,AAttrsName,PID,not (aeFailIfNoPID in AE));
+  if tmpField<>nil then
+    result:=tmpField.AsBoolean
+  else begin
+    if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
+  end;
 end;
 
-function TRTFP.ReadFieldAsDouble(AName,AAttrsName:string;PID:RTFP_ID):double;
+function TRTFP.ReadFieldAsDateTime(AName,AAttrsName:string;PID:RTFP_ID;AE:TAttrExtend):TDateTime;
+var tmpField:TField;
 begin
-  result:=GetField(AName,AAttrsName,PID).AsFloat;
+  result:=0;
+  if GetFieldType(AAttrsName,AName)=ftUnknown then
+    begin
+      if aeFailIfNoField in AE then raise AttrsNoFieldErr.Create('找不到字段'+AAttrsName+'.'+AName+'！')
+      else exit;
+    end;
+  tmpField:=GetField(AName,AAttrsName,PID,not (aeFailIfNoPID in AE));
+  if tmpField<>nil then
+    result:=tmpField.AsDateTime
+  else begin
+    if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
+  end;
 end;
 
-procedure TRTFP.EditFieldAsString(AName,AAttrsName:string;PID:RTFP_ID;value:string);
+function TRTFP.ReadFieldAsDouble(AName,AAttrsName:string;PID:RTFP_ID;AE:TAttrExtend):double;
+var tmpField:TField;
+begin
+  result:=0;
+  if GetFieldType(AAttrsName,AName)=ftUnknown then
+    begin
+      if aeFailIfNoField in AE then raise AttrsNoFieldErr.Create('找不到字段'+AAttrsName+'.'+AName+'！')
+      else exit;
+    end;
+  tmpField:=GetField(AName,AAttrsName,PID,not (aeFailIfNoPID in AE));
+  if tmpField<>nil then
+    result:=tmpField.AsFloat
+  else begin
+    if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
+  end;
+end;
+
+procedure TRTFP.EditFieldAsString(AName,AAttrsName:string;PID:RTFP_ID;value:string;AE:TAttrExtend);
 var tmpAG:TAttrsGroup;
     tmpField:TField;
 begin
-  tmpField:=GetField(AName,AAttrsName,PID);
-  tmpAG:=FindAttrs(AAttrsName);
-  tmpAG.Dbf.Edit;
-  tmpField.AsString:=value;
-  tmpAG.Dbf.Post;
-  DataChange;
+  case GetFieldType(AAttrsName,AName) of
+    ftUnknown:
+      begin
+        if aeFailIfNoField in AE then raise AttrsNoFieldErr.Create('找不到字段'+AAttrsName+'.'+AName+'！')
+        else begin
+          if aeCreateIfNoField in AE then
+            begin
+              AddField(AName,AAttrsName,ftString{,255});
+            end
+          else exit;
+        end;
+      end;
+    ftString:;
+    else
+      begin
+        if aeFailIfTypeDismatch in AE then raise AttrsTypeDismatchErr.Create('字段'+AName+'.'+AAttrsName+'类型错误！')
+        else begin
+          if aeForceEditIfTypeDismatch in AE then
+          else exit;
+        end;
+      end;
+  end;
+  tmpField:=GetField(AName,AAttrsName,PID,not (aeFailIfNoPID in AE));
+  if tmpField<>nil then
+    begin
+      tmpAG:=FindAttrs(AAttrsName);
+      tmpAG.Dbf.Edit;
+      tmpField.AsString:=value;
+      tmpAG.Dbf.Post;
+      DataChange;
+    end
+  else begin
+    if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
+  end;
 end;
 
-procedure TRTFP.EditFieldAsInteger(AName,AAttrsName:string;PID:RTFP_ID;value:int64);
+procedure TRTFP.EditFieldAsInteger(AName,AAttrsName:string;PID:RTFP_ID;value:int64;AE:TAttrExtend);
 var tmpAG:TAttrsGroup;
     tmpField:TField;
 begin
-  tmpField:=GetField(AName,AAttrsName,PID);
-  tmpAG:=FindAttrs(AAttrsName);
-  tmpAG.Dbf.Edit;
-  tmpField.AsLargeInt:=value;
-  tmpAG.Dbf.Post;
-  DataChange;
+  case GetFieldType(AAttrsName,AName) of
+    ftUnknown:
+      begin
+        if aeFailIfNoField in AE then raise AttrsNoFieldErr.Create('找不到字段'+AAttrsName+'.'+AName+'！')
+        else begin
+          if aeCreateIfNoField in AE then
+            begin
+              AddField(AName,AAttrsName,ftLargeint{,0});
+            end
+          else exit;
+        end;
+      end;
+    ftInteger,ftLargeint,ftSmallint:;
+    else
+      begin
+        if aeFailIfTypeDismatch in AE then raise AttrsTypeDismatchErr.Create('字段'+AName+'.'+AAttrsName+'类型错误！')
+        else begin
+          if aeForceEditIfTypeDismatch in AE then
+          else exit;
+        end;
+      end;
+  end;
+  tmpField:=GetField(AName,AAttrsName,PID,not (aeFailIfNoPID in AE));
+  if tmpField<>nil then
+    begin
+      tmpAG:=FindAttrs(AAttrsName);
+      tmpAG.Dbf.Edit;
+      tmpField.AsInteger:=value;
+      tmpAG.Dbf.Post;
+      DataChange;
+    end
+  else begin
+    if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
+  end;
 end;
 
-procedure TRTFP.EditFieldAsBoolean(AName,AAttrsName:string;PID:RTFP_ID;value:boolean);
+procedure TRTFP.EditFieldAsBoolean(AName,AAttrsName:string;PID:RTFP_ID;value:boolean;AE:TAttrExtend);
 var tmpAG:TAttrsGroup;
     tmpField:TField;
 begin
-  tmpField:=GetField(AName,AAttrsName,PID);
-  tmpAG:=FindAttrs(AAttrsName);
-  tmpAG.Dbf.Edit;
-  tmpField.AsBoolean:=value;
-  tmpAG.Dbf.Post;
-  DataChange;
+  case GetFieldType(AAttrsName,AName) of
+    ftUnknown:
+      begin
+        if aeFailIfNoField in AE then raise AttrsNoFieldErr.Create('找不到字段'+AAttrsName+'.'+AName+'！')
+        else begin
+          if aeCreateIfNoField in AE then
+            begin
+              AddField(AName,AAttrsName,ftBoolean{,0});
+            end
+          else exit;
+        end;
+      end;
+    ftBoolean:;
+    else
+      begin
+        if aeFailIfTypeDismatch in AE then raise AttrsTypeDismatchErr.Create('字段'+AName+'.'+AAttrsName+'类型错误！')
+        else begin
+          if aeForceEditIfTypeDismatch in AE then
+          else exit;
+        end;
+      end;
+  end;
+  tmpField:=GetField(AName,AAttrsName,PID,not (aeFailIfNoPID in AE));
+  if tmpField<>nil then
+    begin
+      tmpAG:=FindAttrs(AAttrsName);
+      tmpAG.Dbf.Edit;
+      tmpField.AsBoolean:=value;
+      tmpAG.Dbf.Post;
+      DataChange;
+    end
+  else begin
+    if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
+  end;
 end;
 
-procedure TRTFP.EditFieldAsDateTime(AName,AAttrsName:string;PID:RTFP_ID;value:TDateTime);
+procedure TRTFP.EditFieldAsDateTime(AName,AAttrsName:string;PID:RTFP_ID;value:TDateTime;AE:TAttrExtend);
 var tmpAG:TAttrsGroup;
     tmpField:TField;
 begin
-  tmpField:=GetField(AName,AAttrsName,PID);
-  tmpAG:=FindAttrs(AAttrsName);
-  tmpAG.Dbf.Edit;
-  tmpField.AsDateTime:=value;
-  tmpAG.Dbf.Post;
-  DataChange;
+  case GetFieldType(AAttrsName,AName) of
+    ftUnknown:
+      begin
+        if aeFailIfNoField in AE then raise AttrsNoFieldErr.Create('找不到字段'+AAttrsName+'.'+AName+'！')
+        else begin
+          if aeCreateIfNoField in AE then
+            begin
+              AddField(AName,AAttrsName,ftDateTime{,0});
+            end
+          else exit;
+        end;
+      end;
+    ftDate,ftDateTime,ftTime:;
+    else
+      begin
+        if aeFailIfTypeDismatch in AE then raise AttrsTypeDismatchErr.Create('字段'+AName+'.'+AAttrsName+'类型错误！')
+        else begin
+          if aeForceEditIfTypeDismatch in AE then
+          else exit;
+        end;
+      end;
+  end;
+  tmpField:=GetField(AName,AAttrsName,PID,not (aeFailIfNoPID in AE));
+  if tmpField<>nil then
+    begin
+      tmpAG:=FindAttrs(AAttrsName);
+      tmpAG.Dbf.Edit;
+      tmpField.AsDateTime:=value;
+      tmpAG.Dbf.Post;
+      DataChange;
+    end
+  else begin
+    if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
+  end;
 end;
 
-procedure TRTFP.EditFieldAsDouble(AName,AAttrsName:string;PID:RTFP_ID;value:double);
+procedure TRTFP.EditFieldAsDouble(AName,AAttrsName:string;PID:RTFP_ID;value:double;AE:TAttrExtend);
 var tmpAG:TAttrsGroup;
     tmpField:TField;
 begin
-  tmpField:=GetField(AName,AAttrsName,PID);
-  tmpAG:=FindAttrs(AAttrsName);
-  tmpAG.Dbf.Edit;
-  tmpField.AsFloat:=value;
-  tmpAG.Dbf.Post;
-  DataChange;
+  case GetFieldType(AAttrsName,AName) of
+    ftUnknown:
+      begin
+        if aeFailIfNoField in AE then raise AttrsNoFieldErr.Create('找不到字段'+AAttrsName+'.'+AName+'！')
+        else begin
+          if aeCreateIfNoField in AE then
+            begin
+              AddField(AName,AAttrsName,ftFloat{,0});
+            end
+          else exit;
+        end;
+      end;
+    ftFloat:;
+    else
+      begin
+        if aeFailIfTypeDismatch in AE then raise AttrsTypeDismatchErr.Create('字段'+AName+'.'+AAttrsName+'类型错误！')
+        else begin
+          if aeForceEditIfTypeDismatch in AE then
+          else exit;
+        end;
+      end;
+  end;
+  tmpField:=GetField(AName,AAttrsName,PID,not (aeFailIfNoPID in AE));
+  if tmpField<>nil then
+    begin
+      tmpAG:=FindAttrs(AAttrsName);
+      tmpAG.Dbf.Edit;
+      tmpField.AsFloat:=value;
+      tmpAG.Dbf.Post;
+      DataChange;
+    end
+  else begin
+    if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
+  end;
 end;
 
-procedure TRTFP.ReadFieldAsMemo(AName,AAttrsName:string;PID:RTFP_ID;buf:TStrings);
+procedure TRTFP.ReadFieldAsMemo(AName,AAttrsName:string;PID:RTFP_ID;buf:TStrings;AE:TAttrExtend);
+var tmpField:TField;
 begin
-  //buf.Assign(GetField(AName,AAttrsName,PID));
-  buf.CommaText:=GetField(AName,AAttrsName,PID).AsString;
+  buf.Clear;
+  if GetFieldType(AAttrsName,AName)=ftUnknown then
+    begin
+      if aeFailIfNoField in AE then raise AttrsNoFieldErr.Create('找不到字段'+AAttrsName+'.'+AName+'！')
+      else exit;
+    end;
+  tmpField:=GetField(AName,AAttrsName,PID,not (aeFailIfNoPID in AE));
+  if tmpField<>nil then
+    buf.CommaText:=tmpField.AsString
+  else begin
+    if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
+  end;
 end;
 
-procedure TRTFP.EditFieldAsMemo(AName,AAttrsName:string;PID:RTFP_ID;buf:TStrings);
+procedure TRTFP.EditFieldAsMemo(AName,AAttrsName:string;PID:RTFP_ID;buf:TStrings;AE:TAttrExtend);
 var tmpAG:TAttrsGroup;
     tmpField:TField;
 begin
-  tmpField:=GetField(AName,AAttrsName,PID);
-  tmpAG:=FindAttrs(AAttrsName);
-  tmpAG.Dbf.Edit;
-  //tmpField.Assign(buf);
-  tmpField.AsString:=buf.CommaText;
-  tmpAG.Dbf.Post;
-  DataChange;
+  case GetFieldType(AAttrsName,AName) of
+    ftUnknown:
+      begin
+        if aeFailIfNoField in AE then raise AttrsNoFieldErr.Create('找不到字段'+AAttrsName+'.'+AName+'！')
+        else begin
+          if aeCreateIfNoField in AE then
+            begin
+              AddField(AName,AAttrsName,ftMemo{,0});
+            end
+          else exit;
+        end;
+      end;
+    ftMemo:;
+    else
+      begin
+        if aeFailIfTypeDismatch in AE then raise AttrsTypeDismatchErr.Create('字段'+AName+'.'+AAttrsName+'类型错误！')
+        else begin
+          if aeForceEditIfTypeDismatch in AE then
+          else exit;
+        end;
+      end;
+  end;
+  tmpField:=GetField(AName,AAttrsName,PID,not (aeFailIfNoPID in AE));
+  if tmpField<>nil then
+    begin
+      tmpAG:=FindAttrs(AAttrsName);
+      tmpAG.Dbf.Edit;
+      tmpField.AsString:=buf.CommaText;
+      tmpAG.Dbf.Post;
+      DataChange;
+    end
+  else begin
+    if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
+  end;
 end;
 
 procedure TRTFP.LoadAttrs;
@@ -2028,30 +2298,30 @@ begin
   end;
 
   //0-文献基本信息要专门的算法
-  EditFieldAsInteger(_Col_basic_Has_Ext_,_Attrs_Basic_,PID,0);
+  EditFieldAsInteger(_Col_basic_Has_Ext_,_Attrs_Basic_,PID,0,[]);
 
   //1-分类
-  EditFieldAsBoolean(_Col_class_Is_Read_,_Attrs_Class_,PID,false);
+  EditFieldAsBoolean(_Col_class_Is_Read_,_Attrs_Class_,PID,false,[]);
 
   //2-注解
   //这里之后要考虑不是pdf或者pdf读取错误的情况
   //这不是一个好做法，会大量浪费算力，但是现在先让他爬起来吧，再优化
-  EditFieldAsInteger(_Col_notes_User_,_Attrs_Notes_,PID,0);
-  EditFieldAsDateTime(_Col_notes_CreateTime_,_Attrs_Notes_,PID,Now);
-  EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now);
-  EditFieldAsDateTime(_Col_notes_CheckTime_,_Attrs_Notes_,PID,Now);
+  EditFieldAsInteger(_Col_notes_User_,_Attrs_Notes_,PID,0,[]);
+  EditFieldAsDateTime(_Col_notes_CreateTime_,_Attrs_Notes_,PID,Now,[]);
+  EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now,[]);
+  EditFieldAsDateTime(_Col_notes_CheckTime_,_Attrs_Notes_,PID,Now,[]);
 
   //3-元数据
   //这里之后要考虑不是pdf或者pdf读取错误的情况
   //这不是一个好做法，会大量浪费算力，但是现在先让他爬起来吧，再优化
-  EditFieldAsString(_Col_metas_Title_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Title']^);
-  EditFieldAsString(_Col_metas_Authors_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Author']^);
-  EditFieldAsString(_Col_metas_Subject_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Subject']^);
-  EditFieldAsString(_Col_metas_Keyword_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Keywords']^);
-  EditFieldAsString(_Col_metas_Creator_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Creator']^);
-  EditFieldAsString(_Col_metas_Produce_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Producer']^);
-  EditFieldAsString(_Col_metas_CreDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:CreationDate']^);
-  EditFieldAsString(_Col_metas_ModDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:ModDate']^);
+  EditFieldAsString(_Col_metas_Title_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Title']^,[]);
+  EditFieldAsString(_Col_metas_Authors_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Author']^,[]);
+  EditFieldAsString(_Col_metas_Subject_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Subject']^,[]);
+  EditFieldAsString(_Col_metas_Keyword_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Keywords']^,[]);
+  EditFieldAsString(_Col_metas_Creator_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Creator']^,[]);
+  EditFieldAsString(_Col_metas_Produce_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Producer']^,[]);
+  EditFieldAsString(_Col_metas_CreDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:CreationDate']^,[]);
+  EditFieldAsString(_Col_metas_ModDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:ModDate']^,[]);
 
   if not is_updating then EndUpdate;
 
@@ -2215,19 +2485,19 @@ begin
   end;
 
   //2-注解
-  EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now);
+  EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now,[]);
 
   //3-元数据
   //这里之后要考虑不是pdf或者pdf读取错误的情况
   //这不是一个好做法，会大量浪费算力，但是现在先让他爬起来吧，再优化
-  EditFieldAsString(_Col_metas_Title_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Title']^);
-  EditFieldAsString(_Col_metas_Authors_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Author']^);
-  EditFieldAsString(_Col_metas_Subject_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Subject']^);
-  EditFieldAsString(_Col_metas_Keyword_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Keywords']^);
-  EditFieldAsString(_Col_metas_Creator_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Creator']^);
-  EditFieldAsString(_Col_metas_Produce_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Producer']^);
-  EditFieldAsString(_Col_metas_CreDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:CreationDate']^);
-  EditFieldAsString(_Col_metas_ModDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:ModDate']^);
+  EditFieldAsString(_Col_metas_Title_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Title']^,[]);
+  EditFieldAsString(_Col_metas_Authors_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Author']^,[]);
+  EditFieldAsString(_Col_metas_Subject_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Subject']^,[]);
+  EditFieldAsString(_Col_metas_Keyword_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Keywords']^,[]);
+  EditFieldAsString(_Col_metas_Creator_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Creator']^,[]);
+  EditFieldAsString(_Col_metas_Produce_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Producer']^,[]);
+  EditFieldAsString(_Col_metas_CreDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:CreationDate']^,[]);
+  EditFieldAsString(_Col_metas_ModDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:ModDate']^,[]);
 
   EndUpdate;
 
@@ -2305,7 +2575,7 @@ end;
 procedure TRTFP.OpenPaperLink(PID:RTFP_ID);
 var linkage:string;
 begin
-  linkage:=ReadFieldAsString(_Col_basic_Link_,_Attrs_Basic_,PID);
+  linkage:=ReadFieldAsString(_Col_basic_Link_,_Attrs_Basic_,PID,[]);
   if linkage<>'' then TRTFP.OpenLink(Linkage);
 end;
 
@@ -2333,9 +2603,9 @@ begin
   stmp:=TStringList.Create;
   stmp.Sorted:=true;
   try
-    ReadFieldAsMemo(_Col_class_DefaultCl_,_Attrs_Class_,PID,stmp);
+    ReadFieldAsMemo(_Col_class_DefaultCl_,_Attrs_Class_,PID,stmp,[]);
     if not stmp.Find(klassname,index) then stmp.Add(klassname);
-    EditFieldAsMemo(_Col_class_DefaultCl_,_Attrs_Class_,PID,stmp);
+    EditFieldAsMemo(_Col_class_DefaultCl_,_Attrs_Class_,PID,stmp,[]);
   finally
     stmp.Free;
   end;
@@ -2365,9 +2635,9 @@ begin
   stmp:=TStringList.Create;
   stmp.Sorted:=true;
   try
-    ReadFieldAsMemo(_Col_class_DefaultCl_,_Attrs_Class_,PID,stmp);
+    ReadFieldAsMemo(_Col_class_DefaultCl_,_Attrs_Class_,PID,stmp,[]);
     if stmp.Find(klassname,index) then stmp.Delete(index);
-    EditFieldAsMemo(_Col_class_DefaultCl_,_Attrs_Class_,PID,stmp);
+    EditFieldAsMemo(_Col_class_DefaultCl_,_Attrs_Class_,PID,stmp,[]);
   finally
     stmp.Free;
   end;
@@ -2378,30 +2648,30 @@ end;
 
 procedure TRTFP.ReNewCreateTime(PID:RTFP_ID);
 begin
-  EditFieldAsDateTime(_Col_notes_CreateTime_,_Attrs_Notes_,PID,Now);
+  EditFieldAsDateTime(_Col_notes_CreateTime_,_Attrs_Notes_,PID,Now,[]);
 end;
 
 procedure TRTFP.ReNewModifyTime(PID:RTFP_ID);
 begin
-  EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now);
+  EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now,[]);
 end;
 
 procedure TRTFP.ReNewCheckTime(PID:RTFP_ID);
 begin
-  EditFieldAsDateTime(_Col_notes_CheckTime_,_Attrs_Notes_,PID,Now);
+  EditFieldAsDateTime(_Col_notes_CheckTime_,_Attrs_Notes_,PID,Now,[]);
 end;
 
 procedure TRTFP.ReNewModifyTimeWithoutChange(PID:RTFP_ID);
 begin
   BeginUpdate;
-  EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now);
+  EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now,[]);
   EndUpdate;
 end;
 
 procedure TRTFP.ReNewCheckTimeWithoutChange(PID:RTFP_ID);
 begin
   BeginUpdate;
-  EditFieldAsDateTime(_Col_notes_CheckTime_,_Attrs_Notes_,PID,Now);
+  EditFieldAsDateTime(_Col_notes_CheckTime_,_Attrs_Notes_,PID,Now,[]);
   EndUpdate;
 end;
 
@@ -3296,13 +3566,13 @@ begin
         tmpAF:=FindField(FieldName,tmpAttrName);
         case tmpAF.FieldDef.DataType of
           ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo{,ftFmtMemo,ftFixedChar}:
-            EditFieldAsString(FieldName,tmpAttrName,PID,AValueListEditor.Values[ColName]);
+            EditFieldAsString(FieldName,tmpAttrName,PID,AValueListEditor.Values[ColName],[aeForceEditIfTypeDismatch]);
           ftInteger,ftLargeint,ftSmallint,ftWord:
-            EditFieldAsInteger(FieldName,tmpAttrName,PID,Usf.to_i(AValueListEditor.Values[ColName]));
+            EditFieldAsInteger(FieldName,tmpAttrName,PID,Usf.to_i(AValueListEditor.Values[ColName]),[]);
           ftFloat:
-            EditFieldAsDouble(FieldName,tmpAttrName,PID,Usf.to_f(AValueListEditor.Values[ColName]));
+            EditFieldAsDouble(FieldName,tmpAttrName,PID,Usf.to_f(AValueListEditor.Values[ColName]),[]);
           //ftDateTime,ftDate,ftTime:
-          //  EditFieldAsDateTime(FieldName,tmpAttrName,PID,StrToDateTime(AValueListEditor.Values[ColName]));
+          //  EditFieldAsDateTime(FieldName,tmpAttrName,PID,StrToDateTime(AValueListEditor.Values[ColName]),[]);
           else assert(false,'没有合适提交方式的字段类型！');
         end;
       end;
@@ -3315,7 +3585,8 @@ procedure TRTFP.FmtCmtValidate(PID:RTFP_ID;AttrName,FieldName:string;Memo:TMemo)
 begin
   Memo.Clear;
   if CheckField(FieldName,AttrName,[ftMemo,ftWideMemo,ftFmtMemo]) then begin
-    Memo.Lines.CommaText:=StringReplace(ReadFieldAsString(FieldName,AttrName,PID),Comma_Symbol,#13#10,[rfReplaceAll]);
+    //Memo.Lines.CommaText:=StringReplace(ReadFieldAsString(FieldName,AttrName,PID,[]),Comma_Symbol,#13#10,[rfReplaceAll]);
+    ReadFieldAsMemo(FieldName,AttrName,PID,Memo.Lines,[]);
   end;
   ReNewCheckTimeWithoutChange(PID);//如果Change会导致Validate更新，这个需要重构以下UI逻辑，暂时先不管
   //ReNewCheckTime(PID);
@@ -3325,7 +3596,8 @@ procedure TRTFP.FmtCmtDataPost(PID:RTFP_ID;AttrName,FieldName:string;Memo:TMemo)
 begin
   BeginUpdate;
   if CheckField(FieldName,AttrName,[ftMemo,ftWideMemo,ftFmtMemo]) then begin
-    EditFieldAsString(FieldName,AttrName,PID,StringReplace(Memo.Lines.CommaText,#13#10,Comma_Symbol,[rfReplaceAll]));
+    //EditFieldAsString(FieldName,AttrName,PID,StringReplace(Memo.Lines.CommaText,#13#10,Comma_Symbol,[rfReplaceAll]),[]);
+    EditFieldAsMemo(FieldName,AttrName,PID,Memo.Lines,[]);
   end;
   EndUpdate;
   ReNewModifyTime(PID);
@@ -3569,18 +3841,6 @@ end;
 function TRTFP.GetTag(index:string):string;
 begin
   result:=ProjectFileValue.Values[index];
-end;
-
-function TRTFP.GetAttrFieldDataTypeS(attrNa,fieldNa:string):TFieldType;
-var tmpAG:TAttrsGroup;
-    tmpAF:TAttrsField;
-begin
-  result:=ftUnknown;
-  tmpAG:=FFieldList.FindItemByName(attrNa);
-  if tmpAG=nil then exit;
-  tmpAF:=tmpAG.FieldList.FindItemByName(fieldNa);
-  if tmpAF=nil then exit;
-  result:=tmpAF.FieldDef.DataType;
 end;
 
 function TRTFP.GetOpenPdfExe:ansistring;
