@@ -106,7 +106,8 @@ begin
 
   CurrentRTFP.New((Self.FileFullName),(Self.FileName),'Apiglio');
 
-  Self.Hide;
+  //Self.Hide;
+  //ModalResult法
 
 end;
 

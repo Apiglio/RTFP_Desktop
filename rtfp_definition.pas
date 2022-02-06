@@ -9,6 +9,7 @@
 //Memo字段的搜索
 //统一NodeEdit部分的编辑保存询问，下方的几个Tab共用一套Modified
 //尽快将所有弹窗统一样式
+//TKlass准备增加一个TKlassGroup类，和Attrs一样格式，这样才能保证ACL_ListView可以不重新折叠
 
 
 
@@ -26,7 +27,7 @@ interface
 
 uses
   Classes, SysUtils, Dialogs, ValEdit, LazUTF8, StdCtrls, ComCtrls, ExtCtrls, Forms,
-  ACL_ListView, rtfp_format_component, Controls,
+  ACL_ListView, Controls,
 
   {$ifdef Windows}
   Windows,
@@ -34,7 +35,7 @@ uses
 
   {$ifndef insert}
   Apiglio_Useful, auf_ram_var, rtfp_pdfobj, rtfp_files, rtfp_class, rtfp_field,
-  rtfp_constants, rtfp_tags, rtfp_misc,
+  rtfp_constants, rtfp_tags, rtfp_format_component, rtfp_dialog, rtfp_misc,
   {$endif}
   db, dbf, dbf_common, dbf_fields, sqldb, memds;
 
@@ -80,7 +81,12 @@ type
     FFilePath:string;//完整路径
     FFileName:string;//文件名
     FFileFullName:string;//完整文件名
-    FRootFolder:string;//根文件夹（不带拓展名的文件名）
+    FRootFolder:string;//根文件夹（不带拓展名的文件名前加点）
+  protected
+    function GetCurrentPathFull:string;
+  public
+    property CurrentFileFull:string read FFileFullName;
+    property CurrentPathFull:string read GetCurrentPathFull;
 
   protected
     procedure SetUser(str:string);
@@ -1221,12 +1227,16 @@ begin
     with tmpAG do begin
       if not Dbf.Active then Dbf.Open;
       Dbf.TryExclusive;
-      Dbf.DbfFieldDefs.Add(AName,AType{,ASize});
+      case AType of
+        //ftString:Dbf.DbfFieldDefs.Add(AName,AType,256);
+        ftFloat:Dbf.DbfFieldDefs.Add(AName,AType,8);
+        else Dbf.DbfFieldDefs.Add(AName,AType{,ASize});
+      end;
       Dbf.PackTable;
       Dbf.Close;
       Dbf.Open;
       Dbf.RegenerateIndexes;
-      LoadFieldListFromDbf;
+      tmpAG.AddField(Dbf.FieldDefs.Find(AName));//LoadFieldListFromDbf;
       FieldChange;
     end;
   result:=tmpAF;
@@ -1269,7 +1279,7 @@ begin
       Dbf.Open;
       Dbf.EndExclusive;
       Dbf.RegenerateIndexes;
-      LoadFieldListFromDbf;
+      tmpAG.DelField(AName);//LoadFieldListFromDbf;
       //FieldChange;//为什么会在这个
     end;
   if tmpAG.IsEmpty then DeleteAttrs(tmpAG.Name);
@@ -1681,6 +1691,7 @@ begin
         NewDbf(tmpAttrs.FullPath,tmpAttrs.Dbf);
       tmpAttrs.Dbf.Exclusive:=true;
       tmpAttrs.Dbf.Open;
+      tmpAttrs.GroupShown:=false;
     end;
   //如果没有才会新建
   AddAttrs(_Attrs_Basic_);
@@ -1699,9 +1710,9 @@ begin
   for tmpAttrs in FFieldList do
     begin
       while not SaveDbf(tmpAttrs.FullPath,tmpAttrs.Dbf) do
-        case MessageDlg('错误','属性组保存失败！',mtError,[mbRetry,mbIgnore],0) of
-          rnmbRetry:;
-          rnmbIgnore:break;
+        case ShowMsgRetryIgnore('错误','属性组保存失败！') of
+          'Retry':;
+          'Ignore':break;
         end;
     end;
 end;
@@ -1712,9 +1723,9 @@ begin
   for tmpAttrs in FFieldList do
     begin
       while not CloseDbf(tmpAttrs.FullPath,tmpAttrs.Dbf) do
-        case MessageDlg('错误','属性组关闭失败！',mtError,[mbRetry,mbIgnore],0) of
-          rnmbRetry:;
-          rnmbIgnore:break;
+        case ShowMsgRetryIgnore('错误','属性组关闭失败！') of
+          'Retry':;
+          'Ignore':break;
         end;
     end;
 end;
@@ -1804,9 +1815,9 @@ begin
   for tmpKlass in FKlassList do
     begin
       while not SaveDbf(tmpKlass.FullPath,tmpKlass.Dbf) do
-        case MessageDlg('错误','分类文件保存失败！',mtError,[mbRetry,mbIgnore],0) of
-          rnmbRetry:;
-          rnmbIgnore:break;
+        case ShowMsgRetryIgnore('错误','分类文件保存失败！') of
+          'Retry':;
+          'Ignore':break;
         end;
     end;
 end;
@@ -1817,9 +1828,9 @@ begin
   for tmpKlass in FKlassList do
     begin
       while not CloseDbf(tmpKlass.FullPath,tmpKlass.Dbf) do
-        case MessageDlg('错误','分类文件关闭失败！',mtError,[mbRetry,mbIgnore],0) of
-          rnmbRetry:;
-          rnmbIgnore:break;
+        case ShowMsgRetryIgnore('错误','分类文件关闭失败！') of
+          'Retry':;
+          'Ignore':break;
         end;
     end;
 end;
@@ -1989,6 +2000,8 @@ begin
 
   tmpProjectFile.Add('PDF打开方式,'+DefaultOpenExe);
   tmpProjectFile.Add('CAJ打开方式,'+DefaultOpenExe);
+
+  tmpProjectFile.Add('最后保存版本,'+C_VERSION_NUMBER);
 
   repeat
     retry:=false;
@@ -2283,10 +2296,10 @@ begin
   if FOnClose <> nil then FOnClose(Self);
   if Self.FIsChanged then
     begin
-      case MessageDlg('未保存','关闭工程时是否保存工程？',mtConfirmation,[mbYes,mbNo,mbCancel],0) of
-        rnmbYes:Self.Save;
-        rnmbNo:;
-        rnmbCancel:exit;
+      case ShowMsgYesNoCancel('未保存','关闭工程时是否保存工程？') of
+        'Yes':Self.Save;
+        'No':;
+        'Cancel':exit;
       end;
     end;
 
@@ -2467,12 +2480,12 @@ begin
             FileName:=ExtractFileName(fullfilename);
             TargetDir:=FFilePath+FRootFolder+'\paper\'+DateDir;
             if FileExists(TargetDir+'\'+FileName) then
-              case MessageDlg('相同的备份路径','正在导入的文件“'+fullfilename
+              case ShowMsgYesNoAll('相同的备份路径','正在导入的文件“'+fullfilename
               +'”的默认备份地址存在重名，覆盖会导致两个文献节点共用一个备份文件。'
               +'若两个文件不相同，会导致旧版本备份文件被覆盖，且难以复原。'
-              +'是否覆盖？',mtWarning,[mbYes,mbNo],0) of
-                rnmbYes:{do nothing};
-                rnmbNo:exit;
+              +'是否覆盖？',true) of
+                'Yes':{do nothing};
+                'No':exit;
             end;
           end;
         apmAddress:
@@ -2577,9 +2590,9 @@ begin
                 CpStr.LoadFromFile(FName);
                 if CompareMem(FileStream.Memory,CpStr.Memory,FileStream.Size) then PID:=FieldByName(_Col_PID_).AsString;
               except
-                case MessageDlg('错误','疑似相同文件被占用！',mtError,[mbRetry,mbIgnore],0) of
-                  rnmbRetry:retry:=true;
-                  rnmbIgnore:;
+                case ShowMsgRetryIgnore('错误','疑似相同文件被占用！') of
+                  'Retry':retry:=true;
+                  'Ignore':;
                 end;
               end until not retry;
             end;
@@ -2606,10 +2619,9 @@ begin
     if SearchKey(PID,stEqual) then
       begin
         if FieldByName(_Col_Paper_Is_Backup_).AsBoolean then
-          case MessageDlg('删除确认','删除文献节点对应的文件可能会导致其他共用此文件的节点失去文件连接，并且操作后无法恢复，是否继续？',mtWarning,[mbYes,mbNo],0) of
-            rnmbYes:
-              TRTFP.FileDelete(FFilePath+FRootFolder+'\paper\'+FieldByName(_Col_Paper_Folder_).AsString+'\'+FieldByName(_Col_Paper_FileName_).AsString);
-            rnmbNo:;
+          case ShowMsgYesNoAll('删除确认','删除文献节点对应的文件可能会导致其他共用此文件的节点失去文件连接，并且操作后无法恢复，是否继续？',true) of
+            'Yes':TRTFP.FileDelete(FFilePath+FRootFolder+'\paper\'+FieldByName(_Col_Paper_Folder_).AsString+'\'+FieldByName(_Col_Paper_FileName_).AsString);
+            else ;
           end;
         Delete;
       end;
@@ -2638,7 +2650,7 @@ begin
     if not Active then Open;
     IndexName:='id';
     if not SearchKey(PID,stEqual) then begin
-      MessageDlg('未找到记录','没有找到PID为'+PID+'的文献节点',mtError,[mbCancel],0);
+      ShowMsgOK('未找到记录','没有找到PID为'+PID+'的文献节点');
       exit;
     end;
     old_backup:=FieldByName(_Col_Paper_Is_Backup_).AsBoolean;
@@ -2655,12 +2667,12 @@ begin
         FileName:=ExtractFileName(fullfilename);
         TargetDir:=FFilePath+FRootFolder+'\paper\'+DateDir;
         if FileExists(TargetDir+'\'+FileName) then
-          case MessageDlg('相同的备份路径','正在导入的文件“'+fullfilename
+          case ShowMsgYesNoAll('相同的备份路径','正在导入的文件“'+fullfilename
           +'”的默认备份地址存在重名，覆盖会导致两个文献节点共用一个备份文件。'
           +'若两个文件不相同，会导致旧版本备份文件被覆盖，且难以复原。'
-          +'是否覆盖？',mtWarning,[mbYes,mbNo],0) of
-            rnmbYes:{do nothing};
-            rnmbNo:exit;
+          +'是否覆盖？',true) of
+            'Yes':{do nothing};
+            else exit;
         end;
       end;
     apmAddress:
@@ -2745,7 +2757,7 @@ begin
             filename:=ReadFieldAsString(_Attrs_Basic_,_Col_basic_Link_,PID,[]);
             if filename='' then filename:=ReadFieldAsString(_Attrs_Basic_,_Col_basic_doi_,PID,[]);
           end;
-        else begin ShowMessage('非备份文献节点不能通过此方法打开！');exit;end;
+        else begin ShowMsgOK('警告','非备份文献节点不能通过此方法打开！');exit;end;
       end;
     end;
     TRTFP.OpenFile(filename,exename);
@@ -2780,7 +2792,7 @@ begin
     else begin
       case FieldByName(_Col_Paper_Folder_).AsString of
         'extern':filename:=Utf8ToWinCP(FieldByName(_Col_Paper_FileName_).AsString);
-        else begin ShowMessage('非备份文献节点不能通过此方法打开！');exit;end;
+        else begin ShowMsgOK('警告','非备份文献节点不能通过此方法打开！');exit;end;
       end;
     end;
     TRTFP.OpenDir(filename);
@@ -3086,13 +3098,13 @@ begin
       ReEditBasic;
     end;
   end;
-  if error_str<>#13#10 then MessageDlg('导入错误','以下字段导入时发生错误：'+error_str,mtInformation,[mbOK],0);
+  if error_str<>#13#10 then ShowMsgOKAll('导入错误','以下字段导入时发生错误：'+error_str);//这里最好加一个本次不再提示
   PostBasic;
   FieldAndRecordChange;//DataChange;
 end;
 procedure TRTFP.LoadFromRefWork(PID:RTFP_ID;str:TStrings);
 begin
-  ShowMessage('unimplemented');
+  ShowMsgOK('警告','unimplemented');
 end;
 procedure TRTFP.LoadFromEndNote(PID:RTFP_ID;str:TStrings);
 var stmp,attr:string;
@@ -3139,11 +3151,11 @@ begin
 end;
 procedure TRTFP.LoadFromNoteExpress(PID:RTFP_ID;str:TStrings);
 begin
-  ShowMessage('unimplemented');
+  ShowMsgOK('警告','unimplemented');
 end;
 procedure TRTFP.LoadFromNoteFirst(PID:RTFP_ID;str:TStrings);
 begin
-  ShowMessage('unimplemented');
+  ShowMsgOK('警告','unimplemented');
 end;
 procedure TRTFP.LoadFromRIS(PID:RTFP_ID;str:TStrings);
 var stmp,attr:string;
@@ -3208,11 +3220,11 @@ end;
 
 procedure TRTFP.SaveToEStudy(PID:RTFP_ID;str:TStrings);
 begin
-  ShowMessage('unimplemented');
+  ShowMsgOK('警告','unimplemented');
 end;
 procedure TRTFP.SaveToRefWork(PID:RTFP_ID;str:TStrings);
 begin
-  ShowMessage('unimplemented');
+  ShowMsgOK('警告','unimplemented');
 end;
 procedure TRTFP.SaveToEndNote(PID:RTFP_ID;str:TStrings);
 var stmp:string;
@@ -3259,57 +3271,57 @@ begin
 end;
 procedure TRTFP.SaveToNoteExpress(PID:RTFP_ID;str:TStrings);
 begin
-  ShowMessage('unimplemented');
+  ShowMsgOK('警告','unimplemented');
 end;
 procedure TRTFP.SaveToNoteFirst(PID:RTFP_ID;str:TStrings);
 begin
-  ShowMessage('unimplemented');
+  ShowMsgOK('警告','unimplemented');
 end;
 procedure TRTFP.SaveToRIS(PID:RTFP_ID;str:TStrings);
 begin
-  ShowMessage('unimplemented');
+  ShowMsgOK('警告','unimplemented');
 end;
 
 procedure TRTFP.SetGBT7714(PID:RTFP_ID;str:string);
 begin
-  ShowMessage('unimplemented');
+  ShowMsgOK('警告','unimplemented');
 end;
 procedure TRTFP.SetCAJCD(PID:RTFP_ID;str:string);
 begin
-  ShowMessage('unimplemented');
+  ShowMsgOK('警告','unimplemented');
 end;
 procedure TRTFP.SetMLA(PID:RTFP_ID;str:string);
 begin
-  ShowMessage('unimplemented');
+  ShowMsgOK('警告','unimplemented');
 end;
 procedure TRTFP.SetAPA(PID:RTFP_ID;str:string);
 begin
-  ShowMessage('unimplemented');
+  ShowMsgOK('警告','unimplemented');
 end;
 procedure TRTFP.SetChaXin(PID:RTFP_ID;str:string);
 begin
-  ShowMessage('unimplemented');
+  ShowMsgOK('警告','unimplemented');
 end;
 
 function TRTFP.GetGBT7714(PID:RTFP_ID):string;
 begin
-  ShowMessage('unimplemented');
+  ShowMsgOK('警告','unimplemented');
 end;
 function TRTFP.GetCAJCD(PID:RTFP_ID):string;
 begin
-  ShowMessage('unimplemented');
+  ShowMsgOK('警告','unimplemented');
 end;
 function TRTFP.GetMLA(PID:RTFP_ID):string;
 begin
-  ShowMessage('unimplemented');
+  ShowMsgOK('警告','unimplemented');
 end;
 function TRTFP.GetAPA(PID:RTFP_ID):string;
 begin
-  ShowMessage('unimplemented');
+  ShowMsgOK('警告','unimplemented');
 end;
 function TRTFP.GetChaXin(PID:RTFP_ID):string;
 begin
-  ShowMessage('unimplemented');
+  ShowMsgOK('警告','unimplemented');
 end;
 
 procedure TRTFP.ImportPapersFromEStudy(str:TStrings);
@@ -3319,6 +3331,7 @@ var stmp:TStringList;
 begin
   CurrentRTFP.BeginUpdate;
   stmp:=TStringList.Create;
+  ConfirmState.Enable;
   try
     for line in str do
       begin
@@ -3338,23 +3351,25 @@ begin
   finally
     stmp.Free;
     CurrentRTFP.EndUpdate;
+    CurrentRTFP.FieldAndRecordChange;
+    ConfirmState.Disable;
   end;
 end;
 procedure TRTFP.ImportPapersFromRefWork(str:TStrings);
 begin
-  ShowMessage('unimplemented');
+  ShowMsgOK('警告','unimplemented');
 end;
 procedure TRTFP.ImportPapersFromEndNote(str:TStrings);
 begin
-  ShowMessage('unimplemented');
+  ShowMsgOK('警告','unimplemented');
 end;
 procedure TRTFP.ImportPapersFromNoteExpress(str:TStrings);
 begin
-  ShowMessage('unimplemented');
+  ShowMsgOK('警告','unimplemented');
 end;
 procedure TRTFP.ImportPapersFromNoteFirst(str:TStrings);
 begin
-  ShowMessage('unimplemented');
+  ShowMsgOK('警告','unimplemented');
 end;
 procedure TRTFP.ImportPapersFromRIS(str:TStrings);
 var stmp:TStringList;
@@ -3380,6 +3395,7 @@ begin
   finally
     stmp.Free;
     CurrentRTFP.EndUpdate;
+    CurrentRTFP.FieldAndRecordChange;
   end;
 end;
 
@@ -3500,10 +3516,10 @@ begin
         case dat_type of
           ftMemo,ftWideMemo,ftFmtMemo:
             //FPaperDS.FieldDefs.Add(Usf.zeroplus(pi,2)+tmpFieldDef.Name,ftString,255);
-            FPaperDS.FieldDefs.Add(tmpAG.Name+'.'+tmpFieldDef.Name,ftString,255);
+            FPaperDS.FieldDefs.Add(tmpFieldDef.Name+'('+tmpAG.Name+')',ftString,255);
           else
             //FPaperDS.FieldDefs.Add(Usf.zeroplus(pi,2)+tmpFieldDef.Name,dat_type,tmpFieldDef.Size);
-            FPaperDS.FieldDefs.Add(tmpAG.Name+'.'+tmpFieldDef.Name,dat_type,tmpFieldDef.Size);
+            FPaperDS.FieldDefs.Add(tmpFieldDef.Name+'('+tmpAG.Name+')',dat_type,tmpFieldDef.Size);
         end;
         fields_ref[fields_cnt].AG:=tmpAG;
         fields_ref[fields_cnt].FI:=tmpFieldDef.Index;
@@ -3579,7 +3595,6 @@ begin
         tmpDbf:=FFieldList[pj].Dbf;
         if tmpDbf.EOF and tmpDbf.BOF then continue;
 
-
         FPaperDS.First;
         if not FPaperDS.EOF then repeat
           PID:=FPaperDS.FieldByName(_Col_PID_).AsString;
@@ -3607,10 +3622,10 @@ begin
         until FPaperDS.EOF;
       end;
   END;
-
   if FPaperDS.BookmarkValid(bm) then FPaperDS.GotoBookmark(bm);
   if FOnTableValidateDone<>nil then FOnTableValidateDone(Self);
   EndUpdate;
+
 end;
 
 procedure TRTFP.TableFilter(cmd:string);
@@ -3698,6 +3713,10 @@ begin
       (AListView as TACL_ListView).GetShellNodeItem(tmpAG.Name).Data:=tmpAG;
     end;
   AListView.EndUpdate;
+  for tmpAG in FFieldList do
+    begin
+      if tmpAG.GroupShown then (AListView as TACL_ListView).CheckShellNodeItem(tmpAG.Name,true);
+    end;
   AListView.Repaint;
 end;
 
@@ -4035,6 +4054,11 @@ begin
   DataChange;
 end;
 
+function TRTFP.GetCurrentPathFull:string;
+begin
+  result:=FFilePath+FRootFolder+'\';
+end;
+
 procedure TRTFP.SetUser(str:string);
 begin
   if {ProjectFileValue}FProjectTags.Values['创建用户']<>str then
@@ -4214,7 +4238,7 @@ end;
 class function TRTFP.FieldOptWidth(AFieldDef:TFieldDef):integer;
 var NameSize:integer;
 begin
-  case AFieldDef.Name of
+  case AFieldDef.DisplayName of
     _Col_Paper_Folder_:begin result:=2;exit end;
     _Col_Paper_FileHash_:begin result:=2;exit end;
     _Col_Paper_FileSize_:begin result:=2;exit end;
@@ -4222,7 +4246,7 @@ begin
     else ;
   end;
   result:=40;
-  NameSize:=length(AFieldDef.Name)*8+16;
+  NameSize:=length(AFieldDef.DisplayName)*8+16;
   if NameSize>80 then NameSize:=80;
   case AFieldDef.DataType of
     ftBoolean:result:=40;
@@ -4330,7 +4354,7 @@ var d1,d2,d3,d4:dword;
 begin
   GetDiskFreeSpace(pchar(discchar+':\'),d1,d2,d3,d4);
   {
-  ShowMessage(
+  ShowMsgOK('',
     'DISC '+discchar+':'+#13+#10+
     '  扇区数/簇='+IntToStr(d1)+#13+#10+
     '  字节/扇区='+IntToStr(d2)+#13+#10+

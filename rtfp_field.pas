@@ -93,6 +93,8 @@ type
     constructor Create(ACollection:TCollection);override;
     destructor Destroy;override;
     procedure LoadFieldListFromDbf;
+    procedure DelField(AName:string);
+    procedure AddField(AFieldDef:TFieldDef);
   end;
 
 
@@ -276,6 +278,20 @@ begin
           inc(pi);
         end;
     end;
+end;
+
+procedure TAttrsGroup.DelField(AName:string);
+var idx:integer;
+begin
+  idx:=FFieldList.FindItemIndexByName(AName);
+  if idx>=0 then FFieldList.Delete(idx);
+end;
+
+procedure TAttrsGroup.AddField(AFieldDef:TFieldDef);
+var idx:integer;
+begin
+  idx:=FFieldList.FindItemIndexByName(AFieldDef.Name);
+  if idx<0 then FFieldList.AddEx(AFieldDef).FAttrsGroup:=Self;
 end;
 
 function TAttrsGroup.GetIsEmpty:boolean;
