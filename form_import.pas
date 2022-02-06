@@ -6,7 +6,10 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, Buttons,
-  ComCtrls, ExtCtrls, StdCtrls, PairSplitter, CheckLst;
+  ComCtrls, ExtCtrls, StdCtrls, CheckLst;
+
+const
+  AnimationStepLen = 50;
 
 type
 
@@ -15,6 +18,7 @@ type
   TForm_ImportFiles = class(TForm)
     Button_ImportFileNamesCheck: TButton;
     Button_BackToPrev: TButton;
+    CheckBox_AddPaperMethod: TCheckBox;
     CheckListBox_ImportFileNames: TCheckListBox;
     Image_FileFullBackup: TImage;
     Image_FileReference: TImage;
@@ -46,6 +50,7 @@ type
     TabSheet_AddImage: TTabSheet;
     TabSheet_AddNote: TTabSheet;
     TabSheet_AddPaper: TTabSheet;
+    Timer_Animation: TTimer;
     procedure Button_BackToPrevClick(Sender: TObject);
     procedure Button_ImportFileNamesCheckClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -59,8 +64,13 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure Panel_FilesFullBackupMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure Timer_AnimationStartTimer(Sender: TObject);
+    procedure Timer_AnimationStopTimer(Sender: TObject);
+    procedure Timer_AnimationTimer(Sender: TObject);
   private
     FFilenames:TStringList;
+    FAnimationRightOrt:boolean;
+    FPhase:integer;
   public
     procedure Call(AFileNames: array of String);
     procedure Clear;
@@ -74,7 +84,7 @@ var
   Form_ImportFiles: TForm_ImportFiles;
 
 implementation
-uses RTFP_main;
+uses RTFP_main, RTFP_definition;
 
 {$R *.lfm}
 
@@ -89,7 +99,7 @@ begin
     begin
       FFilenames.Add(AFileNames[pi]);
     end;
-  Phase1;
+  SplitterImportFilesV.Left:=Width-6;
   Button_ImportFileNamesCheck.Enabled:=true;
   Button_ImportFileNamesCheck.Caption:='确认导入';
   Self.Show;
@@ -101,14 +111,42 @@ begin
 end;
 
 procedure TForm_ImportFiles.Phase1;
+var newPos:integer;
 begin
+  PageControl_ImportFiles.BeginUpdateBounds;
+  repeat
+    newPos:=SplitterImportFilesV.Left + AnimationStepLen;
+    if newPos > Width-6 then begin
+      newPos:=Width-6;
+      break
+    end;
+    SplitterImportFilesV.Left:=newPos;
+    Application.ProcessMessages;
+    //sleep(5);
+  until newPos >= Width-6;
   SplitterImportFilesV.Left:=Width-6;
+  PageControl_ImportFiles.EndUpdateBounds;
+  FPhase:=1;
   Application.ProcessMessages;
 end;
 
 procedure TForm_ImportFiles.Phase2;
+var newPos:integer;
 begin
+  PageControl_ImportFiles.BeginUpdateBounds;
+  repeat
+    newPos:=SplitterImportFilesV.Left - AnimationStepLen;
+    if newPos < 0 then begin
+      newPos:=0;
+      break
+    end;
+    SplitterImportFilesV.Left:=newPos;
+    Application.ProcessMessages;
+    //sleep(5);
+  until newPos <= 0;
   SplitterImportFilesV.Left:=0;
+  PageControl_ImportFiles.EndUpdateBounds;
+  FPhase:=2;
   Application.ProcessMessages;
 end;
 
@@ -130,6 +168,7 @@ end;
 
 procedure TForm_ImportFiles.Button_BackToPrevClick(Sender: TObject);
 begin
+  CheckListBox_ImportFileNames.Clear;
   Phase1;
 end;
 
@@ -143,7 +182,10 @@ begin
     begin
       if CurrentRTFP.FindPaper(FFileNames[pi]) = '000000' then
         begin
-          CurrentRTFP.AddPaper(FFileNames[pi]);
+          if CheckBox_AddPaperMethod.Checked then
+            CurrentRTFP.AddPaper(FFileNames[pi],apmFullBackup)
+          else
+            CurrentRTFP.AddPaper(FFileNames[pi],apmReference);
           CheckListBox_ImportFileNames.Checked[pi]:=true;
           ProgressBar_ImportFiles.Position:=pi+1;
           Application.ProcessMessages;
@@ -195,6 +237,7 @@ begin
   case (Sender as TPanel).Hint of
     '备份文件节点':
       begin
+        CheckBox_AddPaperMethod.Checked:=true;
         PageControl_ImportFiles.PageIndex:=TabSheet_AddPaper.PageIndex;
         pi:=0;
         for stmp in FFileNames do begin
@@ -204,7 +247,18 @@ begin
         end;
 
       end;
-    '链接文件节点':PageControl_ImportFiles.PageIndex:=TabSheet_AddPaper.PageIndex;
+    '链接文件节点':
+      begin
+        CheckBox_AddPaperMethod.Checked:=false;
+        PageControl_ImportFiles.PageIndex:=TabSheet_AddPaper.PageIndex;
+        pi:=0;
+        for stmp in FFileNames do begin
+          CheckListBox_ImportFileNames.AddItem(stmp,nil);
+          CheckListBox_ImportFileNames.Checked[pi]:=false;
+          inc(pi);
+        end;
+
+      end;
     '识别文件':PageControl_ImportFiles.PageIndex:=TabSheet_TestFiles.PageIndex;
     '导入引用格式':PageControl_ImportFiles.PageIndex:=TabSheet_ImportRefs.PageIndex;
     '创建笔记节点':PageControl_ImportFiles.PageIndex:=TabSheet_AddNote.PageIndex;
@@ -212,6 +266,34 @@ begin
     else ;
   end;
   Phase2;
+end;
+
+procedure TForm_ImportFiles.Timer_AnimationStartTimer(Sender: TObject);
+begin
+  //Self.BeginFormUpdate;
+end;
+
+procedure TForm_ImportFiles.Timer_AnimationStopTimer(Sender: TObject);
+begin
+  //Self.EndFormUpdate;
+end;
+
+procedure TForm_ImportFiles.Timer_AnimationTimer(Sender: TObject);
+var newPos:integer;
+begin
+  if FAnimationRightOrt then
+    newPos:=SplitterImportFilesV.Left + AnimationStepLen
+  else
+    newPos:=SplitterImportFilesV.Left - AnimationStepLen;
+  if newPos < 0 then begin
+    newPos:=0;
+    (Sender as TTimer).Enabled:=false;
+  end;
+  if newPos > Width - 6 then begin
+    newPos:=Width - 6;
+    (Sender as TTimer).Enabled:=false;
+  end;
+  SplitterImportFilesV.Left:=newPos;
 end;
 
 end.

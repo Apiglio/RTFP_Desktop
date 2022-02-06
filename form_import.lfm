@@ -174,7 +174,7 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideTop.Control = Image_AddImage
           AnchorSideTop.Side = asrBottom
           Left = 47
-          Height = 16
+          Height = 21
           Top = 139
           Width = 90
           AutoSize = True
@@ -277,7 +277,7 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideTop.Control = Image_FileFullBackup
           AnchorSideTop.Side = asrBottom
           Left = 47
-          Height = 16
+          Height = 21
           Top = 139
           Width = 90
           AutoSize = True
@@ -390,7 +390,7 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideTop.Control = Image_FileReference
           AnchorSideTop.Side = asrBottom
           Left = 47
-          Height = 16
+          Height = 21
           Top = 139
           Width = 90
           AutoSize = True
@@ -501,7 +501,7 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideTop.Control = Image_TestFiles
           AnchorSideTop.Side = asrBottom
           Left = 62
-          Height = 16
+          Height = 21
           Top = 139
           Width = 60
           AutoSize = True
@@ -636,7 +636,7 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideTop.Control = Image_RefFormat
           AnchorSideTop.Side = asrBottom
           Left = 47
-          Height = 16
+          Height = 21
           Top = 139
           Width = 90
           AutoSize = True
@@ -782,7 +782,7 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideTop.Control = Image_AddNote
           AnchorSideTop.Side = asrBottom
           Left = 47
-          Height = 16
+          Height = 21
           Top = 139
           Width = 90
           AutoSize = True
@@ -828,7 +828,7 @@ object Form_ImportFiles: TForm_ImportFiles
       TabOrder = 0
       object TabSheet_AddPaper: TTabSheet
         Caption = '创建文件节点'
-        ClientHeight = 484
+        ClientHeight = 480
         ClientWidth = 255
         object CheckListBox_ImportFileNames: TCheckListBox
           AnchorSideLeft.Control = TabSheet_AddPaper
@@ -838,12 +838,13 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideBottom.Control = TabSheet_AddPaper
           AnchorSideBottom.Side = asrBottom
           Left = 0
-          Height = 394
+          Height = 390
           Top = 30
           Width = 255
           Anchors = [akTop, akLeft, akRight, akBottom]
           BorderSpacing.Top = 30
           BorderSpacing.Bottom = 60
+          Enabled = False
           ItemHeight = 0
           TabOrder = 0
         end
@@ -864,7 +865,7 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideBottom.Side = asrBottom
           Left = 128
           Height = 36
-          Top = 438
+          Top = 434
           Width = 117
           Anchors = [akRight, akBottom]
           BorderSpacing.Top = 10
@@ -873,6 +874,18 @@ object Form_ImportFiles: TForm_ImportFiles
           Caption = '确认导入'
           OnClick = Button_ImportFileNamesCheckClick
           TabOrder = 2
+        end
+        object CheckBox_AddPaperMethod: TCheckBox
+          AnchorSideLeft.Control = TabSheet_AddPaper
+          AnchorSideTop.Control = Button_ImportFileNamesCheck
+          AnchorSideTop.Side = asrCenter
+          Left = 5
+          Height = 24
+          Top = 440
+          Width = 84
+          BorderSpacing.Left = 5
+          Caption = '创建备份'
+          TabOrder = 3
         end
       end
       object TabSheet_AddNote: TTabSheet
@@ -913,5 +926,14 @@ object Form_ImportFiles: TForm_ImportFiles
     Width = 6
     Align = alNone
     Anchors = [akTop, akBottom]
+  end
+  object Timer_Animation: TTimer
+    Enabled = False
+    Interval = 20
+    OnTimer = Timer_AnimationTimer
+    OnStartTimer = Timer_AnimationStartTimer
+    OnStopTimer = Timer_AnimationStopTimer
+    left = 576
+    top = 488
   end
 end

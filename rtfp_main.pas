@@ -7,14 +7,14 @@ interface
 uses
   Classes, SysUtils, db, dbf, memds, FileUtil, Forms, Controls, Graphics,
   Dialogs, ComCtrls, Menus, ExtCtrls, DBGrids, Grids, ValEdit, CheckLst,
-  StdCtrls, LazUTF8,
+  StdCtrls, DbCtrls, LazUTF8,
 
   AufScript_Frame,
 
   RTFP_definition, Types;
 
 const
-  C_VERSION_NUMBER  = '0.1.0-alpha.7';
+  C_VERSION_NUMBER  = '0.1.1-alpha.1';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -24,20 +24,28 @@ type
   { TFormDesktop }
 
   TFormDesktop = class(TForm)
+    Button_FmtCmt_Post: TButton;
+    Button_FmtCmt_Recover: TButton;
     Button_NodeViewAddAttr: TButton;
     Button_NodeViewPost: TButton;
     Button_NodeViewRecover: TButton;
+    CheckBox_FmtCmtCanPost: TCheckBox;
     CheckListBox_MainAttrFilter: TCheckListBox;
+    ComboBox_AttrName: TComboBox;
+    ComboBox_FieldName: TComboBox;
     ComboBox_Attrs_View: TComboBox;
     DataSource_Attrs: TDataSource;
     DataSource_Main: TDataSource;
     DBGrid_Attrs: TDBGrid;
     DBGrid_Main: TDBGrid;
+    Edit_DBGridMain_Filter: TEdit;
     Frame_AufScript1: TFrame_AufScript;
     Image_PDF_View: TImage;
+    Label_MainFilter: TLabel;
     Label_Attrs_View: TLabel;
     MainMenu: TMainMenu;
     MemDataset_Main: TMemDataset;
+    Memo_FmtCmt: TMemo;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem5: TMenuItem;
@@ -46,7 +54,7 @@ type
     MenuItem_project_recent: TMenuItem;
     MenuItem_ImportFromOther: TMenuItem;
     MenuItem_ExportToOther: TMenuItem;
-    MenuItem_CIteTool: TMenuItem;
+    MenuItem_CiteTool: TMenuItem;
     MenuItem4: TMenuItem;
     MenuItem_project_close: TMenuItem;
     MenuItem_project_check: TMenuItem;
@@ -76,7 +84,10 @@ type
     Splitter_PropertiesV: TSplitter;
     Splitter_RightH: TSplitter;
     Splitter_MainV: TSplitter;
+    StaticText_AttrNameCombo: TStaticText;
+    StaticText_FieldNameCombo: TStaticText;
     StatusBar: TStatusBar;
+    TabSheet_FmtCmt: TTabSheet;
     TabSheet_Project_Properties: TTabSheet;
     TabSheet_Node_PDF: TTabSheet;
     TabSheet_Project_Class: TTabSheet;
@@ -86,6 +97,8 @@ type
     TabSheet_Project_DataGrid: TTabSheet;
     PropertiesValueListEditor: TValueListEditor;
     ValueListEditor_NodeView: TValueListEditor;
+    procedure Button_FmtCmt_PostClick(Sender: TObject);
+    procedure Button_FmtCmt_RecoverClick(Sender: TObject);
     procedure Button_NodeViewAddAttrClick(Sender: TObject);
     procedure Button_NodeViewPostClick(Sender: TObject);
     procedure Button_NodeViewRecoverClick(Sender: TObject);
@@ -101,7 +114,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDropFiles(Sender: TObject; const FileNames: array of String);
     procedure FormResize(Sender: TObject);
-    procedure MenuItem_CIteToolClick(Sender: TObject);
+    procedure MenuItem_CiteToolClick(Sender: TObject);
     procedure MenuItem_OpenAsCajClick(Sender: TObject);
     procedure MenuItem_OpenAsPdfClick(Sender: TObject);
     procedure MenuItem_option_aboutClick(Sender: TObject);
@@ -172,7 +185,6 @@ procedure TFormDesktop.Validate(Sender:TObject);
 var changed_str:string;
     attr_i,pi:integer;
     stmp,old_choice:string;
-
     //此处刷新CheckBoxMainFilter的勾选就会重置，需解决
 
 begin
@@ -189,26 +201,11 @@ begin
 
   //工程信息 标签页
   CurrentRTFP.ProjectPropertiesValidate(Self.PropertiesValueListEditor);
-  {
-  Self.PropertiesValueListEditor.Values['工程标题']:=(Sender as TRTFP).Title;
-  Self.PropertiesValueListEditor.Values['创建用户']:=(Sender as TRTFP).User;
-
-  Self.PropertiesValueListEditor.Values['创建日期']:=(Sender as TRTFP).Tag['创建日期'];
-  Self.PropertiesValueListEditor.Values['修改日期']:=(Sender as TRTFP).Tag['修改日期'];
-
-  Self.PropertiesValueListEditor.Values['属性组00']:=(Sender as TRTFP).Tag['属性组00'];
-  Self.PropertiesValueListEditor.Values['属性组01']:=(Sender as TRTFP).Tag['属性组01'];
-  Self.PropertiesValueListEditor.Values['属性组02']:=(Sender as TRTFP).Tag['属性组02'];
-  }
 
   //文献节点 & 文献属性组 标签页
   //{}Self.DataSource_Main.DataSet:=CurrentRTFP.PaperDB;
 
   CurrentRTFP.TableValidate(Self.MemDataset_Main,Self.MainAttrFilterSet);
-  //Self.DBGrid_Main.Columns[0].DisplayName:='c0';
-  //Self.DBGrid_Main.Columns[1].DisplayName:='c1';
-  //Self.DBGrid_Main.Columns[2].DisplayName:='c2';
-  //没用？？
 
   {}Self.DataSource_Main.DataSet:=Self.MemDataset_Main;
   {}Self.CheckListBox_MainAttrFilter.Items.Clear;
@@ -317,6 +314,7 @@ begin
   ValueListEditor_NodeView.Clear;
   if PID='000000' then exit;
   CurrentRTFP.NodeViewValidate(PID,ValueListEditor_NodeView);
+  CurrentRTFP.FmtCmtValidate(PID,2,RTFP_definition._Col_notes_FurtherCmt_,Memo_FmtCmt);
 end;
 
 procedure TFormDesktop.NodeViewDataPost;
@@ -367,7 +365,7 @@ begin
   Self.EventLink(CurrentRTFP);
 
   if Self.OpenDialog_Project.Execute then
-    CurrentRTFP.Open(Self.OpenDialog_Project.FileName);
+    CurrentRTFP.Open(UTF8ToWinCP(Self.OpenDialog_Project.FileName));
 end;
 
 procedure TFormDesktop.MenuItem_project_saveasClick(Sender: TObject);
@@ -393,7 +391,7 @@ begin
   //Self.Frame_AufScript1.FrameResize(nil);
 end;
 
-procedure TFormDesktop.MenuItem_CIteToolClick(Sender: TObject);
+procedure TFormDesktop.MenuItem_CiteToolClick(Sender: TObject);
 begin
   Form_CiteTrans.show;
 end;
@@ -450,11 +448,13 @@ begin
 
   if ParamCount<>0 then
     begin
+      {
       if assigned(CurrentRTFP) then
       begin
         if CurrentRTFP.IsOpen then CurrentRTFP.Close;
         CurrentRTFP.Free;
       end;
+      }
       CurrentRTFP:=TRTFP.Create(FormDesktop);
       Self.EventLink(CurrentRTFP);
       CurrentRTFP.Open(UTF8ToWinCP(ParamStr(1)));
@@ -465,22 +465,25 @@ end;
 
 procedure TFormDesktop.FormDropFiles(Sender: TObject;
   const FileNames: array of String);
-var len,pi:integer;
+var len:integer;
 begin
-  if not assigned(CurrentRTFP) then exit;
-  if not CurrentRTFP.IsOpen then exit;
   len:=Length(FileNames);
-
-  Form_ImportFiles.Call(FileNames);
-  {
-  for pi:=0 to len-1 do
+  if (len=1) and (TRTFP.IsProjectFile(FileNames[0])) then
     begin
-      if CurrentRTFP.FindPaper(FileNames[pi]) = '000000' then
-        CurrentRTFP.AddPaper(FileNames[pi])
-      else
-        ShowMessage(FileNames[pi]+'已在库内。');
+      if assigned(CurrentRTFP) then
+        begin
+          if CurrentRTFP.IsOpen then exit
+          else CurrentRTFP.Free;
+        end;
+      CurrentRTFP:=TRTFP.Create(FormDesktop);
+      Self.EventLink(CurrentRTFP);
+      CurrentRTFP.Open(UTF8ToWinCP(FileNames[0]));
+    end
+  else
+    begin
+      Form_ImportFiles.Call(FileNames);
     end;
-  }
+
 end;
 
 procedure TFormDesktop.FormClose(Sender: TObject; var CloseAction: TCloseAction
@@ -505,6 +508,22 @@ end;
 procedure TFormDesktop.Button_NodeViewAddAttrClick(Sender: TObject);
 begin
   ///////
+end;
+
+procedure TFormDesktop.Button_FmtCmt_PostClick(Sender: TObject);
+var PID:RTFP_ID;
+begin
+  PID:=Selected_PID;
+  if PID='000000' then exit;
+  CurrentRTFP.FmtCmtDataPost(PID,2,RTFP_definition._Col_notes_FurtherCmt_,Memo_FmtCmt);
+end;
+
+procedure TFormDesktop.Button_FmtCmt_RecoverClick(Sender: TObject);
+var PID:RTFP_ID;
+begin
+  PID:=Selected_PID;
+  if PID='000000' then exit;
+  CurrentRTFP.FmtCmtValidate(PID,2,RTFP_definition._Col_notes_FurtherCmt_,Memo_FmtCmt);
 end;
 
 procedure TFormDesktop.Button_NodeViewRecoverClick(Sender: TObject);
@@ -539,6 +558,7 @@ procedure TFormDesktop.DBGrid_MainMouseWheel(Sender: TObject;
 begin
   NodeViewValidate;
 end;
+
 
 procedure TFormDesktop.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 begin
