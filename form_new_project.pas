@@ -42,9 +42,6 @@ type
     property FileName:string read GetFileName;
     property FileFullName:string read GetFileFullName;
 
-  public
-    procedure Call;
-
   end;
 
 var
@@ -150,12 +147,6 @@ begin
     else Self.Button_Create.Enabled:=false;
 
   end;
-
-end;
-
-procedure TForm_NewProject.Call;
-begin
-  Self.Show;
 
 end;
 

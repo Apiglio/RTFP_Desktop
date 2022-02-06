@@ -272,7 +272,7 @@ begin
       pi:=0;
       while pi<FieldDefs.Count do
         begin
-          FFieldList.AddEx(FieldDefs[pi]);
+          FFieldList.AddEx(FieldDefs[pi]).FAttrsGroup:=Self;
           inc(pi);
         end;
     end;
