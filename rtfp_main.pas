@@ -15,7 +15,7 @@ uses
   RTFP_definition, rtfp_constants, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.1.1-alpha.9';//如果增加了CheckAttrs的机制，请改成0.1.2
+  C_VERSION_NUMBER  = '0.1.1-alpha.10';//如果增加了CheckAttrs的机制，请改成0.1.2
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -46,6 +46,7 @@ type
     LvlGraphControl: TLvlGraphControl;
     MainMenu: TMainMenu;
     Memo_FmtCmt: TMemo;
+    MenuItem_ClassTool: TMenuItem;
     MenuItem_Klass: TMenuItem;
     MenuItem_BasicReferences: TMenuItem;
     MenuItem_OpenDir: TMenuItem;
@@ -129,6 +130,7 @@ type
     procedure ComboBox_AttrNameChange(Sender: TObject);
     procedure ComboBox_Attrs_ViewChange(Sender: TObject);
     procedure ComboBox_FieldNameChange(Sender: TObject);
+    procedure DataSource_MainUpdateData(Sender: TObject);
     procedure DBGrid_MainCellClick(Column: TColumn);
     procedure DBGrid_MainKeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
@@ -142,7 +144,9 @@ type
     procedure FormDropFiles(Sender: TObject; const FileNames: array of String);
     procedure FormResize(Sender: TObject);
     procedure MenuItem_CiteToolClick(Sender: TObject);
+    procedure MenuItem_ClassToolClick(Sender: TObject);
     procedure MenuItem_DelePaperClick(Sender: TObject);
+    procedure MenuItem_KlassClick(Sender: TObject);
     procedure MenuItem_Mark_IsRead_NoClick(Sender: TObject);
     procedure MenuItem_Mark_IsRead_YesClick(Sender: TObject);
     procedure MenuItem_OpenAsCajClick(Sender: TObject);
@@ -201,7 +205,7 @@ var
   CurrentRTFP:TRTFP;
 
 implementation
-uses form_new_project, form_cite_trans, form_import,
+uses form_new_project, form_cite_trans, form_classmanager, form_import,
      rtfp_field, rtfp_class;
 
 {$R *.lfm}
@@ -235,6 +239,7 @@ begin
   CurrentRTFP.ProjectPropertiesValidate(Self.PropertiesValueListEditor);
   //文献节点 标签页
   CurrentRTFP.TableValidate;
+
 end;
 
 procedure TFormDesktop.ClassListValidate(Sender:TObject);
@@ -426,12 +431,22 @@ begin
   Form_CiteTrans.show;
 end;
 
+procedure TFormDesktop.MenuItem_ClassToolClick(Sender: TObject);
+begin
+  ClassManagerForm.show;
+end;
+
 procedure TFormDesktop.MenuItem_DelePaperClick(Sender: TObject);
 begin
   case MessageDlg('删除确认','是否删除此文献节点？',mtInformation,[mbYes,mbNo],0) of
     rnmbYes:CurrentRTFP.DeletePaper(Selected_PID);
     rnmbNo:;
   end;
+end;
+
+procedure TFormDesktop.MenuItem_KlassClick(Sender: TObject);
+begin
+  ClassManagerForm.Show;
 end;
 
 procedure TFormDesktop.MenuItem_Mark_IsRead_NoClick(Sender: TObject);
@@ -576,6 +591,16 @@ begin
   fieldName:=ComboBox_FieldName.Items[ComboBox_FieldName.ItemIndex];
   ty:=CurrentRTFP.AttrFieldDataTypeS[attrName,fieldName];
   Self.Button_FmtCmt_Post.Enabled:=(ty=ftMemo);
+end;
+
+procedure TFormDesktop.DataSource_MainUpdateData(Sender: TObject);
+var index:integer;
+begin
+  with DBGrid_Main do
+  for index:=0 to Columns.Count-1 do
+    begin
+      Columns[index].Width:=TRTFP.FieldOptWidth(Columns[index].Field.FieldDef);
+    end;
 end;
 
 procedure TFormDesktop.Button_NodeViewPostClick(Sender: TObject);

@@ -179,6 +179,10 @@ type
     procedure EditFieldAsDateTime(AName,AAttrsName:string;PID:RTFP_ID;value:TDateTime);
     procedure EditFieldAsDouble(AName,AAttrsName:string;PID:RTFP_ID;value:double);
 
+    procedure ReadFieldAsMemo(AName,AAttrsName:string;PID:RTFP_ID;buf:TStrings);
+    procedure EditFieldAsMemo(AName,AAttrsName:string;PID:RTFP_ID;buf:TStrings);
+
+
     //Klass
   private
     function AddKlass(klassname:string;pathname:string='\'):TKlass;
@@ -211,6 +215,7 @@ type
     procedure ReNewModifyTimeWithoutChange(PID:RTFP_ID);
     procedure ReNewCheckTimeWithoutChange(PID:RTFP_ID);
 
+  public
     procedure BeginUpdate;
     procedure EndUpdate;
 
@@ -345,6 +350,10 @@ type
 
     class function IsProjectFile(filename:ansistring):boolean;
     class function IsRTFPID(PID:string):boolean;
+
+    class function FieldMinWidth(AFieldDef:TFieldDef):integer;
+    class function FieldOptWidth(AFieldDef:TFieldDef):integer;
+
 
     //class function BackupDbf(ADBF:TDbf):boolean;
     //class function RecoverDbf(ADBF:TDbf):boolean;
@@ -1215,6 +1224,24 @@ begin
   DataChange;
 end;
 
+procedure TRTFP.ReadFieldAsMemo(AName,AAttrsName:string;PID:RTFP_ID;buf:TStrings);
+begin
+  //buf.Assign(GetField(AName,AAttrsName,PID));
+  buf.CommaText:=GetField(AName,AAttrsName,PID).AsString;
+end;
+
+procedure TRTFP.EditFieldAsMemo(AName,AAttrsName:string;PID:RTFP_ID;buf:TStrings);
+var tmpAG:TAttrsGroup;
+    tmpField:TField;
+begin
+  tmpField:=GetField(AName,AAttrsName,PID);
+  tmpAG:=FindAttrs(AAttrsName);
+  tmpAG.Dbf.Edit;
+  //tmpField.Assign(buf);
+  tmpField.AsString:=buf.CommaText;
+  tmpAG.Dbf.Post;
+  DataChange;
+end;
 
 procedure TRTFP.LoadAttrs;
 var tmpAttrs:TAttrsGroup;
@@ -2029,8 +2056,10 @@ end;
 
 function TRTFP.KlassInclude(klassname:string;PID:RTFP_ID):boolean;
 var index:integer;
+    stmp:TStringList;
 begin
   result:=false;
+  //索引文件更新
   index:=FKlassList.FindItemIndexByName(klassname);
   if index<0 then exit;
   with FKlassList[index].Dbf do begin
@@ -2045,14 +2074,27 @@ begin
     FieldByName(_Col_PID_).AsString:=PID;
     Post;
   end;
+  //修改字段
+  stmp:=TStringList.Create;
+  stmp.Sorted:=true;
+  try
+    ReadFieldAsMemo(_Col_class_DefaultCl_,_Attrs_Class_,PID,stmp);
+    if not stmp.Find(klassname,index) then stmp.Add(klassname);
+    EditFieldAsMemo(_Col_class_DefaultCl_,_Attrs_Class_,PID,stmp);
+  finally
+    stmp.Free;
+  end;
+
   DataChange;
   result:=true;
 end;
 
 function TRTFP.KlassExclude(klassname:string;PID:RTFP_ID):boolean;
 var index:integer;
+    stmp:TStringList;
 begin
   result:=false;
+  //索引文件更新
   index:=FKlassList.FindItemIndexByName(klassname);
   if index<0 then exit;
   with FKlassList[index].Dbf do begin
@@ -2060,10 +2102,21 @@ begin
     First;
     while not EOF do
       begin
-        if FieldByName(_Col_PID_).AsString = PID then begin Delete;Post;exit end;
+        if FieldByName(_Col_PID_).AsString = PID then begin Delete;break end;
         Next;
       end;
   end;
+  //修改字段
+  stmp:=TStringList.Create;
+  stmp.Sorted:=true;
+  try
+    ReadFieldAsMemo(_Col_class_DefaultCl_,_Attrs_Class_,PID,stmp);
+    if stmp.Find(klassname,index) then stmp.Delete(index);
+    EditFieldAsMemo(_Col_class_DefaultCl_,_Attrs_Class_,PID,stmp);
+  finally
+    stmp.Free;
+  end;
+
   DataChange;
   result:=true;
 end;
@@ -2166,11 +2219,11 @@ end;
 
 procedure TRTFP.LoadFromEStudy(PID:RTFP_ID;str:TStrings);
 begin
-
+  ShowMessage('unimplemented');
 end;
 procedure TRTFP.LoadFromRefWork(PID:RTFP_ID;str:TStrings);
 begin
-
+  ShowMessage('unimplemented');
 end;
 procedure TRTFP.LoadFromEndNote(PID:RTFP_ID;str:TStrings);
 var stmp,attr:string;
@@ -2216,74 +2269,113 @@ begin
 end;
 procedure TRTFP.LoadFromNoteExpress(PID:RTFP_ID;str:TStrings);
 begin
-
+  ShowMessage('unimplemented');
 end;
 procedure TRTFP.LoadFromNoteFirst(PID:RTFP_ID;str:TStrings);
 begin
-
+  ShowMessage('unimplemented');
 end;
 
 procedure TRTFP.SaveToEStudy(PID:RTFP_ID;str:TStrings);
 begin
-
+  ShowMessage('unimplemented');
 end;
 procedure TRTFP.SaveToRefWork(PID:RTFP_ID;str:TStrings);
 begin
-
+  ShowMessage('unimplemented');
 end;
 procedure TRTFP.SaveToEndNote(PID:RTFP_ID;str:TStrings);
+var stmp:string;
+    ntmp:integer;
 begin
-
+  str.Clear;
+  with InitBasic(PID) do begin
+    stmp:=FieldByName(_Col_basic_RefType_).AsString;
+    if stmp<>'' then str.Add('%0 '+stmp);
+    stmp:=FieldByName(_Col_basic_Author_).AsString;
+    if stmp<>'' then str.Add('%A '+StringReplace(stmp,';',' %A ',[rfReplaceAll]));
+    stmp:=FieldByName(_Col_basic_Organ_).AsString;
+    if stmp<>'' then str.Add('%+ '+stmp);
+    stmp:=FieldByName(_Col_basic_Title_).AsString;
+    if stmp<>'' then str.Add('%T '+stmp);
+    stmp:=FieldByName(_Col_basic_Source_).AsString;
+    if stmp<>'' then str.Add('%J '+stmp);
+    ntmp:=FieldByName(_Col_basic_Year_).AsInteger;
+    if ntmp<>0 then str.Add('%D '+IntToStr(ntmp));
+    ntmp:=FieldByName(_Col_basic_Issue_).AsInteger;
+    if ntmp<>0 then str.Add('%V '+IntToStr(ntmp));
+    ntmp:=FieldByName(_Col_basic_Volume_).AsInteger;
+    if ntmp<>0 then str.Add('%N '+IntToStr(ntmp));
+    stmp:=FieldByName(_Col_basic_Keyword_).AsString;
+    if stmp<>'' then str.Add('%K '+stmp);
+    stmp:=FieldByName(_Col_basic_Summary_).AsString;
+    if stmp<>'' then str.Add('%X '+stmp);
+    stmp:=FieldByName(_Col_basic_Page_).AsString;
+    if stmp<>'' then str.Add('%P '+stmp);
+    stmp:=FieldByName(_Col_basic_ISBN_ISSN_).AsString;
+    if stmp<>'' then str.Add('%@ '+stmp);
+    //stmp:=FieldByName(_Col_basic_期刊号).AsString;
+    //if stmp<>'' then str.Add('%L '+stmp);
+    stmp:=FieldByName(_Col_basic_DataProv_).AsString;
+    if stmp<>'' then str.Add('%W '+stmp);
+    //stmp:=FieldByName(_Col_basic_导师).AsString;
+    //if stmp<>'' then str.Add('%Y '+stmp);
+    //stmp:=FieldByName(_Col_basic_学校).AsString;
+    //if stmp<>'' then str.Add('%I '+stmp);
+    //stmp:=FieldByName(_Col_basic_学位类型).AsString;
+    //if stmp<>'' then str.Add('%9 '+stmp);
+  end;
+  PostBasic;
 end;
 procedure TRTFP.SaveToNoteExpress(PID:RTFP_ID;str:TStrings);
 begin
-
+  ShowMessage('unimplemented');
 end;
 procedure TRTFP.SaveToNoteFirst(PID:RTFP_ID;str:TStrings);
 begin
-
+  ShowMessage('unimplemented');
 end;
 
 procedure TRTFP.SetGBT7714(PID:RTFP_ID;str:string);
 begin
-
+  ShowMessage('unimplemented');
 end;
 procedure TRTFP.SetCAJCD(PID:RTFP_ID;str:string);
 begin
-
+  ShowMessage('unimplemented');
 end;
 procedure TRTFP.SetMLA(PID:RTFP_ID;str:string);
 begin
-
+  ShowMessage('unimplemented');
 end;
 procedure TRTFP.SetAPA(PID:RTFP_ID;str:string);
 begin
-
+  ShowMessage('unimplemented');
 end;
 procedure TRTFP.SetChaXin(PID:RTFP_ID;str:string);
 begin
-
+  ShowMessage('unimplemented');
 end;
 
 function TRTFP.GetGBT7714(PID:RTFP_ID):string;
 begin
-
+  ShowMessage('unimplemented');
 end;
 function TRTFP.GetCAJCD(PID:RTFP_ID):string;
 begin
-
+  ShowMessage('unimplemented');
 end;
 function TRTFP.GetMLA(PID:RTFP_ID):string;
 begin
-
+  ShowMessage('unimplemented');
 end;
 function TRTFP.GetAPA(PID:RTFP_ID):string;
 begin
-
+  ShowMessage('unimplemented');
 end;
 function TRTFP.GetChaXin(PID:RTFP_ID):string;
 begin
-
+  ShowMessage('unimplemented');
 end;
 
 
@@ -2832,6 +2924,44 @@ begin
   if length(PID)<>6 then exit;
   for pi:=1 to 6 do if not (PID[pi] in RTFP_ID_CHARSET) then exit;
   result:=true;
+end;
+
+class function TRTFP.FieldMinWidth(AFieldDef:TFieldDef):integer;
+begin
+  result:=40;
+  case AFieldDef.DataType of
+    ftBoolean:result:=40;
+    ftMemo:result:=75;
+    ftInteger,ftSmallint:result:=50;
+    ftLargeint,ftFloat:result:=75;
+    ftDateTime,ftDate,ftTime:result:=100;
+    ftString:
+      begin
+        result:=AFieldDef.Size*8;
+        if result>200 then result:=200;
+      end;
+  end;
+end;
+
+class function TRTFP.FieldOptWidth(AFieldDef:TFieldDef):integer;
+var NameSize:integer;
+begin
+  result:=40;
+  NameSize:=length(AFieldDef.Name)*8+16;
+  if NameSize>80 then NameSize:=80;
+  case AFieldDef.DataType of
+    ftBoolean:result:=40;
+    ftMemo:result:=75;
+    ftInteger,ftSmallint:result:=50;
+    ftLargeint,ftFloat:result:=75;
+    ftDateTime,ftDate,ftTime:result:=100;
+    ftString:
+      begin
+        result:=AFieldDef.Size*8;
+        if result>200 then result:=200;
+      end;
+  end;
+  result:=max(result,NameSize);
 end;
 
 {

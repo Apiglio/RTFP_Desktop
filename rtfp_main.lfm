@@ -1,7 +1,7 @@
 object FormDesktop: TFormDesktop
-  Left = 507
+  Left = 611
   Height = 616
-  Top = 280
+  Top = 326
   Width = 1038
   AllowDropFiles = True
   Caption = 'RTFP Desktop'
@@ -123,7 +123,7 @@ object FormDesktop: TFormDesktop
           Color = clWindow
           Columns = <>
           DataSource = DataSource_Main
-          Options = [dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgRowSelect, dgAlwaysShowSelection, dgConfirmDelete, dgCancelOnExit, dgAutoSizeColumns, dgAnyButtonCanSelect, dgDblClickAutoSize]
+          Options = [dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgRowSelect, dgAlwaysShowSelection, dgConfirmDelete, dgCancelOnExit, dgAnyButtonCanSelect, dgDblClickAutoSize]
           PopupMenu = PopupMenu_MainDBGrid
           ReadOnly = True
           TabOrder = 0
@@ -378,7 +378,7 @@ object FormDesktop: TFormDesktop
         )
         ColWidths = (
           80
-          513
+          534
         )
       end
       object Button_NodeViewRecover: TButton
@@ -581,10 +581,10 @@ object FormDesktop: TFormDesktop
     Height = 559
     Top = 6
     Width = 256
-    ActivePage = TabSheet_Filter_Klass
+    ActivePage = TabSheet_Filter_Field
     Anchors = [akTop, akLeft, akRight, akBottom]
     Constraints.MinWidth = 200
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 7
     object TabSheet_Filter_Klass: TTabSheet
       Caption = '分类节点'
@@ -727,6 +727,10 @@ object FormDesktop: TFormDesktop
         Caption = '引用工具'
         OnClick = MenuItem_CiteToolClick
       end
+      object MenuItem_ClassTool: TMenuItem
+        Caption = '分类工具'
+        OnClick = MenuItem_ClassToolClick
+      end
     end
     object MenuItem_option: TMenuItem
       Caption = '选项'
@@ -755,6 +759,7 @@ object FormDesktop: TFormDesktop
     top = 136
   end
   object DataSource_Main: TDataSource
+    OnUpdateData = DataSource_MainUpdateData
     left = 96
     top = 64
   end
@@ -812,6 +817,7 @@ object FormDesktop: TFormDesktop
     end
     object MenuItem_Klass: TMenuItem
       Caption = '分类'
+      OnClick = MenuItem_KlassClick
     end
     object MenuItem_pop_div03: TMenuItem
       Caption = '-'
