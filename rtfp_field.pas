@@ -86,7 +86,7 @@ type
     property Name:string read FName;
     property FullPath:string read FFullPath;
     property FieldList:TAttrsFieldList read FFieldList;
-    property Dbf:Tdbf read FDbf;
+    property Dbf:TDbf read FDbf;
     property GroupShown:boolean read FGroupShown write FGroupShown;//如果为true，FieldFilter会以此为筛选条件
     property IsEmpty:boolean read GetIsEmpty;
   public

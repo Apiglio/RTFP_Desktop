@@ -68,7 +68,17 @@ const
   _Col_basic_ISBN_ISSN_ = 'ISBN';
   _Col_basic_Note_ = '注释';
   _Col_basic_DataProv_ = 'DataProv.';
-  _Col_basic_Has_Ext_ = 'Has_Ext';
+  //_Col_basic_Has_Ext_ = 'Has_Ext';//0.1.2-alpha.8 删除
+
+  //0.1.2-alpha.8 新增
+  _Col_basic_Degree_ = '学位';
+  _Col_basic_Teacher_ = '导师';
+  _Col_basic_City_ = '会议城市';
+  _Col_basic_Meeting_ = '会议名称';
+  _Col_basic_Sponsor_ = '赞助机构';
+  _Col_basic_CN_ = 'CN';
+
+
   _Col_metas_Title_ = 'Title';
   _Col_metas_Authors_ = 'Authors';
   _Col_metas_Subject_ = 'Subject';

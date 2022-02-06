@@ -19,9 +19,11 @@ type
     Button_ToMainForm: TButton;
     Button_ImportFileNamesCheck: TButton;
     Button_BackToPrev: TButton;
+    CheckBox_DefaultCl: TCheckBox;
     CheckBox_UpdatePaper: TCheckBox;
     CheckBox_AddPaperMethod: TCheckBox;
     CheckListBox_ImportFileNames: TListView;
+    ComboBox_DefaultCl: TComboBox;
     Edit_UpdatePaper: TEdit;
     Image_FileFullBackup: TImage;
     Image_FileReference: TImage;
@@ -55,6 +57,7 @@ type
     procedure Button_BackToPrevClick(Sender: TObject);
     procedure Button_ImportFileNamesCheckClick(Sender: TObject);
     procedure Button_ToMainFormClick(Sender: TObject);
+    procedure CheckBox_DefaultClChange(Sender: TObject);
     procedure CheckBox_UpdatePaperChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
@@ -92,7 +95,7 @@ var
   Form_ImportFiles: TForm_ImportFiles;
 
 implementation
-uses RTFP_main, RTFP_definition;
+uses RTFP_main, RTFP_definition, rtfp_class;
 
 {$R *.lfm}
 
@@ -100,6 +103,7 @@ uses RTFP_main, RTFP_definition;
 
 procedure TForm_ImportFiles.Call(AFileNames: array of String);
 var len,pi:integer;
+    tmpKl:TKlass;
 begin
   FFileNames.Clear;
   len:=Length(AFileNames);
@@ -111,6 +115,16 @@ begin
   ProgressBar_ImportFiles.Position:=0;
   Edit_UpdatePaper.Caption:=FormDesktop.Selected_PID+' - '+FormDesktop.Selected_FileName;
   CheckBox_UpdatePaper.Checked:=false;
+
+  ComboBox_DefaultCl.Clear;
+  for tmpKL in CurrentRTFP.KlassList do
+    if tmpKL.FilterEnabled then
+      ComboBox_DefaultCl.AddItem(tmpKL.Name,tmpKL);
+  CheckBox_DefaultCl.Checked:=false;
+  ComboBox_DefaultCl.Enabled:=false;
+  ComboBox_DefaultCl.ItemIndex:=-1;
+  ComboBox_DefaultCl.Text:='';
+
   FHaltoff:=false;
   Self.ShowModal;
 end;
@@ -210,15 +224,19 @@ var pi:integer;
     all_success:boolean;
     newPID:RTFP_ID;
     tmpProc:TNotifyEvent;
+    index:integer;
+    tmpKL:TKlass;
 begin
   ProgressBar_ImportFiles.Max:=FFileNames.Count;
   all_success:=true;
   try
     FormDesktop.ShowWaitForm:=false;
     AllState.Enable;
-    tmpProc:=CurrentRTFP.onChange;
-    CurrentRTFP.onChange:=nil;
-    //真离谱出此下策
+
+    CurrentRTFP.BeginUpdate;
+    //tmpProc:=CurrentRTFP.onChange;
+    //CurrentRTFP.onChange:=nil;
+    //真离谱出此下策(现在还需要吗)
     for pi:=0 to FFileNames.Count-1 do
       begin
         if FHaltoff then exit;
@@ -239,6 +257,9 @@ begin
             end;
             if newPID<>'000000' then begin
               CheckListBox_ImportFileNames.Items[pi].SubItems[0]:='导入成功';
+              index:=ComboBox_DefaultCl.ItemIndex;
+              if index>=0 then tmpKL:=TKlass(ComboBox_DefaultCl.Items.Objects[index]) else tmpKL:=nil;
+              if tmpKL<>nil then CurrentRTFP.KlassInclude(tmpKL.Name,newPID);
             end else begin
               all_success:=false;
               CheckListBox_ImportFileNames.Items[pi].SubItems[0]:='导入失败';
@@ -253,7 +274,9 @@ begin
           end;
       end;
   finally
-    CurrentRTFP.onChange:=tmpProc;
+    //CurrentRTFP.onChange:=tmpProc;
+    CurrentRTFP.EndUpdate;
+
     FormDesktop.ShowWaitForm:=true;
     AllState.Disable;
   end;
@@ -276,6 +299,12 @@ procedure TForm_ImportFiles.Button_ToMainFormClick(Sender: TObject);
 begin
   //操作在ModalResult里头，不用自己写退出
   FHaltoff:=true;
+end;
+
+procedure TForm_ImportFiles.CheckBox_DefaultClChange(Sender: TObject);
+begin
+  if (Sender as TCheckBox).Checked then ComboBox_DefaultCl.Enabled:=true
+  else ComboBox_DefaultCl.Enabled:=false;
 end;
 
 procedure TForm_ImportFiles.CheckBox_UpdatePaperChange(Sender: TObject);

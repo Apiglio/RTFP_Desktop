@@ -920,6 +920,7 @@ object FormDesktop: TFormDesktop
         ItemHeight = 18
         Items.Strings = (
           '段落 Memo'
+          '字符串 String'
           '布尔 Boolean'
           '短整型 SmallInt'
           '长整型 LargeInt'

@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_dialog, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.1.2-alpha.7';
+  C_VERSION_NUMBER  = '0.2.1-alpha.1';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -982,8 +982,41 @@ begin
 end;
 
 procedure TFormDesktop.MenuItem_DBGC_CalcClick(Sender: TObject);
+var searchstr:string;
+    bm:TBookMark;
+    //reg:TRegexpr;
+    attrsname,fieldname:string;
+    poss:integer;
 begin
-  //计算字段
+  if ProjectInvalid then exit;
+  //reg:=TRegexpr.Create;
+  try
+  searchstr:=ShowMsgEdit('计算字段','批量赋值：','');//远期改为公式赋值
+  if searchstr='' then exit;
+  //if searchstr
+  with DBGrid_Main.DataSource.DataSet do
+    begin
+      fieldname:=Fields[LastDBGridPos.x-1].FieldName;
+      poss:=pos('(',fieldname);
+      if poss<=0 then attrsname:='' else
+        begin
+          attrsname:=fieldname;
+          System.delete(attrsname,1,poss);
+          System.delete(attrsname,length(attrsname),1);
+          System.delete(fieldname,poss,length(fieldname));
+        end;
+      bm:=Bookmark;
+      First;
+      while not EOF do
+        begin
+          CurrentRTFP.EditFieldAsString(fieldname,attrsname,FieldByName(_Col_PID_).AsString,searchstr,[aeForceEditIfTypeDismatch]);
+          Next;
+        end;
+      GotoBookmark(bm);
+    end;
+  finally
+    //reg.Free;
+  end;
 end;
 
 procedure TFormDesktop.MenuItem_DBGC_SeekClick(Sender: TObject);
@@ -1424,7 +1457,7 @@ begin
   delete(fieldclassname,poss,length(fieldclassname));
   case str of
     'Memo':ChosenFieldType:=ftMemo;
-    //'String':ChosenFieldType:=ftString;
+    'String':ChosenFieldType:=ftString;
     'Boolean':ChosenFieldType:=ftBoolean;
     'SmallInt':ChosenFieldType:=ftSmallint;
     'LargeInt':ChosenFieldType:=ftLargeint;
@@ -1509,6 +1542,30 @@ end;
 procedure TFormDesktop.Button_FieldTypeClick(Sender: TObject);
 begin
   //这里可以增加额外的字段类型设置
+  ShowMsgOK('字段类型说明',
+    '段落　  '+#9+'(Memo)      '+#9+'无限制长度的文本内容'+#13#10+
+    '字符串  '+#9+'(String)    '+#9+'最大长度16的文本内容'+#13#10+
+    '布尔　  '+#9+'(Boolean)   '+#9+'只有是与否的两个选项'+#13#10+
+    '短整型  '+#9+'(SmallInt)  '+#9+'范围为-32768到32767'+#13#10+
+    '长整型  '+#9+'(LargeInt)  '+#9+'18位十进制位的整数'+#13#10+
+    '浮点型  '+#9+'(Float)     '+#9+'带小数点的数据'+#13#10+
+    '时间　  '+#9+'(DateTime)  '+#9+'记录日期与时刻'+#13#10+
+    '图像　  '+#9+'(Blob)      '+#9+'记录图像数据'
+  );
+
+
+  {
+  段落 Memo
+  字符串 String
+  布尔 Boolean
+  短整型 SmallInt
+  长整型 LargeInt
+  浮点型 Float
+  时间 DateTime
+  图像 Blob
+
+  }
+
 end;
 
 procedure TFormDesktop.Button_FmtCmt_PostClick(Sender: TObject);
