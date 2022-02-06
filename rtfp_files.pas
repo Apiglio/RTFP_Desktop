@@ -1,3 +1,5 @@
+{$define Test}
+
 unit rtfp_files;
 
 {$mode objfpc}{$H+}
@@ -5,7 +7,7 @@ unit rtfp_files;
 interface
 
 uses
-  Classes, SysUtils, Apiglio_Useful;
+  Classes, SysUtils,{$ifdef Test} Dialogs,{$endif} Apiglio_Useful;
 
 type
   TRTFP_FileItem = class(TCollectionItem)
@@ -67,24 +69,29 @@ begin
   Self.FBaseDir:=ABaseDir;
 end;
 
-procedure TRTFP_FileList.RunDir(APath:string='\');
+procedure RunDirRecursion(APath:string;AInstance:TRTFP_FileList);
 Var Info:TSearchRec;
     pi:Longint;
 Begin
-  Self.Clear;
   pi:=0;
-  If FindFirst(Self.BaseDir+APath+'*',faAnyFile and faDirectory,Info)=0 then
+  If FindFirst(AInstance.BaseDir+APath+'*',faAnyFile and faDirectory,Info)=0 then
     Repeat
       Inc(pi);
       With Info do
         begin
           if (Name<>'.') and (Name<>'..') then BEGIN
-            If (Attr and faDirectory) = faDirectory then RunDir(APath+Name+'\')
-            else AddEx(APath+Name,Size);//递归好像不会增产增加元素
+            If (Attr and faDirectory) = faDirectory then RunDirRecursion(APath+Name+'\',AInstance)
+            else AInstance.AddEx(APath+Name,Size);
           END;
         end;
     Until FindNext(info)<>0;
   FindClose(Info);
+End;
+
+procedure TRTFP_FileList.RunDir(APath:string='\');
+Begin
+  Self.Clear;
+  RunDirRecursion(APath,Self);
 End;
 
 function TRTFP_FileList.Add: TRTFP_FileItem;

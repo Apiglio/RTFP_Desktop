@@ -35,9 +35,9 @@ object FormDesktop: TFormDesktop
     Height = 362
     Top = 0
     Width = 856
-    ActivePage = TabSheet_Project_Class
+    ActivePage = TabSheet_Project_DataGrid
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 3
+    TabIndex = 1
     TabOrder = 1
     object TabSheet_Project_Properties: TTabSheet
       Caption = '工程信息'
@@ -64,7 +64,7 @@ object FormDesktop: TFormDesktop
         )
         ColWidths = (
           80
-          737
+          758
         )
       end
       object Splitter_PropertiesV: TSplitter
@@ -227,6 +227,34 @@ object FormDesktop: TFormDesktop
     end
     object TabSheet_Project_Class: TTabSheet
       Caption = '分类节点'
+      ClientHeight = 329
+      ClientWidth = 848
+      object ACL_ListView: TACL_ListView
+        AnchorSideLeft.Control = TabSheet_Project_Class
+        AnchorSideTop.Control = TabSheet_Project_Class
+        AnchorSideBottom.Control = TabSheet_Project_Class
+        AnchorSideBottom.Side = asrBottom
+        Left = 0
+        Height = 329
+        Top = 0
+        Width = 280
+        Anchors = [akTop, akLeft, akBottom]
+        AutoSort = False
+        Columns = <        
+          item
+            AutoSize = True
+            Caption = '分类名称'
+            MinWidth = 100
+            Width = 72
+          end>
+        Items.LazData = {
+          5900000003000000FFFFFFFFFFFFFFFFFFFFFFFF0000000006000000E7A68FE5
+          B79EFFFFFFFFFFFFFFFFFFFFFFFF0000000006000000E8819AE890BDFFFFFFFF
+          FFFFFFFFFFFFFFFF0000000009000000E5A4A9E99985E7BABF
+        }
+        ReadOnly = True
+        TabOrder = 0
+      end
     end
     object TabSheet_Project_NodeView: TTabSheet
       Caption = '层次网络'
@@ -281,52 +309,52 @@ object FormDesktop: TFormDesktop
         ClientHeight = 329
         ClientWidth = 848
         inherited ProgressBar: TProgressBar
-          Left = 10
+          AnchorSideLeft.Control = Frame_AufScript1
+          AnchorSideRight.Control = Frame_AufScript1
+          AnchorSideBottom.Control = Frame_AufScript1
           Height = 12
-          Top = 356
-          Width = 481
+          Top = 312
+          Width = 838
         end
         inherited Memo_out: TMemo
-          Left = 260
-          Height = 260
-          Top = 40
-          Width = 230
+          AnchorSideRight.Control = Frame_AufScript1
+          Left = 528
+          Top = 30
+          Width = 315
         end
         inherited Button_run: TButton
-          Left = 9
+          Left = 528
           Height = 40
-          Top = 310
+          Top = 267
           Width = 85
         end
         inherited Button_pause: TButton
-          Left = 108
+          Left = 643
           Height = 40
-          Top = 310
+          Top = 267
           Width = 85
         end
         inherited Button_stop: TButton
-          Left = 208
+          Left = 758
           Height = 40
-          Top = 310
+          Top = 267
           Width = 85
         end
         inherited Button_ScriptLoad: TButton
-          Left = 306
           Height = 40
-          Top = 310
+          Top = 267
           Width = 85
         end
         inherited Button_ScriptSave: TButton
-          Left = 405
+          Left = 182
           Height = 40
-          Top = 310
+          Top = 267
           Width = 85
         end
         inherited Memo_cmd: TSynEdit
-          Left = 10
-          Height = 260
-          Top = 40
-          Width = 230
+          AnchorSideLeft.Control = Frame_AufScript1
+          Top = 30
+          Width = 262
           Gutter.Width = 61
           inherited SynLeftGutterPartList1: TSynGutterPartList
             inherited SynGutterCodeFolding1: TSynGutterCodeFolding
@@ -336,10 +364,19 @@ object FormDesktop: TFormDesktop
           end
         end
         inherited TrackBar: TTrackBar
-          Left = 10
+          AnchorSideLeft.Control = Frame_AufScript1
+          AnchorSideTop.Control = Frame_AufScript1
+          AnchorSideRight.Control = Frame_AufScript1
           Height = 20
-          Top = 10
-          Width = 480
+          Width = 838
+        end
+        inherited OpenDialog: TOpenDialog
+          left = 350
+          top = 99
+        end
+        inherited SaveDialog: TSaveDialog
+          left = 430
+          top = 99
         end
       end
     end
@@ -355,7 +392,18 @@ object FormDesktop: TFormDesktop
     Width = 176
     Anchors = [akTop, akLeft, akRight, akBottom]
     Caption = '拖动到此处添加节点'
+    ClientHeight = 565
+    ClientWidth = 176
     TabOrder = 2
+    object Button_temp: TButton
+      Left = 24
+      Height = 38
+      Top = 24
+      Width = 111
+      Caption = '临时布局键'
+      OnClick = Button_tempClick
+      TabOrder = 0
+    end
   end
   object Splitter_MainV: TSplitter
     AnchorSideTop.Control = Owner
@@ -393,9 +441,9 @@ object FormDesktop: TFormDesktop
     Height = 197
     Top = 368
     Width = 856
-    ActivePage = TabSheet_Node_View
+    ActivePage = TabSheet_Node_PDF
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 0
+    TabIndex = 2
     TabOrder = 5
     OnChange = PageControl_NodeChange
     object TabSheet_Node_View: TTabSheet
@@ -720,7 +768,6 @@ object FormDesktop: TFormDesktop
     top = 496
   end
   object DataSource_Main: TDataSource
-    DataSet = MemDataset_Main
     left = 104
     top = 368
   end
@@ -739,10 +786,5 @@ object FormDesktop: TFormDesktop
       Caption = '作为CAJ打开'
       OnClick = MenuItem_OpenAsCajClick
     end
-  end
-  object MemDataset_Main: TMemDataset
-    FieldDefs = <>
-    left = 72
-    top = 200
   end
 end

@@ -1,13 +1,13 @@
 //ImportFiles的UI语言改进
-//ImportFilesForm.Call的FFileName.Clear有问题 (solved?)
+//ImportFilesForm.Call的FFileName.Clear有问题（导入窗口打开后不导入直接关闭窗口，之后filesdrop机会出问题）
 //已读标记改成ftBoolean
 //滚轮事件记录定位有误 (skipped)
 //FmtCmt的覆盖提交保存提醒
-//总表第一行没有连接
 //引用PDF里的图片
 //字段选项化
 //进度表可以是checkboxlist的形式
 //致命问题：笔记被覆盖，没有提示
+//总表的两个ftBoolean样式为什么不一样
 
 
 
@@ -279,12 +279,6 @@ type
     procedure SaveAs(filename:ansistring);
     function Close:boolean;
 
-    procedure Change;//用于标记工程已经发生改变，如果之前未改变，会触发OnFirstEdit
-    procedure DataChange;//数据修改，也会触发Change事件
-    procedure FieldChange;//字段修改，也会触发Change事件
-    procedure RecordChange;//记录修改，也会触发Change事件
-
-
   private
     function UserID(AUser:string):integer;
     function FormatID(AFormat:string):integer;
@@ -342,14 +336,35 @@ type
     function EditAttrField(PID:RTFP_ID;AttrNo:byte;FieldName:string;FailOption:TAttrExtend;value:string):boolean;
     function ReadAttrField(PID:RTFP_ID;AttrNo:byte;FieldName:string;FailOption:TAttrExtend;var value:string):boolean;
 
+    //Class
+    function AddKlass(klassname:string;pathname:string='\'):TRTFP_ClassItem;
+    function DeleteKlass(klassname:string):boolean;
+
+    function NewKlassFile(klassname:string):boolean;
+    function OpenKlassFile(klassname:string):boolean;
+    function SaveKlassFile(klassname:string):boolean;
+    function CloseKlassFile(klassname:string):boolean;//没有判定保存，请注意
+
+    function KlassInclude(klassname:string;PID:RTFP_ID):boolean;
+    function KlassExclude(klassname:string;PID:RTFP_ID):boolean;
+
+
+
   //public //总表更新操作
     //procedure ExecuteSQL(SQL_Command:string);
+  private //显示连接
+    FPaperDS:TMemDataSet;
+
+  public //连接显示
+    property PaperDS:TMemDataSet read FPaperDS;//筛选后的总表，直接连接DBGrid
+    property each_class:TRTFP_ClassList read FClassList;
 
   public //连接显示
     procedure ProjectPropertiesValidate(AValueListEditor:TValueListEditor);
     procedure ProjectPropertiesDataPost(AValueListEditor:TValueListEditor);
 
-    procedure TableValidate(ADataSet:TMemDataSet;table_enabled:TablesUse);
+    procedure TableValidate({ADataSet:TMemDataSet;}table_enabled:TablesUse);
+
     procedure NodeViewValidate(PID:RTFP_ID;AValueListEditor:TValueListEditor);
     procedure NodeViewDataPost(PID:RTFP_ID;AValueListEditor:TValueListEditor);
 
@@ -366,7 +381,7 @@ type
     FOnSaveAs,FOnSaveAsDone:TNotifyEvent;
     FOnClose,FOnCloseDone:TNotifyEvent;
     FOnFirstEdit,FOnChange:TNotifyEvent;
-    FOnDataChange,FOnFieldChange,FOnRecordChange:TNotifyEvent;
+    FOnDataChange,FOnFieldChange,FOnRecordChange,FOnClassChange:TNotifyEvent;
 
   public
     property onNew:TNotifyEvent read FOnNew write FOnNew;
@@ -386,6 +401,15 @@ type
     property onDataChange:TNotifyEvent read FOnDataChange write FOnDataChange;
     property onFieldChange:TNotifyEvent read FOnFieldChange write FOnFieldChange;
     property onRecordChange:TNotifyEvent read FOnRecordChange write FOnRecordChange;
+    property onClassChange:TNotifyEvent read FOnClassChange write FOnClassChange;
+
+  public
+    procedure Change;//用于标记工程已经发生改变，如果之前未改变，会触发OnFirstEdit
+    procedure DataChange;//数据修改，也会触发Change事件
+    procedure FieldChange;//字段修改，也会触发Change事件
+    procedure RecordChange;//记录修改，也会触发Change事件
+    procedure ClassChange;//分类修改，也会触发Change事件
+
 
   {类方法}
   public
@@ -397,8 +421,8 @@ type
 
     class function IsProjectFile(filename:ansistring):boolean;
 
-    class function BackupDbf(ADBF:TDbf):boolean;
-    class function RecoverDbf(ADBF:TDbf):boolean;
+    //class function BackupDbf(ADBF:TDbf):boolean;
+    //class function RecoverDbf(ADBF:TDbf):boolean;
 
     class function CanBuildName(projname:string):boolean;
     class function CanBuildPath(pathname:string):boolean;
@@ -430,33 +454,6 @@ procedure AufScriptFuncDefineRTFP(Auf:TAuf);
 implementation
 uses RTFP_main;
 
-
-{
-procedure add_attr(Sender:TObject);
-var AufScpt:TAufScript;
-    AAuf:TRTFP_Auf;
-    id:byte;
-    group_name:string;
-begin
-  AufScpt:=Sender as TAufScript;
-  AAuf:=AufScpt.Auf as TRTFP_Auf;
-  if not AAuf.CheckArgs(3) then exit;
-  if not AAuf.TryArgToByte(1,id) then exit;
-  if not AAuf.TryArgToString(2,group_name) then exit;
-  (AAuf.RTFP as TRTFP).AddAttrGroup(id,group_name);
-end;
-procedure delete_attr(Sender:TObject);
-var AufScpt:TAufScript;
-    AAuf:TRTFP_Auf;
-    id:byte;
-    group_name:string;
-begin
-  AufScpt:=Sender as TAufScript;
-  AAuf:=AufScpt.Auf as TRTFP_Auf;
-  if not AAuf.TryArgToByte(1,id) then begin ShowMessage('函数'+AAuf.nargs[0].arg+'的id参数无效！');exit end;
-  (AAuf.RTFP as TRTFP).DeleteAttrGroup(id);
-end;
-}
 
 {
 procedure aufunc_XXX(Sender:TObject);
@@ -500,6 +497,115 @@ begin
 end;
 
 
+procedure aufunc_addKlass(Sender:TObject);//class.add KlassName,Path
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    s1,s2:string;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(3) then exit;
+  if not AAuf.TryArgToString(1,s1) then exit;
+  if not AAuf.TryArgToString(2,s2) then exit;
+  CurrentRTFP.AddKlass(s1,s2);
+  AufScpt.writeln('成功');
+end;
+
+procedure aufunc_deleteKlass(Sender:TObject);//class.delete KlassName
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    s1:string;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(2) then exit;
+  if not AAuf.TryArgToString(1,s1) then exit;
+  CurrentRTFP.DeleteKlass(s1);
+  AufScpt.writeln('成功');
+end;
+
+procedure aufunc_newKlassF(Sender:TObject);//class.newf KlassName
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    s1:string;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(2) then exit;
+  if not AAuf.TryArgToString(1,s1) then exit;
+  CurrentRTFP.NewKlassFile(s1);
+  AufScpt.writeln('成功');
+end;
+
+procedure aufunc_openKlassF(Sender:TObject);//class.openf KlassName
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    s1:string;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(2) then exit;
+  if not AAuf.TryArgToString(1,s1) then exit;
+  CurrentRTFP.OpenKlassFile(s1);
+  AufScpt.writeln('成功');
+end;
+
+procedure aufunc_saveKlassF(Sender:TObject);//class.savef KlassName
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    s1:string;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(2) then exit;
+  if not AAuf.TryArgToString(1,s1) then exit;
+  CurrentRTFP.SaveKlassFile(s1);
+  AufScpt.writeln('成功');
+end;
+
+procedure aufunc_closeKlassF(Sender:TObject);//class.closef KlassName
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    s1:string;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(2) then exit;
+  if not AAuf.TryArgToString(1,s1) then exit;
+  CurrentRTFP.CloseKlassFile(s1);
+  AufScpt.writeln('成功');
+end;
+
+procedure aufunc_KlassInclude(Sender:TObject);//class.include KlassName, PID
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    s1,s2:string;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(3) then exit;
+  if not AAuf.TryArgToString(1,s1) then exit;
+  if not AAuf.TryArgToString(2,s2) then exit;
+  CurrentRTFP.KlassInclude(s1,s2);
+  AufScpt.writeln('成功');
+end;
+
+procedure aufunc_KlassExclude(Sender:TObject);//class.exclude KlassName, PID
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    s1,s2:string;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(3) then exit;
+  if not AAuf.TryArgToString(1,s1) then exit;
+  if not AAuf.TryArgToString(2,s2) then exit;
+  CurrentRTFP.KlassExclude(s1,s2);
+  AufScpt.writeln('成功');
+end;
+
+
+
 
 procedure aufunc_EditAttr(Sender:TObject);//attr.edit PID,AttrNo,FieldName,"memo"
 var AufScpt:TAufScript;
@@ -541,7 +647,7 @@ begin
   AufScpt.writeln('Fields['+IntToStr(AAttrNo)+','+AFieldName+']='+AValue);
 
 end;
-
+{
 procedure aufunc_BackupDBF(Sender:TObject);//dbf.backup AttrNo
 var AufScpt:TAufScript;
     AAuf:TAuf;
@@ -569,7 +675,7 @@ begin
   TRTFP.RecoverDbf(CurrentRTFP.FAttrGroupList[AAttrNo].Dbf);
   AufScpt.writeln(CurrentRTFP.FAttrGroupList[AAttrNo].Name+'还原成功！');
 end;
-
+}
 procedure aufunc_AddAttrField(Sender:TObject);//attrs.field.add AttrNo,FieldName,type,size
 var AufScpt:TAufScript;
     AAuf:TAuf;
@@ -718,8 +824,8 @@ begin
     Script.add_func('new.iid',@aufunc_newImageId,'','返回一个可用的IID');
     Script.add_func('new.nid',@aufunc_newNoteId,'','返回一个可用的NID');
 
-    Script.add_func('dbf.backup',@aufunc_BackupDBF,'AttrNo','备份第AttrNo个属性组');
-    Script.add_func('dbf.recover',@aufunc_RecoverDBF,'AttrNo','还原第AttrNo个属性组');
+    //Script.add_func('dbf.backup',@aufunc_BackupDBF,'AttrNo','备份第AttrNo个属性组');
+    //Script.add_func('dbf.recover',@aufunc_RecoverDBF,'AttrNo','还原第AttrNo个属性组');
 
 
     //Script.add_func('paper.add',@aufunc_AddPaper,'filename','新建Paper节点');
@@ -728,6 +834,15 @@ begin
 
     Script.add_func('attrs.field.add',@aufunc_AddAttrField,'AttrNo,FieldName','在第AttrNo表中创建FieldName字段');
     Script.add_func('attrs.field.drop',@aufunc_DropAttrField,'AttrNo,FieldName','在第AttrNo表中创建FieldName字段');
+
+    Script.add_func('class.add',@aufunc_addKlass,'KlassName, Path','创建分类表');
+    Script.add_func('class.delete',@aufunc_DeleteKlass,'KlassName','删除分类表');
+    Script.add_func('class.newf',@aufunc_NewKlassF,'KlassName','新建分类表文件');
+    Script.add_func('class.openf',@aufunc_OpenKlassF,'KlassName','打开分类表文件');
+    Script.add_func('class.savef',@aufunc_SaveKlassF,'KlassName','保存分类表文件');
+    Script.add_func('class.closef',@aufunc_CloseKlassF,'KlassName','关闭分类表文件');
+    Script.add_func('class.include',@aufunc_KlassInclude,'KlassName, PID','将PID节点加入分类');
+    Script.add_func('class.exclude',@aufunc_KlassExclude,'KlassName, PID','将PID节点移除分类');
 
 
     Script.add_func('pdf.meta',@aufunc_ShowMeta,'filename','检查pdf文件的meta数据');
@@ -756,6 +871,7 @@ constructor TRTFP.Create(AOwner:TComponent);
 begin
   inherited Create(AOwner);
 
+  FPaperDS:=TMemDataset.Create(Self);
 
   ProjectFileValue:=TValueListEditor.Create(nil);
   //ProjectFileValue.Parent:=AOwner;
@@ -816,6 +932,8 @@ begin
 
   ProjectFileValue.Free;
 
+  FPaperDS.Free;
+
   inherited Destroy;
 end;
 
@@ -834,6 +952,9 @@ begin
     delete(stmp,1,len-5);
     if stmp='.rtfp' then delete(Self.FRootFolder,len-4,5);
   end;
+
+  FClassList.Path:=FFilePath+FRootFolder;
+
 end;
 
 function TRTFP.OpenDbf(dbf_name_no_ext:string;Dbf:TDbf):boolean;
@@ -1191,7 +1312,7 @@ begin
   Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0, True);
   Dbf.FieldDefs.Add(_Col_PID_, ftString, 8, True);
 
-  Dbf.FieldDefs.Add(_Col_class_Is_Read_, ftSmallint, 0, True);//是否已读         否0 是1
+  Dbf.FieldDefs.Add(_Col_class_Is_Read_, {ftSmallint}ftBoolean, 0, True);//是否已读         否0 是1
 
   Dbf.FieldDefs.Add(_Col_class_DefaultCl_, ftMemo, 8, True);//默认类型（半角逗号隔开）
 
@@ -1385,12 +1506,13 @@ begin
 
   NewAttrDbfs;
 
-  Self.FIsOpen:=true;
   if FOnNewDone <> nil then FOnNewDone(Self);
+  Self.FIsOpen:=true;
+  if FOnOpenDone <> nil then FOnOpenDone(Self);
 end;
 
 Procedure TRTFP.Open(filename:ansistring);
-var stmp:TCollectionItem;
+//var stmp:TCollectionItem;
 begin
   if FOnOpen <> nil then FOnOpen(Self);
 
@@ -1403,6 +1525,8 @@ begin
   if not OpenDbf('note',Self.FNotesDB) then NewDbf('note',Self.FNotesDB);;
 
   OpenAttrDbfs;
+
+  FClassList.LoadFromPath('class\');
   {
   FFileList.BaseDir:=Self.FFilePath+Self.FRootFolder;
   FFileList.RunDir;
@@ -1411,6 +1535,7 @@ begin
       ShowMessage((stmp as TRTFP_FileItem).Name);
     end;
   }
+
   Self.FIsOpen:=true;
   if FOnOpenDone <> nil then FOnOpenDone(Self);
 end;
@@ -1490,6 +1615,11 @@ end;
 procedure TRTFP.RecordChange;
 begin
   if (not FIsUpdating) and (FOnRecordChange<>nil) then FOnRecordChange(Self);
+  Change;
+end;
+procedure TRTFP.ClassChange;
+begin
+  if (not FIsUpdating) and (FOnClassChange<>nil) then FOnClassChange(Self);
   Change;
 end;
 
@@ -1811,17 +1941,111 @@ begin
 end;
 
 
-{
-procedure TRTFP.EditPaperData(PID:RTFP_ID;col_name,value:string);//修改指定PID文献的属性
+function TRTFP.AddKlass(klassname:string;pathname:string='\'):TRTFP_ClassItem;
 begin
-
+  result:=nil;
+  if FClassList.FindItemIndexByName(klassname)>=0 then exit;
+  result:=FClassList.AddEx(pathname+'\'+klassname,klassname);
+  ClassChange;
 end;
 
-function TRTFP.ReadPaperData(PID:RTFP_ID;col_name:string):string;//读取指定PID文献的属性
+function TRTFP.DeleteKlass(klassname:string):boolean;
+var index:integer;
 begin
-
+  result:=false;
+  index:=FClassList.FindItemIndexByName(klassname);
+  if index<0 then exit;
+  FClassList.Delete(index);
+  ClassChange;
+  result:=true;
 end;
-}
+
+function TRTFP.NewKlassFile(klassname:string):boolean;
+var index:integer;
+begin
+  result:=false;
+  index:=FClassList.FindItemIndexByName(klassname);
+  if index<0 then exit;
+  GenAttrDefaultAttribute(FClassList[index].Dbf);
+  NewDbf(FClassList[index].FullPath,FClassList[index].Dbf);
+  Change;
+  result:=true;
+end;
+
+function TRTFP.OpenKlassFile(klassname:string):boolean;
+var index:integer;
+begin
+  result:=false;
+  index:=FClassList.FindItemIndexByName(klassname);
+  if index<0 then exit;
+  if not OpenDbf(FClassList[index].FullPath,FClassList[index].Dbf) then begin
+    GenAttrDefaultAttribute(FClassList[index].Dbf);
+    NewDbf(FClassList[index].FullPath,FClassList[index].Dbf);
+    Change;
+  end;
+  result:=true;
+end;
+
+function TRTFP.SaveKlassFile(klassname:string):boolean;
+var index:integer;
+begin
+  result:=false;
+  index:=FClassList.FindItemIndexByName(klassname);
+  if index<0 then exit;
+  SaveDbf(FClassList[index].FullPath,FClassList[index].Dbf);
+  result:=true;
+end;
+
+function TRTFP.CloseKlassFile(klassname:string):boolean;
+var index:integer;
+begin
+  result:=false;
+  index:=FClassList.FindItemIndexByName(klassname);
+  if index<0 then exit;
+  CloseDbf(FClassList[index].FullPath,FClassList[index].Dbf);
+  result:=true;
+end;
+
+function TRTFP.KlassInclude(klassname:string;PID:RTFP_ID):boolean;
+var index:integer;
+begin
+  result:=false;
+  index:=FClassList.FindItemIndexByName(klassname);
+  if index<0 then exit;
+  with FClassList[index].Dbf do begin
+    if not Active then Open;
+    First;
+    while not EOF do
+      begin
+        if FieldByName(_Col_PID_).AsString = PID then begin result:=true;exit end;
+        Next;
+      end;
+    Insert;
+    FieldByName(_Col_PID_).AsString:=PID;
+    Post;
+  end;
+  DataChange;
+  result:=true;
+end;
+
+function TRTFP.KlassExclude(klassname:string;PID:RTFP_ID):boolean;
+var index:integer;
+begin
+  result:=false;
+  index:=FClassList.FindItemIndexByName(klassname);
+  if index<0 then exit;
+  with FClassList[index].Dbf do begin
+    if not Active then Open;
+    First;
+    while not EOF do
+      begin
+        if FieldByName(_Col_PID_).AsString = PID then begin Delete;Post;exit end;
+        Next;
+      end;
+  end;
+  DataChange;
+  result:=true;
+end;
 
 procedure TRTFP.ReNewCreateTime(PID:RTFP_ID);
 begin
@@ -1916,7 +2140,7 @@ begin
   result:=true;
 end;
 
-function TRTFP.ExistAttrField(FieldName:string;AttrNo:byte):TDbfFieldDef;
+function TRTFP.ExistAttrField(FieldName:string;AttrNo:byte):TDbfFieldDef;//这个改完之后长了很多，建议改回Find
 var col:integer;
 begin
   col:=0;
@@ -1935,30 +2159,25 @@ end;
 function TRTFP.AddAttrField(FieldName:string;AttrNo:byte;FieldType:TFieldType;FieldSize:word):TDbfFieldDef;
 begin
   result:=nil;
-  FAttrGroupList[AttrNo].Dbf.DbfFieldDefs.Add(FieldName,FieldType,FieldSize);
-
-  FAttrGroupList[AttrNo].Dbf.PackTable;
-  FAttrGroupList[AttrNo].Dbf.RegenerateIndexes;
-  FAttrGroupList[AttrNo].Dbf.Close;
-  FAttrGroupList[AttrNo].Dbf.Open;
-
-  //用这个方法人工压缩一下文件
-  //TRTFP.BackupDbf(FAttrGroupList[AttrNo].Dbf);
-  //TRTFP.RecoverDbf(FAttrGroupList[AttrNo].Dbf);
+  with FAttrGroupList[AttrNo].Dbf do begin
+    DbfFieldDefs.Add(FieldName,FieldType,FieldSize);
+    PackTable;
+    RegenerateIndexes;
+    Close;
+    Open;
+  end;
 
   DataChange;
   result:=FAttrGroupList[AttrNo].Dbf.DbfFieldDefs.Items[FAttrGroupList[AttrNo].Dbf.DbfFieldDefs.Count-1];
 end;
 
 function TRTFP.DeleteAttrField(FieldName:string;AttrNo:byte):boolean;
-//PackTable和RestructionTable都有问题，暂时没有找到问题在哪，用备份替换对付一下
 var tmp:integer;
 begin
   result:=false;
   tmp:=0;
 
   with FAttrGroupList[AttrNo].Dbf do begin
-
     repeat
       if DbfFieldDefs.Items[tmp].FieldName=FieldName then break;
       inc(tmp);
@@ -1972,12 +2191,6 @@ begin
     Open;
     EndExclusive;
   end;
-
-
-
-  //用这个方法人工压缩一下文件
-  //TRTFP.BackupDbf(FAttrGroupList[AttrNo].Dbf);
-  //TRTFP.RecoverDbf(FAttrGroupList[AttrNo].Dbf);
 
   DataChange;
   result:=true;
@@ -2065,7 +2278,7 @@ begin
 
 end;
 
-procedure TRTFP.TableValidate(ADataSet:TMemDataSet;table_enabled:TablesUse);
+procedure TRTFP.TableValidate({FPaperDS:TMemDataSet;}table_enabled:TablesUse);
 var tmpDbf:TDbf;
     tmpFieldDef:TFieldDef;
     tmpFieldType:TFieldType;
@@ -2081,12 +2294,12 @@ var tmpDbf:TDbf;
     end;//记录分表字段在总表中的范围
 
 begin
-  ADataSet.Clear;
+  FPaperDS.Clear;
   tmpDbf:=FPaperDB;
   for pcol:=0 to tmpDbf.FieldDefs.Count-1 do
     begin
       tmpFieldDef:=tmpDbf.FieldDefs.Items[pcol];
-      ADataSet.FieldDefs.Add(tmpFieldDef.Name,tmpFieldDef.DataType,tmpFieldDef.Size);
+      FPaperDS.FieldDefs.Add(tmpFieldDef.Name,tmpFieldDef.DataType,tmpFieldDef.Size);
       fields_numbers[pcol].AttrNo:=255;//PaperDB 用 255 表示
       fields_numbers[pcol].Column:=pcol;
     end;
@@ -2109,7 +2322,7 @@ begin
                 tmpFieldType:=ftString;
                 tmpSIze:=250;
               end;
-            ADataSet.FieldDefs.Add(IntToStr(pj)+tmpFieldDef.Name,tmpFieldType,tmpSize);
+            FPaperDS.FieldDefs.Add(IntToStr(pj)+tmpFieldDef.Name,tmpFieldType,tmpSize);
             fields_numbers[pcol].AttrNo:=pj;
             fields_numbers[pcol].Column:=pi;
             attr_range[pj].max:=pcol;
@@ -2120,22 +2333,22 @@ begin
     //if pj>99 then break;
   until (not FAttrGroupList[pj].Enabled) or (pj>99);
   if pj>99 then max_attr:=99 else max_attr:= pj-1;
-  ADataSet.CreateTable;
-  ADataSet.Open;
-  ADataSet.Last;
+  FPaperDS.CreateTable;
+  FPaperDS.Open;
+  FPaperDS.Last;
   tmpDbf:=FPaperDB;
   tmpDbf.First;
   if not tmpDbf.EOF then repeat
-    ADataSet.Append;
+    FPaperDS.Append;
     for pi:=0 to ori_max do
       begin
-        with ADataSet.Fields[pi] do case DataType of
-          ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo{,ftFmtMemo,ftFixedChar}:ADataSet.Fields[pi].AsString:=tmpDbf.Fields[pi].AsString;
-          ftBoolean:ADataSet.Fields[pi].AsBoolean:=tmpDbf.Fields[pi].AsBoolean;
-          ftFloat:ADataSet.Fields[pi].AsFloat:=tmpDbf.Fields[pi].AsFloat;
-          ftInteger,ftLargeint,ftSmallint,ftWord:ADataSet.Fields[pi].AsLargeInt:=tmpDbf.Fields[pi].AsLargeInt;
-          ftDateTime,ftDate,ftTime:ADataSet.Fields[pi].AsDateTime:=tmpDbf.Fields[pi].AsDateTime;
-          else assert(false,'ADataSet.Fields[pi].DataType未预设。');
+        with FPaperDS.Fields[pi] do case DataType of
+          ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo{,ftFmtMemo,ftFixedChar}:FPaperDS.Fields[pi].AsString:=tmpDbf.Fields[pi].AsString;
+          ftBoolean:FPaperDS.Fields[pi].AsBoolean:=tmpDbf.Fields[pi].AsBoolean;
+          ftFloat:FPaperDS.Fields[pi].AsFloat:=tmpDbf.Fields[pi].AsFloat;
+          ftInteger,ftLargeint,ftSmallint,ftWord:FPaperDS.Fields[pi].AsLargeInt:=tmpDbf.Fields[pi].AsLargeInt;
+          ftDateTime,ftDate,ftTime:FPaperDS.Fields[pi].AsDateTime:=tmpDbf.Fields[pi].AsDateTime;
+          else assert(false,'FPaperDS.Fields[pi].DataType未预设。');
         end;
       end;
     tmpDbf.Next;
@@ -2149,29 +2362,29 @@ begin
 
         if not tmpDbf.EOF then repeat
           PID:=tmpDbf.Fields[_Num_Attr_PID_].AsString;
-          ADataSet.First;
-          if not ADataSet.EOF then repeat
-            ADataSet.Next;
-            if ADataSet.Fields[_Num_Attr_PID_].AsString=PID then break;
-          until ADataSet.EOF;
-          if not ADataSet.EOF then begin
-            ADataSet.Edit;
+          FPaperDS.First;
+          if not FPaperDS.EOF then repeat
+            if FPaperDS.Fields[_Num_Attr_PID_].AsString=PID then break;
+            FPaperDS.Next;
+          until FPaperDS.EOF;
+          if not FPaperDS.EOF then begin
+            FPaperDS.Edit;
             for pi:=attr_range[pj].min to attr_range[pj].max do begin
-              case ADataSet.Fields[pi].DataType of
+              case FPaperDS.Fields[pi].DataType of
                 ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo{,ftFmtMemo,ftFixedChar}:
-                  ADataSet.Fields[pi].AsString:=tmpDbf.Fields[fields_numbers[pi].Column].AsString;
+                  FPaperDS.Fields[pi].AsString:=tmpDbf.Fields[fields_numbers[pi].Column].AsString;
                 ftBoolean:
-                  {ADataSet.Fields[pi].AsBoolean:=tmpDbf.Fields[fields_numbers[pi].Column].AsBoolean};
+                  {FPaperDS.Fields[pi].AsBoolean:=tmpDbf.Fields[fields_numbers[pi].Column].AsBoolean};
                 ftFloat:
-                  ADataSet.Fields[pi].AsFloat:=tmpDbf.Fields[fields_numbers[pi].Column].AsFloat;
+                  FPaperDS.Fields[pi].AsFloat:=tmpDbf.Fields[fields_numbers[pi].Column].AsFloat;
                 ftInteger,ftLargeint,ftSmallint,ftWord:
-                  ADataSet.Fields[pi].AsLargeInt:=tmpDbf.Fields[fields_numbers[pi].Column].AsLargeInt;
+                  FPaperDS.Fields[pi].AsLargeInt:=tmpDbf.Fields[fields_numbers[pi].Column].AsLargeInt;
                 ftDateTime,ftDate,ftTime:
-                  ADataSet.Fields[pi].AsDateTime:=tmpDbf.Fields[fields_numbers[pi].Column].AsDateTime
-                else assert(false,'ADataSet.Fields[pi].DataType未预设。');
+                  FPaperDS.Fields[pi].AsDateTime:=tmpDbf.Fields[fields_numbers[pi].Column].AsDateTime
+                else assert(false,'FPaperDS.Fields[pi].DataType未预设。');
               end;
             end;
-            ADataSet.Post;
+            FPaperDS.Post;
           end else assert(false,'分表有主表没有的PID');
           tmpDbf.Next;
         until tmpDbf.EOF;
@@ -2548,7 +2761,7 @@ begin
   until po<=0;
   if lowercase(ext)='rtfp' then result:=true;
 end;
-
+{
 class function TRTFP.BackupDbf(ADBF:TDbf):boolean;
 var tmpDbf:TDbf;
     tmpDbfFieldDef:TDbfFieldDef;
@@ -2613,7 +2826,7 @@ begin
 
   result:=true;
 end;
-
+}
 class function TRTFP.CanBuildPath(pathname:ansistring):boolean;
 begin
   result:=false;
