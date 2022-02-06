@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, Buttons,
-  ComCtrls, ExtCtrls, StdCtrls;
+  ComCtrls, ExtCtrls, StdCtrls, rtfp_dialog;
 
 const
   AnimationStepLen = 50;
@@ -16,6 +16,7 @@ type
   { TForm_ImportFiles }
 
   TForm_ImportFiles = class(TForm)
+    Button_ToMainForm: TButton;
     Button_ImportFileNamesCheck: TButton;
     Button_BackToPrev: TButton;
     CheckBox_UpdatePaper: TCheckBox;
@@ -53,6 +54,7 @@ type
     TabSheet_AddPaper: TTabSheet;
     procedure Button_BackToPrevClick(Sender: TObject);
     procedure Button_ImportFileNamesCheckClick(Sender: TObject);
+    procedure Button_ToMainFormClick(Sender: TObject);
     procedure CheckBox_UpdatePaperChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
@@ -104,10 +106,11 @@ begin
   SplitterImportFilesV.Left:=Width-6;
   Button_ImportFileNamesCheck.Enabled:=true;
   Button_ImportFileNamesCheck.Caption:='开始导入';
+  Button_BackToPrev.Enabled:=true;
   ProgressBar_ImportFiles.Position:=0;
   Edit_UpdatePaper.Caption:=FormDesktop.Selected_PID+' - '+FormDesktop.Selected_FileName;
   CheckBox_UpdatePaper.Checked:=false;
-  Self.Show;
+  Self.ShowModal;
 end;
 
 procedure TForm_ImportFiles.Clear;
@@ -160,7 +163,7 @@ end;
 
 procedure TForm_ImportFiles.FormDeactivate(Sender: TObject);
 begin
-  Self.Hide;
+  //Self.Hide;
 end;
 
 procedure TForm_ImportFiles.FormDestroy(Sender: TObject);
@@ -207,6 +210,8 @@ begin
   ProgressBar_ImportFiles.Max:=FFileNames.Count;
   all_success:=true;
   try
+    FormDesktop.ShowWaitForm:=false;
+    AllState.Enable;
     tmpProc:=CurrentRTFP.onChange;
     CurrentRTFP.onChange:=nil;
     //真离谱出此下策
@@ -243,18 +248,27 @@ begin
       end;
   finally
     CurrentRTFP.onChange:=tmpProc;
+    FormDesktop.ShowWaitForm:=true;
+    AllState.Disable;
   end;
   if all_success then begin
     //Clear;
-    Self.Hide;
+    //Self.Hide;
+    Button_ToMainForm.Click;
   end else begin
     MessageDlg('警告','部分文件导入失败！',mtWarning,[mbOK],0);
     //Clear;
     //Self.Hide;
     Button_ImportFileNamesCheck.Caption:='手动退出';
     Button_ImportFileNamesCheck.Enabled:=false;
+    Button_BackToPrev.Enabled:=false;
   end;
   CurrentRTFP.DataChange;
+end;
+
+procedure TForm_ImportFiles.Button_ToMainFormClick(Sender: TObject);
+begin
+  //操作在ModalResult里头，不用自己写退出
 end;
 
 procedure TForm_ImportFiles.CheckBox_UpdatePaperChange(Sender: TObject);

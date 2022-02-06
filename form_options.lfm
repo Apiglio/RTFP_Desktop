@@ -1,0 +1,9 @@
+object FormOptions: TFormOptions
+  Left = 944
+  Height = 300
+  Top = 373
+  Width = 400
+  Caption = '选项'
+  DesignTimePPI = 120
+  LCLVersion = '1.8.4.0'
+end

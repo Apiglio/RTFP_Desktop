@@ -88,6 +88,7 @@ object Form_NewProject: TForm_NewProject
     BorderSpacing.Left = 10
     BorderSpacing.Bottom = 15
     Caption = '创建'
+    ModalResult = 1
     OnClick = Button_CreateClick
     TabOrder = 2
   end
