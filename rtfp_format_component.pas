@@ -1,5 +1,3 @@
-//推荐取消泛型，改用指针
-
 unit rtfp_format_component;
 
 {$mode objfpc}{$H+}
@@ -7,9 +5,36 @@ unit rtfp_format_component;
 interface
 
 uses
-  Classes, SysUtils, Controls, StdCtrls, ExtCtrls, fgl;
+  Classes, SysUtils, Controls, StdCtrls, ExtCtrls, Graphics, Menus, Forms,
+  graphtype, intfgraphics, lazcanvas,
+  Clipbrd, LCLIntf, LCLType;
 
 type
+
+  TFColor = record b,g,r:Byte;end;
+  PFColor = ^TFColor;
+  TLine = array[0..0] of TFColor;
+  PLine = ^TLine;
+
+
+
+  TFmtImage = class(TScrollBox)
+  private
+    FPopupMenu:TPopupMenu;
+    FImage:TImage;
+  protected
+    procedure FmtMouseUp(Sender:TObject;Button:TMouseButton;Shift:TShiftState;X,Y:Integer);
+    procedure PastePicture(Sender:TObject);
+    procedure CopyPicture(Sender:TObject);
+    procedure OpenPicture(Sender:TObject);
+    procedure CompressPicture(Sender:TObject);
+
+  public
+    constructor Create(AOwner:TComponent);override;
+    destructor Destroy; override;
+    property Image:TImage read FImage;
+  end;
+
 
   TFormatEditPanel = class(TPanel)
   private
@@ -42,6 +67,8 @@ type
     function GetString:string;
 
     function GetLines:TStrings;
+    function GetBitMap:TBitMap;
+    //function GetImage:TImage;
 
     procedure SetBool(value:boolean);
     procedure SetLInt(value:int64);
@@ -54,69 +81,179 @@ type
     property AsFloat:double read GetFloat write SetFloat;
     property AsString:string read GetString write SetString;
     property AsMemo:TStrings read GetLines;
-
+    property AsBitMap:TBitMap read GetBitMap;
+    //property AsImage:TImage read GetImage;
 
   end;
-
-  TFmtCmp = class
-  public
-    TitleLabel:TLabel;
-    FEditable:boolean;
-  public
-    function GetAttrsName:string;virtual;abstract;
-    function GetFieldName:string;virtual;abstract;
-    function GetDisplayName:string;virtual;abstract;
-    procedure SetAttrsName(str:string);virtual;abstract;
-    procedure SetFieldName(str:string);virtual;abstract;
-    procedure SetDisplayName(str:string);virtual;abstract;
-  public
-    function GetComponent:Pointer;virtual;abstract;
-  public
-    constructor Create;virtual;
-    destructor Destroy;virtual;
-    property Editable:boolean read FEditable write FEditable;
-  end;
-
-  generic TFmtComponent<T>=class(TFmtCmp)
-  private
-    FAttrsName,FFieldName,FDisplayName:string;
-    FComponent:T;
-  public
-    constructor Create;override;
-    destructor Destroy;override;
-  public
-    function GetAttrsName:string;override;
-    function GetFieldName:string;override;
-    function GetDisplayName:string;override;
-    procedure SetAttrsName(str:string);override;
-    procedure SetFieldName(str:string);override;
-    procedure SetDisplayName(str:string);override;
-  public
-    function GetComponent:Pointer;override;
-  public
-    property AttrsName:string read GetAttrsName write SetAttrsName;
-    property FieldName:string read GetFieldName write SetFieldName;
-    property DisplayName:string read GetDisplayName write SetDisplayName;
-    property Component:Pointer read GetComponent;
-  end;
-
-  TFmtEdit = specialize TFmtComponent<TEdit>;
-  TFmtMemo = specialize TFmtComponent<TMemo>;
-  TFmtCheckBox = specialize TFmtComponent<TCheckBox>;
-  TFmtComboBox = specialize TFmtComponent<TComboBox>;
-  TFmtSplitter = specialize TFmtComponent<TSplitter>;
-  //TFmt = specialize TFmtComponent<T>;
-
-  RTFP_ID_Exchange = string;
-
-
-  //procedure FmtCmpGetLoadFromDB(PID:RTFP_ID_Exchange;Cmp:TFmtCmp);
-  //procedure FmtCmpSetSaveToDB(PID:RTFP_ID_Exchange;Cmp:TFmtCmp);
-
 
 
 implementation
+uses rtfp_dialog;
 
+
+//版权声明：本文为CSDN博主「OK_boom」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
+//原文链接：https://blog.csdn.net/rocklee/article/details/23772391
+procedure StretchDrawBitmapToBitmap(SourceBitmap, DestBitmap: TBitmap; DestWidth, DestHeight: integer);
+var DestIntfImage, SourceIntfImage: TLazIntfImage;
+    DestCanvas: TLazCanvas;
+begin
+  // Prepare the destination
+  DestBitmap.Height:=DestHeight;
+  DestBitmap.Width:=DestWidth;
+  DestIntfImage := TLazIntfImage.Create(0, 0);
+  DestIntfImage.LoadFromBitmap(DestBitmap.Handle, 0);
+  DestCanvas := TLazCanvas.Create(DestIntfImage);
+  //Prepare the source
+  SourceIntfImage := TLazIntfImage.Create(0, 0);
+  SourceIntfImage.LoadFromBitmap(SourceBitmap.Handle, 0);
+  // Execute the stretch draw via TFPSharpInterpolation
+  DestCanvas.Interpolation := TFPSharpInterpolation.Create;
+  DestCanvas.StretchDraw(0, 0, DestWidth, DestHeight, SourceIntfImage);
+  // Reload the image into the TBitmap
+  DestBitmap.LoadFromIntfImage(DestIntfImage);
+  SourceIntfImage.Free;
+  DestCanvas.Interpolation.Free;
+  DestCanvas.Free;
+  DestIntfImage.Free;
+end;
+
+
+//版权声明：本文为CSDN博主「OK_boom」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
+//原文链接：https://blog.csdn.net/rocklee/article/details/23772391
+procedure SmoothResize(Src,Dst: TBitmap;newWidth,newHeight:integer);
+var x,y,xP,yP,yP2,xP2:Integer;
+    Read,Read2:PLine;
+    t,z,iz,z2,iz2:Integer;
+    pc:PFColor;
+begin
+  if src.Width=1 then Exit;
+  Dst.Width:=newWidth;
+  Dst.Height:=newHeight;
+  {
+  if (Dst.Width = src.Width) and (Dst.Height = src.Height) then begin
+    CopyMemory(Dst.Bits,Bits,Size);
+    Exit;
+  end;
+  }
+  xP2:=((src.Width-1) shl 16) div Dst.Width;
+  yP2:=((src.Height-1) shl 16) div Dst.Height;
+  yP:=0;
+  for y:=0 to Dst.Height-1 do begin
+    xP:=0;
+    Read:=src.ScanLine[yP shr 16];
+    if yP shr 16 < src.Height - 1 then Read2:=src.ScanLine[yP shr 16+1]
+    else Read2:=src.ScanLine[yP shr 16];
+    pc:=Dst.ScanLine[y];
+    z2:=yP and $FFFF;
+    iz2:=$10000-z2;
+    for x:=0 to Dst.Width-1 do begin
+      t:=xP shr 16;
+      z:=xP and $FFFF;
+      iz:=$10000-z;
+      pc^.b:=(((Read^[t].b*iz+Read^[t+1].b*z) shr 16)*iz2+((Read2^[t].b*iz+Read2^[t+1].b*z) shr 16)*z2) shr 16;
+      pc^.r:=(((Read^[t].r*iz+Read^[t+1].r*z) shr 16)*iz2+((Read2^[t].r*iz+Read2^[t+1].r*z) shr 16)*z2) shr 16;
+      pc^.g:=(((Read^[t].g*iz+Read^[t+1].g*z) shr 16)*iz2+((Read2^[t].g*iz+Read2^[t+1].g*z) shr 16)*z2) shr 16;
+      Inc(pc);
+      Inc(xP,xP2);
+    end;
+    Inc(yP, yP2);
+  end;
+end;
+
+
+
+
+procedure TFmtImage.FmtMouseUp(Sender:TObject;Button:TMouseButton;Shift:TShiftState;X,Y:Integer);
+begin
+  //if (Button=mbRight) and (Shift=[]) then
+  //  begin
+      //FPopupMenu.PopUp;
+      MessageBox(0,'AA','AAA',mb_OK);
+  //  end;
+end;
+
+procedure TFmtImage.PastePicture(Sender:TObject);
+begin
+  if Clipboard.HasFormat(PredefinedClipboardFormat(pcfDelphiBitmap)) then
+    FImage.Picture.Bitmap.LoadFromClipboardFormat(PredefinedClipboardFormat(pcfDelphiBitmap));
+  if Clipboard.HasFormat(PredefinedClipboardFormat(pcfBitmap)) then
+    FImage.Picture.Bitmap.LoadFromClipboardFormat(PredefinedClipboardFormat(pcfBitmap));
+end;
+procedure TFmtImage.CopyPicture(Sender:TObject);
+begin
+  FImage.Picture.Bitmap.SaveToClipboardFormat(PredefinedClipboardFormat(pcfBitmap));
+end;
+procedure TFmtImage.OpenPicture(Sender:TObject);
+begin
+  ShowMsgImage('图片详情',FImage.Picture.Bitmap,true);
+end;
+procedure TFmtImage.CompressPicture(Sender:TObject);
+var ow,oh,nw,nh:integer;
+    nwh:string;
+    tmpBitmap:TBitMap;
+begin
+  ow:=FImage.Picture.Bitmap.Width;
+  oh:=FImage.Picture.Bitmap.Height;
+  nwh:=ShowMsgEdit('压缩图片','压缩后像素宽度：',IntToStr(ow));
+  try
+    nw:=StrToInt(nwh);
+    nh:=oh*nw div ow;
+    if nh*nw=0 then raise Exception.Create('');
+    if (nh>4000) or (nw>4000) then raise Exception.Create('');
+  except
+    ShowMsgOK('错误','新尺寸过大或无效，未能压缩图片属性。');
+    exit;
+  end;
+  tmpBitmap:=TBitmap.Create;
+  try
+    //SmoothResize(FImage.Picture.Bitmap,tmpBitmap,nw,nh);
+    StretchDrawBitmapToBitmap(FImage.Picture.Bitmap,tmpBitmap,nw,nh);
+    FImage.Picture.Bitmap:=tmpBitmap;
+  finally
+    tmpBitmap.Free;
+  end;
+end;
+constructor TFmtImage.Create(AOwner:TComponent);
+begin
+  inherited Create(AOwner);
+  FImage:=TImage.Create(Self);
+  with FImage do
+    begin
+      Parent:=Self;
+      Align:=alClient;
+      Proportional:=true;
+    end;
+  Self.AutoScroll:=true;
+  Self.VertScrollBar.Visible:=true;
+
+  FPopupMenu:=TPopupMenu.Create(Self);
+  FPopupMenu.Parent:=Self;
+  FPopupMenu.Items.Add(TMenuItem.Create(Self));
+  FPopupMenu.Items.Add(TMenuItem.Create(Self));
+  FPopupMenu.Items.Add(TMenuItem.Create(Self));
+  FPopupMenu.Items.Add(TMenuItem.Create(Self));
+  FPopupMenu.Items.Add(TMenuItem.Create(Self));
+  FPopupMenu.Items.Add(TMenuItem.Create(Self));
+  FPopupMenu.Items[0].Caption:='打开';
+  FPopupMenu.Items[0].OnClick:=@OpenPicture;
+  FPopupMenu.Items[1].Caption:='-';
+  FPopupMenu.Items[1].OnClick:=nil;
+  FPopupMenu.Items[2].Caption:='复制';
+  FPopupMenu.Items[2].OnClick:=@CopyPicture;
+  FPopupMenu.Items[3].Caption:='粘贴';
+  FPopupMenu.Items[3].OnClick:=@PastePicture;
+  FPopupMenu.Items[4].Caption:='-';
+  FPopupMenu.Items[4].OnClick:=nil;
+  FPopupMenu.Items[5].Caption:='压缩图片';
+  FPopupMenu.Items[5].OnClick:=@CompressPicture;
+  //OnMouseUp:=@FmtMouseUp;
+  PopupMenu:=FPopupMenu;
+end;
+destructor TFmtImage.Destroy;
+begin
+  //FImage.Free;
+  inherited Destroy;
+end;
 
 constructor TFormatEditPanel.Create(CmpClass:TClass);
 begin
@@ -140,10 +277,10 @@ begin
     'TMemo':FComponent:=TMemo.Create(Self);
     'TComboBox':FComponent:=TComboBox.Create(Self);
     'TCheckBox':FComponent:=TCheckBox.Create(Self);
+    'TFmtImage':FComponent:=TFmtImage.Create(Self);
     else raise Exception.Create('FormatEditPanel Type Error');
   end;
-  with TWinControl(FComponent) do begin
-    Parent:=Self;
+  with TControl(FComponent) do begin
     Anchors:=[akTop,akLeft,akRight,akBottom];
     AnchorSideLeft.Control:=Self;
     AnchorSideLeft.Side:=asrLeft;
@@ -162,6 +299,13 @@ begin
     BorderSpacing.Bottom:=10;
 
   end;
+  if TObject(FComponent) is TWinControl then
+    TWinControl(FComponent).Parent:=Self
+  else begin
+    TFmtImage(FComponent).Parent:=Self;
+    //
+  end;
+
   Self.Resize;
 end;
 
@@ -173,6 +317,7 @@ begin
     'TMemo':TMemo(FComponent).Free;
     'TComboBox':TComboBox(FComponent).Free;
     'TCheckBox':TCheckBox(FComponent).Free;
+    'TFmtImage':TFmtImage(FComponent).Free;
     else raise Exception.Create('FormatEditPanel Type Error');
   end;
   inherited Destroy;
@@ -180,113 +325,89 @@ end;
 
 function TFormatEditPanel.GetBool:boolean;
 begin
-  assert(FClass=TCheckBox,'非checkbox不能调用AsBoolean');
-  result:=TCheckBox(FComponent).Checked;
+  case FClass.ClassName of
+    'TCheckBox':result:=TCheckBox(FComponent).Checked;
+    else result:=false;
+  end;
 end;
 function TFormatEditPanel.GetLInt:int64;
 begin
-  assert(FClass=TEdit,'非edit不能调用AsLargeInt');
-  try result:=StrToInt(TEdit(FComponent).Caption);
-  except result:=0 end;
+  try
+    case FClass.ClassName of
+      'TEdit':result:=StrToInt(TEdit(FComponent).Caption);
+      else result:=0;
+    end;
+  except
+    result:=0;
+  end;
 end;
 function TFormatEditPanel.GetFloat:double;
 begin
-  assert(FClass=TEdit,'非edit不能调用AsFloat');
-  try result:=StrToFloat(TEdit(FComponent).Caption);
-  except result:=0 end;
+  try
+    case FClass.ClassName of
+      'TEdit':result:=StrToFloat(TEdit(FComponent).Caption);
+      else result:=0;
+    end;
+  except
+    result:=0;
+  end;
 end;
 function TFormatEditPanel.GetString:string;
 begin
-  assert(FClass=TEdit,'非edit不能调用AsString');
-  result:=TEdit(FComponent).Caption;
+  case FClass.ClassName of
+    'TEdit':result:=TEdit(FComponent).Caption;
+    else result:='';
+  end;
 end;
 
 function TFormatEditPanel.GetLines:TStrings;
 begin
-  assert(FClass=TMemo,'非memo不能调用AsLines');
-  result:=TMemo(FComponent).Lines;
+  case FClass.ClassName of
+    'TMemo':result:=TMemo(FComponent).Lines;
+    else result:=nil;
+  end;
 end;
+
+function TFormatEditPanel.GetBitMap:TBitMap;
+begin
+  case FClass.ClassName of
+    'TFmtImage':result:=TFmtImage(FComponent).Image.Picture.Bitmap;
+    else result:=nil;
+  end;
+end;
+{
+function TFormatEditPanel.GetImage:TImage;
+begin
+  case FClass.ClassName of
+    'TFmtImage':result:=TFmtImage(FComponent);
+    else result:=nil;
+  end;
+end;
+}
 
 procedure TFormatEditPanel.SetBool(value:boolean);
 begin
-  assert(FClass=TCheckBox,'非checkbox不能调用AsBoolean');
-  TCheckBox(FComponent).Checked:=value;
+  case FClass.ClassName of
+    'TCheckBox':TCheckBox(FComponent).Checked:=value;
+  end;
 end;
 procedure TFormatEditPanel.SetLInt(value:int64);
 begin
-  assert(FClass=TEdit,'非edit不能调用AsLargeInt');
-  TEdit(FComponent).Caption:=IntToStr(value);
+  case FClass.ClassName of
+    'TEdit':TEdit(FComponent).Caption:=IntToStr(value);
+  end;
 end;
 procedure TFormatEditPanel.SetFloat(value:double);
 begin
-  assert(FClass=TEdit,'非edit不能调用AsLargeInt');
-  TEdit(FComponent).Caption:=FloatToStr(value);
+  case FClass.ClassName of
+    'TEdit':TEdit(FComponent).Caption:=FloatToStr(value);
+  end;
 end;
 procedure TFormatEditPanel.SetString(value:string);
 begin
-  assert(FClass=TEdit,'非edit不能调用AsString');
-  TEdit(FComponent).Caption:=value;
-end;
-
-
-
-
-constructor TFmtCmp.Create;
-begin
-  inherited Create;
-  TitleLabel:=TLabel.Create(nil);
-  FEditable:=true;
-end;
-
-destructor TFmtCmp.Destroy;
-begin
-  TitleLabel.Parent:=nil;
-  TitleLabel.Free;
-  inherited Destroy;
-end;
-
-constructor TFmtComponent.Create;
-begin
-  assert(TObject(T) is TComponent,'错误的泛型类型，需要是TComponent！');
-  inherited Create;
-  FComponent:=T.Create(nil);
-  if TWinControl(FComponent) is TMemo then TMemo(FComponent).ScrollBars:=ssAutoVertical;
-end;
-
-destructor TFmtComponent.Destroy;
-begin
-  TWinControl(FComponent).Parent:=nil;
-  TComponent(FComponent).Free;
-  inherited Destroy;
-end;
-
-function TFmtComponent.GetAttrsName:string;
-begin
-  result:=FAttrsName;
-end;
-function TFmtComponent.GetFieldName:string;
-begin
-  result:=FFieldName;
-end;
-function TFmtComponent.GetDisplayName:string;
-begin
-  result:=FDisplayName;
-end;
-function TFmtComponent.GetComponent:Pointer;
-begin
-  result:=FComponent;
-end;
-procedure TFmtComponent.SetAttrsName(str:string);
-begin
-  FAttrsName:=str;
-end;
-procedure TFmtComponent.SetFieldName(str:string);
-begin
-  FFieldName:=str;
-end;
-procedure TFmtComponent.SetDisplayName(str:string);
-begin
-  FDisplayName:=str;
+  case FClass.ClassName of
+    'TEdit':TEdit(FComponent).Caption:=value;
+  end;
 end;
 
 

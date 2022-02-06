@@ -43,11 +43,15 @@ function ShowMsgList(const ACaption,APrompt:string;const AList:TStrings;
   Out ASelected:Integer):string;
 function ShowMsgList(const ACaption,APrompt:string;const AList:TStrings):string;
 function ShowMsgEdit(const ACaption,APrompt,DefaultStr:string):String;
+
+function ShowMsgImage(const ACaption:string;const ABitmap:TBitmap;ShowPixelInfo:boolean=false):string;
+
 function ShowMsgYesNoCancel(const ACaption,APrompt:string):String;//返回首字母大写的键名
 function ShowMsgYesNoAll(const ACaption,APrompt:string;UseAllState:boolean=false):String;//返回首字母大写的键名，可以使用AllState操作All键
 function ShowMsgRetryIgnore(const ACaption,APrompt:string;UseCancel:boolean=false):String;//返回首字母大写的键名
 function ShowMsgOK(const ACaption,APrompt:string):String;
 function ShowMsgOKAll(const ACaption,APrompt:string):String;
+
 
 //继续制作以下几类全部替代之前的MessageDlg和InputBox：
 //ShowMsgYesNoCancel:boolean;
@@ -313,6 +317,76 @@ begin
     if (Frm.ShowModal=mrOk) then begin
       Result:=CBEdit.Caption;
     end;
+
+  finally
+    FreeAndNil(Frm);
+  end;
+end;
+
+function ShowMsgImage(const ACaption:string;const ABitmap:TBitmap;ShowPixelInfo:boolean=false):string;
+var
+  W,H,Sep,Margin:Integer;
+  Frm:TForm;
+  Scroll:TScrollBox;
+  Image:TImage;
+begin
+  Margin:=24;
+  Sep:=8;
+  Result:='';
+  Frm:=TForm.Create(FormDesktop);
+  try
+
+    W:=Min(ABitmap.Width,600);
+    H:=ABitmap.Height*W div ABitmap.Width;
+
+    with frm do begin
+      BorderStyle:=bsSizeable;
+      if ShowPixelInfo then
+        Caption:=ACaption+' ('+IntToStr(ABitmap.Width)+'x'+IntToStr(ABitmap.Height)+')'
+      else
+        Caption:=ACaption;
+      ClientWidth:=W+2*Margin;
+      ClientHeight:=H+2*Margin;
+      Position:=poOwnerFormCenter;
+      KeyPreview:=true;
+    end;
+
+    Scroll:=TScrollBox.Create(Frm);
+    with Scroll do begin
+      Parent:=Frm;
+      //Left:=Margin;
+      //Top:=Margin;
+      //Width:=W;
+      //Height:=H;
+      Anchors:=[akTop,akLeft,akRight,akBottom];
+      BorderSpacing.Top:=Margin;
+      BorderSpacing.Left:=Margin;
+      BorderSpacing.Right:=Margin;
+      BorderSpacing.Bottom:=Margin;
+      AnchorSideTop.Control:=Frm;
+      AnchorSideTop.Side:=asrTop;
+      AnchorSideLeft.Control:=Frm;
+      AnchorSideLeft.Side:=asrLeft;
+      AnchorSideRight.Control:=Frm;
+      AnchorSideRight.Side:=asrRight;
+      AnchorSideBottom.Control:=Frm;
+      AnchorSideBottom.Side:=asrBottom;
+    end;
+
+    Image:=TImage.Create(Scroll);
+    with Image do begin
+      Parent:=Scroll;
+      Align:=alClient;
+      //Stretch:=true;
+      Proportional:=true;
+      //StretchInEnabled:=true;
+      //StretchOutEnabled:=true;
+      Picture.Bitmap:=ABitmap;
+    end;
+
+    Frm.ShowModal;
+    result:='';
+
 
   finally
     FreeAndNil(Frm);
