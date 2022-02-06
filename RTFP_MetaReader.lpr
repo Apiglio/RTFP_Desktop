@@ -7,7 +7,7 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, metareader_main
+  Forms, metareader_main, rtfp_pdfobj
   { you can add units after this };
 
 {$R *.res}

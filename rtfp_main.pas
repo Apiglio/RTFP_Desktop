@@ -11,10 +11,10 @@ uses
 
   AufScript_Frame,
 
-  RTFP_definition;
+  RTFP_definition, Types;
 
 const
-  C_VERSION_NUMBER  = '0.1.0-alpha.5';
+  C_VERSION_NUMBER  = '0.1.0-alpha.6';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -24,6 +24,9 @@ type
   { TFormDesktop }
 
   TFormDesktop = class(TForm)
+    Button_NodeViewAddAttr: TButton;
+    Button_NodeViewPost: TButton;
+    Button_NodeViewRecover: TButton;
     CheckListBox_MainAttrFilter: TCheckListBox;
     ComboBox_Attrs_View: TComboBox;
     DataSource_Attrs: TDataSource;
@@ -37,6 +40,8 @@ type
     MemDataset_Main: TMemDataset;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
+    MenuItem5: TMenuItem;
+    MenuItem_project_recent: TMenuItem;
     MenuItem_ImportFromOther: TMenuItem;
     MenuItem_ExportToOther: TMenuItem;
     MenuItem_CIteTool: TMenuItem;
@@ -72,20 +77,21 @@ type
     TabSheet_Node_PDF: TTabSheet;
     TabSheet_Project_Class: TTabSheet;
     TabSheet_Project_Attrs: TTabSheet;
-    TabSheet_Node_Edit: TTabSheet;
     TabSheet_Node_View: TTabSheet;
     TabSheet_Project_AufScript: TTabSheet;
     TabSheet_Project_DataGrid: TTabSheet;
     PropertiesValueListEditor: TValueListEditor;
+    ValueListEditor_NodeView: TValueListEditor;
+    procedure Button_NodeViewAddAttrClick(Sender: TObject);
+    procedure Button_NodeViewPostClick(Sender: TObject);
+    procedure Button_NodeViewRecoverClick(Sender: TObject);
     procedure CheckListBox_MainAttrFilterClickCheck(Sender: TObject);
     procedure ComboBox_Attrs_ViewChange(Sender: TObject);
-    procedure DBGrid_MainEndDrag(Sender, Target: TObject; X, Y: Integer);
-    procedure DBGrid_MainMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
-    procedure DBGrid_MainMouseUp(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
-    procedure DBGrid_MainStartDrag(Sender: TObject; var DragObject: TDragObject
-      );
+    procedure DBGrid_MainCellClick(Column: TColumn);
+    procedure DBGrid_MainKeyUp(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure DBGrid_MainMouseWheel(Sender: TObject; Shift: TShiftState;
+      WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
@@ -102,6 +108,7 @@ type
     procedure TabSheet_Project_AufScriptResize(Sender: TObject);
     procedure PropertiesValueListEditorEditingDone(Sender: TObject);
   private
+    function Selected_PID:RTFP_ID;//根据DBGrid_Main的选择返回PID
 
   public
     //RTFP类事件，Sender参数为TRTFP类
@@ -111,11 +118,20 @@ type
     procedure FirstEdit(Sender:TObject);//工程第一次编辑
     procedure Clear(Sender:TObject);//清空
 
+    procedure StopGridConnect;//断开展示连接
+    procedure ResetGridConnect;//重新连接数据展示
+
     procedure ProjectOpenDone(Sender:TObject);//工程打开或新建
     procedure ProjectCloseDone(Sender:TObject);//工程关闭
     procedure ProjectSaveDone(Sender:TObject);//工程保存
 
-    procedure ViewPdf(filename:string;page:dword);//预览pdf的page页
+    //以下与下半部分的NodeView有关
+    procedure ViewPdfValidate;
+    //预览pdf
+    procedure NodeViewValidate;
+    //根据当前DBGrid_Main的选择状态更新NodeView显示
+    procedure NodeViewDataPost;
+    //将NodeView的数据提交到工程中
 
   protected
     function GetMainAttrFilterSet:TablesUse;
@@ -130,7 +146,7 @@ var
   CurrentRTFP:TRTFP;
 
 implementation
-uses form_new_project, form_cite_trans;
+uses form_new_project, form_cite_trans, form_import;
 
 {$R *.lfm}
 
@@ -143,12 +159,16 @@ begin
   Sender.onFirstEdit:=@FirstEdit;
   Sender.onSaveDone:=@ProjectSaveDone;
   Sender.onCloseDone:=@ProjectCloseDone;
+  Sender.onChange:=@Validate;
 end;
 
 procedure TFormDesktop.Validate(Sender:TObject);
 var changed_str:string;
     attr_i,pi:integer;
     stmp,old_choice:string;
+
+    //此处刷新CheckBoxMainFilter的勾选就会重置，需解决
+
 begin
 
   if (Sender as TRTFP).IsChanged then changed_str:=' *'
@@ -160,7 +180,10 @@ begin
   else
     Self.Caption:=C_SOFTWARE_NAME;
 
+
   //工程信息 标签页
+  CurrentRTFP.ProjectPropertiesValidate(Self.PropertiesValueListEditor);
+  {
   Self.PropertiesValueListEditor.Values['工程标题']:=(Sender as TRTFP).Title;
   Self.PropertiesValueListEditor.Values['创建用户']:=(Sender as TRTFP).User;
 
@@ -170,11 +193,17 @@ begin
   Self.PropertiesValueListEditor.Values['属性组00']:=(Sender as TRTFP).Tag['属性组00'];
   Self.PropertiesValueListEditor.Values['属性组01']:=(Sender as TRTFP).Tag['属性组01'];
   Self.PropertiesValueListEditor.Values['属性组02']:=(Sender as TRTFP).Tag['属性组02'];
+  }
 
   //文献节点 & 文献属性组 标签页
   //{}Self.DataSource_Main.DataSet:=CurrentRTFP.PaperDB;
 
   CurrentRTFP.TableValidate(Self.MemDataset_Main,Self.MainAttrFilterSet);
+  //Self.DBGrid_Main.Columns[0].DisplayName:='c0';
+  //Self.DBGrid_Main.Columns[1].DisplayName:='c1';
+  //Self.DBGrid_Main.Columns[2].DisplayName:='c2';
+  //没用？？
+
   {}Self.DataSource_Main.DataSet:=Self.MemDataset_Main;
   {}Self.CheckListBox_MainAttrFilter.Items.Clear;
 
@@ -219,6 +248,16 @@ begin
   Self.CheckListBox_MainAttrFilter.ItemIndex:=-1;
 end;
 
+procedure TFormDesktop.StopGridConnect;
+begin
+  //Self.ProjectCloseDone(CurrentRTFP);
+end;
+
+procedure TFormDesktop.ResetGridConnect;
+begin
+  //Self.ProjectOpenDone(CurrentRTFP);
+end;
+
 procedure TFormDesktop.ProjectOpenDone(Sender:TObject);
 begin
   Self.Validate(Sender);
@@ -253,14 +292,34 @@ begin
   Self.MenuItem_project_save.Enabled:=false;
 end;
 
-procedure TFormDesktop.ViewPdf(filename:string;page:dword);
+function TFormDesktop.Selected_PID:RTFP_ID;
 begin
-  {
-  FPDF_RenderPage(
-    Self.Image_PDF_View.Picture.Bitmap.Canvas.Handle,
-    );
-    }
+  result:='000000';
+  if not DBGrid_Main.DataSource.DataSet.Active then exit;
+  result:=DBGrid_Main.DataSource.DataSet.Fields.FieldByName('PID').AsString;
 end;
+
+procedure TFormDesktop.ViewPdfValidate;
+begin
+  //
+end;
+
+procedure TFormDesktop.NodeViewValidate;
+var PID:RTFP_ID;
+begin
+  PID:=Selected_PID;
+  ValueListEditor_NodeView.Clear;
+  if PID='000000' then exit;
+  CurrentRTFP.NodeViewValidate(PID,ValueListEditor_NodeView);
+end;
+
+procedure TFormDesktop.NodeViewDataPost;
+var PID:RTFP_ID;
+begin
+  PID:=ValueListEditor_NodeView.Values['PID'];
+  CurrentRTFP.NodeViewDataPost(PID,ValueListEditor_NodeView);
+end;
+
 
 
 function TFormDesktop.GetMainAttrFilterSet:TablesUse;
@@ -373,12 +432,12 @@ procedure TFormDesktop.FormDropFiles(Sender: TObject;
   const FileNames: array of String);
 var len,pi:integer;
 begin
+  if not assigned(CurrentRTFP) then exit;
+  if not CurrentRTFP.IsOpen then exit;
   len:=Length(FileNames);
-  {
-  //Self.Panel_Release.Caption:=IntToStr(len);
-  if len=1 then Self.Panel_Release.Caption:=FileNames[0]
-  else Self.Panel_Release.Caption:='多个文件';
-  }
+
+  Form_ImportFiles.Show;
+
   for pi:=0 to len-1 do
     begin
       if CurrentRTFP.FindPaper(FileNames[pi]) = '000000' then
@@ -401,6 +460,22 @@ begin
   CurrentRTFP.TableValidate(Self.MemDataset_Main,Self.MainAttrFilterSet);
 end;
 
+procedure TFormDesktop.Button_NodeViewPostClick(Sender: TObject);
+begin
+  StopGridConnect;
+  NodeViewDataPost;
+end;
+
+procedure TFormDesktop.Button_NodeViewAddAttrClick(Sender: TObject);
+begin
+  ///////
+end;
+
+procedure TFormDesktop.Button_NodeViewRecoverClick(Sender: TObject);
+begin
+  NodeViewValidate;
+end;
+
 procedure TFormDesktop.ComboBox_Attrs_ViewChange(Sender: TObject);
 var pi:integer;
 begin
@@ -409,28 +484,24 @@ begin
   //在关闭工程以后 ，这里有一个错误
 end;
 
-procedure TFormDesktop.DBGrid_MainEndDrag(Sender, Target: TObject; X, Y: Integer
-  );
+
+procedure TFormDesktop.DBGrid_MainCellClick(Column: TColumn);
 begin
-  //Self.Caption:='BBBBBBBBB';
+  //ShowMessage(IntToStr((Self.DBGrid_Main).DataSource.DataSet.RecNo));
+  NodeViewValidate;
 end;
 
-procedure TFormDesktop.DBGrid_MainMouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TFormDesktop.DBGrid_MainKeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
 begin
-  //Self.Caption:='AAAAAAAAA';
+  NodeViewValidate;
 end;
 
-procedure TFormDesktop.DBGrid_MainMouseUp(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TFormDesktop.DBGrid_MainMouseWheel(Sender: TObject;
+  Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint;
+  var Handled: Boolean);
 begin
-  //Self.Caption:='BBBBBBBBB';
-end;
-
-procedure TFormDesktop.DBGrid_MainStartDrag(Sender: TObject;
-  var DragObject: TDragObject);
-begin
-  //Self.Caption:='AAAAAAAAA';
+  NodeViewValidate;
 end;
 
 procedure TFormDesktop.FormCloseQuery(Sender: TObject; var CanClose: boolean);
