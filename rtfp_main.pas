@@ -15,7 +15,7 @@ uses
   RTFP_definition, rtfp_constants, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.1.1-alpha.17';//如果增加了CheckAttrs的机制，请改成0.1.2
+  C_VERSION_NUMBER  = '0.1.2-alpha.1';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -36,9 +36,9 @@ type
   TFormDesktop = class(TForm)
     ACL_ListView_Klass: TACL_ListView;
     ACL_ListView_Attrs: TACL_ListView;
+    ComboBox_FormatEdit: TComboBox;
     Button_FormatEditPost: TButton;
     Button_FormatEditRecover: TButton;
-    Button_FormatEditLock: TButton;
     Button_MainFilter: TButton;
     Button_temp: TButton;
     Button_Project_NodeView_Fresh: TButton;
@@ -59,6 +59,11 @@ type
     LvlGraphControl: TLvlGraphControl;
     MainMenu: TMainMenu;
     Memo_FmtCmt: TMemo;
+    MenuItem1: TMenuItem;
+    MenuItem_Klass_check: TMenuItem;
+    MenuItem_Klass_del: TMenuItem;
+    MenuItem_Klass_Add: TMenuItem;
+    MenuItem_KlassMenu: TMenuItem;
     MenuItem_option_appearance: TMenuItem;
     MenuItem_AdvOpen_PDF: TMenuItem;
     MenuItem_AdvOpen_CAJ: TMenuItem;
@@ -86,7 +91,6 @@ type
     MenuItem_ImportFromOther: TMenuItem;
     MenuItem_ExportToOther: TMenuItem;
     MenuItem_CiteTool: TMenuItem;
-    MenuItem_main_div05: TMenuItem;
     MenuItem_project_close: TMenuItem;
     MenuItem_project_check: TMenuItem;
     MenuItem_main_div04: TMenuItem;
@@ -98,12 +102,9 @@ type
     MenuItem_project_unzip: TMenuItem;
     MenuItem_project_zip: TMenuItem;
     MenuItem_project_new: TMenuItem;
-    MenuItem_edit_newNote: TMenuItem;
-    MenuItem_edit_newClass: TMenuItem;
-    MenuItem_edit_newPaper: TMenuItem;
     MenuItem_option: TMenuItem;
     MenuItem_project: TMenuItem;
-    MenuItem_edit: TMenuItem;
+    MenuItem_Tool: TMenuItem;
     MenuItem_project_open: TMenuItem;
     OpenDialog_Project: TOpenDialog;
     PageControl_Filter: TPageControl;
@@ -138,7 +139,6 @@ type
       );
     procedure Button_FmtCmt_PostClick(Sender: TObject);
     procedure Button_FmtCmt_RecoverClick(Sender: TObject);
-    procedure Button_FormatEditLockClick(Sender: TObject);
     procedure Button_FormatEditPostClick(Sender: TObject);
     procedure Button_FormatEditRecoverClick(Sender: TObject);
     procedure Button_MainFilterClick(Sender: TObject);
@@ -150,6 +150,7 @@ type
     procedure CheckListBox_MainAttrFilterClickCheck(Sender: TObject);
     procedure ComboBox_AttrNameChange(Sender: TObject);
     procedure ComboBox_FieldNameChange(Sender: TObject);
+    procedure ComboBox_FormatEditChange(Sender: TObject);
     procedure DataSource_MainUpdateData(Sender: TObject);
     procedure DBGrid_MainCellClick(Column: TColumn);
     procedure DBGrid_MainKeyUp(Sender: TObject; var Key: Word;
@@ -215,6 +216,7 @@ type
     procedure ClassListValidate(Sender:TObject);//分类更新时的操作
     procedure FieldListValidate(Sender:TObject);//分类更新时的操作
     procedure MainGridValidate(Sender:TObject);
+    procedure FormatListValidate(Sender:TObject);
 
     procedure FirstEdit(Sender:TObject);//工程第一次编辑
     procedure Clear(Sender:TObject);//清空
@@ -257,9 +259,11 @@ begin
   Sender.onSaveDone:=@ProjectSaveDone;
   Sender.onCloseDone:=@ProjectCloseDone;
   Sender.onChange:=@Validate;
+  Sender.onDataChange:=@MainGridValidate;
   Sender.onClassChange:=@ClassListValidate;
   Sender.onFieldChange:=@FieldListValidate;
   //Sender.OnTableValidateDone:=@DBGridColumnAdjusting;
+  Sender.onFormatListChange:=@FormatListValidate;
 end;
 
 procedure TFormDesktop.Validate(Sender:TObject);
@@ -275,7 +279,7 @@ begin
   //工程信息 标签页
   CurrentRTFP.ProjectPropertiesValidate(Self.PropertiesValueListEditor);
   //文献节点 标签页
-  MainGridValidate(nil);
+  //MainGridValidate(nil);//这个移到DataChange去了
 
 end;
 
@@ -296,6 +300,17 @@ begin
   CurrentRTFP.TableValidate;
   FWaitForm.Hide;
   Self.DBGrid_Main.Visible:=true;
+end;
+
+procedure TFormDesktop.FormatListValidate(Sender:TObject);
+var stmp:string;
+begin
+  ComboBox_FormatEdit.Clear;
+  for stmp in (Sender as TRTFP).FormatList do
+    begin
+      ComboBox_FormatEdit.AddItem(stmp,nil);
+    end;
+  ComboBox_FormatEdit.SelText:='default.fmt';
 end;
 
 procedure TFormDesktop.FirstEdit(Sender:TObject);
@@ -329,7 +344,8 @@ begin
   CurrentRTFP.AttrNameValidate(ComboBox_AttrName.Items);
 
   Self.Validate(Sender);
-  CurrentRTFP.FormatEditBuild(Self.ScrollBox_Node_FormatEdit,'test');
+  Self.MainGridValidate(Sender);
+  CurrentRTFP.FormatEditBuild(Self.ScrollBox_Node_FormatEdit,'default.fmt');
 
 
   Self.MenuItem_project_new.Enabled:=false;
@@ -755,6 +771,18 @@ begin
   NodeViewValidate;
 end;
 
+procedure TFormDesktop.ComboBox_FormatEditChange(Sender: TObject);
+var combo:TComboBox;
+    filename:string;
+begin
+  combo:=Sender as TComboBox;
+  if combo.ItemIndex>=0 then filename:=combo.Items[combo.ItemIndex]
+  else filename:='';
+  CurrentRTFP.FormatEditClear(nil);
+  CurrentRTFP.FormatEditBuild(Self.ScrollBox_Node_FormatEdit,filename);
+  CurrentRTFP.FormatEditValidate(Selected_PID);
+end;
+
 procedure TFormDesktop.DataSource_MainUpdateData(Sender: TObject);
 begin
   DBGridColumnAdjusting(CurrentRTFP);
@@ -828,11 +856,6 @@ begin
     fieldNa:=ComboBox_FieldName.Items[ComboBox_FieldName.ItemIndex];
     CurrentRTFP.FmtCmtValidate(PID,attrNa,fieldNa,Memo_FmtCmt);
   end;
-end;
-
-procedure TFormDesktop.Button_FormatEditLockClick(Sender: TObject);
-begin
-  ///
 end;
 
 procedure TFormDesktop.Button_FormatEditPostClick(Sender: TObject);

@@ -1,7 +1,7 @@
 object FormDesktop: TFormDesktop
-  Left = 611
+  Left = 521
   Height = 616
-  Top = 326
+  Top = 308
   Width = 1038
   AllowDropFiles = True
   Caption = 'RTFP Desktop'
@@ -74,7 +74,7 @@ object FormDesktop: TFormDesktop
         )
         ColWidths = (
           80
-          657
+          678
         )
       end
       object Splitter_PropertiesV: TSplitter
@@ -250,18 +250,18 @@ object FormDesktop: TFormDesktop
         end
         inherited Memo_out: TMemo
           AnchorSideRight.Control = Frame_AufScript1
-          Left = 448
+          Left = 504
           Height = 245
           Top = 30
-          Width = 315
+          Width = 259
         end
         inherited Button_run: TButton
-          Left = 448
+          Left = 504
           Top = 280
           Width = 85
         end
         inherited Button_pause: TButton
-          Left = 563
+          Left = 591
           Top = 280
           Width = 85
         end
@@ -275,7 +275,7 @@ object FormDesktop: TFormDesktop
           Width = 85
         end
         inherited Button_ScriptSave: TButton
-          Left = 182
+          Left = 219
           Top = 280
           Width = 85
         end
@@ -283,7 +283,7 @@ object FormDesktop: TFormDesktop
           AnchorSideLeft.Control = Frame_AufScript1
           Height = 245
           Top = 30
-          Width = 262
+          Width = 299
           Gutter.Width = 61
           inherited SynLeftGutterPartList1: TSynGutterPartList
             inherited SynGutterCodeFolding1: TSynGutterCodeFolding
@@ -618,13 +618,12 @@ object FormDesktop: TFormDesktop
         TabOrder = 0
       end
       object Button_FormatEditPost: TButton
-        AnchorSideLeft.Control = Button_FormatEditLock
         AnchorSideTop.Control = TabSheet_Node_FormatEdit
         AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = Button_FormatEditLock
+        AnchorSideRight.Control = ComboBox_FormatEdit
         AnchorSideBottom.Control = TabSheet_Node_FormatEdit
         AnchorSideBottom.Side = asrBottom
-        Left = 244
+        Left = 229
         Height = 26
         Top = 133
         Width = 90
@@ -636,13 +635,13 @@ object FormDesktop: TFormDesktop
         TabOrder = 1
       end
       object Button_FormatEditRecover: TButton
-        AnchorSideLeft.Control = Button_FormatEditLock
+        AnchorSideLeft.Control = ComboBox_FormatEdit
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = ScrollBox_Node_FormatEdit
         AnchorSideTop.Side = asrCenter
         AnchorSideBottom.Control = TabSheet_Node_FormatEdit
         AnchorSideBottom.Side = asrBottom
-        Left = 434
+        Left = 449
         Height = 26
         Top = 133
         Width = 90
@@ -653,22 +652,22 @@ object FormDesktop: TFormDesktop
         OnClick = Button_FormatEditRecoverClick
         TabOrder = 2
       end
-      object Button_FormatEditLock: TButton
+      object ComboBox_FormatEdit: TComboBox
         AnchorSideLeft.Control = TabSheet_Node_FormatEdit
         AnchorSideLeft.Side = asrCenter
         AnchorSideTop.Control = ScrollBox_Node_FormatEdit
         AnchorSideTop.Side = asrCenter
         AnchorSideBottom.Control = TabSheet_Node_FormatEdit
         AnchorSideBottom.Side = asrBottom
-        Left = 339
-        Height = 26
-        Top = 133
-        Width = 90
+        Left = 324
+        Height = 28
+        Top = 131
+        Width = 120
         Anchors = [akLeft, akBottom]
         BorderSpacing.Left = 5
         BorderSpacing.Bottom = 5
-        Caption = '锁定'
-        OnClick = Button_FormatEditLockClick
+        ItemHeight = 20
+        OnChange = ComboBox_FormatEditChange
         TabOrder = 3
       end
     end
@@ -706,10 +705,10 @@ object FormDesktop: TFormDesktop
     Height = 559
     Top = 6
     Width = 256
-    ActivePage = TabSheet_Filter_Klass
+    ActivePage = TabSheet_Filter_Field
     Anchors = [akTop, akLeft, akRight, akBottom]
     Constraints.MinWidth = 200
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 7
     object TabSheet_Filter_Klass: TTabSheet
       Caption = '分类节点'
@@ -835,20 +834,23 @@ object FormDesktop: TFormDesktop
         Enabled = False
       end
     end
-    object MenuItem_edit: TMenuItem
-      Caption = '编辑'
-      object MenuItem_edit_newPaper: TMenuItem
-        Caption = '新建文献节点'
+    object MenuItem_KlassMenu: TMenuItem
+      Caption = '分类'
+      object MenuItem_Klass_Add: TMenuItem
+        Caption = '新增分类'
       end
-      object MenuItem_edit_newClass: TMenuItem
-        Caption = '新建类型节点'
+      object MenuItem_Klass_del: TMenuItem
+        Caption = '删除分类'
       end
-      object MenuItem_edit_newNote: TMenuItem
-        Caption = '新建图表节点'
-      end
-      object MenuItem_main_div05: TMenuItem
+      object MenuItem1: TMenuItem
         Caption = '-'
       end
+      object MenuItem_Klass_check: TMenuItem
+        Caption = '重新构建分类索引'
+      end
+    end
+    object MenuItem_Tool: TMenuItem
+      Caption = '工具'
       object MenuItem_CiteTool: TMenuItem
         Caption = '引用工具'
         OnClick = MenuItem_CiteToolClick

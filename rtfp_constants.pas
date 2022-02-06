@@ -15,8 +15,10 @@ const
   rnmbNo     = 7;
 
 
-  RTFP_ID_ORDER = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-';
-  RTFP_ID_CHARSET = ['0'..'9','A'..'Z','a'..'z','+','-'];
+  RTFP_ID_ORDER_Pre_0_1_1_alpha_18 = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-';
+  RTFP_ID_ORDER = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz{}';
+  RTFP_ID_CHARSET_Pre_0_1_1_alpha_18 = ['0'..'9','A'..'Z','a'..'z','+','-'];
+  RTFP_ID_CHARSET = ['0'..'9','A'..'Z','a'..'z','{','}'];
   DefaultOpenExe = ''; //cmd.exe /c
   Comma_Symbol = '&apig_comma&';
 

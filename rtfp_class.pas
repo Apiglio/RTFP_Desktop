@@ -55,6 +55,7 @@ type
     function GetEnumerator: TKlassEnumerator;
     function FindItemIndexByName(AName:string):integer;
     function FindItemByName(AName:string):TKlass;
+    function AllUnChecked:boolean;
     property Items[Index: integer]: TKlass read GetItems write SetItems; default;
     property Path:string read FFullPath write FFullPath;
   public
@@ -164,6 +165,20 @@ begin
   else result:=Items[index];
 end;
 
+function TKlassList.AllUnChecked:boolean;
+var pi:integer;
+begin
+  result:=true;
+  for pi:=0 to Count-1 do
+    begin
+      if Items[pi].FilterEnabled then
+        begin
+          result:=false;
+          exit;
+        end;
+    end;
+end;
+
 procedure TKlassList.LoadFromPath(APath:string='\');
 var tmpFileList:TRTFP_FileList;
     stmp:TCollectionItem;
@@ -181,7 +196,7 @@ begin
         pathname:=(stmp as TRTFP_FileItem).Name;
         klassname:=ExtractFilename(pathname);
         if pos('.dbf',lowercase(pathname))<>length(pathname)-3 then continue;
-        if pos('_run.dbf',lowercase(pathname))=length(pathname)-7 then continue;
+        if (pos('_run.dbf',lowercase(pathname))=length(pathname)-7) and (length(pathname)>7) then continue;
         if lowercase(ExtractFileExt(klassname))='.dbf' then klassname:=Copy(klassname,1,length(klassname)-4);
         {if lowercase(ExtractFileExt(pathname))='.dbf' then }pathname:=Copy(pathname,1,length(pathname)-4);
         //ShowMessage(klassname+#13#10+pathname);
