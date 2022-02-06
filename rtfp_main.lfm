@@ -41,8 +41,8 @@ object FormDesktop: TFormDesktop
     TabOrder = 1
     object TabSheet_Project_Properties: TTabSheet
       Caption = '工程信息'
-      ClientHeight = 286
-      ClientWidth = 864
+      ClientHeight = 329
+      ClientWidth = 848
       object PropertiesValueListEditor: TValueListEditor
         AnchorSideLeft.Control = TabSheet_Project_Properties
         AnchorSideTop.Control = TabSheet_Project_Properties
@@ -50,9 +50,9 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Control = TabSheet_Project_Properties
         AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 286
+        Height = 329
         Top = 0
-        Width = 858
+        Width = 842
         Anchors = [akTop, akLeft, akRight, akBottom]
         FixedCols = 0
         RowCount = 2
@@ -64,7 +64,7 @@ object FormDesktop: TFormDesktop
         )
         ColWidths = (
           80
-          753
+          758
         )
       end
       object Splitter_PropertiesV: TSplitter
@@ -73,8 +73,8 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = TabSheet_Project_Properties
         AnchorSideBottom.Side = asrBottom
-        Left = 858
-        Height = 286
+        Left = 842
+        Height = 329
         Top = 0
         Width = 6
         Align = alNone
@@ -173,8 +173,8 @@ object FormDesktop: TFormDesktop
     end
     object TabSheet_Project_Attrs: TTabSheet
       Caption = '文献属性组'
-      ClientHeight = 286
-      ClientWidth = 864
+      ClientHeight = 329
+      ClientWidth = 848
       object DBGrid_Attrs: TDBGrid
         AnchorSideLeft.Control = TabSheet_Project_Attrs
         AnchorSideTop.Control = TabSheet_Project_Attrs
@@ -182,9 +182,9 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = ComboBox_Attrs_View
         Left = 0
-        Height = 253
+        Height = 296
         Top = 0
-        Width = 564
+        Width = 548
         Anchors = [akTop, akLeft, akRight, akBottom]
         AutoFillColumns = True
         BorderSpacing.Right = 300
@@ -203,8 +203,8 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrBottom
         Left = 70
         Height = 28
-        Top = 258
-        Width = 494
+        Top = 301
+        Width = 478
         Anchors = [akLeft, akRight, akBottom]
         BorderSpacing.Left = 5
         BorderSpacing.Right = 300
@@ -218,7 +218,7 @@ object FormDesktop: TFormDesktop
         AnchorSideTop.Side = asrCenter
         Left = 5
         Height = 15
-        Top = 265
+        Top = 308
         Width = 60
         BorderSpacing.Left = 5
         Caption = '预览表：'
@@ -228,17 +228,58 @@ object FormDesktop: TFormDesktop
     object TabSheet_Project_Class: TTabSheet
       Caption = '分类节点'
     end
+    object TabSheet_Project_NodeView: TTabSheet
+      Caption = '层次网络'
+      ClientHeight = 329
+      ClientWidth = 848
+      object LvlGraphControl: TLvlGraphControl
+        AnchorSideLeft.Control = TabSheet_Project_NodeView
+        AnchorSideTop.Control = TabSheet_Project_NodeView
+        AnchorSideRight.Control = TabSheet_Project_NodeView
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = TabSheet_Project_NodeView
+        AnchorSideBottom.Side = asrBottom
+        Left = 0
+        Height = 329
+        Top = 0
+        Width = 548
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        BorderSpacing.Right = 300
+        NodeStyle.DefaultImageIndex = -1
+        NodeStyle.Coloring = lgncRGB
+        ParentColor = True
+        ParentShowHint = False
+        TabOrder = 0
+        TabStop = False
+      end
+      object Button_Project_NodeView_Fresh: TButton
+        AnchorSideRight.Control = TabSheet_Project_NodeView
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = TabSheet_Project_NodeView
+        AnchorSideBottom.Side = asrBottom
+        Left = 752
+        Height = 37
+        Top = 272
+        Width = 76
+        Anchors = [akRight, akBottom]
+        BorderSpacing.Right = 20
+        BorderSpacing.Bottom = 20
+        Caption = '刷新'
+        OnClick = Button_Project_NodeView_FreshClick
+        TabOrder = 1
+      end
+    end
     object TabSheet_Project_AufScript: TTabSheet
       Caption = '脚本'
-      ClientHeight = 375
-      ClientWidth = 761
+      ClientHeight = 329
+      ClientWidth = 848
       OnResize = TabSheet_Project_AufScriptResize
       inline Frame_AufScript1: TFrame_AufScript
-        Height = 375
-        Width = 761
+        Height = 329
+        Width = 848
         Align = alClient
-        ClientHeight = 375
-        ClientWidth = 761
+        ClientHeight = 329
+        ClientWidth = 848
         inherited ProgressBar: TProgressBar
           Left = 10
           Height = 12
@@ -352,9 +393,9 @@ object FormDesktop: TFormDesktop
     Height = 197
     Top = 368
     Width = 856
-    ActivePage = TabSheet_FmtCmt
+    ActivePage = TabSheet_Node_PDF
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 1
+    TabIndex = 2
     TabOrder = 5
     OnChange = PageControl_NodeChange
     object TabSheet_Node_View: TTabSheet
@@ -485,6 +526,7 @@ object FormDesktop: TFormDesktop
         BorderSpacing.Right = 215
         ScrollBars = ssAutoBoth
         TabOrder = 2
+        WordWrap = False
       end
       object ComboBox_AttrName: TComboBox
         AnchorSideRight.Control = TabSheet_FmtCmt
@@ -498,8 +540,13 @@ object FormDesktop: TFormDesktop
         BorderSpacing.Right = 20
         BorderSpacing.Bottom = 10
         ItemHeight = 20
+        ItemIndex = 0
+        Items.Strings = (
+          '选择属性组'
+        )
+        OnChange = ComboBox_AttrNameChange
         TabOrder = 3
-        Text = 'ComboBox_AttrName'
+        Text = '选择属性组'
       end
       object ComboBox_FieldName: TComboBox
         AnchorSideRight.Control = TabSheet_FmtCmt
@@ -513,8 +560,13 @@ object FormDesktop: TFormDesktop
         BorderSpacing.Right = 20
         BorderSpacing.Bottom = 10
         ItemHeight = 20
+        ItemIndex = 0
+        Items.Strings = (
+          '选择字段名'
+        )
+        OnChange = ComboBox_FieldNameChange
         TabOrder = 4
-        Text = 'ComboBox_FieldName'
+        Text = '选择字段名'
       end
       object StaticText_AttrNameCombo: TStaticText
         AnchorSideTop.Control = ComboBox_AttrName
@@ -524,7 +576,7 @@ object FormDesktop: TFormDesktop
         Height = 21
         Top = 8
         Width = 68
-        Anchors = [akTop, akLeft, akRight]
+        Anchors = [akTop, akRight]
         Caption = '属性组：'
         TabOrder = 5
       end
@@ -539,17 +591,6 @@ object FormDesktop: TFormDesktop
         Anchors = [akTop, akRight]
         Caption = '字段名：'
         TabOrder = 6
-      end
-      object CheckBox_FmtCmtCanPost: TCheckBox
-        AnchorSideTop.Control = Button_FmtCmt_Post
-        AnchorSideTop.Side = asrCenter
-        Left = 648
-        Height = 24
-        Top = 84
-        Width = 54
-        Caption = '合法'
-        Enabled = False
-        TabOrder = 7
       end
     end
     object TabSheet_Node_PDF: TTabSheet
