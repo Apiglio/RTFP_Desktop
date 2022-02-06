@@ -52,11 +52,12 @@ uses RTFP_main, RTFP_definition;
 
 procedure TForm_CiteTrans.FormDeactivate(Sender: TObject);
 begin
-  Self.Hide;
+  //Self.Hide;
 end;
 
 procedure TForm_CiteTrans.Button_ExportCiteClick(Sender: TObject);
 begin
+  if ProjectInvalid then exit;
   if TabControl_CiteStyle.TabIndex<0 then exit;
   case TabControl_CiteStyle.Tabs[TabControl_CiteStyle.TabIndex] of
     'E-Study':CurrentRTFP.SaveToEStudy(FormDesktop.Selected_PID,Memo_Cite.Lines);
@@ -72,6 +73,7 @@ end;
 
 procedure TForm_CiteTrans.Button_ExportRefsClick(Sender: TObject);
 begin
+  if ProjectInvalid then exit;
   if TabControl_Reference_Style.TabIndex<0 then exit;
   case TabControl_Reference_Style.Tabs[TabControl_Reference_Style.TabIndex] of
     'GB/T 7714':Memo_Reference.Lines.CommaText:=CurrentRTFP.GetGBT7714(FormDesktop.Selected_PID);
@@ -85,6 +87,7 @@ end;
 
 procedure TForm_CiteTrans.Button_ImportCiteClick(Sender: TObject);
 begin
+  if ProjectInvalid then exit;
   if TabControl_CiteStyle.TabIndex<0 then exit;
   case TabControl_CiteStyle.Tabs[TabControl_CiteStyle.TabIndex] of
     'E-Study':CurrentRTFP.LoadFromEStudy(FormDesktop.Selected_PID,Memo_Cite.Lines);
@@ -100,6 +103,7 @@ end;
 
 procedure TForm_CiteTrans.Button_ImportPapersClick(Sender: TObject);
 begin
+  if ProjectInvalid then exit;
   if TabControl_CiteStyle.TabIndex<0 then exit;
   case TabControl_CiteStyle.Tabs[TabControl_CiteStyle.TabIndex] of
     'E-Study':CurrentRTFP.ImportPapersFromEStudy(Memo_Cite.Lines);
@@ -115,6 +119,7 @@ end;
 
 procedure TForm_CiteTrans.Button_ImportRefsClick(Sender: TObject);
 begin
+  if ProjectInvalid then exit;
   if TabControl_Reference_Style.TabIndex<0 then exit;
   case TabControl_Reference_Style.Tabs[TabControl_Reference_Style.TabIndex] of
     'GB/T 7714':CurrentRTFP.SetGBT7714(FormDesktop.Selected_PID,Memo_Reference.Lines.CommaText);

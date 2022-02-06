@@ -45,9 +45,9 @@ begin
   FormDesktop.Panel_DBGridMain.Align:=alClient;
   FormDesktop.DBGrid_Main.PopupMenu:=nil;
   FormDesktop.DBGrid_Main.Options:=FormDesktop.DBGrid_Main.Options + [dgMultiselect];
-  FormDesktop.ACL_ListView_Klass.Parent:=Self.Panel_ListView_Temporary;
-  FormDesktop.ACL_ListView_Klass.Align:=alClient;
-  FormDesktop.ACL_ListView_Klass.PopupMenu:=Self.PopupMenu_ClassManager;
+  FormDesktop.AListView_Klass.Parent:=Self.Panel_ListView_Temporary;
+  FormDesktop.AListView_Klass.Align:=alClient;
+  FormDesktop.AListView_Klass.PopupMenu:=Self.PopupMenu_ClassManager;
 end;
 
 procedure TClassManagerForm.MenuItem_ClsMgr_ExcludeClick(Sender: TObject);
@@ -57,7 +57,8 @@ var tmpKL:TKlass;
     max:integer;
     PID:RTFP_ID;
 begin
-  tmpKL:=TKlass(TACL_TreeNode(FormDesktop.ACL_ListView_Klass.Selected.Data).Data);
+  if ProjectInvalid then exit;
+  tmpKL:=TKlass(TACL_TreeNode(FormDesktop.AListView_Klass.Selected.Data).Data);
   if tmpKL=nil then begin
     ShowMessage('无效的分类。');
     exit;
@@ -88,7 +89,8 @@ var tmpKL:TKlass;
     max:integer;
     PID:RTFP_ID;
 begin
-  tmpKL:=TKlass(TACL_TreeNode(FormDesktop.ACL_ListView_Klass.Selected.Data).Data);
+  if ProjectInvalid then exit;
+  tmpKL:=TKlass(TACL_TreeNode(FormDesktop.AListView_Klass.Selected.Data).Data);
   if tmpKL=nil then begin
     ShowMessage('无效的分类。');
     exit;
@@ -118,14 +120,14 @@ begin
   FormDesktop.Panel_DBGridMain.Align:=alClient;
   FormDesktop.DBGrid_Main.PopupMenu:=FormDesktop.PopupMenu_MainDBGrid;
   FormDesktop.DBGrid_Main.Options:=FormDesktop.DBGrid_Main.Options - [dgMultiselect];
-  FormDesktop.ACL_ListView_Klass.Parent:=FormDesktop.TabSheet_Filter_Klass;
-  FormDesktop.ACL_ListView_Klass.Align:=alClient;
-  FormDesktop.ACL_ListView_Klass.PopupMenu:=nil;
+  FormDesktop.AListView_Klass.Parent:=FormDesktop.TabSheet_Filter_Klass;
+  FormDesktop.AListView_Klass.Align:=alClient;
+  FormDesktop.AListView_Klass.PopupMenu:=FormDesktop.PopupMenu_ClassManager;
 end;
 
 procedure TClassManagerForm.FormDeactivate(Sender: TObject);
 begin
-  Self.Hide;
+  //Self.Hide;
 end;
 
 end.

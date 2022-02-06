@@ -8,7 +8,7 @@
 //增刊期数的导入有问题，摘要的逗号导致换行
 //Memo字段的搜索
 //统一NodeEdit部分的编辑保存询问，下方的几个Tab共用一套Modified
-//引用工具和分类工具一次操作后就会回到主窗口这个很不好
+//尽快将所有弹窗统一样式
 
 
 
@@ -109,6 +109,8 @@ type
 
     property UserList:TStringList read FUserList;
     property FormatList:TStringList read FFormatList;
+    property KlassList:TKlassList read FKlassList;
+    property FieldList:TAttrsGroupList read FFieldList;
 
   private
     procedure SetPaths(filename:string);
@@ -148,7 +150,7 @@ type
 
 
     //Attrs
-  private
+  public
     function AddAttrs(AName:string):TAttrsGroup;
     function FindAttrs(AName:string):TAttrsGroup;
     procedure DeleteAttrs(AName:string);
@@ -160,7 +162,7 @@ type
     function CheckField(AName:string;AAttrsName:string;AType:TFieldType):boolean;
     function CheckField(AName:string;AAttrsName:string;ATypes:TFieldTypeSet):boolean;
     function GetField(AName:string;AAttrsName:string;PID:RTFP_ID;NewPidIfNotExists:boolean):TField;
-
+  private
     procedure LoadAttrs;//包含了原先的New
     procedure SaveAttrs;
     procedure CloseAttrs;
@@ -185,11 +187,11 @@ type
     procedure EditFieldAsMemo(AName,AAttrsName:string;PID:RTFP_ID;buf:TStrings;AE:TAttrExtend);
 
     //Klass
-  private
+  public
     function AddKlass(klassname:string;pathname:string='\'):TKlass;
     function FindKlass(klassname:string):TKlass;
     procedure DeleteKlass(klassname:string);
-
+  private
     procedure LoadKlass;//包含了原先的New
     procedure SaveKlass;
     procedure CloseKlass;
@@ -289,8 +291,6 @@ type
   public //连接显示
     property PaperDS:TMemDataSet read FPaperDS;//筛选后的总表，直接连接DBGrid
     property FormatComponents:TList read FFormatEditComponentList;
-    //property each_class:TKlassList read FKlassList;
-    //property each_attrs:TAttrsGroupList read FFieldList;
 
   public //连接显示
 
@@ -305,8 +305,8 @@ type
     procedure FieldListValidate(AListView:TListView);
     procedure KlassListValidate(AListView:TListView);
 
-    procedure NodeViewValidate(PID:RTFP_ID;AValueListEditor:TValueListEditor);
-    procedure NodeViewDataPost(PID:RTFP_ID;AValueListEditor:TValueListEditor);
+    //procedure NodeViewValidate(PID:RTFP_ID;AValueListEditor:TValueListEditor);
+    //procedure NodeViewDataPost(PID:RTFP_ID;AValueListEditor:TValueListEditor);
 
     procedure FmtCmtValidate(PID:RTFP_ID;AttrName,FieldName:string;Memo:TMemo);
     procedure FmtCmtDataPost(PID:RTFP_ID;AttrName,FieldName:string;Memo:TMemo);
@@ -1186,6 +1186,7 @@ begin
       else GenAttrDefaultAttribute(tmp.Dbf);
     end;
     NewDbf(tmp.FullPath,tmp.Dbf);
+    tmp.LoadFieldListFromDbf;
   end;
   FieldChange;
   result:=tmp;
@@ -1687,10 +1688,7 @@ begin
   AddAttrs(_Attrs_Notes_);
   AddAttrs(_Attrs_Metas_);
   AddAttrs(_Attrs_Relat_);
-  for tmpAttrs in FFieldList do
-    begin
-      tmpAttrs.LoadFieldListFromDbf;
-    end;
+  for tmpAttrs in FFieldList do tmpAttrs.LoadFieldListFromDbf;
   //EndUpdate;
   //FieldChange;
 end;
@@ -1735,6 +1733,7 @@ var tmp:TKlass;
 begin
   if FKlassList.FindItemIndexByName(klassname)>=0 then exit;
   tmp:=FKlassList.AddEx('class\'+pathname+'\'+klassname,klassname);
+  ForceDirectories(FFilePath+FRootFolder+'\class\'+pathname);
   if not OpenDbf(tmp.FullPath,tmp.Dbf) then begin
     GenAttrDefaultAttribute(tmp.Dbf);
     NewDbf(tmp.FullPath,tmp.Dbf);
@@ -3500,9 +3499,11 @@ begin
         dat_type:=tmpFieldDef.DataType;
         case dat_type of
           ftMemo,ftWideMemo,ftFmtMemo:
-            FPaperDS.FieldDefs.Add(Usf.zeroplus(pi,2)+tmpFieldDef.Name,ftString,255);
+            //FPaperDS.FieldDefs.Add(Usf.zeroplus(pi,2)+tmpFieldDef.Name,ftString,255);
+            FPaperDS.FieldDefs.Add(tmpAG.Name+'.'+tmpFieldDef.Name,ftString,255);
           else
-            FPaperDS.FieldDefs.Add(Usf.zeroplus(pi,2)+tmpFieldDef.Name,dat_type,tmpFieldDef.Size);
+            //FPaperDS.FieldDefs.Add(Usf.zeroplus(pi,2)+tmpFieldDef.Name,dat_type,tmpFieldDef.Size);
+            FPaperDS.FieldDefs.Add(tmpAG.Name+'.'+tmpFieldDef.Name,dat_type,tmpFieldDef.Size);
         end;
         fields_ref[fields_cnt].AG:=tmpAG;
         fields_ref[fields_cnt].FI:=tmpFieldDef.Index;
@@ -3694,6 +3695,7 @@ begin
         begin
           (AListView as TACL_ListView).AddShellNodeItem(tmpAG.Name+'\'+tmpAF.FieldName,tmpAF,tmpAF.Shown);
         end;
+      (AListView as TACL_ListView).GetShellNodeItem(tmpAG.Name).Data:=tmpAG;
     end;
   AListView.EndUpdate;
   AListView.Repaint;
@@ -3710,6 +3712,7 @@ begin
       (AListView as TACL_ListView).AddShellNodeItem(tmpKL.FullPath,tmpKL,tmpKL.FilterEnabled);
     end;
   AListView.EndUpdate;
+  (AListView as TACL_ListView).CheckShellNodeItem('class',true);
   AListView.Repaint;
 end;
 
@@ -3734,7 +3737,7 @@ begin
   result:=FormatDateTime('yyyy-mm-dd hh:mm:ss',inp);
 end;
 
-
+{
 procedure TRTFP.NodeViewValidate(PID:RTFP_ID;AValueListEditor:TValueListEditor);
 var tmpDef:TFieldDef;
     tmpAG:TAttrsGroup;
@@ -3806,7 +3809,7 @@ begin
   EndUpdate;
   ReNewModifyTime(PID);
 end;
-
+}
 procedure TRTFP.FmtCmtValidate(PID:RTFP_ID;AttrName,FieldName:string;Memo:TMemo);
 begin
   Memo.Clear;
