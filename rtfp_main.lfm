@@ -35,9 +35,9 @@ object FormDesktop: TFormDesktop
     Height = 362
     Top = 0
     Width = 856
-    ActivePage = TabSheet_Project_DataGrid
+    ActivePage = TabSheet_Project_Class
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 1
+    TabIndex = 3
     TabOrder = 1
     object TabSheet_Project_Properties: TTabSheet
       Caption = '工程信息'
@@ -64,7 +64,7 @@ object FormDesktop: TFormDesktop
         )
         ColWidths = (
           80
-          758
+          737
         )
       end
       object Splitter_PropertiesV: TSplitter
@@ -393,9 +393,9 @@ object FormDesktop: TFormDesktop
     Height = 197
     Top = 368
     Width = 856
-    ActivePage = TabSheet_Node_PDF
+    ActivePage = TabSheet_Node_View
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 2
+    TabIndex = 0
     TabOrder = 5
     OnChange = PageControl_NodeChange
     object TabSheet_Node_View: TTabSheet
@@ -611,8 +611,8 @@ object FormDesktop: TFormDesktop
     end
   end
   object MainMenu: TMainMenu
-    left = 64
-    top = 416
+    left = 32
+    top = 440
     object MenuItem_project: TMenuItem
       Caption = '工程'
       object MenuItem_project_new: TMenuItem
@@ -711,31 +711,26 @@ object FormDesktop: TFormDesktop
     Title = '打开工程'
     DefaultExt = '.*.rtfp'
     Filter = 'RTFP工程文件(*.rtfp)|*.rtfp|所有文件|*.*'
-    left = 64
+    left = 104
     top = 496
   end
   object SaveDialog_project: TSaveDialog
     Title = '另存为'
-    left = 64
-    top = 456
+    left = 32
+    top = 496
   end
   object DataSource_Main: TDataSource
     DataSet = MemDataset_Main
-    left = 64
-    top = 144
-  end
-  object MemDataset_Main: TMemDataset
-    FieldDefs = <>
-    left = 64
-    top = 200
+    left = 104
+    top = 368
   end
   object DataSource_Attrs: TDataSource
-    left = 64
-    top = 88
+    left = 32
+    top = 368
   end
   object PopupMenu_MainDBGrid: TPopupMenu
-    left = 64
-    top = 368
+    left = 104
+    top = 440
     object MenuItem_OpenAsPdf: TMenuItem
       Caption = '作为PDF打开'
       OnClick = MenuItem_OpenAsPdfClick
@@ -744,5 +739,10 @@ object FormDesktop: TFormDesktop
       Caption = '作为CAJ打开'
       OnClick = MenuItem_OpenAsCajClick
     end
+  end
+  object MemDataset_Main: TMemDataset
+    FieldDefs = <>
+    left = 72
+    top = 200
   end
 end
