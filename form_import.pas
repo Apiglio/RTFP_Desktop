@@ -78,6 +78,7 @@ type
   private
     FFilenames:TStringList;
     FPhase:integer;
+    FHaltoff:boolean;//退出时结束未完成的导入
   public
     procedure Call(AFileNames: array of String);
     procedure Clear;
@@ -110,6 +111,7 @@ begin
   ProgressBar_ImportFiles.Position:=0;
   Edit_UpdatePaper.Caption:=FormDesktop.Selected_PID+' - '+FormDesktop.Selected_FileName;
   CheckBox_UpdatePaper.Checked:=false;
+  FHaltoff:=false;
   Self.ShowModal;
 end;
 
@@ -219,6 +221,8 @@ begin
     //真离谱出此下策
     for pi:=0 to FFileNames.Count-1 do
       begin
+        if FHaltoff then exit;
+        CheckListBox_ImportFileNames.ItemIndex:=pi;
         if CurrentRTFP.FindPaper(FFileNames[pi]) = '000000' then
           begin
             if CheckBox_UpdatePaper.Checked then begin
@@ -265,12 +269,13 @@ begin
     Button_ImportFileNamesCheck.Enabled:=false;
     Button_BackToPrev.Enabled:=false;
   end;
-  CurrentRTFP.DataChange;
+  CurrentRTFP.RebuildMainGrid;//FormDesktop.MainGridValidate(CurrentRTFP);//CurrentRTFP.DataChange;
 end;
 
 procedure TForm_ImportFiles.Button_ToMainFormClick(Sender: TObject);
 begin
   //操作在ModalResult里头，不用自己写退出
+  FHaltoff:=true;
 end;
 
 procedure TForm_ImportFiles.CheckBox_UpdatePaperChange(Sender: TObject);

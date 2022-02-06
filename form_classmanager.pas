@@ -86,7 +86,7 @@ begin
         end;
     end;
   CurrentRTFP.EndUpdate;
-  CurrentRTFP.DataChange;
+  CurrentRTFP.RebuildMainGrid;//FormDesktop.MainGridValidate(CurrentRTFP);//CurrentRTFP.DataChange;
   SetLength(arr,0);
 end;
 
@@ -118,7 +118,7 @@ begin
         end;
     end;
   CurrentRTFP.EndUpdate;
-  CurrentRTFP.DataChange;
+  CurrentRTFP.RebuildMainGrid;//FormDesktop.MainGridValidate(CurrentRTFP);//CurrentRTFP.DataChange;
   SetLength(arr,0);
 end;
 

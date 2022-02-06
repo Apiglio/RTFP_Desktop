@@ -48,7 +48,7 @@ end;
 
 procedure TAppearanceForm.FormDeactivate(Sender: TObject);
 begin
-  Self.Hide;
+  //Self.Hide;
 end;
 
 procedure TAppearanceForm.ColorBoxChange(Sender: TObject);

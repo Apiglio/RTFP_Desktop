@@ -22,39 +22,42 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="10">
+    <RequiredPackages Count="11">
       <Item1>
-        <PackageName Value="lnetvisual"/>
+        <PackageName Value="TAChartLazarusPkg"/>
       </Item1>
       <Item2>
-        <PackageName Value="ACL_ListViewEx"/>
+        <PackageName Value="lnetvisual"/>
       </Item2>
       <Item3>
-        <PackageName Value="treelistviewpackage"/>
+        <PackageName Value="ACL_ListViewEx"/>
       </Item3>
       <Item4>
-        <PackageName Value="LazControls"/>
+        <PackageName Value="treelistviewpackage"/>
       </Item4>
       <Item5>
-        <PackageName Value="MemDSLaz"/>
+        <PackageName Value="LazControls"/>
       </Item5>
       <Item6>
-        <PackageName Value="pack_powerpdf"/>
+        <PackageName Value="MemDSLaz"/>
       </Item6>
       <Item7>
-        <PackageName Value="SynEdit"/>
+        <PackageName Value="pack_powerpdf"/>
       </Item7>
       <Item8>
-        <PackageName Value="DBFLaz"/>
+        <PackageName Value="SynEdit"/>
       </Item8>
       <Item9>
-        <PackageName Value="FCL"/>
+        <PackageName Value="DBFLaz"/>
       </Item9>
       <Item10>
-        <PackageName Value="LCL"/>
+        <PackageName Value="FCL"/>
       </Item10>
+      <Item11>
+        <PackageName Value="LCL"/>
+      </Item11>
     </RequiredPackages>
-    <Units Count="23">
+    <Units Count="24">
       <Unit0>
         <Filename Value="RTFP_Desktop.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -180,6 +183,13 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit22>
+      <Unit23>
+        <Filename Value="form_project_profile.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="FormProjectProfile"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit23>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

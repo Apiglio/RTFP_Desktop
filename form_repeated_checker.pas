@@ -73,11 +73,12 @@ var vOption:TSimChkOptions;
 begin
 
   ListView_AttrsCompare.Clear;
-  vOption:=[scoTitle,scoFileName];
+  vOption:=[];
   case RadioGroup_FitMode.ItemIndex of
     0:vOption:=vOption+[scoEqual];
     1:vOption:=vOption+[scoContain];
     2:vOption:=vOption+[scoHalffit];
+    3:vOption:=vOption+[scoHalffitUnsigned];
   end;
   case RadioGroup_SelMode.ItemIndex of
     0:vOption:=vOption+[scoDS];
@@ -175,6 +176,7 @@ begin
   CurrentRTFP.onChange:=tmpProc;
   FormDesktop.ShowWaitForm:=true;
   AllState.Disable;
+  CurrentRTFP.RecordChange;
 
 end;
 
@@ -266,7 +268,9 @@ var SelPair,id1,id2,v1,v2,bo:string;
     tmpAG:TAttrsGroup;
     tmpAF:TAttrsField;
 begin
-  SelPair:=ListBox_RepeatedPIDPair.Items[ListBox_RepeatedPIDPair.ItemIndex];
+  index:=ListBox_RepeatedPIDPair.ItemIndex;
+  if index<0 then exit;
+  SelPair:=ListBox_RepeatedPIDPair.Items[index];
   id1:=SelPair;
   id2:=SelPair;
   delete(id1,1,7);

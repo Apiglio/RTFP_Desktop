@@ -1,0 +1,54 @@
+object FormProjectProfile: TFormProjectProfile
+  Left = 584
+  Height = 435
+  Top = 305
+  Width = 772
+  Caption = '工程概览'
+  ClientHeight = 435
+  ClientWidth = 772
+  DesignTimePPI = 120
+  OnShow = FormShow
+  LCLVersion = '1.8.4.0'
+  object Chart_YearStat: TChart
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 240
+    Height = 415
+    Top = 10
+    Width = 522
+    AxisList = <    
+      item
+        Marks.LabelBrush.Style = bsClear
+        Minors = <>
+        Title.LabelFont.Orientation = 900
+        Title.LabelBrush.Style = bsClear
+      end    
+      item
+        Grid.Visible = False
+        Alignment = calBottom
+        Marks.LabelBrush.Style = bsClear
+        Minors = <>
+        Title.LabelBrush.Style = bsClear
+      end>
+    Foot.Brush.Color = clBtnFace
+    Foot.Font.Color = clBlue
+    Title.Brush.Color = clBtnFace
+    Title.Font.Color = clBlue
+    Title.Text.Strings = (
+      'TAChart'
+    )
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Left = 240
+    BorderSpacing.Top = 10
+    BorderSpacing.Right = 10
+    BorderSpacing.Bottom = 10
+    object Chart_YearStatBarSeries: TBarSeries
+      BarBrush.Color = clSkyBlue
+      BarWidthPercent = 75
+    end
+  end
+end
