@@ -89,6 +89,10 @@ begin
   if CheckGroup_ColMode.Checked[2] then vOption:=vOption+[scoTitle];
   if CheckGroup_ColMode.Checked[3] then vOption:=vOption+[scoWeblnk];
   if CheckGroup_ColMode.Checked[4] then vOption:=vOption+[scoDOI];
+  if CheckGroup_ColMode.Checked[5] then vOption:=vOption+[scoMetaTitle];
+  if CheckGroup_ColMode.Checked[6] then vOption:=vOption+[scoMetaSubject];
+  if CheckGroup_ColMode.Checked[7] then vOption:=vOption+[scoMetaCreator];
+  if CheckGroup_ColMode.Checked[8] then vOption:=vOption+[scoMetaProduce];
 
   if scoDB in vOption then cnt_total:=CurrentRTFP.CountPaper
   else cnt_total:=CurrentRTFP.PaperDS.RecordCount;

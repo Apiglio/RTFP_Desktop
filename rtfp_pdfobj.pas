@@ -107,6 +107,12 @@ begin
   inherited Create;
   FMem:=TMemoryStream.Create;
   FMeta:=TLastPdfData.Create;
+
+  FFileName:='';
+  FHash:='';
+  FSize:=0;
+  fdoc:=nil;
+  fpage:=nil;
 end;
 
 destructor TRTFP_PDF.Destroy;

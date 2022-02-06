@@ -218,7 +218,6 @@ var tmpAG:TAttrsGroup;
             Delete(0);
           end;
     end;
-
 begin
   with str do begin
     with CurrentRTFP do begin
@@ -267,7 +266,7 @@ begin
               len:=length(StatData);
               if poss>0 then begin
                 StatDataClip:=copy(StatData,1,poss-1);
-                NamedHash(GroupData).NamedItemAddCount(StatDataClip);
+                NamedHash(GroupData).NamedItemAddCount(Trim(StatDataClip));
                 System.delete(StatData,1,poss);
               end;
             until poss<=0;
@@ -281,24 +280,28 @@ begin
                 poss:=0;
                 StatStrList.Find(stmp,len);
                 with StatStrList.Objects[len] as TStrHash do
-                  while poss<Count do
-                    begin
-                      Sort(@FuncListSortCompare);
-                      with TStrHashItem(Items[poss]) do str.Add(#9+'"'+Name+'"'+#9+IntToStr(Count));
-                      inc(poss);
-                    end;
+                  begin
+                    Sort(@FuncListSortCompare);
+                    while poss<Count do
+                      begin
+                        with TStrHashItem(Items[poss]) do str.Add(#9+'"'+Name+'"'+#9+IntToStr(Count));
+                        inc(poss);
+                      end;
+                  end;
               end;
           end
         else
           begin
             poss:=0;
             with StatStrList.Objects[0] as TStrHash do
-              while poss<Count do
-                begin
-                  Sort(@FuncListSortCompare);
-                  with TStrHashItem(Items[poss]) do str.Add('"'+Name+'"'+#9+IntToStr(Count));
-                  inc(poss);
-                end;
+              begin
+                Sort(@FuncListSortCompare);
+                while poss<Count do
+                  begin
+                    with TStrHashItem(Items[poss]) do str.Add('"'+Name+'"'+#9+IntToStr(Count));
+                    inc(poss);
+                  end;
+              end;
           end;
         Add('');
       finally

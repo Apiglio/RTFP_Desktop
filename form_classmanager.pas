@@ -61,7 +61,7 @@ end;
 procedure TClassManagerForm.MenuItem_ClsMgr_ExcludeClick(Sender: TObject);
 var tmpKL:TKlass;
     index:integer;
-    arr:array of TBookMark;
+    arr:array of RTFP_ID;
     max:integer;
     PID:RTFP_ID;
 begin
@@ -71,21 +71,24 @@ begin
     ShowMessage('无效的分类。');
     exit;
   end;
+  FormDesktop.DBGrid_Main.Visible:=false;
   max:=FormDesktop.DBGrid_Main.SelectedRows.Count;
   SetLength(arr,max);
-  for index:=0 to max-1 do arr[index]:=FormDesktop.DBGrid_Main.SelectedRows.Items[index];
   CurrentRTFP.BeginUpdate;
-  for index:=0 to max-1 do
+  with CurrentRTFP do
     begin
-      with CurrentRTFP do
+      if not PaperDS.Active then PaperDS.Open;
+      for index:=0 to max-1 do
         begin
-          if not PaperDS.Active then PaperDS.Open;
-          PaperDS.GotoBookmark(arr[index]);
+          PaperDS.GotoBookmark(FormDesktop.DBGrid_Main.SelectedRows.Items[index]);
           PID:=PaperDS.FieldByName(_Col_PID_).AsString;
-          KlassExclude(tmpKL.Name,PID);
+          arr[index]:=PID;
         end;
+      for index:=0 to max-1 do KlassExclude(tmpKL.Name,arr[index]);
+
     end;
   CurrentRTFP.EndUpdate;
+  FormDesktop.DBGrid_Main.Visible:=true;
   CurrentRTFP.RebuildMainGrid;//FormDesktop.MainGridValidate(CurrentRTFP);//CurrentRTFP.DataChange;
   SetLength(arr,0);
 end;
@@ -93,7 +96,7 @@ end;
 procedure TClassManagerForm.MenuItem_ClsMgr_IncludeClick(Sender: TObject);
 var tmpKL:TKlass;
     index:integer;
-    arr:array of TBookMark;
+    arr:array of RTFP_ID;
     max:integer;
     PID:RTFP_ID;
 begin
@@ -103,21 +106,24 @@ begin
     ShowMessage('无效的分类。');
     exit;
   end;
+  FormDesktop.DBGrid_Main.Visible:=false;
   max:=FormDesktop.DBGrid_Main.SelectedRows.Count;
   SetLength(arr,max);
-  for index:=0 to max-1 do arr[index]:=FormDesktop.DBGrid_Main.SelectedRows.Items[index];
   CurrentRTFP.BeginUpdate;
-  for index:=0 to max-1 do
+  with CurrentRTFP do
     begin
-      with CurrentRTFP do
+      if not PaperDS.Active then PaperDS.Open;
+      for index:=0 to max-1 do
         begin
-          if not PaperDS.Active then PaperDS.Open;
-          PaperDS.GotoBookmark(arr[index]);
+          PaperDS.GotoBookmark(FormDesktop.DBGrid_Main.SelectedRows.Items[index]);
           PID:=PaperDS.FieldByName(_Col_PID_).AsString;
-          KlassInclude(tmpKL.Name,PID);
+          arr[index]:=PID;
         end;
+      for index:=0 to max-1 do KlassInclude(tmpKL.Name,arr[index]);
+
     end;
   CurrentRTFP.EndUpdate;
+  FormDesktop.DBGrid_Main.Visible:=true;
   CurrentRTFP.RebuildMainGrid;//FormDesktop.MainGridValidate(CurrentRTFP);//CurrentRTFP.DataChange;
   SetLength(arr,0);
 end;

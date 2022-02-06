@@ -1,10 +1,10 @@
 //引用PDF里的图片
 //字段选项化，进度表可以是checkboxlist的形式
 //网页下载要研究一下JS
-//字段更新日志
+//字段更新日志(有必要吗)
 //尽快增加Picture Attachment和剪贴板输入(在做了)
-//增加文献节点文件名格式化功能
-//增刊期数的导入有问题，摘要的逗号导致换行
+//增加文献节点文件名格式化功能(有必要吗)
+//增刊期数的导入有问题
 //Memo字段的搜索
 //统一NodeEdit部分的编辑保存询问，下方的几个Tab共用一套Modified
 //尽快将所有弹窗统一样式（在做了，有点小问题，按键中文或者自动布局还没有处理好）
@@ -12,14 +12,17 @@
 //重新创建删除的字段会出现错误(中间没有保存导致的)
 //FormatEdit的管理
 //增加替换URL的加载模式用以适用不同的webvpn
-//新增节点要能设置默认分类
-//MainDBValidate改到OnFieldOrRecordChange
-//专门做一个OnDataChange的validate
 //每一个formatEditComponent增加Modified属性用来判断是否修改，在editable和uneditable之间加一个freeze
 //uneditable改为提交数据时提示不能修改
 //01234改为0123456
 //validate以后分类列表全部折叠
 //FWaitForm加进度条
+//FormatEdit没有的字段要有专门的表示
+//“待注脚知识元”
+//FormatEdit快捷键提交
+//截图转文字想想办法，试试内嵌python
+
+
 
 
 
@@ -64,6 +67,7 @@ type
   //几种文档入库方式: 复制备份/本地链接/网址链接/数据入库
 
   TSimChkOption = (scoFileName,scoTitle,scoFileHash,scoWeblnk,scoDOI,
+                   scoMetaTitle,scoMetaSubject,scoMetaCreator,scoMetaProduce,
                    scoEqual,scoContain,scoHalffit,scoHalffitUnsigned,  //匹配模式：完全相等、包含和半长度匹配(典型/无符号)
                    scoDB,scoDS);                                       //匹配总体：PaperDB、PaperDS
 
@@ -188,6 +192,7 @@ type
     function SaveDbf(dbf_name_no_ext:string;Dbf:TDbf):boolean;
     function CloseDbf(dbf_name_no_ext:string;Dbf:TDbf):boolean;
     function DeleteDbf(dbf_name_no_ext:string;Dbf:TDbf):boolean;
+    function PackDbf(Dbf:TDbf):boolean;
 
 
     //Attrs
@@ -297,6 +302,7 @@ type
   private
     function InitBasic(PID:RTFP_ID):TFields;
     procedure PostBasic;
+    procedure EditBasic;
     procedure ReEditBasic;
 
   public
@@ -439,6 +445,7 @@ type
 
   protected//与存档版本更新有关
     procedure Update_0_1_1_alpha_18;
+    procedure Update_0_1_2_alpha_8;unimplemented;
 
   public//与存档版本更新有关
     procedure Update(save_version:string);
@@ -1187,11 +1194,11 @@ begin
   run_dbt:=name_no_ext+'_run.dbt';
 
   try
-    if Dbf.Active then begin
-      Dbf.CloseIndexFile('id');
-      Dbf.DeleteIndex('id');
-      Dbf.Close;
-    end;
+    if not Dbf.Active then Dbf.Open;
+    Dbf.CloseIndexFile('id');
+    Dbf.DeleteIndex('id');
+    Dbf.Close;
+
     if not TRTFP.FileDelete((dbfpath+runfile)) then exit;
     if FileExists(dbfpath+run_dbt) then begin
       if not TRTFP.FileDelete((dbfpath+run_dbt)) then exit;
@@ -1230,6 +1237,18 @@ begin
   end;
   result:=true;
 
+end;
+
+function TRTFP.PackDbf(Dbf:TDbf):boolean;
+begin
+  //Dbf.Exclusive := True;
+  if not Dbf.Active then Dbf.Open;
+  Dbf.PackTable;
+  // let's also rebuild all the indexes
+  Dbf.RegenerateIndexes;
+  Dbf.Close;
+  //Dbf.Exclusive := False;
+  Dbf.Open;
 end;
 
 function TRTFP.AddAttrs(AName:string):TAttrsGroup;
@@ -1288,7 +1307,7 @@ begin
       if not Dbf.Active then Dbf.Open;
       Dbf.TryExclusive;
       case AType of
-        //ftString:Dbf.DbfFieldDefs.Add(AName,AType,256);
+        ftString:Dbf.DbfFieldDefs.Add(AName,AType,16);
         ftFloat:Dbf.DbfFieldDefs.Add(AName,AType,8);
         else Dbf.DbfFieldDefs.Add(AName,AType{,ASize});
       end;
@@ -2059,8 +2078,21 @@ begin
   Dbf.FieldDefs.Add(_Col_basic_ISBN_ISSN_, ftString, 32, false);
   Dbf.FieldDefs.Add(_Col_basic_Note_, ftString, 32, false);
   Dbf.FieldDefs.Add(_Col_basic_DataProv_, ftString, 255, false);//DataProvider
-  Dbf.FieldDefs.Add(_Col_basic_Has_Ext_, ftSmallint, 1, false);//是否有BasicExt数据，是1 否0
+  //Dbf.FieldDefs.Add(_Col_basic_Has_Ext_, ftSmallint, 1, false);//是否有BasicExt数据，是1 否0 //0.2.1-a.1开始删除这个字段
+
   //会议、专利、标准等就用BasicExt属性组好了
+
+  //0.1.2-alpha.8 新增
+  Dbf.FieldDefs.Add(_Col_basic_Degree_, ftString, 16, false);
+  Dbf.FieldDefs.Add(_Col_basic_Teacher_, ftMemo, 0, false);
+  Dbf.FieldDefs.Add(_Col_basic_City_, ftMemo, 0, false);
+  Dbf.FieldDefs.Add(_Col_basic_Meeting_, ftMemo, 0, false);
+  Dbf.FieldDefs.Add(_Col_basic_Sponsor_, ftMemo, 0, false);
+  Dbf.FieldDefs.Add(_Col_basic_CN_, ftString, 16, false);
+
+  //之后考虑将早期的String[255]改成Memo
+  //String不在出现长度大于16的字段
+  //同时增加转换字段类型的函数工具
 
 end;
 procedure TRTFP.GenAttrMetasAttribute(Dbf:TDbf);
@@ -2553,9 +2585,61 @@ begin
     DbfList.Free;
   end;
 end;
+procedure TRTFP.Update_0_1_2_alpha_8;//暂时不要这个了，字段可能不能用DBF这个，效果太差
+var tmpAG:TAttrsGroup;
+    tmpAF:TAttrsField;
+begin
+  {
+  tmpAG:=FFieldList.FindItemByName(_Attrs_Basic_);
+  assert(tmpAG<>nil,'tmpAG此时不会是nil');
+
+  BeginUpdate;
+
+  tmpAF:=tmpAG.FieldList.FindItemByName(_Col_basic_Degree_);
+  if tmpAF=nil then tmpAF:=AddField(_Col_basic_Degree_,_Attrs_Basic_,ftString);
+  tmpAF:=tmpAG.FieldList.FindItemByName(_Col_basic_Teacher_);
+  if tmpAF=nil then tmpAF:=AddField(_Col_basic_Teacher_,_Attrs_Basic_,ftMemo);
+  tmpAF:=tmpAG.FieldList.FindItemByName(_Col_basic_City_);
+  if tmpAF=nil then tmpAF:=AddField(_Col_basic_City_,_Attrs_Basic_,ftMemo);
+  tmpAF:=tmpAG.FieldList.FindItemByName(_Col_basic_Meeting_);
+  if tmpAF=nil then tmpAF:=AddField(_Col_basic_Meeting_,_Attrs_Basic_,ftMemo);
+  tmpAF:=tmpAG.FieldList.FindItemByName(_Col_basic_Sponsor_);
+  if tmpAF=nil then tmpAF:=AddField(_Col_basic_Sponsor_,_Attrs_Basic_,ftMemo);
+  tmpAF:=tmpAG.FieldList.FindItemByName(_Col_basic_CN_);
+  if tmpAF=nil then tmpAF:=AddField(_Col_basic_CN_,_Attrs_Basic_,ftString);
+  EndUpdate;
+  }
+
+  //tmpDbf:=FFieldList.FindItemByName(_Attrs_Basic_).Dbf;
+  {
+  with FFieldList.FindItemByName(_Attrs_Basic_).Dbf do begin
+
+    if not Active then Open;
+    TryExclusive;
+
+    DbfFieldDefs.Add(_Col_basic_Degree_, ftString, 16, false);
+    DbfFieldDefs.Add(_Col_basic_Teacher_, ftMemo, 0, false);
+    DbfFieldDefs.Add(_Col_basic_City_, ftMemo, 0, false);
+    DbfFieldDefs.Add(_Col_basic_Meeting_, ftMemo, 0, false);
+    DbfFieldDefs.Add(_Col_basic_Sponsor_, ftMemo, 0, false);
+    DbfFieldDefs.Add(_Col_basic_CN_, ftString, 16, false);
+
+    PackTable;
+    Close;
+    Open;
+    EndExclusive;
+    RegenerateIndexes;
+
+
+  end;
+  }
+end;
+
 procedure TRTFP.Update(save_version:string);
 begin
   if not TRTFP.VersionCheck(save_version,'0.1.1-alpha.18') then Update_0_1_1_alpha_18;
+  //if not TRTFP.VersionCheck(save_version,'0.1.2-alpha.8') then Update_0_1_2_alpha_8;
+
 end;
 
 function TRTFP.UserID(AUser:string):integer;
@@ -2653,7 +2737,7 @@ begin
       end;
       tmpPDF.LoadPdf(fullfilename);
     END ELSE BEGIN
-      if AddPaperMethod=apmFullBackup then exit;
+      if AddPaperMethod in [apmFullBackup,apmAddress] then exit;
       DateDir:='';
       FileName:='';
     END;
@@ -2676,7 +2760,7 @@ begin
     end;
 
     //0-文献基本信息要专门的算法
-    EditFieldAsInteger(_Col_basic_Has_Ext_,_Attrs_Basic_,PID,0,[]);
+    EditFieldAsString(_Col_basic_doi_,_Attrs_Basic_,PID,'',[]);
 
     //1-分类
     EditFieldAsBoolean(_Col_class_Is_Read_,_Attrs_Class_,PID,false,[]);
@@ -2692,14 +2776,14 @@ begin
     //3-元数据
     //这里之后要考虑不是pdf或者pdf读取错误的情况
     //这不是一个好做法，会大量浪费算力，但是现在先让他爬起来吧，再优化
-    EditFieldAsString(_Col_metas_Title_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Title']^,[]);
-    EditFieldAsString(_Col_metas_Authors_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Author']^,[]);
-    EditFieldAsString(_Col_metas_Subject_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Subject']^,[]);
-    EditFieldAsString(_Col_metas_Keyword_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Keywords']^,[]);
-    EditFieldAsString(_Col_metas_Creator_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Creator']^,[]);
-    EditFieldAsString(_Col_metas_Produce_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Producer']^,[]);
-    EditFieldAsString(_Col_metas_CreDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:CreationDate']^,[]);
-    EditFieldAsString(_Col_metas_ModDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:ModDate']^,[]);
+    EditFieldAsString(_Col_metas_Title_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Title']^,[aeForceEditIfTypeDismatch]);
+    EditFieldAsString(_Col_metas_Authors_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Author']^,[aeForceEditIfTypeDismatch]);
+    EditFieldAsString(_Col_metas_Subject_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Subject']^,[aeForceEditIfTypeDismatch]);
+    EditFieldAsString(_Col_metas_Keyword_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Keywords']^,[aeForceEditIfTypeDismatch]);
+    EditFieldAsString(_Col_metas_Creator_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Creator']^,[aeForceEditIfTypeDismatch]);
+    EditFieldAsString(_Col_metas_Produce_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Producer']^,[aeForceEditIfTypeDismatch]);
+    EditFieldAsString(_Col_metas_CreDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:CreationDate']^,[aeForceEditIfTypeDismatch]);
+    EditFieldAsString(_Col_metas_ModDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:ModDate']^,[aeForceEditIfTypeDismatch]);
 
     //if not is_updating then EndUpdate;
     EndUpdate;
@@ -3081,7 +3165,6 @@ var PIDs,lst1,lst2:TStringList;
           else inc(index);
         end;
     end;
-
     function HalffitUnsignedCompare:boolean;
     var s1,s2:string;
         len1,len2,len:integer;
@@ -3153,6 +3236,27 @@ begin
                 lst1.Add(ReadFieldAsString(_Col_basic_doi_,_Attrs_Basic_,id1,[]));
                 lst2.Add(ReadFieldAsString(_Col_basic_doi_,_Attrs_Basic_,id2,[]));
               end;
+            if scoMetaTitle in ASimChkOption then
+              begin
+                lst1.Add(ReadFieldAsString(_Col_metas_Title_,_Attrs_Metas_,id1,[]));
+                lst2.Add(ReadFieldAsString(_Col_metas_Title_,_Attrs_Metas_,id2,[]));
+              end;
+            if scoMetaSubject in ASimChkOption then
+              begin
+                lst1.Add(ReadFieldAsString(_Col_metas_Subject_,_Attrs_Metas_,id1,[]));
+                lst2.Add(ReadFieldAsString(_Col_metas_Subject_,_Attrs_Metas_,id2,[]));
+              end;
+            if scoMetaCreator in ASimChkOption then
+              begin
+                lst1.Add(ReadFieldAsString(_Col_metas_Creator_,_Attrs_Metas_,id1,[]));
+                lst2.Add(ReadFieldAsString(_Col_metas_Creator_,_Attrs_Metas_,id2,[]));
+              end;
+            if scoMetaProduce in ASimChkOption then
+              begin
+                lst1.Add(ReadFieldAsString(_Col_metas_Produce_,_Attrs_Metas_,id1,[]));
+                lst2.Add(ReadFieldAsString(_Col_metas_Produce_,_Attrs_Metas_,id2,[]));
+              end;
+
             lst1.Sorted:=true;
             lst2.Sorted:=true;
             while lst1.Find('',index) do lst1.Delete(index);
@@ -3311,8 +3415,8 @@ begin
     stmp.Free;
   end;
 
-  RebuildMainGrid;
-  {Data}Change;
+  //RebuildMainGrid;
+  DataChange(PID);
   result:=true;
 end;
 
@@ -3340,8 +3444,8 @@ begin
     stmp.Free;
   end;
 
-  RebuildMainGrid;
-  {Data}Change;
+  //RebuildMainGrid;
+  DataChange(PID);
   result:=true;
 end;
 
@@ -3421,7 +3525,13 @@ begin
   with AG.Dbf do begin
     if not Active then Open;
     IndexName:='id';
-    if not SearchKey(PID,stEqual) then begin Last;Append;end;
+    if not SearchKey(PID,stEqual) then
+      begin
+        assert(false,'不应该找不到才对');
+        Append;
+        FieldByName(_Col_PID_).AsString:=PID;
+        Post;
+      end;
     Edit;
     result:=Fields;
   end;
@@ -3432,6 +3542,13 @@ var AG:TAttrsGroup;
 begin
   AG:=FindAttrs(_Attrs_Basic_);
   AG.Dbf.Post;
+end;
+
+procedure TRTFP.EditBasic;
+var AG:TAttrsGroup;
+begin
+  AG:=FindAttrs(_Attrs_Basic_);
+  AG.Dbf.Edit;
 end;
 
 procedure TRTFP.ReEditBasic;
@@ -3538,7 +3655,7 @@ begin
       try
         case header of
           'DataType':FieldByName(_Col_basic_RefType_).AsString:=decodeEStudyRefType(attr);
-          'Author-作者','Author','作者':
+          'Author-作者','Author-发明人','Source-起草单位':
             begin
               while attr[length(attr)]=';' do
                 begin
@@ -3547,12 +3664,11 @@ begin
                 end;
               FieldByName(_Col_basic_Author_).AsString:=attr;
             end;
-          'Title-题名','Title','题名','Title-正标题','正标题':FieldByName(_Col_basic_Title_).AsString:=attr;
-          'Source-刊名','Source','刊名','Source-学位授予单位',
-          '学位授予单位','Source-报纸中文名','报纸中文名':
+          'Title-题名','Title-正标题','Title-书名','Title-专利名称','Title-中文标准名称':FieldByName(_Col_basic_Title_).AsString:=attr;
+          'Source-刊名','Source-学位授予单位','Source-报纸中文名','Author-发布单位名称','Source-文献来源':
             FieldByName(_Col_basic_Source_).AsString:=attr;
-          'Year-年','Year','年':FieldByName(_Col_basic_Year_).AsString:=attr;
-          'PubTime-出版时间','PubTime','出版时间','PubTime-发表时间','发表时间':
+          'Year-年','Year-年鉴年份':FieldByName(_Col_basic_Year_).AsString:=attr;
+          'PubTime-出版时间','PubTime-发表时间':
             begin
               {zan}poss:=pos(' ',attr);
               if poss>0 then delete(attr,poss,length(attr));
@@ -3562,23 +3678,29 @@ begin
               end;
               FieldByName(_Col_basic_PubTime_).AsDateTime:=tmpDate;
             end;
-          'Period-期','Period','期':FieldByName(_Col_basic_Issue_).AsString:=attr;
-          'Roll-卷','Roll','卷':FieldByName(_Col_basic_Volume_).AsString:=attr;
-          'Keyword-关键词','Keyword','关键词':FieldByName(_Col_basic_Keyword_).AsString:=attr;
-          'Summary-摘要','Summary','摘要','Summary-快照','快照':FieldByName(_Col_basic_Summary_).AsString:=attr;
-          'PageCount-页数','PageCount','页数':FieldByName(_Col_basic_PageCount_).AsString:=attr;
-          'Page-页码','Page','页码':FieldByName(_Col_basic_Page_).AsString:=attr;
+          'Period-期':FieldByName(_Col_basic_Issue_).AsString:=attr;
+          'Roll-卷':FieldByName(_Col_basic_Volume_).AsString:=attr;
+          'Keyword-关键词':FieldByName(_Col_basic_Keyword_).AsString:=attr;
+          'Summary-摘要','Summary-快照':FieldByName(_Col_basic_Summary_).AsString:=attr;
+          'PageCount-页数':FieldByName(_Col_basic_PageCount_).AsString:=attr;
+          'Page-页码':FieldByName(_Col_basic_Page_).AsString:=attr;
           //'SrcDatabase-来源库':FieldByName(_Col_basic_来源库_).AsString:=attr;
-          'Organ-机构','Organ','机构','Organ-大学','大学':FieldByName(_Col_basic_Organ_).AsString:=attr;
-          'Link-链接','Link','链接':FieldByName(_Col_basic_Link_).AsString:=StringReplace(attr,'&amp;','&',[rfReplaceAll]);
-          //'Degree-学位','Degree','学位':FieldByName(_Col_basic_学位_).AsString:=attr;
-          //'Teacher-导师','Teacher','导师':FieldByName(_Col_basic_导师_).AsString:=attr;
+          'Organ-机构','Organ-大学','Organ-出版社','文献来源'{专利},'Organ-出版者'{年鉴}:
+            FieldByName(_Col_basic_Organ_).AsString:=attr;
+          'Link-链接':FieldByName(_Col_basic_Link_).AsString:=StringReplace(attr,'&amp;','&',[rfReplaceAll]);
+          'Degree-学位':FieldByName(_Col_basic_Degree_).AsString:=attr;
+          'Teacher-导师','Teacher-申请人':FieldByName(_Col_basic_Teacher_).AsString:=attr;
+          'City-会议地点','City-地址':FieldByName(_Col_basic_City_).AsString:=attr;
+          'Meeting-会议名称':FieldByName(_Col_basic_Meeting_).AsString:=attr;
+          'Notes-标准号':FieldByName(_Col_basic_ISBN_ISSN_).AsString:=attr;
 
         end;
       except
         error_str:=error_str+'    '+header+#13#10;
       end;
       ReEditBasic;
+      //PostBasic;
+      //EditBasic;
     end;
   end;
   if error_str<>#13#10 then ShowMsgOKAll('导入错误','以下字段导入时发生错误：'+error_str);//这里最好加一个本次不再提示
@@ -3592,8 +3714,10 @@ end;
 procedure TRTFP.LoadFromEndNote(PID:RTFP_ID;str:TStrings);
 var stmp,attr:string;
     has_author:boolean;
+    reftype:string;
 begin
   has_author:=false;
+  reftype:='';
   with InitBasic(PID) do begin
     for stmp in str do begin
       if length(stmp)<3 then continue;
@@ -3601,7 +3725,11 @@ begin
       attr:=stmp;
       delete(attr,1,3);
       case stmp[2] of
-        '0':FieldByName(_Col_basic_RefType_).AsString:=decodeEndNoteRefType(attr);
+        '0':
+          begin
+            reftype:=decodeEndNoteRefType(attr);
+            FieldByName(_Col_basic_RefType_).AsString:=reftype;
+          end;
         'A':
           begin
             attr:=StringReplace(attr,' %A ',';',[rfReplaceAll]);
@@ -3611,19 +3739,25 @@ begin
           end;
         '+':FieldByName(_Col_basic_Organ_).AsString:=attr;
         'T':FieldByName(_Col_basic_Title_).AsString:=attr;
-        'J':FieldByName(_Col_basic_Source_).AsString:=attr;
+        'J','I':FieldByName(_Col_basic_Source_).AsString:=attr;
         'D':FieldByName(_Col_basic_Year_).AsString:=attr;
-        'V':FieldByName(_Col_basic_Issue_).AsString:=attr;
+        'V':case reftype of
+              '标准规范':FieldByName(_Col_basic_ISBN_ISSN_).AsString:=attr;
+              else FieldByName(_Col_basic_Issue_).AsString:=attr;
+            end;
         'N':FieldByName(_Col_basic_Volume_).AsString:=attr;
         'K':FieldByName(_Col_basic_Keyword_).AsString:=attr;
         'X':FieldByName(_Col_basic_Summary_).AsString:=attr;
         'P':FieldByName(_Col_basic_Page_).AsString:=attr;
         '@':FieldByName(_Col_basic_ISBN_ISSN_).AsString:=attr;
-        //'L':FieldByName(_Col_basic_期刊号).AsString:=attr;
-        'W':FieldByName(_Col_basic_DataProv_).AsString:=attr;
-        //'Y':FieldByName(_Col_basic_导师).AsString:=attr;
-        //'I':FieldByName(_Col_basic_学校).AsString:=attr;
-        //'9':FieldByName(_Col_basic_学位类型).AsString:=attr;
+        'L':FieldByName(_Col_basic_CN_).AsString:=attr;
+        //'W':FieldByName(_Col_basic_DataProv_).AsString:=attr;
+        'Y':FieldByName(_Col_basic_Teacher_).AsString:=attr;
+        '9':FieldByName(_Col_basic_Degree_).AsString:=attr;//也指专利类型
+        'C':FieldByName(_Col_basic_City_).AsString:=attr;
+        'B':FieldByName(_Col_basic_Meeting_).AsString:=attr;
+        '?':FieldByName(_Col_basic_Sponsor_).AsString:=attr;
+        '8':FieldByName(_Col_basic_PubTime_).AsString:=attr;//专利的发表时间
 
       end;
       ReEditBasic;
@@ -3684,7 +3818,7 @@ begin
         'SN':FieldByName(_Col_basic_ISBN_ISSN_).AsString:=attr;
         'DO':FieldByName(_Col_basic_doi_).AsString:=attr;
         'UR':FieldByName(_Col_basic_Link_).AsString:=attr;
-        //'DB':FieldByName(_Col_basic_DataProv_).AsString:=attr;
+        'DB':FieldByName(_Col_basic_DataProv_).AsString:=attr;
         'DP':FieldByName(_Col_basic_DataProv_).AsString:=attr;
         //'AU':FieldByName(Author Address).AsString:=attr;
         //'AN':FieldByName(Accession Number).AsString:=attr;
@@ -3710,21 +3844,28 @@ begin
   ShowMsgOK('警告','unimplemented');
 end;
 procedure TRTFP.SaveToEndNote(PID:RTFP_ID;str:TStrings);
-var stmp:string;
+var stmp,reftype:string;
     ntmp:integer;
 begin
   str.Clear;
   with InitBasic(PID) do begin
     stmp:=FieldByName(_Col_basic_RefType_).AsString;
     if stmp<>'' then str.Add('%0 '+encodeEndNoteRefType(stmp));
+    reftype:=stmp;
     stmp:=FieldByName(_Col_basic_Author_).AsString;
     if stmp<>'' then str.Add('%A '+StringReplace(stmp,';',' %A ',[rfReplaceAll]));
     stmp:=FieldByName(_Col_basic_Organ_).AsString;
     if stmp<>'' then str.Add('%+ '+stmp);
     stmp:=FieldByName(_Col_basic_Title_).AsString;
     if stmp<>'' then str.Add('%T '+stmp);
+
     stmp:=FieldByName(_Col_basic_Source_).AsString;
-    if stmp<>'' then str.Add('%J '+stmp);
+    if reftype = '学位论文' then begin
+      if stmp<>'' then str.Add('%I '+stmp);
+    end else begin
+      if stmp<>'' then str.Add('%J '+stmp);
+    end;
+
     ntmp:=FieldByName(_Col_basic_Year_).AsInteger;
     if ntmp<>0 then str.Add('%D '+IntToStr(ntmp));
     ntmp:=FieldByName(_Col_basic_Issue_).AsInteger;
@@ -3739,16 +3880,21 @@ begin
     if stmp<>'' then str.Add('%P '+stmp);
     stmp:=FieldByName(_Col_basic_ISBN_ISSN_).AsString;
     if stmp<>'' then str.Add('%@ '+stmp);
-    //stmp:=FieldByName(_Col_basic_期刊号).AsString;
-    //if stmp<>'' then str.Add('%L '+stmp);
+    stmp:=FieldByName(_Col_basic_CN_).AsString;
+    if stmp<>'' then str.Add('%L '+stmp);
     stmp:=FieldByName(_Col_basic_DataProv_).AsString;
     if stmp<>'' then str.Add('%W '+stmp);
-    //stmp:=FieldByName(_Col_basic_导师).AsString;
-    //if stmp<>'' then str.Add('%Y '+stmp);
-    //stmp:=FieldByName(_Col_basic_学校).AsString;
-    //if stmp<>'' then str.Add('%I '+stmp);
-    //stmp:=FieldByName(_Col_basic_学位类型).AsString;
-    //if stmp<>'' then str.Add('%9 '+stmp);
+    stmp:=FieldByName(_Col_basic_Teacher_).AsString;
+    if stmp<>'' then str.Add('%Y '+stmp);
+    stmp:=FieldByName(_Col_basic_Degree_).AsString;
+    if stmp<>'' then str.Add('%9 '+stmp);
+    stmp:=FieldByName(_Col_basic_City_).AsString;
+    if stmp<>'' then str.Add('%C '+stmp);
+    stmp:=FieldByName(_Col_basic_Meeting_).AsString;
+    if stmp<>'' then str.Add('%B '+stmp);
+    stmp:=FieldByName(_Col_basic_Sponsor_).AsString;
+    if stmp<>'' then str.Add('%? '+stmp);
+
   end;
   PostBasic;
 end;
@@ -3787,8 +3933,155 @@ begin
 end;
 
 function TRTFP.GetGBT7714(PID:RTFP_ID):string;
+var stmp:string;
+    tmpDateTime:TDateTime;
 begin
-  ShowMsgOK('警告','unimplemented');
+  //ShowMsgOK('警告','unimplemented');
+  result:='';
+  with InitBasic(PID) do
+    begin
+      case FieldByName(_Col_basic_RefType_).AsString of
+        '期刊论文':
+          begin
+            result:='[PID='+PID+']';
+            result:=result+StringReplace(FieldByName(_Col_basic_Author_).AsString,';',',',[rfReplaceAll]);
+            result:=result+'.';
+            result:=result+FieldByName(_Col_basic_Title_).AsString;
+            result:=result+'[J].';
+            result:=result+FieldByName(_Col_basic_Source_).AsString;
+            result:=result+',';
+            result:=result+FieldByName(_Col_basic_Year_).AsString;
+            result:=result+',';
+            result:=result+FieldByName(_Col_basic_Volume_).AsString;
+            result:=result+'(';
+            result:=result+FieldByName(_Col_basic_Issue_).AsString;
+            result:=result+'):';
+            result:=result+FieldByName(_Col_basic_Page_).AsString;
+            result:=result+'.';
+          end;
+        '学位论文':
+          begin
+            result:='[PID='+PID+']';
+            result:=result+FieldByName(_Col_basic_Author_).AsString;
+            result:=result+'.';
+            result:=result+FieldByName(_Col_basic_Title_).AsString;
+            result:=result+'[D].';
+            result:=result+FieldByName(_Col_basic_Source_).AsString;
+            result:=result+',';
+            result:=result+FieldByName(_Col_basic_Year_).AsString;
+            result:=result+'.';
+          end;
+        '会议论文':
+          begin
+            result:='[PID='+PID+']';
+            result:=result+StringReplace(FieldByName(_Col_basic_Author_).AsString,';',',',[rfReplaceAll]);
+            result:=result+'. ';
+            result:=result+FieldByName(_Col_basic_Title_).AsString;
+            result:=result+'[A]. ';
+            result:=result+FieldByName(_Col_basic_Sponsor_).AsString;
+            result:=result+'.';
+            result:=result+FieldByName(_Col_basic_Source_).AsString;
+            result:=result+'[C]';
+            result:=result+FieldByName(_Col_basic_Sponsor_).AsString;
+            result:=result+':';
+            result:=result+FieldByName(_Col_basic_Meeting_).AsString;
+            result:=result+',';
+            result:=result+FieldByName(_Col_basic_Year_).AsString;
+            result:=result+':';
+            result:=result+FieldByName(_Col_basic_PageCount_).AsString;
+            result:=result+'.';
+          end;
+        '报纸':
+          begin
+            result:='[PID='+PID+']';
+            result:=result+StringReplace(FieldByName(_Col_basic_Author_).AsString,';',',',[rfReplaceAll]);
+            result:=result+'. ';
+            result:=result+FieldByName(_Col_basic_Title_).AsString;
+            result:=result+'[N]. ';
+            result:=result+FieldByName(_Col_basic_Source_).AsString;
+            result:=result+',';
+            result:=result+FieldByName(_Col_basic_PubTime_).AsString;
+            result:=result+'(';
+            result:=result+FieldByName(_Col_basic_PageCount_).AsString;
+            result:=result+').';
+          end;
+        '专著':
+          begin
+            result:='[PID='+PID+']';
+            result:=result+StringReplace(FieldByName(_Col_basic_Author_).AsString,';',',',[rfReplaceAll]);
+            result:=result+'.';
+            result:=result+FieldByName(_Col_basic_Title_).AsString;
+            result:=result+'[M].';
+            //result:=result+FieldByName(_Col_basic_出版社城市_).AsString;
+            //result:=result+':';
+            result:=result+FieldByName(_Col_basic_Organ_).AsString;
+            result:=result+',';
+
+            stmp:=FieldByName(_Col_basic_Year_).AsString;
+            if stmp='' then
+              begin
+                tmpDateTime:=FieldByName(_Col_basic_PubTime_).AsDateTime;
+                if tmpDateTime<>0 then
+                  begin
+                    DateTimeToString(stmp,'yyyy',tmpDateTime,[]);
+                    result:=result+stmp;
+                  end;
+              end
+            else result:=result+stmp;
+
+            stmp:=FieldByName(_Col_basic_Page_).AsString;
+            if stmp<>'' then
+              begin
+                result:=result+':';
+                result:=result+stmp;
+              end;
+
+            result:=result+'.';
+          end;
+        '年鉴':
+          begin
+            result:='暂不支持此类型';
+          end;
+        '专利':
+          begin
+            result:='[PID='+PID+']';
+            result:=result+StringReplace(FieldByName(_Col_basic_Author_).AsString,';',',',[rfReplaceAll]);
+            result:=result+'. ';
+            result:=result+FieldByName(_Col_basic_Title_).AsString;
+
+            stmp:=FieldByName(_Col_basic_ISBN_ISSN_).AsString;
+            if stmp<>'' then result:=result+': '+stmp;
+            result:=result+'[P].';
+            stmp:=FieldByName(_Col_basic_PubTime_).AsString;
+            if stmp<>'' then result:=' '+result+stmp+'.';
+          end;
+        '其它文献':
+          begin
+            result:='暂不支持此类型';
+          end;
+        '标准规范':
+          begin
+            result:='[PID='+PID+']';
+            result:=result+StringReplace(FieldByName(_Col_basic_Author_).AsString,';',',',[rfReplaceAll]);
+            result:=result+'. ';
+            result:=result+FieldByName(_Col_basic_Title_).AsString;
+            result:=result+': ';
+            result:=result+FieldByName(_Col_basic_ISBN_ISSN_).AsString;
+            result:=result+'[S].';
+            //result:=result+FieldByName(_Col_basic_City_).AsString;
+            //result:=result+':';
+            //result:=result+FieldByName(_Col_basic_Organ_).AsString;
+            //result:=result+',';
+            tmpDateTime:=FieldByName(_Col_basic_PubTime_).AsDateTime;
+            if tmpDateTime<>0 then
+              begin
+                DateTimeToString(stmp,'yyyy:mm',tmpDateTime,[]);
+                if length(stmp)=7 then result:=result+stmp+'.';
+              end;
+          end;
+        else result:='暂不支持此类型';
+      end;
+    end;
 end;
 function TRTFP.GetCAJCD(PID:RTFP_ID):string;
 begin
@@ -4406,18 +4699,24 @@ end;
 
 
 procedure TRTFP.FormatEditScrollBoxResize(Sender:TObject);
-var TreWidth,FullWidth:integer;
+var HexaWidth,TriWidth,FullWidth:integer;
 begin
   with FFormatEditComponentList do begin
-    if Count<3 then exit;
+    if Count<5 then exit;
     if TObject(Items[0]).ClassType<>TSplitter then exit;
     if TObject(Items[1]).ClassType<>TSplitter then exit;
     if TObject(Items[2]).ClassType<>TSplitter then exit;
+    if TObject(Items[3]).ClassType<>TSplitter then exit;
+    if TObject(Items[4]).ClassType<>TSplitter then exit;
     FullWidth:=(Sender as TScrollBox).Width;
-    TreWidth:=(FullWidth - 12) div 3;
-    TSplitter(Items[0]).Left:=TreWidth + 6;
-    TSplitter(Items[2]).Left:=FullWidth - TreWidth - 12;
-    TSplitter(Items[1]).Left:=(FullWidth - 6) div 2;
+    HexaWidth:=(FullWidth - 7*6) div 6;
+    TriWidth:=(FullWidth - 7*6) div 3;
+    TSplitter(Items[0]).Left:=HexaWidth + 6;
+    TSplitter(Items[1]).Left:=TriWidth + 12;
+    TSplitter(Items[2]).Left:=(FullWidth - 6) div 2;
+    TSplitter(Items[3]).Left:=FullWidth - TriWidth - 12;
+    TSplitter(Items[4]).Left:=FullWidth - HexaWidth - 6;
+
   end;
 end;
 
@@ -4446,7 +4745,7 @@ var SplitterObj:TSplitter;
 begin
   assert(FFormatEditComponentList.Count=0,'FormatEditBuild之前需要FormatEditClear！');
   with FFormatEditComponentList do begin
-    for index:=0 to 2 do begin
+    for index:=0 to 4 do begin
       SplitterObj:=TSplitter.Create(AScrollBox);
       with SplitterObj do
         begin
@@ -4489,41 +4788,57 @@ begin
         BeginUpdateBounds;
         Anchors:=[akTop,akLeft,akRight];
         TControl(Component).Enabled:=Editable;
-        case Auf.nargs[6].arg of
-          '0':begin
+        case lowercase(Auf.nargs[6].arg) of
+          '0','l':begin
                 AnchorSideLeft.Control:=AScrollBox;
                 AnchorSideLeft.Side:=asrLeft;
                 BorderSpacing.Left:=6;
               end;
-          '1':begin
+          'lm':begin
                 AnchorSideLeft.Control:=TSplitter(Items[0]);
                 AnchorSideLeft.Side:=asrRight;
               end;
-          '2':begin
+          '1','ml':begin
                 AnchorSideLeft.Control:=TSplitter(Items[1]);
                 AnchorSideLeft.Side:=asrRight;
               end;
-          '3':begin
+          '2','m':begin
                 AnchorSideLeft.Control:=TSplitter(Items[2]);
+                AnchorSideLeft.Side:=asrRight;
+              end;
+          '3','mr':begin
+                AnchorSideLeft.Control:=TSplitter(Items[3]);
+                AnchorSideLeft.Side:=asrRight;
+              end;
+          'rm':begin
+                AnchorSideLeft.Control:=TSplitter(Items[4]);
                 AnchorSideLeft.Side:=asrRight;
               end;
           else ;
         end;
-        case Auf.nargs[7].arg of
-          '4':begin
+        case lowercase(Auf.nargs[7].arg) of
+          '4','r':begin
                 AnchorSideRight.Control:=AScrollBox;
                 AnchorSideRight.Side:=asrRight;
                 BorderSpacing.Right:=6;
               end;
-          '3':begin
+          'rm':begin
+                AnchorSideRight.Control:=TSplitter(Items[4]);
+                AnchorSideRight.Side:=asrLeft;
+              end;
+          '3','mr':begin
+                AnchorSideRight.Control:=TSplitter(Items[3]);
+                AnchorSideRight.Side:=asrLeft;
+              end;
+          '2','m':begin
                 AnchorSideRight.Control:=TSplitter(Items[2]);
                 AnchorSideRight.Side:=asrLeft;
               end;
-          '2':begin
+          '1','ml':begin
                 AnchorSideRight.Control:=TSplitter(Items[1]);
                 AnchorSideRight.Side:=asrLeft;
               end;
-          '1':begin
+          'lm':begin
                 AnchorSideRight.Control:=TSplitter(Items[0]);
                 AnchorSideRight.Side:=asrLeft;
               end;
@@ -4575,7 +4890,6 @@ procedure TRTFP.FormatEditDataPost(PID:string);
 var Item:Pointer;
 begin
   BeginUpdate;
-
   for Item in FFormatEditComponentList do begin
     if TObject(Item).ClassType=TSplitter then continue;
     with TFormatEditPanel(Item) do
@@ -4587,7 +4901,6 @@ begin
         'TFmtImage':EditFieldAsBitmap(FieldName,AttrsName,PID,AsBitmap,[]);
       end;
   end;
-
   EndUpdate;
   DataChange(PID);
 end;
@@ -4599,80 +4912,70 @@ end;
 
 procedure TRTFP.SetUser(str:string);
 begin
-  if {}FProjectTags.Values['创建用户']<>str then
+  if FProjectTags.Values['创建用户']<>str then
     begin
-      {}FProjectTags.Values['创建用户']:=str;
+      FProjectTags.Values['创建用户']:=str;
       Change;
     end;
 end;
-
 function TRTFP.GetTitle:string;
 begin
-  result:={}FProjectTags.Values['工程标题'];
+  result:=FProjectTags.Values['工程标题'];
 end;
 
 procedure TRTFP.SetTitle(str:string);
 begin
-  if {}FProjectTags.Values['工程标题']<>str then
+  if FProjectTags.Values['工程标题']<>str then
     begin
-      {}FProjectTags.Values['工程标题']:=str;
+      FProjectTags.Values['工程标题']:=str;
       Change;
     end;
 end;
-
 function TRTFP.GetVersion:string;
 begin
-  result:={}FProjectTags.Values['最后保存版本'];
+  result:=FProjectTags.Values['最后保存版本'];
 end;
 
 procedure TRTFP.SetVersion(str:string);
 begin
-  if {}FProjectTags.Values['最后保存版本']<>str then
+  if FProjectTags.Values['最后保存版本']<>str then
     begin
-      {}FProjectTags.Values['最后保存版本']:=str;
+      FProjectTags.Values['最后保存版本']:=str;
       Change;
     end;
 end;
-
-
 function TRTFP.GetUser:string;
 begin
-  result:={}FProjectTags.Values['创建用户'];
+  result:=FProjectTags.Values['创建用户'];
 end;
-
-
-
 procedure TRTFP.SetTag(index:string;str:string);
 begin
-  if {}FProjectTags.Values[index]<>str then
+  if FProjectTags.Values[index]<>str then
     begin
-      {}FProjectTags.Values[index]:=str;
+      FProjectTags.Values[index]:=str;
       Change;
     end;
 end;
-
 function TRTFP.GetTag(index:string):string;
 begin
-  result:={}FProjectTags.Values[index];
+  result:=FProjectTags.Values[index];
 end;
-
 function TRTFP.GetOpenPdfExe:ansistring;
 begin
   result:=Tag['PDF打开方式'];
   if result='' then
     begin
       result:=DefaultOpenExe;
-      {}FProjectTags.Values['PDF打开方式']:=result;
+      FProjectTags.Values['PDF打开方式']:=result;
     end;
 end;
-
 function TRTFP.GetOpenCajExe:ansistring;
 begin
   result:=Tag['CAJ打开方式'];
   if result='' then
     begin
       result:=DefaultOpenExe;
-      {}FProjectTags.Values['CAJ打开方式']:=result;
+      FProjectTags.Values['CAJ打开方式']:=result;
     end;
 end;
 

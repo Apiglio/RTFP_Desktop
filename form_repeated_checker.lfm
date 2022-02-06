@@ -1,12 +1,12 @@
 object FormRepeatedChecker: TFormRepeatedChecker
   Left = 527
-  Height = 881
-  Top = 40
-  Width = 1025
+  Height = 853
+  Top = 90
+  Width = 989
   Caption = '查重与合并'
-  ClientHeight = 881
-  ClientWidth = 1025
-  Constraints.MinHeight = 360
+  ClientHeight = 853
+  ClientWidth = 989
+  Constraints.MinHeight = 400
   Constraints.MinWidth = 640
   DesignTimePPI = 120
   OnCreate = FormCreate
@@ -18,7 +18,7 @@ object FormRepeatedChecker: TFormRepeatedChecker
     AnchorSideTop.Control = Owner
     AnchorSideBottom.Control = ProgressBar_Chk
     Left = 10
-    Height = 600
+    Height = 525
     Top = 10
     Width = 254
     Anchors = [akTop, akLeft, akBottom]
@@ -38,7 +38,7 @@ object FormRepeatedChecker: TFormRepeatedChecker
     AnchorSideBottom.Side = asrBottom
     Left = 10
     Height = 36
-    Top = 835
+    Top = 807
     Width = 254
     Anchors = [akLeft, akRight, akBottom]
     BorderSpacing.Top = 5
@@ -56,7 +56,7 @@ object FormRepeatedChecker: TFormRepeatedChecker
     AnchorSideBottom.Control = Splitter_Opt
     Left = 10
     Height = 12
-    Top = 615
+    Top = 540
     Width = 254
     Anchors = [akLeft, akRight, akBottom]
     BorderSpacing.Top = 5
@@ -71,9 +71,9 @@ object FormRepeatedChecker: TFormRepeatedChecker
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Button_RecommandSelection
     Left = 274
-    Height = 815
+    Height = 787
     Top = 10
-    Width = 741
+    Width = 705
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 10
     BorderSpacing.Top = 10
@@ -112,9 +112,9 @@ object FormRepeatedChecker: TFormRepeatedChecker
     AnchorSideRight.Control = Button_UnSelectAll
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 543
+    Left = 525
     Height = 36
-    Top = 835
+    Top = 807
     Width = 66
     Anchors = [akRight, akBottom]
     BorderSpacing.Right = 2
@@ -128,9 +128,9 @@ object FormRepeatedChecker: TFormRepeatedChecker
     AnchorSideLeft.Side = asrCenter
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 611
+    Left = 593
     Height = 36
-    Top = 835
+    Top = 807
     Width = 66
     Anchors = [akLeft, akBottom]
     BorderSpacing.Bottom = 10
@@ -143,9 +143,9 @@ object FormRepeatedChecker: TFormRepeatedChecker
     AnchorSideLeft.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 679
+    Left = 661
     Height = 36
-    Top = 835
+    Top = 807
     Width = 66
     Anchors = [akLeft, akBottom]
     BorderSpacing.Left = 2
@@ -159,9 +159,9 @@ object FormRepeatedChecker: TFormRepeatedChecker
     AnchorSideLeft.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 750
+    Left = 732
     Height = 36
-    Top = 835
+    Top = 807
     Width = 66
     Anchors = [akLeft, akBottom]
     BorderSpacing.Left = 5
@@ -174,9 +174,9 @@ object FormRepeatedChecker: TFormRepeatedChecker
     AnchorSideRight.Control = Button_SelectAll
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 472
+    Left = 454
     Height = 36
-    Top = 835
+    Top = 807
     Width = 66
     Anchors = [akRight, akBottom]
     BorderSpacing.Right = 5
@@ -193,7 +193,7 @@ object FormRepeatedChecker: TFormRepeatedChecker
     AnchorSideBottom.Side = asrBottom
     Left = 10
     Height = 105
-    Top = 632
+    Top = 557
     Width = 124
     Anchors = [akTop, akLeft, akRight, akBottom]
     AutoFill = True
@@ -224,7 +224,7 @@ object FormRepeatedChecker: TFormRepeatedChecker
     AnchorSideBottom.Control = CheckGroup_ColMode
     Left = 134
     Height = 105
-    Top = 632
+    Top = 557
     Width = 6
     Align = alNone
     Anchors = [akLeft, akBottom]
@@ -239,7 +239,7 @@ object FormRepeatedChecker: TFormRepeatedChecker
     AnchorSideBottom.Side = asrBottom
     Left = 140
     Height = 105
-    Top = 632
+    Top = 557
     Width = 124
     Anchors = [akTop, akLeft, akRight, akBottom]
     AutoFill = True
@@ -266,8 +266,8 @@ object FormRepeatedChecker: TFormRepeatedChecker
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Button_FindRepeated
     Left = 10
-    Height = 93
-    Top = 737
+    Height = 140
+    Top = 662
     Width = 254
     Anchors = [akLeft, akRight, akBottom]
     AutoFill = True
@@ -281,7 +281,7 @@ object FormRepeatedChecker: TFormRepeatedChecker
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 2
-    ClientHeight = 73
+    ClientHeight = 120
     ClientWidth = 250
     Columns = 2
     Items.Strings = (
@@ -290,10 +290,14 @@ object FormRepeatedChecker: TFormRepeatedChecker
       '标题'
       '链接'
       'DOI'
+      'Meta:Title'
+      'Meta:Subject'
+      'Meta:Creator'
+      'Meta:Produce'
     )
     TabOrder = 12
     Data = {
-      050000000202020202
+      09000000020202020202020202
     }
   end
   object PopupMenu_CombinationMode: TPopupMenu
