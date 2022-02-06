@@ -7,6 +7,7 @@
 
 
 
+
 //{$define insert}
 {$define test}
 
@@ -20,6 +21,7 @@ interface
 
 uses
   Classes, SysUtils, Dialogs, ValEdit, Windows, LazUTF8, StdCtrls, ComCtrls,
+  ACL_ListView,
   {$ifndef insert}
   Apiglio_Useful, auf_ram_var, rtfp_pdfobj, rtfp_files, rtfp_class, rtfp_field,
   rtfp_constants,
@@ -65,6 +67,7 @@ type
     FIsOpen:boolean;
     FIsChanged:boolean;
     FIsUpdating:boolean;//true时不触发onChange
+
 
   protected
     procedure SetUser(str:string);
@@ -220,6 +223,7 @@ type
     procedure OpenPaper(PID:RTFP_ID;exename:string='');
     procedure OpenPaperAsPDF(PID:RTFP_ID);inline;
     procedure OpenPaperAsCAJ(PID:RTFP_ID);inline;
+    procedure OpenPaperDir(PID:RTFP_ID);inline;
 
     //Image
     function AddImage(fullfilename:string):RTFP_ID;//新增一个图片到工程
@@ -232,6 +236,38 @@ type
     //Klass
     function KlassInclude(klassname:string;PID:RTFP_ID):boolean;
     function KlassExclude(klassname:string;PID:RTFP_ID):boolean;
+
+    //References
+  private
+    function InitBasic(PID:RTFP_ID):TFields;
+    procedure PostBasic;
+    procedure ReEditBasic;
+
+  public
+    procedure LoadFromEStudy(PID:RTFP_ID;str:TStrings);
+    procedure LoadFromRefWork(PID:RTFP_ID;str:TStrings);
+    procedure LoadFromEndNote(PID:RTFP_ID;str:TStrings);
+    procedure LoadFromNoteExpress(PID:RTFP_ID;str:TStrings);
+    procedure LoadFromNoteFirst(PID:RTFP_ID;str:TStrings);
+
+    procedure SaveToEStudy(PID:RTFP_ID;str:TStrings);
+    procedure SaveToRefWork(PID:RTFP_ID;str:TStrings);
+    procedure SaveToEndNote(PID:RTFP_ID;str:TStrings);
+    procedure SaveToNoteExpress(PID:RTFP_ID;str:TStrings);
+    procedure SaveToNoteFirst(PID:RTFP_ID;str:TStrings);
+
+    procedure SetGBT7714(PID:RTFP_ID;str:string);
+    procedure SetCAJCD(PID:RTFP_ID;str:string);
+    procedure SetMLA(PID:RTFP_ID;str:string);
+    procedure SetAPA(PID:RTFP_ID;str:string);
+    procedure SetChaXin(PID:RTFP_ID;str:string);
+
+    function GetGBT7714(PID:RTFP_ID):string;
+    function GetCAJCD(PID:RTFP_ID):string;
+    function GetMLA(PID:RTFP_ID):string;
+    function GetAPA(PID:RTFP_ID):string;
+    function GetChaXin(PID:RTFP_ID):string;
+
 
 
   private //显示连接
@@ -322,7 +358,9 @@ type
     class function FileHash(AFileStream:TStream):string;//返回一个239长度的文件Hash
     class function FileCopy(source,dest:string;bFailIfExist:boolean):boolean;//utf8的string版本
     class function FileDelete(source:string):boolean;//utf8的string版本
-    class function MakeDir(filename:string):boolean;
+    class function MakeDir(filename:string):boolean;inline;
+    class function OpenDir(pathname:string):boolean;inline;
+    class function OpenFile(filename:string;exefile:string=''):boolean;inline;
 
   {构造与析构}
   public
@@ -1795,6 +1833,8 @@ begin
   tmpPDF:=TRTFP_PDF.Create(nil);
   tmpPDF.LoadPdf(fullfilename);
 
+  BeginUpdate;
+
   PID:=NewPaperID;
   //FPaperDB.Last;//此时游标已经在Last位置
   with FPaperDB do begin
@@ -1834,11 +1874,13 @@ begin
   EditFieldAsString(_Col_metas_CreDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:CreationDate']^);
   EditFieldAsString(_Col_metas_ModDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:ModDate']^);
 
+  EndUpdate;
 
   if AddPaperMethod=apmFullBackup then begin
     ForceDirectories(TargetDir);
     tmpPDF.CopyTo(TargetDir+'\'+FileName);//尚未加入长度检验
   end;
+
 
   RecordChange;
 
@@ -1943,10 +1985,13 @@ begin
       filename:=Utf8ToWinCP(FFilePath+FRootFolder+'\paper\'
         +FieldByName(_Col_Paper_Folder_).AsString+'\'
         +FieldByName(_Col_Paper_FileName_).AsString);
+      {
       if exename='' then
         ShellExecute(0,'open',pchar('"'+filename+'"'),'','',SW_NORMAL)
       else
         ShellExecute(0,'open',pchar(exename),pchar('"'+filename+'"'),'',SW_NORMAL);
+      }
+      TRTFP.OpenFile(filename,exename);
     end else
       ShowMessage('非备份文献节点不能通过此方法打开！');
   end;
@@ -1960,6 +2005,26 @@ end;
 procedure TRTFP.OpenPaperAsCAJ(PID:RTFP_ID);
 begin
   OpenPaper(PID,OpenCajExe);
+end;
+
+procedure TRTFP.OpenPaperDir(PID:RTFP_ID);
+var filename:string;
+begin
+  with FPaperDB do begin
+    First;
+    while not EOF do
+      begin
+        if FieldByName(_Col_PID_).AsString=PID then break;
+        Next;
+      end;
+    if EOF then begin assert(false,'未找到PID');exit;end;
+    if FieldByName(_Col_Paper_Is_Backup_).AsBoolean then begin
+      filename:=Utf8ToWinCP(FFilePath+FRootFolder+'\paper\'
+        +FieldByName(_Col_Paper_Folder_).AsString+'\');
+      TRTFP.OpenDir(filename);
+    end else
+      ShowMessage('非备份文献节点不能通过此方法打开！');
+  end;
 end;
 
 function TRTFP.KlassInclude(klassname:string;PID:RTFP_ID):boolean;
@@ -2061,6 +2126,168 @@ procedure TRTFP.DeleteNote(NID:RTFP_ID);//移除指定NID的注解
 begin
 
 end;
+
+
+function TRTFP.InitBasic(PID:RTFP_ID):TFields;
+var AG:TAttrsGroup;
+begin
+  result:=nil;
+  AG:=FindAttrs(_Attrs_Basic_);
+  if AG=nil then AG:=AddAttrs(_Attrs_Basic_);
+  //CheckBasicFields;
+  with AG.Dbf do begin
+    if not Active then Open;
+    First;
+    while not EOF do
+      begin
+        if FieldByName(_Col_PID_).AsString=PID then break;
+        Next;
+      end;
+    if EOF then Append;
+    Edit;
+    result:=Fields;
+  end;
+end;
+
+procedure TRTFP.PostBasic;
+var AG:TAttrsGroup;
+begin
+  AG:=FindAttrs(_Attrs_Basic_);
+  AG.Dbf.Post;
+end;
+
+procedure TRTFP.ReEditBasic;
+var AG:TAttrsGroup;
+begin
+  AG:=FindAttrs(_Attrs_Basic_);
+  AG.Dbf.Post;
+  AG.Dbf.Edit;
+end;
+
+procedure TRTFP.LoadFromEStudy(PID:RTFP_ID;str:TStrings);
+begin
+
+end;
+procedure TRTFP.LoadFromRefWork(PID:RTFP_ID;str:TStrings);
+begin
+
+end;
+procedure TRTFP.LoadFromEndNote(PID:RTFP_ID;str:TStrings);
+var stmp,attr:string;
+    has_author:boolean;
+begin
+  has_author:=false;
+  with InitBasic(PID) do begin
+    for stmp in str do begin
+      if length(stmp)<3 then continue;
+      if (stmp[1]<>'%') or (stmp[3]<>' ') then continue;
+      attr:=stmp;
+      delete(attr,1,3);
+      case stmp[2] of
+        '0':FieldByName(_Col_basic_RefType_).AsString:=attr;
+        'A':
+          begin
+            attr:=StringReplace(attr,' %A ',';',[rfReplaceAll]);
+            if has_author then attr:=FieldByName(_Col_basic_Author_).AsString+';'+attr;
+            FieldByName(_Col_basic_Author_).AsString:=attr;
+            if not has_author then has_author:=true;
+          end;
+        '+':FieldByName(_Col_basic_Organ_).AsString:=attr;
+        'T':FieldByName(_Col_basic_Title_).AsString:=attr;
+        'J':FieldByName(_Col_basic_Source_).AsString:=attr;
+        'D':FieldByName(_Col_basic_Year_).AsString:=attr;
+        'V':FieldByName(_Col_basic_Issue_).AsString:=attr;
+        'N':FieldByName(_Col_basic_Volume_).AsString:=attr;
+        'K':FieldByName(_Col_basic_Keyword_).AsString:=attr;
+        'X':FieldByName(_Col_basic_Summary_).AsString:=attr;
+        'P':FieldByName(_Col_basic_Page_).AsString:=attr;
+        '@':FieldByName(_Col_basic_ISBN_ISSN_).AsString:=attr;
+        //'L':FieldByName(_Col_basic_期刊号).AsString:=attr;
+        'W':FieldByName(_Col_basic_DataProv_).AsString:=attr;
+        //'Y':FieldByName(_Col_basic_导师).AsString:=attr;
+        //'I':FieldByName(_Col_basic_学校).AsString:=attr;
+        //'9':FieldByName(_Col_basic_学位类型).AsString:=attr;
+
+      end;
+      ReEditBasic;
+    end;
+  end;
+  PostBasic;
+end;
+procedure TRTFP.LoadFromNoteExpress(PID:RTFP_ID;str:TStrings);
+begin
+
+end;
+procedure TRTFP.LoadFromNoteFirst(PID:RTFP_ID;str:TStrings);
+begin
+
+end;
+
+procedure TRTFP.SaveToEStudy(PID:RTFP_ID;str:TStrings);
+begin
+
+end;
+procedure TRTFP.SaveToRefWork(PID:RTFP_ID;str:TStrings);
+begin
+
+end;
+procedure TRTFP.SaveToEndNote(PID:RTFP_ID;str:TStrings);
+begin
+
+end;
+procedure TRTFP.SaveToNoteExpress(PID:RTFP_ID;str:TStrings);
+begin
+
+end;
+procedure TRTFP.SaveToNoteFirst(PID:RTFP_ID;str:TStrings);
+begin
+
+end;
+
+procedure TRTFP.SetGBT7714(PID:RTFP_ID;str:string);
+begin
+
+end;
+procedure TRTFP.SetCAJCD(PID:RTFP_ID;str:string);
+begin
+
+end;
+procedure TRTFP.SetMLA(PID:RTFP_ID;str:string);
+begin
+
+end;
+procedure TRTFP.SetAPA(PID:RTFP_ID;str:string);
+begin
+
+end;
+procedure TRTFP.SetChaXin(PID:RTFP_ID;str:string);
+begin
+
+end;
+
+function TRTFP.GetGBT7714(PID:RTFP_ID):string;
+begin
+
+end;
+function TRTFP.GetCAJCD(PID:RTFP_ID):string;
+begin
+
+end;
+function TRTFP.GetMLA(PID:RTFP_ID):string;
+begin
+
+end;
+function TRTFP.GetAPA(PID:RTFP_ID):string;
+begin
+
+end;
+function TRTFP.GetChaXin(PID:RTFP_ID):string;
+begin
+
+end;
+
+
+
 
 procedure TRTFP.ProjectPropertiesValidate(AValueListEditor:TValueListEditor);
 begin
@@ -2210,7 +2437,8 @@ begin
         tmpDbf.Next;
       until tmpDbf.EOF;
     end;
-  FPaperDS.GotoBookmark(bm);
+  if FPaperDS.BookmarkValid(bm) then FPaperDS.GotoBookmark(bm);
+
 end;
 
 procedure TRTFP.TableFilter(cmd:string);
@@ -2293,8 +2521,9 @@ begin
     begin
       for tmpAF in tmpAG.FieldList do
         begin
-          AListView.AddItem(tmpAG.Name+'\'+tmpAF.FieldName,tmpAF);
-          AListView.Items[AListView.Items.Count-1].Checked:=tmpAF.Shown;
+          //AListView.AddItem(tmpAG.Name+'\'+tmpAF.FieldName,tmpAF);
+          //AListView.Items[AListView.Items.Count-1].Checked:=tmpAF.Shown;
+          (AListView as TACL_ListView).AddShellNodeItem(tmpAG.Name+'\'+tmpAF.FieldName,tmpAF,tmpAF.Shown);
         end;
     end;
   AListView.EndUpdate;
@@ -2309,8 +2538,9 @@ begin
   AListView.Clear;
   for tmpKL in FKlassList do
     begin
-      AListView.AddItem(tmpKL.Name,tmpKL);
-      AListView.Items[AListView.Items.Count-1].Checked:=tmpKL.FilterEnabled;
+      //AListView.AddItem(tmpKL.Name,tmpKL);
+      //AListView.Items[AListView.Items.Count-1].Checked:=tmpKL.FilterEnabled;
+      (AListView as TACL_ListView).AddShellNodeItem(tmpKL.FullPath,tmpKL,tmpKL.FilterEnabled);
     end;
   AListView.EndUpdate;
   AListView.Repaint;
@@ -2759,7 +2989,20 @@ end;
 class function TRTFP.MakeDir(filename:string):boolean;
 begin
   result:=false;
-  ForceDirectories(filename);
+  result:=ForceDirectories(filename);
+end;
+
+class function TRTFP.OpenDir(pathname:string):boolean;
+begin
+  ShellExecute(0,'open','explorer.exe',pchar('"'+pathname+'"'),'',SW_NORMAL);
+end;
+
+class function TRTFP.OpenFile(filename:string;exefile:string=''):boolean;
+begin
+  if exefile='' then
+    ShellExecute(0,'open',pchar('"'+filename+'"'),'','',SW_NORMAL)
+  else
+    ShellExecute(0,'open',pchar(exefile),pchar('"'+filename+'"'),'',SW_NORMAL);
 end;
 
 end.
