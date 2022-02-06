@@ -20,7 +20,7 @@ const
   RTFP_ID_CHARSET_Pre_0_1_1_alpha_18 = ['0'..'9','A'..'Z','a'..'z','+','-'];
   RTFP_ID_CHARSET = ['0'..'9','A'..'Z','a'..'z','{','}'];
   DefaultOpenExe = ''; //cmd.exe /c
-  Comma_Symbol = '&apig_comma&';
+  Comma_Symbol = '<_cma>';
 
   _Attrs_Basic_ = '文献基础信息';
   _Attrs_Class_ = '分类';

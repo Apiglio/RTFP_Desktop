@@ -1,0 +1,216 @@
+object FormRepeatedChecker: TFormRepeatedChecker
+  Left = 477
+  Height = 320
+  Top = 313
+  Width = 640
+  Caption = '查重与合并'
+  ClientHeight = 320
+  ClientWidth = 640
+  Constraints.MinHeight = 320
+  Constraints.MinWidth = 640
+  DesignTimePPI = 120
+  Position = poScreenCenter
+  LCLVersion = '1.8.4.0'
+  object ListBox_RepeatedPIDPair: TListBox
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideBottom.Control = ProgressBar_Chk
+    Left = 10
+    Height = 242
+    Top = 10
+    Width = 182
+    Anchors = [akTop, akLeft, akBottom]
+    BorderSpacing.Left = 10
+    BorderSpacing.Top = 10
+    ItemHeight = 0
+    OnSelectionChange = ListBox_RepeatedPIDPairSelectionChange
+    TabOrder = 0
+  end
+  object Button_FindRepeated: TButton
+    AnchorSideLeft.Control = ListBox_RepeatedPIDPair
+    AnchorSideTop.Control = ProgressBar_Chk
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = ListBox_RepeatedPIDPair
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 10
+    Height = 36
+    Top = 274
+    Width = 182
+    Anchors = [akLeft, akRight, akBottom]
+    BorderSpacing.Top = 5
+    BorderSpacing.Bottom = 10
+    Caption = '查找相似'
+    OnClick = Button_FindRepeatedClick
+    TabOrder = 1
+  end
+  object ProgressBar_Chk: TProgressBar
+    AnchorSideLeft.Control = ListBox_RepeatedPIDPair
+    AnchorSideTop.Control = ListBox_RepeatedPIDPair
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = ListBox_RepeatedPIDPair
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Button_FindRepeated
+    Left = 10
+    Height = 12
+    Top = 257
+    Width = 182
+    Anchors = [akLeft, akRight, akBottom]
+    BorderSpacing.Top = 5
+    BorderSpacing.Bottom = 5
+    TabOrder = 2
+  end
+  object ListView_AttrsCompare: TListView
+    AnchorSideLeft.Control = ListBox_RepeatedPIDPair
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = ListBox_RepeatedPIDPair
+    AnchorSideBottom.Side = asrBottom
+    Left = 202
+    Height = 242
+    Top = 10
+    Width = 428
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Left = 10
+    BorderSpacing.Top = 10
+    BorderSpacing.Right = 10
+    Columns = <    
+      item
+        Caption = '保留主属性'
+        MaxWidth = 200
+        Width = 90
+      end    
+      item
+        Caption = '主要属性'
+        MaxWidth = 200
+        Width = 75
+      end    
+      item
+        Caption = '辅助属性'
+        MaxWidth = 200
+        Width = 75
+      end    
+      item
+        Caption = '保留选项'
+      end>
+    GridLines = True
+    PopupMenu = PopupMenu_CombinationMode
+    ReadOnly = True
+    RowSelect = True
+    TabOrder = 3
+    ViewStyle = vsReport
+  end
+  object Button_SelectAll: TButton
+    AnchorSideRight.Control = Button_UnSelectAll
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 303
+    Height = 36
+    Top = 274
+    Width = 72
+    Anchors = [akRight, akBottom]
+    BorderSpacing.Right = 5
+    BorderSpacing.Bottom = 10
+    Caption = '全部主要'
+    OnClick = Button_SelectAllClick
+    TabOrder = 4
+  end
+  object Button_UnSelectAll: TButton
+    AnchorSideLeft.Control = ListView_AttrsCompare
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 380
+    Height = 36
+    Top = 274
+    Width = 72
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Bottom = 10
+    Caption = '全部次要'
+    OnClick = Button_UnSelectAllClick
+    TabOrder = 5
+  end
+  object Button_RecommandSelection: TButton
+    AnchorSideLeft.Control = Button_UnSelectAll
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 457
+    Height = 36
+    Top = 274
+    Width = 72
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Left = 5
+    BorderSpacing.Bottom = 10
+    Caption = '智能选择'
+    OnClick = Button_RecommandSelectionClick
+    TabOrder = 6
+  end
+  object Button_ApplyCombination: TButton
+    AnchorSideLeft.Control = Button_RecommandSelection
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 554
+    Height = 36
+    Top = 274
+    Width = 72
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Left = 25
+    BorderSpacing.Bottom = 10
+    Caption = '合并'
+    TabOrder = 7
+  end
+  object Button_ChkOption: TButton
+    AnchorSideRight.Control = Button_SelectAll
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 206
+    Height = 36
+    Top = 274
+    Width = 72
+    Anchors = [akRight, akBottom]
+    BorderSpacing.Right = 25
+    BorderSpacing.Bottom = 10
+    Caption = '查重设置'
+    Enabled = False
+    TabOrder = 8
+  end
+  object ProgressBar1: TProgressBar
+    AnchorSideLeft.Control = ListView_AttrsCompare
+    AnchorSideTop.Control = ListBox_RepeatedPIDPair
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = ListView_AttrsCompare
+    AnchorSideRight.Side = asrBottom
+    Left = 202
+    Height = 12
+    Top = 257
+    Width = 428
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 5
+    TabOrder = 9
+  end
+  object PopupMenu_CombinationMode: TPopupMenu
+    left = 144
+    top = 168
+    object MenuItem_KeepMain: TMenuItem
+      Caption = '保留主要属性'
+      OnClick = MenuItem_KeepMainClick
+    end
+    object MenuItem_KeepVice: TMenuItem
+      Caption = '保留才要属性'
+      OnClick = MenuItem_KeepViceClick
+    end
+    object MenuItem_LinearComb: TMenuItem
+      Caption = '文本追加组合'
+      OnClick = MenuItem_LinearCombClick
+    end
+    object MenuItem_DeleteAll: TMenuItem
+      Caption = '不保留有效值'
+      OnClick = MenuItem_DeleteAllClick
+    end
+  end
+end

@@ -10,7 +10,7 @@ uses
   LResources, LCLIntf, LCLType, LCLProc,
   Forms, Controls, Themes, GraphType, Graphics, Buttons, ButtonPanel, StdCtrls,
   ExtCtrls, ClipBrd, Menus, LCLTaskDialog,
-  ListFilterEdit;
+  ListFilterEdit, CheckLst;
 
 type
   TAllState = class
@@ -42,6 +42,7 @@ function ShowMsgCombo(const ACaption,APrompt:string;const AList:TStrings):string
 function ShowMsgList(const ACaption,APrompt:string;const AList:TStrings;
   Out ASelected:Integer):string;
 function ShowMsgList(const ACaption,APrompt:string;const AList:TStrings):string;
+function ShowMsgCheckList(ACaption,APrompt:string;AList:TStrings;out SelList:TStrings;AllSelected:boolean=false):String;//AList会根据选择改变
 function ShowMsgEdit(const ACaption,APrompt,DefaultStr:string):String;
 
 function ShowMsgImage(const ACaption:string;const ABitmap:TBitmap;ShowPixelInfo:boolean=false):string;
@@ -259,6 +260,75 @@ begin
   result:=ShowMsgList(ACaption,APrompt,AList,codee);
 end;
 
+
+function ShowMsgCheckList(ACaption,APrompt:string;AList:TStrings;out SelList:TStrings;AllSelected:boolean=false):String;
+var
+  W,I,Sep,Margin:Integer;
+  Frm:TForm;
+  CBSelect:TCheckListBox;
+  LPrompt:TLabel;
+  BP:TButtonPanel;
+begin
+  Margin:=24;
+  Sep:=8;
+  Result:='';
+  Frm:=TForm.Create(FormDesktop);
+  try
+
+    W:=Max(frm.Canvas.TextWidth(APrompt),frm.Canvas.TextWidth(ACaption));
+    W:=Max(W,360);
+    W:=Min(W,540);
+    for I:=0 to AList.Count-1 do W:=Max(W,frm.Canvas.TextWidth(AList[i]+'WWW'));//WWW占位符
+
+    with frm do begin
+      BorderStyle:=bsDialog;
+      Caption:=ACaption;
+      ClientWidth:=W+2*Margin;
+      Position:=poOwnerFormCenter;
+      KeyPreview:=true;
+    end;
+
+    LPrompt:=TLabel.Create(frm);
+    with LPrompt do begin
+      Parent:=frm;
+      Caption:=APrompt;
+      SetBounds(Margin,Margin,Frm.ClientWidth-2*Margin,frm.Canvas.TextHeight(APrompt));
+      WordWrap:=True;
+      AutoSize:=False;
+    end;
+
+    CBSelect:=TCheckListBox.Create(Frm);
+    with CBSelect do begin
+      Parent:=Frm;
+      Items.Assign(AList);
+      Left:=Margin;
+      Top:=LPrompt.Top + LPrompt.Height + Sep;
+      Width:=Frm.ClientWidth-2*Margin;
+      Height:=120;
+      if AllSelected then SelectAll;
+    end;
+
+    BP:=TButtonPanel.Create(Frm);
+    with BP do begin
+      Parent:=Frm;
+      ShowButtons:=[pbOK,pbCancel];
+      ShowGlyphs:=[];
+      OKButton.Caption:='&确认';
+      CancelButton.Caption:='&取消';
+    end;
+
+    Frm.ClientHeight:=LPrompt.Height+CBSelect.Height+BP.Height+3*Sep+Margin;
+
+    if (Frm.ShowModal=mrOk) then begin
+      for I:=0 to CBSelect.Count-1 do if CBSelect.Checked[I] then SelList.Add(CBSelect.Items[I]);
+    end;
+
+  finally
+    FreeAndNil(Frm);
+  end;
+end;
+
+
 function ShowMsgEdit(const ACaption,APrompt,DefaultStr:string):String;
 var
   W,Sep,Margin: Integer;
@@ -330,6 +400,7 @@ var
   Scroll:TScrollBox;
   Image:TImage;
 begin
+  if ABitmap.Width*ABitmap.Height=0 then exit;
   Margin:=24;
   Sep:=8;
   Result:='';

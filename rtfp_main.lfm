@@ -76,7 +76,7 @@ object FormDesktop: TFormDesktop
         )
         ColWidths = (
           200
-          614
+          593
         )
       end
       object Splitter_PropertiesV: TSplitter
@@ -739,12 +739,15 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrBottom
         Left = 166
         Height = 26
+        Hint = '长度限制在40个字节（约13个汉字），'#13#10'可使用的特殊符号包括：()_-+&"'':'
         Top = 497
         Width = 26
         Anchors = [akRight, akBottom]
         BorderSpacing.Bottom = 5
         Caption = '+'
         OnClick = Button_AddKlassClick
+        ParentShowHint = False
+        ShowHint = True
         TabOrder = 1
       end
       object Edit_AddKlass: TEdit
@@ -818,12 +821,15 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Control = Button_FieldType
         Left = 166
         Height = 26
+        Hint = '长度限制在12个字节（4个汉字），'#13#10'可使用的特殊符号包括：_-'
         Top = 463
         Width = 26
         Anchors = [akRight, akBottom]
         BorderSpacing.Bottom = 8
         Caption = '+'
         OnClick = Button_AddFieldClick
+        ParentShowHint = False
+        ShowHint = True
         TabOrder = 1
       end
       object Edit_AddField: TEdit
@@ -862,12 +868,15 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Control = Button_AddField
         Left = 166
         Height = 26
+        Hint = '长度限制在20个字节（约6个汉字），'#13#10'可使用的特殊符号包括：_-'
         Top = 429
         Width = 26
         Anchors = [akRight, akBottom]
         BorderSpacing.Bottom = 8
         Caption = '+'
         OnClick = Button_AddAttrsClick
+        ParentShowHint = False
+        ShowHint = True
         TabOrder = 3
       end
       object Label_AddAttrs: TLabel
@@ -1060,6 +1069,14 @@ object FormDesktop: TFormDesktop
       object MenuItem_ClassTool: TMenuItem
         Caption = '分类工具'
         OnClick = MenuItem_ClassToolClick
+      end
+      object MenuItem_ExportTool: TMenuItem
+        Caption = '报表工具'
+        OnClick = MenuItem_ExportToolClick
+      end
+      object MenuItem_RepeatedChecker: TMenuItem
+        Caption = '查重工具'
+        OnClick = MenuItem_RepeatedCheckerClick
       end
       object MenuItem_Tool_div01: TMenuItem
         Caption = '-'
@@ -1274,7 +1291,7 @@ object FormDesktop: TFormDesktop
     top = 216
     object MenuItem_DBGC_Title: TMenuItem
       Caption = '<字段名称>'
-      Enabled = False
+      OnClick = MenuItem_DBGC_TitleClick
     end
     object MenuItem_DBGC_div01: TMenuItem
       Caption = '-'
