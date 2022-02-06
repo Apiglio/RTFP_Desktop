@@ -1,7 +1,7 @@
 object Form_CiteTrans: TForm_CiteTrans
-  Left = 687
+  Left = 725
   Height = 558
-  Top = 249
+  Top = 215
   Width = 993
   AllowDropFiles = True
   Caption = '引用格式转译'
@@ -238,7 +238,7 @@ object Form_CiteTrans: TForm_CiteTrans
     Width = 125
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Left = 40
-    ItemHeight = 15
+    ItemHeight = 20
     ParentShowHint = False
     ShowHint = True
     Style = csDropDownList

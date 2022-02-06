@@ -53,6 +53,8 @@ begin
   FormDesktop.Panel_DBGridMain.Align:=alClient;
   FormDesktop.DBGrid_Main.PopupMenu:=nil;
   FormDesktop.DBGrid_Main.Options:=FormDesktop.DBGrid_Main.Options + [dgMultiselect];
+  //FormDesktop.DBGrid_Main.SelectedIndex:=FormDesktop.DBGrid_Main.DataSource.DataSet.RecNo;
+  FormDesktop.DBGrid_Main.SelectedRows.CurrentRowSelected:=true;
   FormDesktop.AListView_Klass.Parent:=Self.Panel_ListView_Temporary;
   FormDesktop.AListView_Klass.Align:=alClient;
   FormDesktop.AListView_Klass.PopupMenu:=Self.PopupMenu_ClassManager;

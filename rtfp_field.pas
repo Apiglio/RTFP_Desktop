@@ -27,6 +27,7 @@ type
     c1,c2:TColor;
     expression:string;
     colorize_process:TColorizeProcess;
+    display_width:integer;
   end;
 
 
@@ -38,6 +39,7 @@ type
     FShown:boolean;
     FOnChangeVisibility:TNotifyEvent;
     FUpdating:boolean;
+  public//暂时改成公共
     FFieldDisplayOption:TFieldDisplayOption;
   protected
     procedure SetShown(value:boolean);
@@ -51,7 +53,7 @@ type
     property FieldDef:TFieldDef read FFieldDef;
     property FieldName:string read FFieldName write FFieldName;
     property AttrsGroup:TAttrsGroup read FAttrsGroup;
-    property FieldDisplayOption:TFieldDisplayOption read FFieldDisplayOption write FFieldDisplayOption;
+    property FieldDisplayOption:TFieldDisplayOption read FFieldDisplayOption{ write FFieldDisplayOption};
   end;
 
   TAttrsFieldEnumerator = class(TCollectionEnumerator)
@@ -164,6 +166,7 @@ begin
   FUpdating:=false;
   FOnChangeVisibility:=nil;
   FFieldDisplayOption.colorize_process:=nil;
+  FFieldDisplayOption.display_width:=90;
 end;
 
 procedure TAttrsField.BeginUpdate;
@@ -227,6 +230,7 @@ begin
   Result := inherited Add as TAttrsField;
   Result.FFieldName:=UpperCase(AFieldDef.Name);
   Result.FFieldDef:=AFieldDef;
+  Result.FFieldDisplayOption.display_width:=-1;
 end;
 
 procedure TAttrsFieldList.Clear;
@@ -413,7 +417,7 @@ begin
   Clear;
   tmpFileList:=TRTFP_FileList.Create(nil,FFullPath+'\'+APath);
   try
-    tmpFileList.BaseDir:=FFullPath+'\'+APath;
+    //tmpFileList.BaseDir:=FFullPath+'\'+APath;
     tmpFileList.RunDir;
     for stmp in tmpFileList do
       begin
