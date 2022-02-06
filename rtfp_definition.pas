@@ -8,7 +8,7 @@ unit RTFP_definition;
 interface
 
 uses
-  Classes, SysUtils, Dialogs, ValEdit, Windows,
+  Classes, SysUtils, Dialogs, ValEdit, Windows, LazUTF8,
   {$ifndef insert}
   Apiglio_Useful,
   {$endif}
@@ -32,6 +32,9 @@ type
 
   RTFP_ID=string;//六位64进制数
 
+  TAttrExtendUnit = (aeFailIfNoPID,aeFailIfNoField);
+  TAttrExtend = set of TAttrExtendUnit;
+
   TRTFP_Auf=class(TAuf)
   public
     RTFP:TObject;
@@ -47,8 +50,8 @@ type
     FUserList,FFormatList:TStringList;
     FAttrGroupList:array[0..99]of record
       Enabled:boolean;
-      Name:string;
-      DataBase:string;
+      Name:string;//属性组名称
+      DataBase:string;//路径
       Dbf:TDbf;
     end;
 
@@ -71,13 +74,19 @@ type
     procedure SetTag(index:string;str:string);
     function GetTag(index:string):string;
 
-  public
+    function GetAttrsDB(index:byte):TDbf;
+    function GetAttrsName(index:byte):string;
 
+  public
+    //工程基本属性
     property User:string read GetUser write SetUser;
     property Title:string read GetTitle write SetTitle;
 
     property Tag[index:string]:string read GetTag write SetTag;
+    property AttrsName[index:byte]:string read GetAttrsName;
 
+
+    //工程运行状态
     property IsOpen:boolean read FIsOpen;
     property IsChanged:boolean read FIsChanged;
 
@@ -85,6 +94,7 @@ type
     property PaperDB:TDbf read FPaperDB;
     property ImageDB:TDbf read FImageDB;
     property NoteDB:TDbf read FNoteDB;
+    property AttrsDB[index:byte]:TDbf read GetAttrsDB;
 
   private
     procedure SetPaths(filename:string);
@@ -112,6 +122,8 @@ type
     procedure GenAttrBasicAttribute(Dbf:TDbf);inline;
     procedure GenAttrClassAttribute(Dbf:TDbf);inline;
     procedure GenAttrNotesAttribute(Dbf:TDbf);inline;
+    procedure GenAttrDefaultAttribute(Dbf:TDbf);inline;
+
 
 
     function OpenDbf(dbf_name_no_ext:string;Dbf:TDbf):boolean;
@@ -119,7 +131,14 @@ type
     function SaveDbf(dbf_name_no_ext:string;Dbf:TDbf):boolean;
     function CloseDbf(dbf_name_no_ext:string;Dbf:TDbf):boolean;
 
-  public
+    //基于ProjectFileValue
+    procedure NewAttrDbfs;
+    procedure OpenAttrDbfs;
+    procedure SaveAttrDbfs;
+    procedure CloseAttrDbfs;
+
+
+  public //工程打开关闭操作
     procedure New(filename:string;p_title:string;p_user:string);
     Procedure Open(filename:string);
     procedure Save;
@@ -138,13 +157,39 @@ type
     function NewNoteID:RTFP_ID;
 
 
-  public
+    //这些用于在属性组表中增加指定PID的记录
+    //这两个会打开Edit模式：
+    function FindAttrRecord(PID:RTFP_ID;AttrNo:byte):TFields;//未找到返回nil，这个函数用于调用TFields，一般用来修改数据，调用之后需要加PostAttrRecord用于保存更新和表示工程修改
+    function NewAttrRecord(PID:RTFP_ID;AttrNo:byte):TFields;
+    //这两个会关闭Edit模式：
+    function PostAttrRecord(AttrNo:byte):boolean;//会调用Change;
+    function CancelAttrRecord(AttrNo:byte):boolean;
 
+    function DeleteAttrRecord(PID:RTFP_ID;AttrNo:byte):boolean;//会调用Change;
+
+    function ExistAttrField(FieldName:string;AttrNo:byte):TFieldDef;//未找到返回nil
+    function AddAttrField(FieldName:string;AttrNo:byte;FieldType:TFieldType;FieldSize:word):TFieldDef;
+    function DeleteAttrField(FieldName:string;AttrNo:byte):boolean;
+
+
+  public //记录编辑
     function AddPaper(fullfilename:string):RTFP_ID;//新增一个文献到工程
     function FindPaper(fullfilename:string):RTFP_ID;//查找具体文件在工程中的PID，未找到返回000000
     procedure DeletePaper(PID:RTFP_ID);//移除指定PID的文献
+    {
     procedure EditPaperData(PID:RTFP_ID;col_name,value:string);//修改指定PID文献的属性
     function ReadPaperData(PID:RTFP_ID;col_name:string):string;//读取指定PID文献的属性
+    }
+    function EditAttrField(PID:RTFP_ID;AttrNo:byte;FieldName:string;FailOption:TAttrExtend;var Buffer):boolean;
+    function ReadAttrField(PID:RTFP_ID;AttrNo:byte;FieldName:string;FailOption:TAttrExtend;var Buffer):boolean;
+
+
+
+
+
+
+
+
 
     function AddImage(fullfilename:string):RTFP_ID;//新增一个图片到工程
     procedure DeleteImage(IID:RTFP_ID);//移除指定IID的图片
@@ -156,8 +201,15 @@ type
     procedure EditNoteData(NID:RTFP_ID;col_name,value:string);//修改指定NID注解的属性
     function ReadNoteData(NID:RTFP_ID;col_name:string):string;//读取指定NID注解的属性
 
+
+    {
     procedure AddAttrGroup(id:byte;group_name:string);//新增一个字段组表到工程
     procedure DeleteAttrGroup(id:byte);//移除指定Name的字段组表
+    }
+
+  public //连接显示
+    procedure TableValidate(ADataSet:TDataSet);
+
 
 
   private
@@ -186,7 +238,8 @@ type
     class function NumToID(Num:dword):RTFP_ID;
     class function IDToNum(ID:RTFP_ID):dword;
 
-    class function DateTimeStr:string;
+    class function GetDateTimeStr:string;inline;
+    class function GetDateDir:string;inline;
 
     class function CanBuildName(projname:string):boolean;
     class function CanBuildPath(pathname:string):boolean;
@@ -195,6 +248,8 @@ type
     class function CanBuildDisc(discchar:char):boolean;
 
     class function FileHash(AFileStream:TStream):string;//返回一个239长度的文件Hash
+    class function FileCopy(source,dest:string;bFailIfExist:boolean):boolean;//utf8的string版本
+    class function FileDelete(source:string):boolean;//utf8的string版本
 
   public
     constructor Create(AOwner:TComponent);virtual;
@@ -268,6 +323,84 @@ begin
   FileStream.Free;
 end;
 
+procedure aufunc_AddPaper(Sender:TObject);
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    filename:string;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(2) then exit;
+  if not AAuf.TryArgToString(1,filename) then exit;
+
+  AufScpt.writeln(CurrentRTFP.AddPaper(filename));
+
+end;
+
+procedure aufunc_AddPaperNote(Sender:TObject);//AddNote PID,"memo"
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    APID,AMEMO:string;
+    tmp:TFields;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(3) then exit;
+  if not AAuf.TryArgToString(1,APID) then exit;
+  if not AAuf.TryArgToString(2,AMEMO) then exit;
+
+
+  tmp:=CurrentRTFP.FindAttrRecord(APID,2);
+  if tmp=nil then tmp:=CurrentRTFP.NewAttrRecord(APID,2);
+  tmp.FieldByName('Comment').AsString:=AMEMO;
+  CurrentRTFP.PostAttrRecord(2);
+
+
+  AufScpt.writeln('Note添加成功。');
+
+end;
+
+procedure aufunc_EditAttr(Sender:TObject);//edit.attr PID,AttrNo,FieldName,"memo"
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    APID,AMEMO,AFieldName:string;
+    AAttrNo:byte;
+    tmp:TFields;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(5) then exit;
+  if not AAuf.TryArgToString(1,APID) then exit;
+  if not AAuf.TryArgToByte(2,AAttrNo) then exit;
+  if not AAuf.TryArgToString(3,AFieldName) then exit;
+  if not AAuf.TryArgToString(4,AMEMO) then exit;
+
+  CurrentRTFP.EditAttrField(APID,AAttrNo,AFieldName,[],AMEMO);
+
+  AufScpt.writeln('Note添加成功。');
+
+end;
+
+procedure aufunc_ShowPaperNote(Sender:TObject);//AddNote PID
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    APID,AMEMO:string;
+    tmp:TFields;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(2) then exit;
+  if not AAuf.TryArgToString(1,APID) then exit;
+
+  tmp:=CurrentRTFP.FindAttrRecord(APID,2);
+  if tmp=nil then exit;
+  AMEMO:=tmp.FieldByName('Comment').AsString;
+  CurrentRTFP.CancelAttrRecord(2);
+
+  AufScpt.writeln('Note='+AMemo);
+
+end;
+
 procedure aufunc_newPaperId(Sender:TObject);
 var AufScpt:TAufScript;
 begin
@@ -287,6 +420,9 @@ begin
   AufScpt.writeln(CurrentRTFP.NewNoteID);
 end;
 
+
+
+
 procedure AufScriptFuncDefineRTFP(Auf:TAuf);
 begin
   with Auf do begin
@@ -294,6 +430,11 @@ begin
     Script.add_func('new.iid',@aufunc_newImageId,'','返回一个可用的IID');
     Script.add_func('new.nid',@aufunc_newNoteId,'','返回一个可用的NID');
     Script.add_func('filehash',@aufunc_FileHash,'filename','返回FileHash');
+    Script.add_func('add.paper',@aufunc_AddPaper,'filename','新建Paper节点');
+    Script.add_func('add.paper.notes',@aufunc_AddPaperNote,'PID, MEMO','修改Paper节点的Comment字段');
+    Script.add_func('show.paper.notes',@aufunc_ShowPaperNote,'PID','显示Paper节点的Comment字段');
+    Script.add_func('edit.attr',@aufunc_EditAttr,'PID,AttrNo,FieldName,Memo','修改PID节点中第AttrNo表的FieldName字段为Memo');
+
 
 
   end;
@@ -377,15 +518,20 @@ begin
 end;
 
 function TRTFP.OpenDbf(dbf_name_no_ext:string;Dbf:TDbf):boolean;
-var dbfpath,datfile,runfile:string;
+var dbfpath,datfile,runfile,run_dbt,dat_dbt,name_no_ext:string;
 begin
   result:=false;
-  dbfpath:=Self.FFilePath+Self.FRootFolder+'\';
-  datfile:=dbf_name_no_ext+'.dbf';
-  runfile:=dbf_name_no_ext+'.run.dbf';
+  dbfpath:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext;
+  name_no_ext:=ExtractFileName(dbfpath);
+  dbfpath:=ExtractFilePath(dbfpath);
+  datfile:=name_no_ext+'.dbf';
+  runfile:=name_no_ext+'.run.dbf';
+  dat_dbt:=name_no_ext+'.dbt';
+  run_dbt:=name_no_ext+'.run.dbt';
 
   if not FileExists(dbfpath+datfile) then exit;
-  CopyFile(pchar(dbfpath+datfile),pchar(dbfpath+runfile),false);
+  TRTFP.FileCopy((dbfpath+datfile),(dbfpath+runfile),false);
+  if FileExists(dbfpath+dat_dbt) then TRTFP.FileCopy((dbfpath+dat_dbt),(dbfpath+run_dbt),false);
 
   Dbf.FilePathFull:=dbfpath;
   Dbf.TableName:=runfile;
@@ -398,12 +544,16 @@ begin
 end;
 
 function TRTFP.NewDbf(dbf_name_no_ext:string;Dbf:TDbf):boolean;
-var dbfpath,datfile,runfile:string;
+var dbfpath,datfile,runfile,run_dbt,dat_dbt,name_no_ext:string;
 begin
   result:=false;
-  dbfpath:=Self.FFilePath+Self.FRootFolder+'\';
-  datfile:=dbf_name_no_ext+'.dbf';
-  runfile:=dbf_name_no_ext+'.run.dbf';
+  dbfpath:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext;
+  name_no_ext:=ExtractFileName(dbfpath);
+  dbfpath:=ExtractFilePath(dbfpath);
+  datfile:=name_no_ext+'.dbf';
+  runfile:=name_no_ext+'.run.dbf';
+  dat_dbt:=name_no_ext+'.dbt';
+  run_dbt:=name_no_ext+'.run.dbt';
 
   Dbf.FilePathFull:=dbfpath;
   Dbf.TableName:=runfile;
@@ -411,20 +561,26 @@ begin
     Dbf.TableLevel:=7;
     Dbf.Exclusive:=true;
     Dbf.CreateTable;
+    Dbf.Open;
   except
     exit;
   end;
-  CopyFile(pchar(dbfpath+runfile),pchar(dbfpath+datfile),false);
+  TRTFP.FileCopy((dbfpath+runfile),(dbfpath+datfile),false);
+  if FileExists(dbfpath+run_dbt) then TRTFP.FileCopy((dbfpath+run_dbt),(dbfpath+dat_dbt),false);
   result:=true;
 end;
 
 function TRTFP.SaveDbf(dbf_name_no_ext:string;Dbf:TDbf):boolean;
-var dbfpath,datfile,runfile:string;
+var dbfpath,datfile,runfile,run_dbt,dat_dbt,name_no_ext:string;
 begin
   result:=false;
-  dbfpath:=Self.FFilePath+Self.FRootFolder+'\';
-  datfile:=dbf_name_no_ext+'.dbf';
-  runfile:=dbf_name_no_ext+'.run.dbf';
+  dbfpath:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext;
+  name_no_ext:=ExtractFileName(dbfpath);
+  dbfpath:=ExtractFilePath(dbfpath);
+  datfile:=name_no_ext+'.dbf';
+  runfile:=name_no_ext+'.run.dbf';
+  dat_dbt:=name_no_ext+'.dbt';
+  run_dbt:=name_no_ext+'.run.dbt';
 
   try
     if Dbf.Active then
@@ -432,7 +588,8 @@ begin
         Dbf.Close;
         Dbf.Open;
       end;
-    CopyFile(pchar(dbfpath+runfile),pchar(dbfpath+datfile),false);
+    TRTFP.FileCopy((dbfpath+runfile),(dbfpath+datfile),false);
+    if FileExists(dbfpath+run_dbt) then TRTFP.FileCopy((dbfpath+run_dbt),(dbfpath+dat_dbt),false);
   except
     exit;
   end;
@@ -440,32 +597,122 @@ begin
 end;
 
 function TRTFP.CloseDbf(dbf_name_no_ext:string;Dbf:TDbf):boolean;
-var dbfpath,datfile,runfile:string;
+var dbfpath,datfile,runfile,run_dbt,dat_dbt,name_no_ext:string;
 begin
   result:=false;
-  dbfpath:=Self.FFilePath+Self.FRootFolder+'\';
-  datfile:=dbf_name_no_ext+'.dbf';
-  runfile:=dbf_name_no_ext+'.run.dbf';
+  dbfpath:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext;
+  name_no_ext:=ExtractFileName(dbfpath);
+  dbfpath:=ExtractFilePath(dbfpath);
+  datfile:=name_no_ext+'.dbf';
+  runfile:=name_no_ext+'.run.dbf';
+  dat_dbt:=name_no_ext+'.dbt';
+  run_dbt:=name_no_ext+'.run.dbt';
 
   try
     if Dbf.Active then Dbf.Close;
-    if not DeleteFile(pchar(dbfpath+runfile)) then exit;
+    if not TRTFP.FileDelete((dbfpath+runfile)) then exit;
+    if FileExists(dbfpath+run_dbt) then begin
+      if not TRTFP.FileDelete((dbfpath+run_dbt)) then exit;
+    end;
   except
     exit;
   end;
   result:=true;
 end;
 
+procedure TRTFP.NewAttrDbfs;
+var attr_i:byte;
+    attr_name:string;
+begin
+  attr_i:=0;
+  repeat
+    attr_name:=Tag['属性组'+Usf.zeroplus(attr_i,2)];
+    if attr_name='' then break;
+    with FAttrGroupList[attr_i] do begin
+      Enabled:=true;
+      Name:=attr_name;
+      DataBase:='attr\'+Name;
+      Dbf:=TDbf.Create(Self);
+      case attr_i of
+        0:GenAttrBasicAttribute(Dbf);
+        1:GenAttrClassAttribute(Dbf);
+        2:GenAttrNotesAttribute(Dbf);
+        else assert(false,'新建工程不能出现非默认属性组。');
+      end;
+      NewDbf(DataBase,Dbf);
+    end;
+    inc(attr_i);
+  until attr_i>99;
+end;
+
+procedure TRTFP.OpenAttrDbfs;
+var attr_i:byte;
+    attr_name:string;
+begin
+  attr_i:=0;
+  repeat
+    attr_name:=Tag['属性组'+Usf.zeroplus(attr_i,2)];
+    if attr_name='' then break;
+    with FAttrGroupList[attr_i] do begin
+      Enabled:=true;
+      Name:=attr_name;
+      DataBase:='attr\'+Name;
+      Dbf:=TDbf.Create(Self);
+      if not OpenDbf(DataBase,Dbf) then begin
+        case attr_i of
+          0:GenAttrBasicAttribute(Dbf);
+          1:GenAttrClassAttribute(Dbf);
+          2:GenAttrNotesAttribute(Dbf);
+          else genAttrDefaultAttribute(Dbf);
+        end;
+        NewDbf(DataBase,Dbf);
+      end;
+    end;
+    inc(attr_i);
+  until attr_i>99;
+end;
+
+procedure TRTFP.SaveAttrDbfs;
+var attr_i:byte;
+begin
+  attr_i:=0;
+  repeat
+    with FAttrGroupList[attr_i] do begin
+      if not Enabled then break;
+      if not SaveDbf(DataBase,Dbf) then assert(false,'有未保存的Attr');
+    end;
+    inc(attr_i);
+  until attr_i>99;
+end;
+
+procedure TRTFP.CloseAttrDbfs;
+var attr_i:byte;
+begin
+  attr_i:=0;
+  repeat
+    with FAttrGroupList[attr_i] do begin
+      if not Enabled then break;
+      if not CloseDbf(DataBase,Dbf) then assert(false,'有未关闭的Attr');
+      Dbf.Free;
+      Enabled:=false;
+      Name:='';
+      DataBase:='';
+    end;
+    inc(attr_i);
+  until attr_i>99;
+end;
+
+
 procedure TRTFP.GenPaperAttribute(Dbf:TDbf);
 begin
   Dbf.FieldDefs.Add('OID', ftAutoInc, 0, True);
   Dbf.FieldDefs.Add('PID', ftString, 8, True);
-  //重复检验
-  Dbf.FieldDefs.Add('FileSize', ftLargeInt, 8, True);
-  Dbf.FieldDefs.Add('FileHash', ftString, 255, True);
   //文件位置
   Dbf.FieldDefs.Add('Folder', ftString, 8, True);
   Dbf.FieldDefs.Add('FileName', ftString, 240, True);
+  //重复检验
+  Dbf.FieldDefs.Add('FileSize', ftLargeInt, 8, True);
+  Dbf.FieldDefs.Add('FileHash', ftString, 255, True);
   //默认的三个属性组
   Dbf.FieldDefs.Add('Attr_00', ftInteger, 4, false);
   Dbf.FieldDefs.Add('Attr_01', ftInteger, 4, false);
@@ -619,6 +866,13 @@ begin
 
 end;
 
+procedure TRTFP.GenAttrDefaultAttribute(Dbf:TDbf);
+begin
+  Dbf.FieldDefs.Add('OID', ftAutoInc, 0, True);
+  Dbf.FieldDefs.Add('PID', ftString, 8, True);
+
+end;
+
 
 
 function TRTFP.NewProjectFile(p_title,p_user:string):boolean;
@@ -631,8 +885,8 @@ begin
   tmpProjectFile.Add('属性,值');
   tmpProjectFile.Add('工程标题,'+p_title);
   tmpProjectFile.Add('创建用户,'+p_user);
-  tmpProjectFile.Add('创建日期,'+TRTFP.DateTimeStr);
-  tmpProjectFile.Add('修改日期,'+TRTFP.DateTimeStr);
+  tmpProjectFile.Add('创建日期,'+TRTFP.GetDateTimeStr);
+  tmpProjectFile.Add('修改日期,'+TRTFP.GetDateTimeStr);
 
   tmpProjectFile.Add('属性组00,文献基础信息');
   tmpProjectFile.Add('属性组01,分类');
@@ -752,6 +1006,10 @@ end;
 
 
 procedure TRTFP.New(filename:string;p_title:string;p_user:string);
+{
+var attr_i:byte;
+    attr_name:string;
+    }
 begin
   if FOnNew <> nil then FOnNew(Self);
 
@@ -774,6 +1032,30 @@ begin
   NewDbf('image',Self.FImageDB);
   GenNoteAttribute(Self.FNoteDB);
   NewDbf('note',Self.FNoteDB);
+  {
+  attr_i:=0;
+  repeat
+    attr_name:=Tag['属性组'+Usf.zeroplus(attr_i,2)];
+    //field_def:=FPaperDB.FieldDefs.Find('属性组'+Usf.zeroplus(attr_i,2));
+    //if field_def = nil then break;
+    if attr_name='' then break;
+    with FAttrGroupList[attr_i] do begin
+      Enabled:=true;
+      Name:={field_def.Name}attr_name;
+      DataBase:=Self.FFilePath+Self.FRootFolder+'\attr\'+Name;
+      Dbf:=TDbf.Create(Self);
+      case attr_i of
+        0:GenAttrBasicAttribute(Dbf);
+        1:GenAttrClassAttribute(Dbf);
+        2:GenAttrNotesAttribute(Dbf);
+        else assert(false,'新建工程不能出现非默认属性组。');
+      end;
+      NewDbf(DataBase,Dbf);
+    end;
+    inc(attr_i);
+  until attr_i>99;
+  }
+  NewAttrDbfs;
 
   Self.FIsOpen:=true;
   if FOnNewDone <> nil then FOnNewDone(Self);
@@ -791,6 +1073,8 @@ begin
   if not OpenDbf('image',Self.FImageDB) then NewDbf('image',Self.FImageDB);;
   if not OpenDbf('note',Self.FNoteDB) then NewDbf('note',Self.FNoteDB);;
 
+  OpenAttrDbfs;
+
   Self.FIsOpen:=true;
   if FOnOpenDone <> nil then FOnOpenDone(Self);
 end;
@@ -799,7 +1083,7 @@ procedure TRTFP.Save;
 begin
   if FOnSave <> nil then FOnSave(Self);
 
-  Self.Tag['修改日期']:=TRTFP.DateTimeStr;
+  Self.Tag['修改日期']:=TRTFP.GetDateTimeStr;
 
   SaveProjectFile;
   SaveUserList;
@@ -807,6 +1091,8 @@ begin
   SaveDbf('paper',Self.FPaperDB);
   SaveDbf('image',Self.FImageDB);
   SaveDbf('note',Self.FNoteDB);
+
+  SaveAttrDbfs;
 
   Self.FIsChanged:=false;
   if FOnSaveDone <> nil then FOnSaveDone(Self);
@@ -840,6 +1126,8 @@ begin
   CloseDbf('paper',Self.FPaperDB);
   CloseDbf('image',Self.FImageDB);
   CloseDbf('note',Self.FNoteDB);
+
+  CloseAttrDbfs;
 
   Self.FIsOpen:=false;
   if FOnCloseDone <> nil then FOnCloseDone(Self);
@@ -881,7 +1169,7 @@ function TRTFP.NewPaperID:RTFP_ID;
 var num:dword;
 begin
   FPaperDB.Last;
-  if FPaperDB.BOF then num:=0-1
+  if FPaperDB.BOF then num:=0
   else num:=TRTFP.IDToNum((FPaperDB.FieldByName('PID').AsString));
   inc(num);
   result:=TRTFP.NumToID(num);
@@ -891,7 +1179,7 @@ function TRTFP.NewImageID:RTFP_ID;
 var num:dword;
 begin
   FImageDB.Last;
-  if FImageDB.BOF then num:=0-1
+  if FImageDB.BOF then num:=0
   else num:=TRTFP.IDToNum((FImageDB.FieldByName('IID').AsString));
   inc(num);
   result:=TRTFP.NumToID(num);
@@ -901,7 +1189,7 @@ function TRTFP.NewNoteID:RTFP_ID;
 var num:dword;
 begin
   FNoteDB.Last;
-  if FNoteDB.BOF then num:=0-1
+  if FNoteDB.BOF then num:=0
   else num:=TRTFP.IDToNum((FNoteDB.FieldByName('NID').AsString));
   inc(num);
   result:=TRTFP.NumToID(num);
@@ -914,31 +1202,90 @@ end;
 
 function TRTFP.AddPaper(fullfilename:string):RTFP_ID;//新增一个文献到工程
 var PID:RTFP_ID;
+    DateDir,DateTime,TargetDir,FileName:string;
     FileStream:TMemoryStream;
 begin
 
   FileStream:=TMemoryStream.Create;
   FileStream.LoadFromFile(fullfilename);
 
+  DateDir:=TRTFP.GetDateDir;
+  DateTime:=TRTFP.GetDateTimeStr;
+  FileName:=ExtractFileName(fullfilename);
+
   PID:=NewPaperID;
   //FPaperDB.Last;//此时游标已经在Last位置
   with FPaperDB do begin
     Insert;
     Fields[1].AsString:=PID;
-    Fields[2].AsLargeInt:=FileStream.Size;
-    Fields[3].AsString:=TRTFP.FileHash(FileStream);
-    //Fields[4].AsString:='YYYYMM';
-
+    Fields[2].AsString:=DateDir;
+    Fields[3].AsString:=FileName;
+    Fields[4].AsLargeInt:=FileStream.Size;
+    Fields[5].AsString:=TRTFP.FileHash(FileStream);
+    Fields[6].AsLongint:=0;
+    Fields[7].AsLongint:=0;
+    Fields[8].AsLongint:=0;
+    Post;
 
   end;
+
+  TargetDir:=FFilePath+FRootFolder+'\paper\'+DateDir;
+  ForceDirectories(TargetDir);
+  FileStream.SaveToFile(TargetDir+'\'+FileName);//尚未加入长度检验
+  Change;
 
   FileStream.Free;
 
 end;
 
 function TRTFP.FindPaper(fullfilename:string):RTFP_ID;//查找具体文件在工程中的PID，未找到返回000000
+var PID:RTFP_ID;
+    FHash,FName:string;
+    FileStream,CpStr:TMemoryStream;
+    retry,cps:boolean;
 begin
+  FHash:='';
+  PID:='';
+  cps:=false;
 
+  FileStream:=TMemoryStream.Create;
+  FileStream.LoadFromFile(fullfilename);
+
+
+
+  with FPaperDB do begin
+    First;
+    repeat
+      if Fields[4].AsLongint = FileStream.Size then
+        begin
+          if FHash='' then FHash:=TRTFP.FileHash(FileStream);
+          if Fields[5].AsString = FHash then
+            begin
+              if not cps then begin CpStr:=TMemoryStream.Create;cps:=true end;
+              FName:=FFilePath+FRootFolder+'\paper\'+Fields[2].AsString+'\'+Fields[3].AsString;
+              retry:=false;
+              repeat try
+                CpStr.LoadFromFile(FName);
+                if CompareMem(FileStream.Memory,CpStr.Memory,FileStream.Size) then PID:=Fields[1].AsString;
+              except
+                case MessageDlg('错误','疑似相同文件被占用！',mtError,[mbRetry,mbIgnore],0) of
+                  rnmbRetry:retry:=true;
+                  rnmbIgnore:;
+                end;
+              end until not retry;
+            end;
+        end;
+      Next;
+    until EOF or (PID<>'');
+
+
+  end;
+
+  if cps then CpStr.Free;
+
+  if PID='' then result:='000000' else result:=PID;
+
+  FileStream.Free;
 end;
 
 procedure TRTFP.DeletePaper(PID:RTFP_ID);//移除指定PID的文献
@@ -946,6 +1293,52 @@ begin
 
 end;
 
+function TRTFP.EditAttrField(PID:RTFP_ID;AttrNo:byte;FieldName:string;FailOption:TAttrExtend;var Buffer):boolean;
+var tmpFieldDef:TFieldDef;
+    tmpFields:TFields;
+begin
+  result:=false;
+  tmpFieldDef:=ExistAttrField(FieldName,AttrNo);
+  if tmpFieldDef=nil then
+    begin
+      if aeFailIfNoField in FailOption then exit
+      else tmpFieldDef:=AddAttrField(FieldName,AttrNo,ftMemo,0);
+    end;
+  //tmpFieldDef.ID;
+  tmpFields:=FindAttrRecord(PID,AttrNo);
+  if tmpFields=nil then
+    begin
+      if aeFailIfNoPID in FailOption then exit
+      else tmpFields:=NewAttrRecord(PID,AttrNo);
+    end;
+
+  case tmpFieldDef.DataType of
+    ftString,ftMemo{,ftFmtMemo,ftFixedChar}:tmpFields[tmpFieldDef.ID].AsString:=pchar(Buffer);
+    //ftBCD:tmpFields[tmpFieldDef.ID].AsBCD:=(Buffer as TBCD);
+    ftBoolean:tmpFields[tmpFieldDef.ID].AsBoolean:=Boolean(Buffer);
+    //ftBytes,ftVarBytes,ftArray:tmpFields[tmpFieldDef.ID].AsBytes:=pbyte(Buffer);
+    //ftCurrency:tmpFields[tmpFieldDef.ID].AsCurrency:=Buffer;
+    //ftDate,ftTime,ftDateTime:tmpFields[tmpFieldDef.ID].AsDateTime:=Buffer;
+    ftFloat:tmpFields[tmpFieldDef.ID].AsFloat:=Double(Buffer);
+    ftInteger:tmpFields[tmpFieldDef.ID].AsInteger:=Longint(Buffer);
+    ftLargeint:tmpFields[tmpFieldDef.ID].AsLargeInt:=Int64(Buffer);
+    ftSmallint,ftWord:tmpFields[tmpFieldDef.ID].AsLongint:=Longint(Buffer);
+    //ftVariant:tmpFields[tmpFieldDef.ID].AsVariant:=Buffer;
+    ftWideString,ftFixedWideChar,ftWideMemo:tmpFields[tmpFieldDef.ID].AsWideString:=pwidechar(Buffer);
+    else assert(false,'ftType未预设。');
+  end;
+
+  PostAttrRecord(AttrNo);
+
+end;
+
+function TRTFP.ReadAttrField(PID:RTFP_ID;AttrNo:byte;FieldName:string;FailOption:TAttrExtend;var Buffer):boolean;
+begin
+  result:=false;
+end;
+
+
+{
 procedure TRTFP.EditPaperData(PID:RTFP_ID;col_name,value:string);//修改指定PID文献的属性
 begin
 
@@ -955,6 +1348,90 @@ function TRTFP.ReadPaperData(PID:RTFP_ID;col_name:string):string;//读取指定P
 begin
 
 end;
+}
+
+function TRTFP.FindAttrRecord(PID:RTFP_ID;AttrNo:byte):TFields;
+begin
+  result:=nil;
+  with FAttrGroupList[AttrNo] do begin
+    Dbf.First;
+    while not Dbf.EOF do begin
+      if Dbf.Fields[1].AsString=PID then begin result:=Dbf.Fields;Dbf.Edit;exit end;
+      Dbf.Next;
+    end;
+  end;
+end;
+
+function TRTFP.NewAttrRecord(PID:RTFP_ID;AttrNo:byte):TFields;
+begin
+  result:=nil;
+  with FAttrGroupList[AttrNo] do begin
+    Dbf.Last;
+    Dbf.Insert;
+    Dbf.Fields[1].AsString:=PID;
+    result:=Dbf.Fields;
+    Dbf.Post;
+    Dbf.Edit;
+  end;
+  Change;
+end;
+
+function TRTFP.DeleteAttrRecord(PID:RTFP_ID;AttrNo:byte):boolean;
+begin
+  result:=false;
+  with FAttrGroupList[AttrNo] do begin
+    Dbf.First;
+    while not Dbf.EOF do begin
+      if Dbf.Fields[1].AsString=PID then begin Dbf.Delete;Change;result:=true;exit end;
+      Dbf.Next;
+    end;
+  end;
+end;
+
+function TRTFP.PostAttrRecord(AttrNo:byte):boolean;
+begin
+  //result:=false;
+  FAttrGroupList[AttrNo].Dbf.Post;
+  Change;
+  result:=true;
+end;
+
+function TRTFP.CancelAttrRecord(AttrNo:byte):boolean;
+begin
+  //result:=false;
+  FAttrGroupList[AttrNo].Dbf.Cancel;
+  result:=true;
+end;
+
+function TRTFP.ExistAttrField(FieldName:string;AttrNo:byte):TFieldDef;
+begin
+  result:=FAttrGroupList[AttrNo].Dbf.FieldDefs.Find(FieldName);
+end;
+
+function TRTFP.AddAttrField(FieldName:string;AttrNo:byte;FieldType:TFieldType;FieldSize:word):TFieldDef;
+begin
+  result:=nil;
+  FAttrGroupList[AttrNo].Dbf.FieldDefs.Add(FieldName,FieldType,FieldSize);
+  Change;
+  result:=FAttrGroupList[AttrNo].Dbf.FieldDefs[FAttrGroupList[AttrNo].Dbf.FieldDefs.Count-1];
+end;
+
+function TRTFP.DeleteAttrField(FieldName:string;AttrNo:byte):boolean;
+var tmp:integer;
+begin
+  result:=false;
+  tmp:=0;
+  with FAttrGroupList[AttrNo].Dbf do begin
+    repeat
+      if FieldDefs[tmp].Name=FieldName then break;
+      inc(tmp);
+    until tmp>=FieldDefs.Count;
+    if tmp<FieldDefs.Count then FieldDefs.Delete(tmp);
+  end;
+  Change;
+  result:=true;
+end;
+
 
 
 function TRTFP.AddImage(fullfilename:string):RTFP_ID;//新增一个图片到工程
@@ -999,7 +1476,7 @@ begin
 end;
 
 
-
+{
 procedure TRTFP.AddAttrGroup(id:byte;group_name:string);//新增一个字段组表到工程
 begin
   if id>99 then exit;
@@ -1053,9 +1530,14 @@ begin
     Enabled:=false;
   END;
 end;
+}
 
 
 
+procedure TRTFP.TableValidate(ADataSet:TDataSet);
+begin
+  //ADataSet
+end;
 
 
 
@@ -1104,6 +1586,19 @@ begin
   result:=ProjectFileValue.Values[index];
 end;
 
+function TRTFP.GetAttrsDB(index:byte):TDbf;
+begin
+  result:=nil;
+  if index>99 then exit;
+  if FAttrGroupList[index].Enabled then result:=FAttrGroupList[index].Dbf;
+end;
+
+function TRTFP.GetAttrsName(index:byte):String;
+begin
+  result:='';
+  if index>99 then exit;
+  if FAttrGroupList[index].Enabled then result:=FAttrGroupList[index].Name;
+end;
 
 
 
@@ -1134,9 +1629,14 @@ begin
   until ID='';
 end;
 
-class function TRTFP.DateTimeStr:string;inline;
+class function TRTFP.GetDateTimeStr:string;
 begin
   result:=FormatDateTime('yyyy-mm-dd hh:nn:ss',Now());
+end;
+
+class function TRTFP.GetDateDir:string;
+begin
+  result:=FormatDateTime('yyyymm',Now());
 end;
 
 class function TRTFP.CanBuildName(projname:string):boolean;
@@ -1197,9 +1697,11 @@ var index:byte;
     arr:array [0..238] of byte;
     skip_byte:byte;
 begin
+  for index:=0 to 238 do arr[index]:=0;
   index:=0;
   with AFileStream do
     begin
+
       if Size<$200000 then skip_byte:=1
       else if Size<$400000 then skip_byte:=2
       else if Size<$800000 then skip_byte:=4
@@ -1208,6 +1710,7 @@ begin
       else if Size<$4000000 then skip_byte:=32
       else if Size<$8000000 then skip_byte:=64
       else skip_byte:=128;
+
       Position:=0;
       while Position<Size do
         begin
@@ -1226,6 +1729,16 @@ begin
       arr[index]:=arr[index] or $40;
       result:=result+chr(arr[index]);
     end;
+end;
+
+class function TRTFP.FileCopy(source,dest:string;bFailIfExist:boolean):boolean;
+begin
+  result:=CopyFile(pchar(UTF8ToWinCP(source)),pchar(UTF8ToWinCP(dest)),bFailIfExist);
+end;
+
+class function TRTFP.FileDelete(source:string):boolean;
+begin
+  result:=DeleteFile(pchar(UTF8ToWinCP(source)));
 end;
 
 end.
