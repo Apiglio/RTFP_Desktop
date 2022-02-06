@@ -29,6 +29,7 @@ type
     procedure Button_ImportCiteClick(Sender: TObject);
     procedure Button_ImportPapersClick(Sender: TObject);
     procedure Button_ImportRefsClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
     procedure FormDropFiles(Sender: TObject; const FileNames: array of String);
     procedure FormHide(Sender: TObject);
@@ -129,6 +130,12 @@ begin
     '查新':CurrentRTFP.SetChaXin(FormDesktop.Selected_PID,Memo_Reference.Lines.CommaText);
   end;
   FormDesktop.Validate(CurrentRTFP);
+end;
+
+procedure TForm_CiteTrans.FormCreate(Sender: TObject);
+begin
+  if Self.Height>Screen.Height then Self.Height:=trunc(Screen.Height*0.8);
+  if Self.Width>Screen.Width then Self.Height:=trunc(Screen.Width*0.8);
 end;
 
 procedure TForm_CiteTrans.FormDropFiles(Sender: TObject;

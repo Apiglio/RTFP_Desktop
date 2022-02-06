@@ -20,6 +20,7 @@ type
     Memo_tip: TMemo;
     SaveDialog_report: TSaveDialog;
     procedure Button_ReportClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
     procedure ListBox_ListSelectionChange(Sender: TObject; User: boolean);
   private
 
@@ -263,6 +264,12 @@ begin
   end;
   TRTFP.OpenFile(filename);
   ModalResult:=mrOK;
+end;
+
+procedure TFormReportTool.FormCreate(Sender: TObject);
+begin
+  if Self.Height>Screen.Height then Self.Height:=trunc(Screen.Height*0.8);
+  if Self.Width>Screen.Width then Self.Height:=trunc(Screen.Width*0.8);
 end;
 
 end.

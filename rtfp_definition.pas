@@ -61,6 +61,14 @@ type
 
   TSimChkOptions = set of TSimChkOption;
 
+  TFieldSelectMode = (fsmMain,fsmVice,fsmBoth,fsmNone);
+  PFieldSelectOption = ^TFieldSelectOption;
+  TFieldSelectOption = record
+    field:TAttrsField;
+    select_mode:TFieldSelectMode;
+  end;
+  TFieldSelectOptions = TList;
+
 
   AttrsError=class(Exception)
   end;
@@ -251,11 +259,13 @@ type
     function FindPaper(fullfilename:string):RTFP_ID;//查找具体文件在工程中的PID，未找到返回000000
     function DeletePaper(PID:RTFP_ID):boolean;//移除指定PID的文献
     function UpdatePaper(PID:RTFP_ID;fullfilename:string;AddPaperMethod:TAddPaperMethod):boolean;//更新指定PID的文件
+    function MergePaper(PID_Main,PID_Vice:RTFP_ID;AFieldSelectOption:TFieldSelectOptions):boolean;//合并两个文献节点
 
     procedure GetPIDList(AList:TStrings);
     procedure GetPIDList_DS(AList:TStrings);
     procedure GetSimilarPIDList(AList:TStrings;ASimChkOption:TSimChkOptions;PB:TProgressBar=nil);
     function GetPaperAttrs(AFieldName:string;PID:RTFP_ID):string;
+    procedure GetPaperKlass(PID:RTFP_ID;str:TStrings);
 
     procedure OpenPaper(PID:RTFP_ID;exename:string='');
     procedure OpenPaperAsPDF(PID:RTFP_ID);inline;
@@ -2853,6 +2863,107 @@ begin
   result:=true;
 end;
 
+function TRTFP.MergePaper(PID_Main,PID_Vice:RTFP_ID;AFieldSelectOption:TFieldSelectOptions):boolean;
+var b1,b2:boolean;
+    f1,f2,n1,n2,h1,h2:string;
+    s1,s2:int64;
+    UseVicePaperAttr:boolean;
+    tmpAG:TAttrsGroup;
+    tmpAF:TAttrsField;
+    tmpOpt:PFieldSelectOption;
+    stmp:string;
+    klass_list:TStringList;
+    function FindFieldOpt(AField:TAttrsField):PFieldSelectOption;
+    var index:integer;
+    begin
+      with AFieldSelectOption do
+        for index:=0 to Count-1 do
+          begin
+            result:=PFieldSelectOption(Items[index]);
+            if result^.field=AField then exit;
+          end;
+      result:=nil;
+    end;
+
+begin
+  result:=false;
+  s1:=0;s2:=0;
+  if TRTFP.IsRTFPID(PID_Main) and TRTFP.IsRTFPID(PID_Vice) then ELSE exit;
+  with FPaperDB do
+    begin
+      if not Active then Open;
+      IndexName:='id';
+      if not SearchKey(PID_Vice,stEqual) then exit;
+      b2:=FieldByName(_Col_Paper_Is_Backup_).AsBoolean;
+      f2:=FieldByName(_Col_Paper_Folder_).AsString;
+      n2:=FieldByName(_Col_Paper_FileName_).AsString;
+      h2:=FieldByName(_Col_Paper_FileHash_).AsString;
+      s2:=FieldByName(_Col_Paper_FileSize_).AsLargeInt;
+      if not SearchKey(PID_Main,stEqual) then exit;
+      b1:=FieldByName(_Col_Paper_Is_Backup_).AsBoolean;
+      f1:=FieldByName(_Col_Paper_Folder_).AsString;
+      n1:=FieldByName(_Col_Paper_FileName_).AsString;
+      h1:=FieldByName(_Col_Paper_FileHash_).AsString;
+      s1:=FieldByName(_Col_Paper_FileSize_).AsLargeInt;
+      if (f2='') and (f1<>'') then begin
+        UseVicePaperAttr:=false;
+      end else if (f2<>'') and (f1='') then begin
+        UseVicePaperAttr:=true;
+      end else begin
+        if (s1<>s2) or (h1<>h2) then
+          case ShowMsgYesNoAll('合并','两个文献节点均有链接文件，是否用副节点备份文献替换主节点备份？') of
+            'Yes':UseVicePaperAttr:=true;
+            else UseVicePaperAttr:=false;
+          end
+        else UseVicePaperAttr:=false;
+      end;
+      if UseVicePaperAttr then
+        begin
+          Edit;
+          FieldByName(_Col_Paper_Is_Backup_).AsBoolean:=b2;
+          FieldByName(_Col_Paper_Folder_).AsString:=f2;
+          FieldByName(_Col_Paper_FileName_).AsString:=n2;
+          FieldByName(_Col_Paper_FileHash_).AsString:=h2;
+          FieldByName(_Col_Paper_FileSize_).AsLargeInt:=s2;
+          Post;
+        end;
+    end;
+  for tmpAG in FieldList do
+    begin
+      for tmpAF in tmpAG.FieldList do
+        begin
+           tmpOpt:=FindFieldOpt(tmpAF);
+           if tmpOpt<>nil then
+             begin
+               if (tmpAG.Name=_Attrs_Class_) and (tmpAF.FieldDef.DataType=ftMemo) then continue;//分类字段另外合并
+               case tmpOpt^.select_mode of
+                 fsmNone:{暂时还没有删除字段的方法};
+                 fsmMain:{啥也不做};
+                 fsmVice:
+                   begin
+                     stmp:=ReadFieldAsString(tmpAF.FieldName,tmpAG.Name,PID_Vice,[]);
+                     EditFieldAsString(tmpAF.FieldName,tmpAG.Name,PID_Main,stmp,[aeForceEditIfTypeDismatch]);
+                   end;
+                 fsmBoth:
+                   begin
+                     stmp:=ReadFieldAsString(tmpAF.FieldName,tmpAG.Name,PID_Main,[]);
+                     stmp:=stmp+#13#10+ReadFieldAsString(tmpAF.FieldName,tmpAG.Name,PID_Vice,[]);
+                     EditFieldAsString(tmpAF.FieldName,tmpAG.Name,PID_Main,stmp,[]);
+                   end;
+               end;
+             end;
+        end;
+    end;
+  klass_list:=TStringList.Create;
+  try
+    GetPaperKlass(PID_Vice,klass_list);
+    for stmp in klass_list do KlassInclude(stmp,PID_Main);
+  finally
+    klass_list.Free;
+  end;
+  result:=DeletePaper(PID_Vice);
+end;
+
 procedure TRTFP.GetPIDList(AList:TStrings);
 begin
   with FPaperDB do
@@ -3016,6 +3127,17 @@ begin
           result:=FieldByName(AFieldName).AsString;
         end
       else result:='';
+    end;
+end;
+
+procedure TRTFP.GetPaperKlass(PID:RTFP_ID;str:TStrings);
+begin
+  with FieldList.FindItemByName(_Attrs_Class_).Dbf do
+    begin
+      if not Active then Open;
+      IndexName:='id';
+      if not SearchKey(PID,stEqual) then exit;
+      str.Text:=FieldByName(_Col_class_DefaultCl_).AsString;
     end;
 end;
 

@@ -187,6 +187,8 @@ end;
 procedure TForm_ImportFiles.FormCreate(Sender: TObject);
 begin
   FFileNames:=TStringList.Create;
+  if Self.Height>Screen.Height then Self.Height:=trunc(Screen.Height*0.8);
+  if Self.Width>Screen.Width then Self.Height:=trunc(Screen.Width*0.8);
 end;
 
 procedure TForm_ImportFiles.FormClose(Sender: TObject;
