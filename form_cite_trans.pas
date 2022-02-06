@@ -13,6 +13,7 @@ type
   { TForm_CiteTrans }
 
   TForm_CiteTrans = class(TForm)
+    Button_ImportPapers: TButton;
     Button_ImportRefs: TButton;
     Button_ExportRefs: TButton;
     Button_ImportCite: TButton;
@@ -26,6 +27,7 @@ type
     procedure Button_ExportCiteClick(Sender: TObject);
     procedure Button_ExportRefsClick(Sender: TObject);
     procedure Button_ImportCiteClick(Sender: TObject);
+    procedure Button_ImportPapersClick(Sender: TObject);
     procedure Button_ImportRefsClick(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
     procedure FormDropFiles(Sender: TObject; const FileNames: array of String);
@@ -62,6 +64,7 @@ begin
     'EndNote':CurrentRTFP.SaveToEndNote(FormDesktop.Selected_PID,Memo_Cite.Lines);
     'NoteExpress':CurrentRTFP.SaveToNoteExpress(FormDesktop.Selected_PID,Memo_Cite.Lines);
     'NoteFirst':CurrentRTFP.SaveToNoteFirst(FormDesktop.Selected_PID,Memo_Cite.Lines);
+    'RIS':CurrentRTFP.SaveToRIS(FormDesktop.Selected_PID,Memo_Cite.Lines);
     else exit;
   end;
   //FormDesktop.Validate(CurrentRTFP);
@@ -89,6 +92,22 @@ begin
     'EndNote':CurrentRTFP.LoadFromEndNote(FormDesktop.Selected_PID,Memo_Cite.Lines);
     'NoteExpress':CurrentRTFP.LoadFromNoteExpress(FormDesktop.Selected_PID,Memo_Cite.Lines);
     'NoteFirst':CurrentRTFP.LoadFromNoteFirst(FormDesktop.Selected_PID,Memo_Cite.Lines);
+    'RIS':CurrentRTFP.LoadFromRIS(FormDesktop.Selected_PID,Memo_Cite.Lines);
+    else exit;
+  end;
+  FormDesktop.Validate(CurrentRTFP);
+end;
+
+procedure TForm_CiteTrans.Button_ImportPapersClick(Sender: TObject);
+begin
+  if TabControl_CiteStyle.TabIndex<0 then exit;
+  case TabControl_CiteStyle.Tabs[TabControl_CiteStyle.TabIndex] of
+    'E-Study':CurrentRTFP.ImportPapersFromEStudy(Memo_Cite.Lines);
+    'RefWorks':CurrentRTFP.ImportPapersFromRefWork(Memo_Cite.Lines);
+    'EndNote':CurrentRTFP.ImportPapersFromEndNote(Memo_Cite.Lines);
+    'NoteExpress':CurrentRTFP.ImportPapersFromNoteExpress(Memo_Cite.Lines);
+    'NoteFirst':CurrentRTFP.ImportPapersFromNoteFirst(Memo_Cite.Lines);
+    'RIS':CurrentRTFP.ImportPapersFromRIS(Memo_Cite.Lines);
     else exit;
   end;
   FormDesktop.Validate(CurrentRTFP);
@@ -126,6 +145,7 @@ begin
 end;
 
 procedure TForm_CiteTrans.PaintBox_ArrowsPaint(Sender: TObject);
+var button_center:integer;
 begin
   with PaintBox_Arrows.Canvas.Pen do
     begin
@@ -147,7 +167,7 @@ begin
   PaintBox_Arrows.Canvas.Line(208,83,208,99);
   PaintBox_Arrows.Canvas.Line(200,91,208,99);
   PaintBox_Arrows.Canvas.Line(216,91,208,99);
-
+  {
   with PaintBox_Arrows.Canvas.Pen do
     begin
       Color:=clBlack;
@@ -155,7 +175,7 @@ begin
       Mode:=pmCopy;
       Width:=1;
     end;
-
+  }
   PaintBox_Arrows.Canvas.Line(0,36,220,36);
   PaintBox_Arrows.Canvas.Line(340,36,380,36);
   PaintBox_Arrows.Canvas.Arc(372,20,388,36,0,-90*16);
@@ -171,6 +191,22 @@ begin
   PaintBox_Arrows.Canvas.Line(0,63,8,55);
   PaintBox_Arrows.Canvas.Line(0,63,8,71);
   PaintBox_Arrows.Canvas.Line(380,98,396,98);
+  {
+  with PaintBox_Arrows.Canvas.Pen do
+    begin
+      Color:=clBlack;
+      Style:=psSolid;
+      Mode:=pmCopy;
+      Width:=1;
+    end;
+  }
+  button_center:=Button_ImportPapers.Left + Button_ImportPapers.Width div 2 - PaintBox_Arrows.Left;
+  //ShowMessage(IntToStr(button_center));
+
+  PaintBox_Arrows.Canvas.Line(button_center-8,1,button_center+8,1);
+  PaintBox_Arrows.Canvas.Line(button_center,1,button_center,26);
+  PaintBox_Arrows.Canvas.Line(button_center-8,18,button_center,26);
+  PaintBox_Arrows.Canvas.Line(button_center+8,18,button_center,26);
 
 end;
 

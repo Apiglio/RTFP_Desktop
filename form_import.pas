@@ -24,8 +24,8 @@ type
     Edit_UpdatePaper: TEdit;
     Image_FileFullBackup: TImage;
     Image_FileReference: TImage;
-    Image_TestFiles: TImage;
-    Image_RefFormat: TImage;
+    Image_TestFile: TImage;
+    Image_UpdateFile: TImage;
     Image_AddNote: TImage;
     Image_AddImage: TImage;
     PageControl_ImportFiles: TPageControl;
@@ -34,8 +34,8 @@ type
     Panel_FilesFullBackup: TPanel;
     Panel_FilesReference: TPanel;
     Panel_R: TPanel;
-    Panel_TestFiles: TPanel;
-    Panel_RefFormat: TPanel;
+    Panel_TestFile: TPanel;
+    Panel_UpdateFile: TPanel;
     Panel_AddNote: TPanel;
     Panel_AddImage: TPanel;
     ProgressBar_ImportFiles: TProgressBar;
@@ -47,7 +47,6 @@ type
     StaticText_4: TStaticText;
     StaticText_5: TStaticText;
     StaticText_6: TStaticText;
-    TabSheet_ImportRefs: TTabSheet;
     TabSheet_TestFiles: TTabSheet;
     TabSheet_AddImage: TTabSheet;
     TabSheet_AddNote: TTabSheet;
@@ -203,42 +202,48 @@ procedure TForm_ImportFiles.Button_ImportFileNamesCheckClick(Sender: TObject);
 var pi:integer;
     all_success:boolean;
     newPID:RTFP_ID;
+    tmpProc:TNotifyEvent;
 begin
   ProgressBar_ImportFiles.Max:=FFileNames.Count;
   all_success:=true;
-  //CurrentRTFP.BeginUpdate;
-  for pi:=0 to FFileNames.Count-1 do
-    begin
-      if CurrentRTFP.FindPaper(FFileNames[pi]) = '000000' then
-        begin
-          if CheckBox_UpdatePaper.Checked then begin
-            if pi=0 then
-              newPID:=FormDesktop.Selected_PID
-            else
-              newPID:='000000';
-            if newPID<>'000000' then CurrentRTFP.UpdatePaper(newPID,FFileNames[pi]);
-          end else begin
-            if CheckBox_AddPaperMethod.Checked then
-              newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmFullBackup)
-            else
-              newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmReference);
-          end;
-          if newPID<>'000000' then begin
-            CheckListBox_ImportFileNames.Items[pi].SubItems[0]:='导入成功';
-          end else begin
+  try
+    tmpProc:=CurrentRTFP.onChange;
+    CurrentRTFP.onChange:=nil;
+    //真离谱出此下策
+    for pi:=0 to FFileNames.Count-1 do
+      begin
+        if CurrentRTFP.FindPaper(FFileNames[pi]) = '000000' then
+          begin
+            if CheckBox_UpdatePaper.Checked then begin
+              if pi=0 then
+                newPID:=FormDesktop.Selected_PID
+              else
+                newPID:='000000';
+              if newPID<>'000000' then CurrentRTFP.UpdatePaper(newPID,FFileNames[pi]);
+            end else begin
+              if CheckBox_AddPaperMethod.Checked then
+                newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmFullBackup)
+              else
+                newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmReference);
+            end;
+            if newPID<>'000000' then begin
+              CheckListBox_ImportFileNames.Items[pi].SubItems[0]:='导入成功';
+            end else begin
+              all_success:=false;
+              CheckListBox_ImportFileNames.Items[pi].SubItems[0]:='导入失败';
+            end;
+            ProgressBar_ImportFiles.Position:=pi+1;
+            Application.ProcessMessages;
+          end
+        else
+          begin
             all_success:=false;
-            CheckListBox_ImportFileNames.Items[pi].SubItems[0]:='导入失败';
+            CheckListBox_ImportFileNames.Items[pi].SubItems[0]:='已在库内';
           end;
-          ProgressBar_ImportFiles.Position:=pi+1;
-          Application.ProcessMessages;
-        end
-      else
-        begin
-          all_success:=false;
-          CheckListBox_ImportFileNames.Items[pi].SubItems[0]:='已在库内';
-        end;
-    end;
-  //CurrentRTFP.EndUpdate;
+      end;
+  finally
+    CurrentRTFP.onChange:=tmpProc;
+  end;
   if all_success then begin
     //Clear;
     Self.Hide;
@@ -249,7 +254,7 @@ begin
     Button_ImportFileNamesCheck.Caption:='手动退出';
     Button_ImportFileNamesCheck.Enabled:=false;
   end;
-
+  CurrentRTFP.DataChange;
 end;
 
 procedure TForm_ImportFiles.CheckBox_UpdatePaperChange(Sender: TObject);
@@ -315,7 +320,22 @@ begin
 
       end;
     '识别文件':PageControl_ImportFiles.PageIndex:=TabSheet_TestFiles.PageIndex;
-    '导入引用格式':PageControl_ImportFiles.PageIndex:=TabSheet_ImportRefs.PageIndex;
+    '更新节点文件':
+      begin
+        begin
+          CheckBox_AddPaperMethod.Checked:=true;
+          PageControl_ImportFiles.PageIndex:=TabSheet_AddPaper.PageIndex;
+          CheckListBox_ImportFileNames.Clear;
+          CheckBox_UpdatePaper.Checked:=true;
+          pi:=0;
+          for stmp in FFileNames do begin
+            CheckListBox_ImportFileNames.AddItem(stmp,nil);
+            CheckListBox_ImportFileNames.Items[pi].SubItems.Add('待导入');
+            inc(pi);
+          end;
+
+        end;
+      end;
     '创建笔记节点':PageControl_ImportFiles.PageIndex:=TabSheet_AddNote.PageIndex;
     '创建位图节点':PageControl_ImportFiles.PageIndex:=TabSheet_AddImage.PageIndex;
     else ;

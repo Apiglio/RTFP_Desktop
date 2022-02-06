@@ -7,8 +7,9 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, {pack_powerpdf, }RTFP_main,{ dbflaz, memdslaz,}
-  form_new_project, form_cite_trans, form_import, lazcontrols, form_classmanager;
+  Forms, lnetvisual, {pack_powerpdf, }RTFP_main,{ dbflaz, memdslaz,}
+  form_new_project, form_cite_trans, form_import, lazcontrols,
+  form_classmanager;
 
 {$R *.res}
 

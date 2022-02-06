@@ -10,23 +10,35 @@ uses
   StdCtrls, DbCtrls, LazUTF8, LvlGraphCtrl,
   Clipbrd, LCLType,
 
-  AufScript_Frame, ACL_ListView, TreeListView,
+  AufScript_Frame, ACL_ListView, TreeListView, lNetComponents,
 
   RTFP_definition, rtfp_constants, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.1.1-alpha.12';//如果增加了CheckAttrs的机制，请改成0.1.2
+  C_VERSION_NUMBER  = '0.1.1-alpha.13';//如果增加了CheckAttrs的机制，请改成0.1.2
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
 
 type
 
+  { TWaitForm }
+  TWaitForm = class(TForm)
+  private
+    FEnabled:boolean;
+  public
+    property Enabled:boolean read FEnabled write FEnabled;
+  end;
+
+
   { TFormDesktop }
 
   TFormDesktop = class(TForm)
     ACL_ListView_Klass: TACL_ListView;
     ACL_ListView_Attrs: TACL_ListView;
+    Button_FormatEditPost: TButton;
+    Button_FormatEditRecover: TButton;
+    Button_FormatEditLock: TButton;
     Button_MainFilter: TButton;
     Button_temp: TButton;
     Button_Project_NodeView_Fresh: TButton;
@@ -34,14 +46,15 @@ type
     Button_FmtCmt_Recover: TButton;
     Button_NodeViewPost: TButton;
     Button_NodeViewRecover: TButton;
+    Image_IsMemo: TImage;
     ComboBox_AttrName: TComboBox;
     ComboBox_FieldName: TComboBox;
-    DataSource_Attrs: TDataSource;
     DataSource_Main: TDataSource;
     DBGrid_Main: TDBGrid;
     Edit_DBGridMain_Filter: TEdit;
     Frame_AufScript1: TFrame_AufScript;
     Image_PDF_View: TImage;
+    Label_FmtCmtPID: TLabel;
     Label_MainFilter: TLabel;
     LvlGraphControl: TLvlGraphControl;
     MainMenu: TMainMenu;
@@ -96,6 +109,7 @@ type
     PageControl_Node: TPageControl;
     PageControl_Project: TPageControl;
     Panel_DBGridMain: TPanel;
+    ScrollBox_Node_FormatEdit: TScrollBox;
     PopupMenu_MainDBGrid: TPopupMenu;
     SaveDialog_project: TSaveDialog;
     Splitter_LeftH: TSplitter;
@@ -105,6 +119,7 @@ type
     StaticText_AttrNameCombo: TStaticText;
     StaticText_FieldNameCombo: TStaticText;
     StatusBar: TStatusBar;
+    TabSheet_Node_FormatEdit: TTabSheet;
     TabSheet_Filter_Klass: TTabSheet;
     TabSheet_Filter_Field: TTabSheet;
     TabSheet_Project_NodeView: TTabSheet;
@@ -130,7 +145,6 @@ type
     procedure Button_tempClick(Sender: TObject);
     procedure CheckListBox_MainAttrFilterClickCheck(Sender: TObject);
     procedure ComboBox_AttrNameChange(Sender: TObject);
-    procedure ComboBox_Attrs_ViewChange(Sender: TObject);
     procedure ComboBox_FieldNameChange(Sender: TObject);
     procedure DataSource_MainUpdateData(Sender: TObject);
     procedure DBGrid_MainCellClick(Column: TColumn);
@@ -141,10 +155,12 @@ type
     procedure Edit_DBGridMain_FilterChange(Sender: TObject);
     procedure Edit_DBGridMain_FilterKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDropFiles(Sender: TObject; const FileNames: array of String);
     procedure FormResize(Sender: TObject);
+    procedure Memo_FmtCmtChange(Sender: TObject);
     procedure MenuItem_AdvOpen_CAJClick(Sender: TObject);
     procedure MenuItem_AdvOpen_DirClick(Sender: TObject);
     procedure MenuItem_AdvOpen_LinkClick(Sender: TObject);
@@ -170,6 +186,9 @@ type
     procedure PageControl_NodeChange(Sender: TObject);
     procedure TabSheet_Project_AufScriptResize(Sender: TObject);
     procedure PropertiesValueListEditorEditingDone(Sender: TObject);
+
+  private
+    FWaitForm:TForm;
 
   private
     FLayoutMode:integer;
@@ -200,6 +219,8 @@ type
     procedure ProjectCloseDone(Sender:TObject);//工程关闭
     procedure ProjectSaveDone(Sender:TObject);//工程保存
 
+    procedure DBGridColumnAdjusting(Sender:TObject);
+
     //以下与下半部分的NodeView有关
     procedure ViewPdfValidate;
     //预览pdf
@@ -213,6 +234,7 @@ type
 var
   FormDesktop: TFormDesktop;
   CurrentRTFP:TRTFP;
+  LocalPath:string;
 
 implementation
 uses form_new_project, form_cite_trans, form_classmanager, form_import,
@@ -232,7 +254,7 @@ begin
   Sender.onChange:=@Validate;
   Sender.onClassChange:=@ClassListValidate;
   Sender.onFieldChange:=@FieldListValidate;
-
+  //Sender.OnTableValidateDone:=@DBGridColumnAdjusting;
 end;
 
 procedure TFormDesktop.Validate(Sender:TObject);
@@ -263,20 +285,11 @@ begin
 end;
 
 procedure TFormDesktop.MainGridValidate(Sender:TObject);
-var tmpForm:TForm;
 begin
   Self.DBGrid_Main.Visible:=false;
-  tmpForm:=TForm.Create(Self);
-  with tmpForm do try
-    Height:=120;
-    Width:=280;
-    Position:=poOwnerFormCenter;
-    Caption:='请稍等';
-    Show;
-    CurrentRTFP.TableValidate;
-  finally
-    Free;
-  end;
+  FWaitForm.Show;
+  CurrentRTFP.TableValidate;
+  FWaitForm.Hide;
   Self.DBGrid_Main.Visible:=true;
 end;
 
@@ -311,6 +324,7 @@ begin
   CurrentRTFP.AttrNameValidate(ComboBox_AttrName.Items);
 
   Self.Validate(Sender);
+  CurrentRTFP.FormatEditBuild(Self.ScrollBox_Node_FormatEdit,'test');
 
 
   Self.MenuItem_project_new.Enabled:=false;
@@ -327,6 +341,7 @@ end;
 procedure TFormDesktop.ProjectCloseDone(Sender:TObject);
 begin
   Self.Clear(Sender);
+  CurrentRTFP.FormatEditClear(Self.ScrollBox_Node_FormatEdit);
 
   //文献节点选项卡
   Self.DataSource_Main.DataSet:=nil;
@@ -353,6 +368,16 @@ procedure TFormDesktop.ProjectSaveDone(Sender:TObject);
 begin
   Self.Validate(Sender);
   Self.MenuItem_project_save.Enabled:=false;
+end;
+
+procedure TFormDesktop.DBGridColumnAdjusting(Sender:TObject);
+var index:integer;
+begin
+  with DBGrid_Main do
+  for index:=0 to Columns.Count-1 do
+    begin
+      Columns[index].Width:=TRTFP.FieldOptWidth(Columns[index].Field.FieldDef);
+    end;
 end;
 
 procedure TFormDesktop.SetLayoutMode(AModeIndex:integer);
@@ -392,15 +417,28 @@ var PID:RTFP_ID;
     attrNa,fieldNa:string;
 begin
   PID:=Selected_PID;
-  ValueListEditor_NodeView.Clear;
   if PID='000000' then exit;
   StatusBar.Panels[0].Text:=PID;
+
+  //节点字段
+  //ValueListEditor_NodeView.Clear;
   CurrentRTFP.NodeViewValidate(PID,ValueListEditor_NodeView);
 
+  //FmtCmt
   if (ComboBox_AttrName.ItemIndex>=0) and (ComboBox_FieldName.ItemIndex>=0) then begin
     attrNa:=ComboBox_AttrName.Items[ComboBox_AttrName.ItemIndex];
     fieldNa:=ComboBox_FieldName.Items[ComboBox_FieldName.ItemIndex];
+    if Button_FmtCmt_Post.Enabled then
+      begin
+        //这表明FmtCmt没有保存
+        case MessageDlg('FmtCmt未保存','更新FmtCmt会覆盖当前的修改，是否先保存此修改？',mtInformation,[mbYes,mbNo],0) of
+          rnmbYes:CurrentRTFP.FmtCmtDataPost(Label_FmtCmtPID.Caption,attrNa,fieldNa,Memo_FmtCmt);
+          rnmbNo:;
+        end;
+      end;
     CurrentRTFP.FmtCmtValidate(PID,attrNa,fieldNa,Memo_FmtCmt);
+    Label_FmtCmtPID.Caption:=PID;
+    Button_FmtCmt_Post.Enabled:=false;
   end;
 end;
 
@@ -460,6 +498,11 @@ end;
 procedure TFormDesktop.FormResize(Sender: TObject);
 begin
   //Self.Frame_AufScript1.FrameResize(nil);
+end;
+
+procedure TFormDesktop.Memo_FmtCmtChange(Sender: TObject);
+begin
+  Button_FmtCmt_Post.Enabled:=(Sender as TMemo).Modified;
 end;
 
 procedure TFormDesktop.MenuItem_AdvOpen_CAJClick(Sender: TObject);
@@ -599,6 +642,17 @@ begin
   AufScriptFuncDefineRTFP(Self.Frame_AufScript1.Auf);
   Self.Frame_AufScript1.HighLighterReNew;
 
+  LocalPath:=ExtractFilePath(ParamStr(0));
+
+  FWaitForm:=TForm.Create(Self);
+  with FWaitForm do begin
+    Height:=120;
+    Width:=280;
+    Position:=poOwnerFormCenter;
+    Caption:='请稍等';
+    Hide;
+  end;
+
   if ParamCount<>0 then
     begin
       {
@@ -666,17 +720,25 @@ begin
   attrName:=ComboBox_AttrName.Items[ComboBox_AttrName.ItemIndex];
   fieldName:=ComboBox_FieldName.Items[ComboBox_FieldName.ItemIndex];
   ty:=CurrentRTFP.AttrFieldDataTypeS[attrName,fieldName];
-  Self.Button_FmtCmt_Post.Enabled:=(ty=ftMemo);
+  if ty=ftMemo then begin
+    Image_IsMemo.Picture.LoadFromFile(LocalPath+'Icon\checked_true.png');
+    Image_IsMemo.Hint:='该字段可支持FmtCmt';
+    Memo_FmtCmt.Enabled:=true;
+    Button_FmtCmt_Post.Enabled:=false;
+  end else begin
+    Image_IsMemo.Picture.LoadFromFile(LocalPath+'Icon\checked_false.png');
+    Image_IsMemo.Hint:='该字段不支持FmtCmt';
+    Memo_FmtCmt.Clear;
+    Memo_FmtCmt.Enabled:=false;
+    Button_FmtCmt_Post.Enabled:=false;
+  end;
+  Application.ProcessMessages;
+  NodeViewValidate;
 end;
 
 procedure TFormDesktop.DataSource_MainUpdateData(Sender: TObject);
-var index:integer;
 begin
-  with DBGrid_Main do
-  for index:=0 to Columns.Count-1 do
-    begin
-      Columns[index].Width:=TRTFP.FieldOptWidth(Columns[index].Field.FieldDef);
-    end;
+  DBGridColumnAdjusting(CurrentRTFP);
 end;
 
 procedure TFormDesktop.Button_NodeViewPostClick(Sender: TObject);
@@ -689,21 +751,6 @@ end;
 procedure TFormDesktop.Button_NodeViewAddAttrClick(Sender: TObject);
 begin
   ///////
-end;
-
-procedure TFormDesktop.Button_FmtCmt_PostClick(Sender: TObject);
-var PID:RTFP_ID;
-    attrNa,fieldNa:string;
-begin
-  if not assigned(CurrentRTFP) then exit;
-  if not CurrentRTFP.IsOpen then exit;
-  PID:=Selected_PID;
-  if PID='000000' then exit;
-  if (ComboBox_AttrName.ItemIndex>=0) and (ComboBox_FieldName.ItemIndex>=0) then begin
-    attrNa:=ComboBox_AttrName.Items[ComboBox_AttrName.ItemIndex];
-    fieldNa:=ComboBox_FieldName.Items[ComboBox_FieldName.ItemIndex];
-    CurrentRTFP.FmtCmtDataPost(PID,attrNa,fieldNa,Memo_FmtCmt);
-  end;
 end;
 
 procedure TFormDesktop.ACL_ListView_AttrsNodeChecked(Sender: TObject;
@@ -729,13 +776,33 @@ begin
   end;
 end;
 
+procedure TFormDesktop.Button_FmtCmt_PostClick(Sender: TObject);
+var PID:RTFP_ID;
+    attrNa,fieldNa:string;
+begin
+  if not assigned(CurrentRTFP) then exit;
+  if not CurrentRTFP.IsOpen then exit;
+  if Image_IsMemo.Hint='该字段不支持FmtCmt' then exit;
+  //PID:=Selected_PID;
+  PID:=Label_FmtCmtPID.Caption;
+  if PID='000000' then exit;
+  if (ComboBox_AttrName.ItemIndex>=0) and (ComboBox_FieldName.ItemIndex>=0) then begin
+    attrNa:=ComboBox_AttrName.Items[ComboBox_AttrName.ItemIndex];
+    fieldNa:=ComboBox_FieldName.Items[ComboBox_FieldName.ItemIndex];
+    CurrentRTFP.FmtCmtDataPost(PID,attrNa,fieldNa,Memo_FmtCmt);
+  end;
+  (Sender as TButton).Enabled:=false;
+end;
+
 procedure TFormDesktop.Button_FmtCmt_RecoverClick(Sender: TObject);
 var PID:RTFP_ID;
     attrNa,fieldNa:string;
 begin
   if not assigned(CurrentRTFP) then exit;
   if not CurrentRTFP.IsOpen then exit;
-  PID:=Selected_PID;
+  if Image_IsMemo.Hint='该字段不支持FmtCmt' then exit;
+  //PID:=Selected_PID;
+  PID:=Label_FmtCmtPID.Caption;
   if PID='000000' then exit;
   if (ComboBox_AttrName.ItemIndex>=0) and (ComboBox_FieldName.ItemIndex>=0) then begin
     attrNa:=ComboBox_AttrName.Items[ComboBox_AttrName.ItemIndex];
@@ -773,13 +840,7 @@ begin
   LayoutMode:=(LayoutMode+1) mod 3;
 end;
 
-procedure TFormDesktop.ComboBox_Attrs_ViewChange(Sender: TObject);
-var pi:integer;
-begin
-  pi:=(Sender as TComboBox).ItemIndex;
-  if pi>=0 then DataSource_Attrs.DataSet:=((Sender as TComboBox).Items.Objects[pi] as TDbf);
-  //在关闭工程以后 ，这里有一个错误
-end;
+
 
 procedure TFormDesktop.DBGrid_MainCellClick(Column: TColumn);
 begin
@@ -813,6 +874,12 @@ begin
     begin
       Button_MainFilterClick(nil);
     end;
+end;
+
+procedure TFormDesktop.FormClose(Sender: TObject; var CloseAction: TCloseAction
+  );
+begin
+  FWaitForm.Free;
 end;
 
 

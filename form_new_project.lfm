@@ -128,7 +128,7 @@ object Form_NewProject: TForm_NewProject
       '无同名目录'
       '无同名文件'
       '路径长度'
-      '磁盘空间'
+      '磁盘空间(>4Gbytes)'
     )
     ItemHeight = 21
     TabOrder = 4

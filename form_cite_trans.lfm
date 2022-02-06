@@ -1,12 +1,12 @@
 object Form_CiteTrans: TForm_CiteTrans
-  Left = 806
+  Left = 766
   Height = 574
-  Top = 311
-  Width = 1024
+  Top = 314
+  Width = 1037
   AllowDropFiles = True
   Caption = '引用格式转译'
   ClientHeight = 574
-  ClientWidth = 1024
+  ClientWidth = 1037
   DesignTimePPI = 120
   OnDeactivate = FormDeactivate
   OnDropFiles = FormDropFiles
@@ -15,13 +15,15 @@ object Form_CiteTrans: TForm_CiteTrans
   LCLVersion = '1.8.4.0'
   object PaintBox_Arrows: TPaintBox
     AnchorSideLeft.Control = TabControl_Reference_Style
+    AnchorSideRight.Control = Memo_Reference
+    AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = TabControl_Reference_Style
     AnchorSideBottom.Side = asrBottom
-    Left = 541
+    Left = 557
     Height = 99
     Top = 377
-    Width = 420
-    Anchors = [akLeft, akBottom]
+    Width = 475
+    Anchors = [akLeft, akRight, akBottom]
     BorderSpacing.Bottom = 25
     OnPaint = PaintBox_ArrowsPaint
   end
@@ -32,10 +34,10 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideRight.Control = TabControl_CiteStyle
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Button_ExportCite
-    Left = 541
+    Left = 557
     Height = 340
     Top = 32
-    Width = 478
+    Width = 475
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Bottom = 5
     Lines.Strings = (
@@ -65,10 +67,10 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 541
+    Left = 557
     Height = 68
     Top = 501
-    Width = 478
+    Width = 475
     Anchors = [akLeft, akRight, akBottom]
     BorderSpacing.Bottom = 5
     Lines.Strings = (
@@ -87,7 +89,7 @@ object Form_CiteTrans: TForm_CiteTrans
     Left = 5
     Height = 564
     Top = 5
-    Width = 531
+    Width = 547
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 5
     BorderSpacing.Top = 5
@@ -100,10 +102,10 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideLeft.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 541
+    Left = 557
     Height = 24
     Top = 8
-    Width = 478
+    Width = 475
     TabIndex = 0
     Tabs.Strings = (
       'E-Study'
@@ -111,6 +113,7 @@ object Form_CiteTrans: TForm_CiteTrans
       'EndNote'
       'NoteExpress'
       'NoteFirst'
+      'RIS'
     )
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Left = 5
@@ -124,10 +127,10 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Memo_Reference
-    Left = 541
+    Left = 557
     Height = 24
     Top = 477
-    Width = 478
+    Width = 475
     TabIndex = 0
     Tabs.Strings = (
       'GB/T 7714'
@@ -149,7 +152,7 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideRight.Control = TabControl_CiteStyle
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Button_ImportRefs
-    Left = 761
+    Left = 777
     Height = 32
     Top = 392
     Width = 120
@@ -169,7 +172,7 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideRight.Control = Panel_DBGrid_Temporary
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Button_ImportRefs
-    Left = 591
+    Left = 607
     Height = 32
     Top = 377
     Width = 120
@@ -189,7 +192,7 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = TabControl_Reference_Style
     AnchorSideBottom.Side = asrBottom
-    Left = 761
+    Left = 777
     Height = 32
     Top = 429
     Width = 120
@@ -206,7 +209,7 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideTop.Side = asrBottom
     AnchorSideBottom.Control = TabControl_Reference_Style
     AnchorSideBottom.Side = asrBottom
-    Left = 591
+    Left = 607
     Height = 32
     Top = 444
     Width = 120
@@ -216,5 +219,26 @@ object Form_CiteTrans: TForm_CiteTrans
     Caption = '导出引用格式'
     OnClick = Button_ExportRefsClick
     TabOrder = 8
+  end
+  object Button_ImportPapers: TButton
+    AnchorSideLeft.Control = Button_ImportCite
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Button_ImportCite
+    AnchorSideRight.Control = Memo_Reference
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Button_ImportRefs
+    AnchorSideBottom.Side = asrBottom
+    Left = 957
+    Height = 49
+    Top = 402
+    Width = 65
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Left = 60
+    BorderSpacing.Top = 10
+    BorderSpacing.Right = 10
+    BorderSpacing.Bottom = 10
+    Caption = '新节点'
+    OnClick = Button_ImportPapersClick
+    TabOrder = 9
   end
 end

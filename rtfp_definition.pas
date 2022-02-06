@@ -1,8 +1,14 @@
-//FmtCmt的覆盖提交保存提醒
 //引用PDF里的图片
 //字段选项化，进度表可以是checkboxlist的形式
 //ACL_ListView折叠属性组时，字段不会随着子项勾选的取消而关闭
-
+//年表功能要考虑增加了
+//网页下载要研究一下JS
+//字段更新日志
+//尽快增加Picture Attachment和剪贴板输入
+//增加文献节点文件名格式化功能
+//增刊期数的导入有问题
+//Memo字段的搜索
+//相对路径节点创建
 
 
 
@@ -18,12 +24,16 @@ unit RTFP_definition;
 interface
 
 uses
-  Classes, SysUtils, Dialogs, ValEdit, Windows, LazUTF8, StdCtrls, ComCtrls,
-  ACL_ListView,
+  Classes, SysUtils, Dialogs, ValEdit, LazUTF8, StdCtrls, ComCtrls, ExtCtrls, Forms,
+  ACL_ListView, rtfp_format_component, Controls,
+
+  {$ifdef Windows}
+  Windows,
+  {$endif}
+
   {$ifndef insert}
   Apiglio_Useful, auf_ram_var, rtfp_pdfobj, rtfp_files, rtfp_class, rtfp_field,
   rtfp_constants,
-  //AufScript_Frame,
   {$endif}
   db, dbf, dbf_fields, sqldb, memds;
 
@@ -254,12 +264,14 @@ type
     procedure LoadFromEndNote(PID:RTFP_ID;str:TStrings);
     procedure LoadFromNoteExpress(PID:RTFP_ID;str:TStrings);
     procedure LoadFromNoteFirst(PID:RTFP_ID;str:TStrings);
+    procedure LoadFromRIS(PID:RTFP_ID;str:TStrings);
 
     procedure SaveToEStudy(PID:RTFP_ID;str:TStrings);
     procedure SaveToRefWork(PID:RTFP_ID;str:TStrings);
     procedure SaveToEndNote(PID:RTFP_ID;str:TStrings);
     procedure SaveToNoteExpress(PID:RTFP_ID;str:TStrings);
     procedure SaveToNoteFirst(PID:RTFP_ID;str:TStrings);
+    procedure SaveToRIS(PID:RTFP_ID;str:TStrings);
 
     procedure SetGBT7714(PID:RTFP_ID;str:string);
     procedure SetCAJCD(PID:RTFP_ID;str:string);
@@ -274,12 +286,21 @@ type
     function GetChaXin(PID:RTFP_ID):string;
 
 
+    procedure ImportPapersFromEStudy(str:TStrings);
+    procedure ImportPapersFromRefWork(str:TStrings);
+    procedure ImportPapersFromEndNote(str:TStrings);
+    procedure ImportPapersFromNoteExpress(str:TStrings);
+    procedure ImportPapersFromNoteFirst(str:TStrings);
+    procedure ImportPapersFromRIS(str:TStrings);
+
 
   private //显示连接
     FPaperDS:TMemDataSet;
+    FFormatEditComponentList:TList;
 
   public //连接显示
     property PaperDS:TMemDataSet read FPaperDS;//筛选后的总表，直接连接DBGrid
+    property FormatComponents:TList read FFormatEditComponentList;
     property each_class:TKlassList read FKlassList;
     property each_attrs:TAttrsGroupList read FFieldList;
 
@@ -303,12 +324,23 @@ type
     procedure AttrNameValidate(AItems:TStrings);
     procedure FieldNameValidate(AAttrName:string;AItems:TStrings);
 
+    procedure FormatEditScrollBoxResize(Sender:TObject);
+    procedure FormatEditBuild(AScrollBox:TScrollBox;AFormat:string);
+    procedure FormatEditBuild(AScrollBox:TScrollBox;AFormat:TStrings);
+    procedure FormatEditClear(AScrollBox:TScrollBox);
+    procedure FormatEditValidate(AScrollBox:TScrollBox;PID:string);
+    procedure FormatEditDataPost(AScrollBox:TScrollBox;PID:string);
+
+
   private
     FOnNew,FOnNewDone:TNotifyEvent;
     FOnOpen,FOnOpenDone:TNotifyEvent;
     FOnSave,FOnSaveDone:TNotifyEvent;
     FOnSaveAs,FOnSaveAsDone:TNotifyEvent;
     FOnClose,FOnCloseDone:TNotifyEvent;
+
+    FOnTableValidateDone:TNotifyEvent;
+
     FOnFirstEdit,FOnChange:TNotifyEvent;
     FOnDataChange,FOnFieldChange,FOnRecordChange,FOnClassChange:TNotifyEvent;
 
@@ -323,6 +355,8 @@ type
     property onSaveAsDone:TNotifyEvent read FOnSaveAsDone write FOnSaveAsDone;
     property onClose:TNotifyEvent read FOnClose write FOnClose;
     property onCloseDone:TNotifyEvent read FOnCloseDone write FOnCloseDone;
+
+    property OnTableValidateDone:TNotifyEvent read FOnTableValidateDone write FOnTableValidateDone;
 
     property onFirstEdit:TNotifyEvent read FOnFirstEdit write FOnFirstEdit;
     property onChange:TNotifyEvent read FOnChange write FOnChange;
@@ -397,7 +431,6 @@ begin
   //
 end;
 }
-
 
 procedure aufunc_BeginUpdate(Sender:TObject);
 begin
@@ -525,8 +558,9 @@ begin
 
   if CurrentRTFP.CheckField(AFieldName,AAttrName,[ftString,ftMemo]) then
     begin
-      CurrentRTFP.GetField(AFieldName,AAttrName,APID).AsString:=AMEMO;
-      AufScpt.writeln('属性修改成功。');
+      //CurrentRTFP.GetField(AFieldName,AAttrName,APID).AsString:=AMEMO;
+      CurrentRTFP.EditFieldAsString(AFieldName,AAttrName,APID,AMEMO);
+      //AufScpt.writeln('属性修改成功。');
     end
   else AufScpt.writeln('属性类型不符，修改失败。');
 
@@ -536,20 +570,27 @@ var AufScpt:TAufScript;
     AAuf:TAuf;
     APID,AFieldName,AAttrName,AValue:string;
     arv:TAufRamVar;
+    show_message:boolean;
 begin
   AufScpt:=Sender as TAufScript;
   AAuf:=AufScpt.Auf as TAuf;
-  if not AAuf.CheckArgs(5) then exit;
+  if not AAuf.CheckArgs(4) then exit;
   if not AAuf.TryArgToString(1,APID) then exit;
   if not AAuf.TryArgToString(2,AAttrName) then exit;
   if not AAuf.TryArgToString(3,AFieldName) then exit;
-  if not AAuf.TryArgToARV(4,256,256,[ARV_Char],arv) then exit;
+  if AAuf.ArgsCount>4 then
+    begin
+      AAuf.TryArgToARV(4,256,256,[ARV_Char],arv);
+      show_message:=false;
+    end
+  else show_message:=true;
+
 
   if CurrentRTFP.CheckField(AFieldName,AAttrName,[ftString,ftMemo]) then
     begin
       AValue:=CurrentRTFP.GetField(AFieldName,AAttrName,APID).AsString;
-      initiate_arv_str(AValue,arv);
-      AufScpt.writeln('Fields['+AAttrName+','+AFieldName+']='+AValue);
+      if show_message then AufScpt.writeln('Fields['+AAttrName+','+AFieldName+']='+AValue)
+      else initiate_arv_str(AValue,arv);
     end
   else AufScpt.writeln('属性类型不符，读取失败。');
 
@@ -703,6 +744,54 @@ begin
   AufScpt.writeln('强制保存成功。');
 end;
 
+procedure aufunc_PID_First(Sender:TObject);
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    PID:string;
+    arv:TAufRamVar;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(2) then exit;
+  if not AAuf.TryArgToARV(1,6,6,[ARV_Char],arv) then exit;
+  with CurrentRTFP.PaperDB do begin
+    if not Active then Open;
+    First;
+    PID:=FieldByName(_Col_PID_).AsString;
+  end;
+  initiate_arv_str(PID,arv);
+end;
+
+procedure aufunc_PID_NextJump(Sender:TObject);
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    pid:string;
+    arv:TAufRamVar;
+    addr:pRam;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(3) then exit;
+  if not AAuf.TryArgToARV(1,6,6,[ARV_Char],arv) then exit;
+  if not AAuf.TryArgToAddr(2,addr) then exit;
+  PID:=arv_to_s(arv);
+  with CurrentRTFP.PaperDB do begin
+    if not Active then Open;
+    First;
+    repeat
+      if FieldByName(_Col_PID_).AsString=PID then break;
+      Next;
+    until EOF;
+    Next;
+    if not EOF then begin
+      initiate_arv_str(FieldByName(_Col_PID_).AsString,arv);
+      AufScpt.jump_addr(addr);
+    end else begin
+      initiate_arv_str('000000',arv);
+      AufScpt.next_addr;
+    end;
+  end;
+end;
 
 
 {$ifdef test}
@@ -748,7 +837,7 @@ begin
     Script.add_func('attrs.af.del',@aufunc_DelAttrField,'AttrName,FieldName','在第AttrNo表中创建FieldName字段');
 
     Script.add_func('class.add',@aufunc_addKlass,'KlassName, Path','创建分类表');
-    Script.add_func('class.delete',@aufunc_DeleteKlass,'KlassName','删除分类表');
+    Script.add_func('class.del',@aufunc_DeleteKlass,'KlassName','删除分类表');
     Script.add_func('class.include',@aufunc_KlassInclude,'KlassName, PID','将PID节点加入分类');
     Script.add_func('class.exclude',@aufunc_KlassExclude,'KlassName, PID','将PID节点移除分类');
 
@@ -762,6 +851,12 @@ begin
 
     Script.add_func('hash',@aufunc_FileHash,'filename','返回FileHash');
     Script.add_func('save',@aufunc_save,'','强制保存');
+
+    Script.add_func('pid.first',@aufunc_PID_First,'@str','寻找第一个PID，并赋值给@str');
+    Script.add_func('pid.next_jump',@aufunc_PID_NextJump,'@str,:addr','寻找第下一个PID，下一个存在则赋值给@str并跳转到:addr');
+
+
+
 
     {$ifdef test}
     Script.add_func('test',@aufunc_test,'*arg','测试');
@@ -783,6 +878,7 @@ begin
   inherited Create(AOwner);
 
   FPaperDS:=TMemDataset.Create(Self);
+  FFormatEditComponentList:=TList.Create;
 
   ProjectFileValue:=TValueListEditor.Create(nil);
   //ProjectFileValue.Parent:=AOwner;
@@ -818,12 +914,14 @@ begin
   FOnSaveAsDone:=nil;
   FOnClose:=nil;
   FOnCloseDone:=nil;
+
+  FOnTableValidateDone:=nil;
+
   FOnFirstEdit:=nil;
   FOnChange:=nil;
   FOnDataChange:=nil;
   FOnFieldChange:=nil;
   FOnRecordChange:=nil;
-
 
 end;
 
@@ -845,6 +943,7 @@ begin
   ProjectFileValue.Free;
 
   FPaperDS.Free;
+  FFormatEditComponentList.Free;
 
   inherited Destroy;
 end;
@@ -1263,7 +1362,7 @@ end;
 procedure TRTFP.LoadAttrs;
 var tmpAttrs:TAttrsGroup;
 begin
-  BeginUpdate;
+  //BeginUpdate;
   FFieldList.LoadFromPath('attr\');
   for tmpAttrs in FFieldList do
     begin
@@ -1282,8 +1381,8 @@ begin
     begin
       tmpAttrs.LoadFieldListFromDbf;
     end;
-  EndUpdate;
-  FieldChange;
+  //EndUpdate;
+  //FieldChange;
 end;
 
 procedure TRTFP.SaveAttrs;
@@ -1354,15 +1453,15 @@ end;
 procedure TRTFP.LoadKlass;
 var tmpKlass:TKlass;
 begin
-  BeginUpdate;
+  //BeginUpdate;
   FKlassList.LoadFromPath('class\');
   for tmpKlass in FKlassList do
     begin
       if not OpenDbf(tmpKlass.FullPath,tmpKlass.Dbf) then
         NewDbf(tmpKlass.FullPath,tmpKlass.Dbf);
     end;
-  EndUpdate;
-  ClassChange;
+  //EndUpdate;
+  //ClassChange;
 end;
 
 procedure TRTFP.SaveKlass;
@@ -1670,6 +1769,8 @@ procedure TRTFP.New(filename:ansistring;p_title:string;p_user:string);
 begin
   if FOnNew <> nil then FOnNew(Self);
 
+  BeginUpdate;
+
   Self.SetPaths(WinCPToUTF8(filename));
   TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder);
   TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\paper');
@@ -1693,6 +1794,11 @@ begin
   LoadAttrs;
   LoadKlass;
 
+  EndUpdate;
+  if FOnFieldChange <> nil then FOnFieldChange(Self);
+  if FOnClassChange <> nil then FOnClassChange(Self);
+  if FOnChange <> nil then FOnChange(Self);
+
   if FOnNewDone <> nil then FOnNewDone(Self);
   Self.FIsOpen:=true;
   Self.FIsChanged:=false;
@@ -1703,16 +1809,23 @@ Procedure TRTFP.Open(filename:ansistring);
 begin
   if FOnOpen <> nil then FOnOpen(Self);
 
+  BeginUpdate;
+
   Self.SetPaths(WinCPToUTF8(filename));
   OpenProjectFile;
   if not OpenUserList then NewUserList;
   if not OpenFormatList then NewFormatList;
-  if not OpenDbf('paper',Self.FPaperDB) then NewDbf('paper',Self.FPaperDB);;
-  if not OpenDbf('image',Self.FImageDB) then NewDbf('image',Self.FImageDB);;
-  if not OpenDbf('note',Self.FNotesDB) then NewDbf('note',Self.FNotesDB);;
+  if not OpenDbf('paper',Self.FPaperDB) then NewDbf('paper',Self.FPaperDB);
+  if not OpenDbf('image',Self.FImageDB) then NewDbf('image',Self.FImageDB);
+  if not OpenDbf('note',Self.FNotesDB) then NewDbf('note',Self.FNotesDB);
 
   LoadAttrs;
   LoadKlass;
+
+  EndUpdate;
+  if FOnFieldChange <> nil then FOnFieldChange(Self);
+  if FOnClassChange <> nil then FOnClassChange(Self);
+  if FOnChange <> nil then FOnChange(Self);
 
   Self.FIsOpen:=true;
   Self.FIsChanged:=false;
@@ -1738,7 +1851,9 @@ begin
   SaveKlass;
 
   EndUpdate;
-  Change;
+  if FOnFieldChange <> nil then FOnFieldChange(Self);
+  if FOnClassChange <> nil then FOnClassChange(Self);
+  if FOnChange <> nil then FOnChange(Self);
 
   Self.FIsChanged:=false;
   if FOnSaveDone <> nil then FOnSaveDone(Self);
@@ -1866,6 +1981,7 @@ function TRTFP.AddPaper(fullfilename:string;AddPaperMethod:TAddPaperMethod=apmFu
 var PID:RTFP_ID;
     DateDir,TargetDir,FileName:string;
     tmpPDF:TRTFP_PDF;
+    is_updating:boolean;
 begin
   result:='000000';
   if (AddPaperMethod<>apmFullBackup) and (AddPaperMethod<>apmReference) then
@@ -1874,25 +1990,29 @@ begin
       exit;
     end;
 
-  DateDir:=TRTFP.GetDateDir;
-  FileName:=ExtractFileName(fullfilename);
-
-  if AddPaperMethod=apmFullBackup then begin
-    TargetDir:=FFilePath+FRootFolder+'\paper\'+DateDir;
-    if FileExists(TargetDir+'\'+FileName) then
-      case MessageDlg('相同的备份路径','正在导入的文件“'+fullfilename
-      +'”的默认备份地址存在重名，覆盖会导致两个文献节点共用一个备份文件。'
-      +'若两个文件不相同，会导致旧版本备份文件被覆盖，且难以复原。'
-      +'是否覆盖？',mtWarning,[mbYes,mbNo],0) of
-        rnmbYes:{do nothing};
-        rnmbNo:exit;
-    end;
-  end;
-
   tmpPDF:=TRTFP_PDF.Create(nil);
-  tmpPDF.LoadPdf(fullfilename);
+  IF fullfilename<>'' THEN BEGIN
+    DateDir:=TRTFP.GetDateDir;
+    FileName:=ExtractFileName(fullfilename);
+    if AddPaperMethod=apmFullBackup then begin
+      TargetDir:=FFilePath+FRootFolder+'\paper\'+DateDir;
+      if FileExists(TargetDir+'\'+FileName) then
+        case MessageDlg('相同的备份路径','正在导入的文件“'+fullfilename
+        +'”的默认备份地址存在重名，覆盖会导致两个文献节点共用一个备份文件。'
+        +'若两个文件不相同，会导致旧版本备份文件被覆盖，且难以复原。'
+        +'是否覆盖？',mtWarning,[mbYes,mbNo],0) of
+          rnmbYes:{do nothing};
+          rnmbNo:exit;
+      end;
+    end;
+    tmpPDF.LoadPdf(fullfilename);
+  END ELSE BEGIN
+    DateDir:='';
+    FileName:='';
+  END;
 
-  BeginUpdate;
+  is_updating:=FIsUpdating;
+  if not is_updating then BeginUpdate;
 
   PID:=NewPaperID;
   //FPaperDB.Last;//此时游标已经在Last位置
@@ -1933,18 +2053,18 @@ begin
   EditFieldAsString(_Col_metas_CreDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:CreationDate']^);
   EditFieldAsString(_Col_metas_ModDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:ModDate']^);
 
-  EndUpdate;
+  if not is_updating then EndUpdate;
 
-  if AddPaperMethod=apmFullBackup then begin
-    ForceDirectories(TargetDir);
-    tmpPDF.CopyTo(TargetDir+'\'+FileName);//尚未加入长度检验
-  end;
-
+  IF fullfilename<>'' THEN BEGIN
+    if AddPaperMethod=apmFullBackup then begin
+      ForceDirectories(TargetDir);
+      tmpPDF.CopyTo(TargetDir+'\'+FileName);//尚未加入长度检验
+    end;
+    tmpPDF.ClosePdf;
+  END;
+  tmpPDF.Free;
 
   RecordChange;
-
-  tmpPDF.ClosePdf;
-  tmpPDF.Free;
   result:=PID;
 end;
 
@@ -2416,6 +2536,18 @@ begin
   end;
 end;
 
+function decodeRISRefType(str:string):string;
+begin
+  result:=str;
+end;
+
+function encodeRISRefType(str:string):string;
+begin
+  result:=str;
+end;
+
+
+
 procedure TRTFP.LoadFromEStudy(PID:RTFP_ID;str:TStrings);
 var stmp,header,attr:string;
     poss:integer;
@@ -2450,8 +2582,10 @@ begin
           '学位授予单位','Source-报纸中文名','报纸中文名':
             FieldByName(_Col_basic_Source_).AsString:=attr;
           'Year-年','Year','年':FieldByName(_Col_basic_Year_).AsString:=attr;
-          'PubTime-出版时间','PubTime','出版时间':
+          'PubTime-出版时间','PubTime','出版时间','PubTime-发表时间','发表时间':
             begin
+              {zan}poss:=pos(' ',attr);
+              if poss>0 then delete(attr,poss,length(attr));
               try
                 TryStrToDate(attr,tmpDate,'YYYYMMDD','-');
               except
@@ -2467,7 +2601,7 @@ begin
           'Page-页码','Page','页码':FieldByName(_Col_basic_Page_).AsString:=attr;
           //'SrcDatabase-来源库':FieldByName(_Col_basic_来源库_).AsString:=attr;
           'Organ-机构','Organ','机构','Organ-大学','大学':FieldByName(_Col_basic_Organ_).AsString:=attr;
-          'Link-链接','Link','链接':FieldByName(_Col_basic_Link_).AsString:=attr;
+          'Link-链接','Link','链接':FieldByName(_Col_basic_Link_).AsString:=StringReplace(attr,'&amp;','&',[rfReplaceAll]);
           //'Degree-学位','Degree','学位':FieldByName(_Col_basic_学位_).AsString:=attr;
           //'Teacher-导师','Teacher','导师':FieldByName(_Col_basic_导师_).AsString:=attr;
 
@@ -2504,7 +2638,7 @@ begin
             attr:=StringReplace(attr,' %A ',';',[rfReplaceAll]);
             if has_author then attr:=FieldByName(_Col_basic_Author_).AsString+';'+attr;
             FieldByName(_Col_basic_Author_).AsString:=attr;
-            if not has_author then has_author:=true;
+            has_author:=true;
           end;
         '+':FieldByName(_Col_basic_Organ_).AsString:=attr;
         'T':FieldByName(_Col_basic_Title_).AsString:=attr;
@@ -2537,6 +2671,66 @@ procedure TRTFP.LoadFromNoteFirst(PID:RTFP_ID;str:TStrings);
 begin
   ShowMessage('unimplemented');
 end;
+procedure TRTFP.LoadFromRIS(PID:RTFP_ID;str:TStrings);
+var stmp,attr:string;
+    has_author,has_keyword:boolean;
+    tmpDate:TDate;
+begin
+  has_author:=false;
+  has_keyword:=false;
+  with InitBasic(PID) do begin
+    for stmp in str do begin
+      if length(stmp)<6 then continue;
+      if (stmp[3]<>' ') or (stmp[4]<>' ') or (stmp[5]<>'-') or (stmp[6]<>' ') then continue;
+      attr:=stmp;
+      delete(attr,1,6);
+      case uppercase(stmp[1]+stmp[2]) of
+        'TY':FieldByName(_Col_basic_RefType_).AsString:=decodeRISRefType(attr);
+        'AU','A1','A2','A3','A4','A5','A6','A7','A8':
+          begin
+            if has_author then attr:=FieldByName(_Col_basic_Author_).AsString+';'+attr;
+            FieldByName(_Col_basic_Author_).AsString:=attr;
+            has_author:=true;
+          end;
+        'DA':
+          begin
+            try
+              TryStrToDate(attr,tmpDate,'YYYYMMDD','/');
+            except
+            end;
+            FieldByName(_Col_basic_PubTime_).AsDateTime:=tmpDate;
+          end;
+        'KW':
+          begin
+            if has_keyword then attr:=FieldByName(_Col_basic_Keyword_).AsString+';'+attr;
+            FieldByName(_Col_basic_Keyword_).AsString:=attr;
+            has_keyword:=true;
+          end;
+        'ER':{do nothing};
+        'T1':FieldByName(_Col_basic_Title_).AsString:=attr;
+        'JO','JF':FieldByName(_Col_basic_Source_).AsString:=attr;
+        'PY':FieldByName(_Col_basic_Year_).AsString:=attr;
+        'VL':FieldByName(_Col_basic_Volume_).AsString:=attr;
+        'AB':FieldByName(_Col_basic_Summary_).AsString:=attr;
+        'SN':FieldByName(_Col_basic_ISBN_ISSN_).AsString:=attr;
+        'DO':FieldByName(_Col_basic_doi_).AsString:=attr;
+        'UR':FieldByName(_Col_basic_Link_).AsString:=attr;
+        //'DB':FieldByName(_Col_basic_DataProv_).AsString:=attr;
+        'DP':FieldByName(_Col_basic_DataProv_).AsString:=attr;
+        //'AU':FieldByName(Author Address).AsString:=attr;
+        //'AN':FieldByName(Accession Number).AsString:=attr;
+        //'AV':FieldByName(Location in Archives).AsString:=attr;
+        //'SP':FieldByName(Start Page).AsString:=attr;
+        //'EP':FieldByName(End Page).AsString:=attr;
+        //'LA':FieldByName(_Col_basic_Language).AsString:=attr;
+
+      end;
+      ReEditBasic;
+    end;
+  end;
+  PostBasic;
+  DataChange;
+end;
 
 procedure TRTFP.SaveToEStudy(PID:RTFP_ID;str:TStrings);
 begin
@@ -2557,7 +2751,7 @@ begin
     stmp:=FieldByName(_Col_basic_Author_).AsString;
     if stmp<>'' then str.Add('%A '+StringReplace(stmp,';',' %A ',[rfReplaceAll]));
     stmp:=FieldByName(_Col_basic_Organ_).AsString;
-    if stmp<>'' then str.Add('%+ `'+stmp);
+    if stmp<>'' then str.Add('%+ '+stmp);
     stmp:=FieldByName(_Col_basic_Title_).AsString;
     if stmp<>'' then str.Add('%T '+stmp);
     stmp:=FieldByName(_Col_basic_Source_).AsString;
@@ -2594,6 +2788,10 @@ begin
   ShowMessage('unimplemented');
 end;
 procedure TRTFP.SaveToNoteFirst(PID:RTFP_ID;str:TStrings);
+begin
+  ShowMessage('unimplemented');
+end;
+procedure TRTFP.SaveToRIS(PID:RTFP_ID;str:TStrings);
 begin
   ShowMessage('unimplemented');
 end;
@@ -2640,7 +2838,76 @@ begin
   ShowMessage('unimplemented');
 end;
 
-
+procedure TRTFP.ImportPapersFromEStudy(str:TStrings);
+var stmp:TStringList;
+    PID,line,header:string;
+    poss:integer;
+begin
+  CurrentRTFP.BeginUpdate;
+  stmp:=TStringList.Create;
+  try
+    for line in str do
+      begin
+        header:=line;
+        poss:=pos(': ',header);
+        if poss>0 then delete(header,poss,length(header));
+        stmp.Add(line);
+        case header of
+          'Link-链接','Link','链接':
+            begin
+              PID:=AddPaper('',apmReference);
+              LoadFromEStudy(PID,stmp);
+              stmp.Clear;
+            end;
+        end;
+      end;
+  finally
+    stmp.Free;
+    CurrentRTFP.EndUpdate;
+  end;
+end;
+procedure TRTFP.ImportPapersFromRefWork(str:TStrings);
+begin
+  ShowMessage('unimplemented');
+end;
+procedure TRTFP.ImportPapersFromEndNote(str:TStrings);
+begin
+  ShowMessage('unimplemented');
+end;
+procedure TRTFP.ImportPapersFromNoteExpress(str:TStrings);
+begin
+  ShowMessage('unimplemented');
+end;
+procedure TRTFP.ImportPapersFromNoteFirst(str:TStrings);
+begin
+  ShowMessage('unimplemented');
+end;
+procedure TRTFP.ImportPapersFromRIS(str:TStrings);
+var stmp:TStringList;
+    PID,line,header:string;
+begin
+  CurrentRTFP.BeginUpdate;
+  stmp:=TStringList.Create;
+  try
+    for line in str do
+      begin
+        header:=line;
+        delete(header,3,length(header));
+        stmp.Add(line);
+        case uppercase(header) of
+          'ER':
+            begin
+              PID:=AddPaper('',apmReference);
+              LoadFromRIS(PID,stmp);
+              stmp.Clear;
+            end;
+        end;
+      end;
+  finally
+    stmp.Free;
+    CurrentRTFP.EndUpdate;
+  end;
+end;
 
 
 procedure TRTFP.ProjectPropertiesValidate(AValueListEditor:TValueListEditor);
@@ -2682,7 +2949,7 @@ var tmpDbf:TDbf;
     tmpAF:TAttrsField;
     dat_type:TFieldType;
     bm:TBookMark;
-    init_rec_no1,init_rec_no2:longint;
+    //init_rec_no1,init_rec_no2:longint;
 
 begin
   BeginUpdate;
@@ -2841,6 +3108,7 @@ begin
   END;
 
   if FPaperDS.BookmarkValid(bm) then FPaperDS.GotoBookmark(bm);
+  if FOnTableValidateDone<>nil then FOnTableValidateDone(Self);
   EndUpdate;
 end;
 
@@ -2972,7 +3240,7 @@ var tmpDef:TFieldDef;
     tmpAG:TAttrsGroup;
     tmpAF:TAttrsField;
 begin
-
+  AValueListEditor.Clear;
   for tmpAG in FFieldList do
     begin
       with tmpAG.Dbf do
@@ -3050,6 +3318,7 @@ begin
     Memo.Lines.CommaText:=StringReplace(ReadFieldAsString(FieldName,AttrName,PID),Comma_Symbol,#13#10,[rfReplaceAll]);
   end;
   ReNewCheckTimeWithoutChange(PID);//如果Change会导致Validate更新，这个需要重构以下UI逻辑，暂时先不管
+  //ReNewCheckTime(PID);
 end;
 
 procedure TRTFP.FmtCmtDataPost(PID:RTFP_ID;AttrName,FieldName:string;Memo:TMemo);
@@ -3077,6 +3346,185 @@ begin
   AItems.Clear;
   for tmpAF in FFieldList.FindItemByName(AAttrName).FieldList do
     AItems.Add(tmpAF.FieldName);
+end;
+
+
+procedure TRTFP.FormatEditScrollBoxResize(Sender:TObject);
+var TreWidth,FullWidth:integer;
+begin
+  with FFormatEditComponentList do begin
+    if Count<3 then exit;
+    if TObject(Items[0]).ClassType<>TFmtSplitter then exit;
+    if TObject(Items[1]).ClassType<>TFmtSplitter then exit;
+    if TObject(Items[2]).ClassType<>TFmtSplitter then exit;
+    FullWidth:=(Sender as TScrollBox).Width;
+    TreWidth:=(FullWidth - 12) div 3;
+    TSplitter(TFmtSplitter(Items[0]).Component).Left:=TreWidth + 6;
+    TSplitter(TFmtSplitter(Items[2]).Component).Left:=FullWidth - TreWidth - 12;
+    TSplitter(TFmtSplitter(Items[1]).Component).Left:=(FullWidth - 6) div 2;
+  end;
+end;
+
+procedure TRTFP.FormatEditBuild(AScrollBox:TScrollBox;AFormat:string);
+var str:TStringList;
+begin
+  str:=TStringList.Create;
+  if AFormat<>'test' then str.Add(AFormat)
+  else begin
+    str.Add('edit '+_Attrs_Basic_+','+_Col_basic_Title_+',标题,10,50,0,2');
+    str.Add('edit '+_Attrs_Basic_+','+_Col_basic_Author_+',作者,70,50,0,1');
+    str.Add('edit '+_Attrs_Basic_+','+_Col_basic_Year_+',年份,70,50,1,2');
+    str.Add('edit '+_Attrs_Basic_+','+_Col_basic_Keyword_+',关键词,130,50,0,2');
+    str.Add('memo '+_Attrs_Basic_+','+_Col_basic_Summary_+',摘要,10,170,2,4');
+  end;
+  Self.FormatEditBuild(AScrollBox,str);
+  str.Free;
+end;
+
+procedure TRTFP.FormatEditBuild(AScrollBox:TScrollBox;AFormat:TStrings);
+var Cmp:TFmtCmp;
+    index:integer;
+    stmp:string;
+    tmp:integer;
+begin
+  assert(FFormatEditComponentList.Count=0,'FormatEditBuild之前需要FormatEditClear！');
+  with FFormatEditComponentList do begin
+    for index:=0 to 2 do begin
+      Cmp:=TFmtSplitter.Create;
+      with TSplitter(Cmp.GetComponent) do
+        begin
+          Parent:=AScrollBox;
+          Align:=alNone;
+          ResizeAnchor:=akLeft;
+          Width:=6;
+          Top:=0;
+          Height:=6;
+          Enabled:=false;
+        end;
+      Add(Cmp);
+    end;
+    //在这里写format-script
+    for stmp in AFormat do begin
+      //CmpType AttrsName FieldName DisplayName Top Height Left_Col Right_Col
+      Auf.ReadArgs(stmp);
+      if Auf.ArgsCount<8 then continue;
+      case lowercase(Auf.nargs[0].arg) of
+        'memo':Cmp:=TFmtMemo.Create;
+        'edit':Cmp:=TFmtEdit.Create;
+        'combo':Cmp:=TFmtComboBox.Create;
+        'check':Cmp:=TFmtCheckBox.Create;
+        //'':Cmp:=TFmtMemo.Create;
+        else continue;
+      end;
+      Cmp.SetAttrsName(Auf.nargs[1].arg);
+      Cmp.SetFieldName(Auf.nargs[2].arg);
+      Cmp.SetDisplayName(Auf.nargs[3].arg);
+      Cmp.TitleLabel.Caption:=Auf.nargs[3].arg+': ';
+      with Cmp.TitleLabel do begin
+        Parent:=AScrollBox;
+        //BeginUpdateBounds;
+        Anchors:=[akTop,akLeft];
+        case Auf.nargs[6].arg of
+          '0':begin
+                AnchorSideLeft.Control:=AScrollBox;
+                AnchorSideLeft.Side:=asrTop;
+                BorderSpacing.Left:=6;
+              end;
+          '1':begin
+                AnchorSideLeft.Control:=TSplitter(TFmtCmp(FFormatEditComponentList.Items[0]).GetComponent);
+                AnchorSideLeft.Side:=asrBottom;
+              end;
+          '2':begin
+                AnchorSideLeft.Control:=TSplitter(TFmtCmp(FFormatEditComponentList.Items[1]).GetComponent);
+                AnchorSideLeft.Side:=asrBottom;
+              end;
+          '3':begin
+                AnchorSideLeft.Control:=TSplitter(TFmtCmp(FFormatEditComponentList.Items[2]).GetComponent);
+                AnchorSideLeft.Side:=asrBottom;
+              end;
+          else ;
+        end;
+        AnchorSideTop.Control:=AScrollBox;
+        AnchorSideTop.Side:=asrTop;
+        BorderSpacing.Top:=Usf.to_i(Auf.nargs[4].arg);
+        //EndUpdateBounds;
+      end;
+      with TWinControl(Cmp.GetComponent) do begin
+        Parent:=AScrollBox;
+        BeginUpdateBounds;
+        Anchors:=[akTop,akLeft,akRight];
+        case Auf.nargs[6].arg of
+          '0':begin
+                AnchorSideLeft.Control:=AScrollBox;
+                AnchorSideLeft.Side:=asrTop;
+                BorderSpacing.Left:=6;
+              end;
+          '1':begin
+                AnchorSideLeft.Control:=TSplitter(TFmtCmp(FFormatEditComponentList.Items[0]).GetComponent);
+                AnchorSideLeft.Side:=asrBottom;
+              end;
+          '2':begin
+                AnchorSideLeft.Control:=TSplitter(TFmtCmp(FFormatEditComponentList.Items[1]).GetComponent);
+                AnchorSideLeft.Side:=asrBottom;
+              end;
+          '3':begin
+                AnchorSideLeft.Control:=TSplitter(TFmtCmp(FFormatEditComponentList.Items[2]).GetComponent);
+                AnchorSideLeft.Side:=asrBottom;
+              end;
+          else ;
+        end;
+        case Auf.nargs[7].arg of
+          '4':begin
+                AnchorSideRight.Control:=AScrollBox;
+                AnchorSideRight.Side:=asrBottom;
+                BorderSpacing.Right:=6;
+              end;
+          '3':begin
+                AnchorSideRight.Control:=TSplitter(TFmtCmp(FFormatEditComponentList.Items[2]).GetComponent);
+                AnchorSideRight.Side:=asrTop;
+              end;
+          '2':begin
+                AnchorSideRight.Control:=TSplitter(TFmtCmp(FFormatEditComponentList.Items[1]).GetComponent);
+                AnchorSideRight.Side:=asrTop;
+              end;
+          '1':begin
+                AnchorSideRight.Control:=TSplitter(TFmtCmp(FFormatEditComponentList.Items[0]).GetComponent);
+                AnchorSideRight.Side:=asrTop;
+              end;
+          else ;
+        end;
+        AnchorSideTop.Control:=AScrollBox;
+        AnchorSideTop.Side:=asrTop;
+        BorderSpacing.Top:=Usf.to_i(Auf.nargs[4].arg)+20;
+        EndUpdateBounds;
+        tmp:=Usf.to_i(Auf.nargs[5].arg);
+        Height:=tmp-20;
+      end;
+    end;
+  end;
+
+  AScrollBox.OnResize:=@FormatEditScrollBoxResize;
+  AScrollBox.OnResize(AScrollBox);
+end;
+
+procedure TRTFP.FormatEditClear(AScrollBox:TScrollBox);
+begin
+  with FFormatEditComponentList do
+    while Count<>0 do
+      begin
+        TFmtCmp(Items[0]).Free;
+        Delete(0);
+      end;
+end;
+
+procedure TRTFP.FormatEditValidate(AScrollBox:TScrollBox;PID:string);
+begin
+
+end;
+
+procedure TRTFP.FormatEditDataPost(AScrollBox:TScrollBox;PID:string);
+begin
+
 end;
 
 procedure TRTFP.SetUser(str:string);
@@ -3275,7 +3723,7 @@ begin
         if result>200 then result:=200;
       end;
   end;
-  result:=max(result,NameSize);
+  if result<NameSize then result:=NameSize;
 end;
 
 {
@@ -3365,18 +3813,23 @@ begin
 end;
 
 class function TRTFP.CanBuildDisc(discchar:char):boolean;
-var available_bytes,total_bytes:int64;
+var d1,d2,d3,d4:dword;
 begin
+  GetDiskFreeSpace(pchar(discchar+':\'),d1,d2,d3,d4);
   {
-  GetDiskFreeSpaceEx(@discchar,@available_bytes,@total_bytes,nil);
   ShowMessage(
     'DISC '+discchar+':'+#13+#10+
-    '  avail='+IntToStr(available_bytes)+#13+#10+
-    '  total='+IntToStr(total_bytes)+#13+#10
-    //'  free='+IntToStr(free_bytes)
+    '  扇区数/簇='+IntToStr(d1)+#13+#10+
+    '  字节/扇区='+IntToStr(d2)+#13+#10+
+    '  剩余簇数='+IntToStr(d3)+#13+#10+
+    '  总簇数='+IntToStr(d4)+#13+#10+
+    #13+#10+
+    '  剩余字节大小='+IntToStr(d1*d2*d3)+'('+FloatToStr(d1*d2*d3/1024/1024/1024)+'GB)'+#13+#10+
+    '  总字节大小='+IntToStr(d1*d2*d4)+'('+FloatToStr(d1*d2*d4/1024/1024/1024)+'GB)'+#13+#10
   );
   }
-  result:=true;
+  if d1*d2*d3<$ffffffff then result:=false
+  else result:=true;
 
 end;
 
@@ -3422,7 +3875,9 @@ end;
 
 class function TRTFP.FileCopy(source,dest:string;bFailIfExist:boolean):boolean;
 begin
+  {$ifdef Windows}
   result:=CopyFile(pchar(UTF8ToWinCP(source)),pchar(UTF8ToWinCP(dest)),bFailIfExist);
+  {$endif}
 end;
 
 class function TRTFP.FileDelete(source:string):boolean;
@@ -3438,20 +3893,26 @@ end;
 
 class function TRTFP.OpenDir(pathname:string):boolean;
 begin
+  {$ifdef Windows}
   ShellExecute(0,'open','explorer.exe',pchar('"'+pathname+'"'),'',SW_NORMAL);
+  {$endif}
 end;
 
 class function TRTFP.OpenFile(filename:string;exefile:string=''):boolean;
 begin
+  {$ifdef Windows}
   if exefile='' then
     ShellExecute(0,'open',pchar('"'+filename+'"'),'','',SW_NORMAL)
   else
     ShellExecute(0,'open',pchar(exefile),pchar('"'+filename+'"'),'',SW_NORMAL);
+  {$endif}
 end;
 
 class function TRTFP.OpenLink(linkage:string):boolean;
 begin
+  {$ifdef Windows}
   ShellExecute(0,'open',pchar(linkage),'','',SW_NORMAL);
+  {$endif}
 end;
 
 end.
