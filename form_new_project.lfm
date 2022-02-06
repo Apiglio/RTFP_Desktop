@@ -1,7 +1,7 @@
 object Form_NewProject: TForm_NewProject
-  Left = 1026
+  Left = 1041
   Height = 240
-  Top = 694
+  Top = 664
   Width = 450
   BorderIcons = [biSystemMenu]
   Caption = '新建工程'

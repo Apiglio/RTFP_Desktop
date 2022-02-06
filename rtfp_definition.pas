@@ -1,7 +1,7 @@
 //FmtCmt的覆盖提交保存提醒
 //引用PDF里的图片
 //字段选项化，进度表可以是checkboxlist的形式
-
+//ACL_ListView折叠属性组时，字段不会随着子项勾选的取消而关闭
 
 
 
@@ -397,6 +397,18 @@ begin
   //
 end;
 }
+
+
+procedure aufunc_BeginUpdate(Sender:TObject);
+begin
+  CurrentRTFP.BeginUpdate;
+end;
+
+procedure aufunc_EndUpdate(Sender:TObject);
+begin
+  CurrentRTFP.EndUpdate;
+end;
+
 procedure aufunc_FileHash(Sender:TObject);
 var AufScpt:TAufScript;
     AAuf:TAuf;
@@ -743,6 +755,9 @@ begin
 
     Script.add_func('pdf.meta',@aufunc_ShowMeta,'filename','检查pdf文件的meta数据');
     Script.add_func('pdf.view',@aufunc_ShowView,'filename,page','预览pdf的page页');
+
+    Script.add_func('update.begin',@aufunc_BeginUpdate,'filename','开始更新模式');
+    Script.add_func('update.end',@aufunc_EndUpdate,'filename','结束更新模式');
 
 
     Script.add_func('hash',@aufunc_FileHash,'filename','返回FileHash');
@@ -1094,9 +1109,10 @@ begin
       Dbf.EndExclusive;
       Dbf.RegenerateIndexes;
       LoadFieldListFromDbf;
-      FieldChange;
+      //FieldChange;//为什么会在这个
     end;
   if tmpAG.IsEmpty then DeleteAttrs(tmpAG.Name);
+  FieldChange;//应该在这
 end;
 
 function TRTFP.CheckField(AName:string;AAttrsName:string;AType:TFieldType):boolean;
@@ -1707,6 +1723,8 @@ procedure TRTFP.Save;
 begin
   if FOnSave <> nil then FOnSave(Self);
 
+  BeginUpdate;
+
   Self.Tag['修改日期']:=TRTFP.GetDateTimeStr;
 
   SaveProjectFile;
@@ -1718,6 +1736,9 @@ begin
 
   SaveAttrs;
   SaveKlass;
+
+  EndUpdate;
+  Change;
 
   Self.FIsChanged:=false;
   if FOnSaveDone <> nil then FOnSaveDone(Self);
@@ -1984,7 +2005,13 @@ begin
     while not EOF do
       begin
         if FieldByName(_Col_PID_).AsString=PID then begin
-          //这里后面需要加入询问删除文件的步骤
+          case MessageDlg('删除确认','删除文献节点对应的文件可能会导致其他共用此文件的节点失去文件连接，并且操作后无法恢复，是否继续？',mtWarning,[mbYes,mbNo],0) of
+            rnmbYes:TRTFP.FileDelete(FFilePath+FRootFolder+'\paper\'
+                                    +FieldByName(_Col_Paper_Folder_).AsString
+                                    +'\'+FieldByName(_Col_Paper_FileName_).AsString
+                                    );
+            rnmbNo:;
+          end;
           Delete;
           break;
         end;
@@ -2393,7 +2420,9 @@ procedure TRTFP.LoadFromEStudy(PID:RTFP_ID;str:TStrings);
 var stmp,header,attr:string;
     poss:integer;
     tmpDate:TDate;
+    error_str:string;
 begin
+  error_str:=#13#10;
   with InitBasic(PID) do begin
     for stmp in str do begin
       poss:=pos(': ',stmp);
@@ -2404,43 +2433,54 @@ begin
       delete(attr,1,poss+1);
       if attr='' then continue;
 
-      case header of
-        'DataType':FieldByName(_Col_basic_RefType_).AsString:=decodeEStudyRefType(attr);
-        'Author-作者','Author','作者':
-          begin
-            while attr[length(attr)]=';' do
-              begin
-                delete(attr,length(attr),1);
-                if attr='' then break;
-              end;
-            FieldByName(_Col_basic_Author_).AsString:=attr;
-          end;
-        'Title-题名','Title','题名':FieldByName(_Col_basic_Title_).AsString:=attr;
-        'Source-刊名','Source','刊名':FieldByName(_Col_basic_Source_).AsString:=attr;
-        'Year-年','Year','年':FieldByName(_Col_basic_Year_).AsString:=attr;
-        'PubTime-出版时间','PubTime','出版时间':
-          begin
-            try
-              TryStrToDate(attr,tmpDate,'YYYYMMDD','-');
-            except
+      try
+        case header of
+          'DataType':FieldByName(_Col_basic_RefType_).AsString:=decodeEStudyRefType(attr);
+          'Author-作者','Author','作者':
+            begin
+              while attr[length(attr)]=';' do
+                begin
+                  delete(attr,length(attr),1);
+                  if attr='' then break;
+                end;
+              FieldByName(_Col_basic_Author_).AsString:=attr;
             end;
-            FieldByName(_Col_basic_PubTime_).AsDateTime:=tmpDate;
-          end;
-        'Period-期','Period','期':FieldByName(_Col_basic_Issue_).AsString:=attr;
-        'Roll-卷','Roll','卷':FieldByName(_Col_basic_Volume_).AsString:=attr;
-        'Keyword-关键词','Keyword','关键词':FieldByName(_Col_basic_Keyword_).AsString:=attr;
-        'Summary-摘要','Summary','摘要':FieldByName(_Col_basic_Summary_).AsString:=attr;
-        'PageCount-页数','PageCount','页数':FieldByName(_Col_basic_PageCount_).AsString:=attr;
-        'Page-页码','Page','页码':FieldByName(_Col_basic_Page_).AsString:=attr;
-        //'SrcDatabase-来源库':FieldByName(_Col_basic_来源库_).AsString:=attr;
-        'Organ-机构','Organ','机构':FieldByName(_Col_basic_Organ_).AsString:=attr;
-        'Link-链接','Link','链接':FieldByName(_Col_basic_Link_).AsString:=attr;
+          'Title-题名','Title','题名','Title-正标题','正标题':FieldByName(_Col_basic_Title_).AsString:=attr;
+          'Source-刊名','Source','刊名','Source-学位授予单位',
+          '学位授予单位','Source-报纸中文名','报纸中文名':
+            FieldByName(_Col_basic_Source_).AsString:=attr;
+          'Year-年','Year','年':FieldByName(_Col_basic_Year_).AsString:=attr;
+          'PubTime-出版时间','PubTime','出版时间':
+            begin
+              try
+                TryStrToDate(attr,tmpDate,'YYYYMMDD','-');
+              except
+              end;
+              FieldByName(_Col_basic_PubTime_).AsDateTime:=tmpDate;
+            end;
+          'Period-期','Period','期':FieldByName(_Col_basic_Issue_).AsString:=attr;
+          'Roll-卷','Roll','卷':FieldByName(_Col_basic_Volume_).AsString:=attr;
+          'Keyword-关键词','Keyword','关键词':FieldByName(_Col_basic_Keyword_).AsString:=attr;
+          'Summary-摘要','Summary','摘要','Summary-快照','快照':
+            FieldByName(_Col_basic_Summary_).AsString:=attr;
+          'PageCount-页数','PageCount','页数':FieldByName(_Col_basic_PageCount_).AsString:=attr;
+          'Page-页码','Page','页码':FieldByName(_Col_basic_Page_).AsString:=attr;
+          //'SrcDatabase-来源库':FieldByName(_Col_basic_来源库_).AsString:=attr;
+          'Organ-机构','Organ','机构','Organ-大学','大学':FieldByName(_Col_basic_Organ_).AsString:=attr;
+          'Link-链接','Link','链接':FieldByName(_Col_basic_Link_).AsString:=attr;
+          //'Degree-学位','Degree','学位':FieldByName(_Col_basic_学位_).AsString:=attr;
+          //'Teacher-导师','Teacher','导师':FieldByName(_Col_basic_导师_).AsString:=attr;
 
+        end;
+      except
+        error_str:=error_str+'    '+header+#13#10;
       end;
       ReEditBasic;
     end;
   end;
+  if error_str<>#13#10 then MessageDlg('导入错误','以下字段导入时发生错误：'+error_str,mtInformation,[mbOK],0);
   PostBasic;
+  DataChange;
 end;
 procedure TRTFP.LoadFromRefWork(PID:RTFP_ID;str:TStrings);
 begin
@@ -2487,6 +2527,7 @@ begin
     end;
   end;
   PostBasic;
+  DataChange;
 end;
 procedure TRTFP.LoadFromNoteExpress(PID:RTFP_ID;str:TStrings);
 begin
@@ -2516,7 +2557,7 @@ begin
     stmp:=FieldByName(_Col_basic_Author_).AsString;
     if stmp<>'' then str.Add('%A '+StringReplace(stmp,';',' %A ',[rfReplaceAll]));
     stmp:=FieldByName(_Col_basic_Organ_).AsString;
-    if stmp<>'' then str.Add('%+ '+stmp);
+    if stmp<>'' then str.Add('%+ `'+stmp);
     stmp:=FieldByName(_Col_basic_Title_).AsString;
     if stmp<>'' then str.Add('%T '+stmp);
     stmp:=FieldByName(_Col_basic_Source_).AsString;
@@ -2641,8 +2682,10 @@ var tmpDbf:TDbf;
     tmpAF:TAttrsField;
     dat_type:TFieldType;
     bm:TBookMark;
+    init_rec_no1,init_rec_no2:longint;
 
 begin
+  BeginUpdate;
   bm:=FPaperDS.GetBookmark;
   FPaperDS.Clear;
   tmpDbf:=FPaperDB;
@@ -2715,12 +2758,54 @@ begin
     tmpDbf.Next;
   until tmpDbf.EOF;
 
+  IF FPaperDS.EOF and FPaperDS.BOF THEN ELSE BEGIN
+
+  //这里要改成循环检索，不要从头检索了，太慢了
   for pj:=0 to max_attr do
     begin
       if attr_range[pj].min > attr_range[pj].max then continue;
       tmpDbf:=FFieldList[pj].Dbf;
-      tmpDbf.First;
+      if tmpDbf.EOF and tmpDbf.BOF then continue;
 
+      {
+      if tmpDbf.EOF then tmpDbf.First;
+      init_rec_no1:=tmpDbf.RecNo;
+      repeat
+        PID:=tmpDbf.FieldByName(_Col_PID_).AsString;
+        if FPaperDS.EOF then FPaperDS.First;
+        init_rec_no2:=FPaperDS.RecNo;
+        repeat
+          if FPaperDS.FieldByName(_Col_PID_).AsString=PID then
+            begin
+            FPaperDS.Edit;
+            for pi:=attr_range[pj].min to attr_range[pj].max do begin
+              case FPaperDS.Fields[pi].DataType of
+                ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo{,ftFmtMemo,ftFixedChar}:
+                  FPaperDS.Fields[pi].AsString:=tmpDbf.Fields[fields_ref[pi].FI].AsString;
+                ftBoolean:
+                  FPaperDS.Fields[pi].AsBoolean:=tmpDbf.Fields[fields_ref[pi].FI].AsBoolean;
+                ftFloat:
+                  FPaperDS.Fields[pi].AsFloat:=tmpDbf.Fields[fields_ref[pi].FI].AsFloat;
+                ftInteger,ftLargeint,ftSmallint,ftWord:
+                  FPaperDS.Fields[pi].AsLargeInt:=tmpDbf.Fields[fields_ref[pi].FI].AsLargeInt;
+                ftDateTime,ftDate,ftTime:
+                  FPaperDS.Fields[pi].AsDateTime:=tmpDbf.Fields[fields_ref[pi].FI].AsDateTime
+                else assert(false,'FPaperDS.Fields[pi].DataType未预设。');
+              end;
+            end;
+            FPaperDS.Post;
+            end;
+          FPaperDS.Next;
+          if FPaperDS.EOF then FPaperDS.First;
+        until FPaperDS.RecNo=init_rec_no2;
+        tmpDbf.Next;
+        if tmpDbf.EOF then tmpDbf.First;
+      until tmpDbf.RecNo=init_rec_no1;
+      }
+
+
+      //{
+      tmpDbf.First;
       if not tmpDbf.EOF then repeat
         PID:=tmpDbf.FieldByName(_Col_PID_).AsString;
         FPaperDS.First;
@@ -2749,9 +2834,14 @@ begin
         end else assert(false,'分表有主表没有的PID');
         tmpDbf.Next;
       until tmpDbf.EOF;
-    end;
-  if FPaperDS.BookmarkValid(bm) then FPaperDS.GotoBookmark(bm);
+      //}
 
+    end;
+
+  END;
+
+  if FPaperDS.BookmarkValid(bm) then FPaperDS.GotoBookmark(bm);
+  EndUpdate;
 end;
 
 procedure TRTFP.TableFilter(cmd:string);
@@ -2829,13 +2919,11 @@ var tmpAG:TAttrsGroup;
     tmpAF:TAttrsField;
 begin
   AListView.BeginUpdate;
-  AListView.Clear;
+  (AListView as TACL_ListView).Clear;
   for tmpAG in FFieldList do
     begin
       for tmpAF in tmpAG.FieldList do
         begin
-          //AListView.AddItem(tmpAG.Name+'\'+tmpAF.FieldName,tmpAF);
-          //AListView.Items[AListView.Items.Count-1].Checked:=tmpAF.Shown;
           (AListView as TACL_ListView).AddShellNodeItem(tmpAG.Name+'\'+tmpAF.FieldName,tmpAF,tmpAF.Shown);
         end;
     end;
@@ -2848,11 +2936,9 @@ procedure TRTFP.KlassListValidate(AListView:TListView);
 var tmpKL:TKlass;
 begin
   AListView.BeginUpdate;
-  AListView.Clear;
+  (AListView as TACL_ListView).Clear;
   for tmpKL in FKlassList do
     begin
-      //AListView.AddItem(tmpKL.Name,tmpKL);
-      //AListView.Items[AListView.Items.Count-1].Checked:=tmpKL.FilterEnabled;
       (AListView as TACL_ListView).AddShellNodeItem(tmpKL.FullPath,tmpKL,tmpKL.FilterEnabled);
     end;
   AListView.EndUpdate;
@@ -3168,10 +3254,10 @@ class function TRTFP.FieldOptWidth(AFieldDef:TFieldDef):integer;
 var NameSize:integer;
 begin
   case AFieldDef.Name of
-    _Col_Paper_Folder_:begin result:=0;exit end;
-    _Col_Paper_FileHash_:begin result:=0;exit end;
-    _Col_Paper_FileSize_:begin result:=0;exit end;
-    _Col_OID_:begin result:=0;exit end;
+    _Col_Paper_Folder_:begin result:=2;exit end;
+    _Col_Paper_FileHash_:begin result:=2;exit end;
+    _Col_Paper_FileSize_:begin result:=2;exit end;
+    _Col_OID_:begin result:=2;exit end;
     else ;
   end;
   result:=40;
@@ -3352,20 +3438,20 @@ end;
 
 class function TRTFP.OpenDir(pathname:string):boolean;
 begin
-  ShellExecute(0,'open','explorer.exe',pchar('"'+pathname+'"'),'',SW_RESTORE);
+  ShellExecute(0,'open','explorer.exe',pchar('"'+pathname+'"'),'',SW_NORMAL);
 end;
 
 class function TRTFP.OpenFile(filename:string;exefile:string=''):boolean;
 begin
   if exefile='' then
-    ShellExecute(0,'open',pchar('"'+filename+'"'),'','',SW_RESTORE)
+    ShellExecute(0,'open',pchar('"'+filename+'"'),'','',SW_NORMAL)
   else
-    ShellExecute(0,'open',pchar(exefile),pchar('"'+filename+'"'),'',SW_RESTORE);
+    ShellExecute(0,'open',pchar(exefile),pchar('"'+filename+'"'),'',SW_NORMAL);
 end;
 
 class function TRTFP.OpenLink(linkage:string):boolean;
 begin
-  ShellExecute(0,'open',pchar(linkage),'','',SW_RESTORE);
+  ShellExecute(0,'open',pchar(linkage),'','',SW_NORMAL);
 end;
 
 end.

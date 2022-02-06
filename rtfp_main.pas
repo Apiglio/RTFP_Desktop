@@ -15,7 +15,7 @@ uses
   RTFP_definition, rtfp_constants, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.1.1-alpha.11';//如果增加了CheckAttrs的机制，请改成0.1.2
+  C_VERSION_NUMBER  = '0.1.1-alpha.12';//如果增加了CheckAttrs的机制，请改成0.1.2
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -190,6 +190,7 @@ type
     procedure Validate(Sender:TObject);//更新显示
     procedure ClassListValidate(Sender:TObject);//分类更新时的操作
     procedure FieldListValidate(Sender:TObject);//分类更新时的操作
+    procedure MainGridValidate(Sender:TObject);
 
     procedure FirstEdit(Sender:TObject);//工程第一次编辑
     procedure Clear(Sender:TObject);//清空
@@ -247,7 +248,7 @@ begin
   //工程信息 标签页
   CurrentRTFP.ProjectPropertiesValidate(Self.PropertiesValueListEditor);
   //文献节点 标签页
-  CurrentRTFP.TableValidate;
+  MainGridValidate(nil);
 
 end;
 
@@ -259,6 +260,24 @@ end;
 procedure TFormDesktop.FieldListValidate(Sender:TObject);
 begin
   CurrentRTFP.FieldListValidate(ACL_ListView_Attrs);
+end;
+
+procedure TFormDesktop.MainGridValidate(Sender:TObject);
+var tmpForm:TForm;
+begin
+  Self.DBGrid_Main.Visible:=false;
+  tmpForm:=TForm.Create(Self);
+  with tmpForm do try
+    Height:=120;
+    Width:=280;
+    Position:=poOwnerFormCenter;
+    Caption:='请稍等';
+    Show;
+    CurrentRTFP.TableValidate;
+  finally
+    Free;
+  end;
+  Self.DBGrid_Main.Visible:=true;
 end;
 
 procedure TFormDesktop.FirstEdit(Sender:TObject);
@@ -625,7 +644,7 @@ procedure TFormDesktop.CheckListBox_MainAttrFilterClickCheck(Sender: TObject);
 begin
   if not assigned(CurrentRTFP) then exit;
   if CurrentRTFP.IsOpen then begin
-    CurrentRTFP.TableValidate;
+    MainGridValidate(nil);
   end;
 end;
 
@@ -692,8 +711,11 @@ procedure TFormDesktop.ACL_ListView_AttrsNodeChecked(Sender: TObject;
 var tmpAF:TAttrsField;
 begin
   tmpAF:=TAttrsField(Item.Data);
-  if tmpAF<>nil then tmpAF.Shown:=Item.Checked;
-  CurrentRTFP.TableValidate;
+  if tmpAF<>nil then
+    begin
+      tmpAF.Shown:=Item.Checked;
+      MainGridValidate(nil);
+    end;
 end;
 
 procedure TFormDesktop.ACL_ListView_KlassNodeChecked(Sender: TObject;
@@ -701,11 +723,11 @@ procedure TFormDesktop.ACL_ListView_KlassNodeChecked(Sender: TObject;
 var tmpKL:TKlass;
 begin
   tmpKL:=TKlass(Item.Data);
-  if tmpKL<>nil then tmpKL.FilterEnabled:=Item.Checked;
-  CurrentRTFP.TableValidate;
+  if tmpKL<>nil then begin
+    tmpKL.FilterEnabled:=Item.Checked;
+    MainGridValidate(nil);
+  end;
 end;
-
-
 
 procedure TFormDesktop.Button_FmtCmt_RecoverClick(Sender: TObject);
 var PID:RTFP_ID;
@@ -727,7 +749,7 @@ begin
   //温和的筛选方式
   if not assigned(CurrentRTFP) then exit;
   if not CurrentRTFP.IsOpen then exit;
-  CurrentRTFP.TableValidate;
+  MainGridValidate(nil);
   CurrentRTFP.TableFilter(Edit_DBGridMain_Filter.Caption);
 end;
 
@@ -780,7 +802,7 @@ end;
 procedure TFormDesktop.Edit_DBGridMain_FilterChange(Sender: TObject);
 begin
   //有点激进的筛选方式
-  //CurrentRTFP.TableValidate;
+  //MainGridValidate(nil);
   //CurrentRTFP.TableFilter((Sender as TEdit).Caption);
 end;
 
