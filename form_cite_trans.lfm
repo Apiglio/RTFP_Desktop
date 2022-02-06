@@ -12,6 +12,7 @@ object Form_CiteTrans: TForm_CiteTrans
   OnDropFiles = FormDropFiles
   OnHide = FormHide
   OnShow = FormShow
+  Position = poScreenCenter
   LCLVersion = '1.8.4.0'
   object PaintBox_Arrows: TPaintBox
     AnchorSideLeft.Control = TabControl_Reference_Style

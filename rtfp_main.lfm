@@ -1,7 +1,7 @@
 object FormDesktop: TFormDesktop
-  Left = 603
+  Left = 217
   Height = 616
-  Top = 269
+  Top = 272
   Width = 1038
   AllowDropFiles = True
   Caption = 'RTFP Desktop'
@@ -16,6 +16,7 @@ object FormDesktop: TFormDesktop
   OnCreate = FormCreate
   OnDropFiles = FormDropFiles
   OnResize = FormResize
+  Position = poScreenCenter
   LCLVersion = '1.8.4.0'
   object StatusBar: TStatusBar
     Left = 0
@@ -64,6 +65,7 @@ object FormDesktop: TFormDesktop
         Top = 0
         Width = 818
         Anchors = [akTop, akLeft, akRight, akBottom]
+        DefaultColWidth = 200
         FixedCols = 0
         RowCount = 2
         TabOrder = 0
@@ -73,8 +75,8 @@ object FormDesktop: TFormDesktop
           '值'
         )
         ColWidths = (
-          80
-          713
+          200
+          614
         )
       end
       object Splitter_PropertiesV: TSplitter
@@ -501,10 +503,9 @@ object FormDesktop: TFormDesktop
         Caption = '000000'
         ParentColor = False
       end
-      object Image_IsMemo: TImage
+      object Image_IsMemo_N: TImage
         AnchorSideLeft.Control = ComboBox_FieldName
         AnchorSideTop.Control = ComboBox_FieldName
-        AnchorSideTop.Side = asrCenter
         AnchorSideRight.Control = TabSheet_FmtCmt
         AnchorSideRight.Side = asrBottom
         Left = 795
@@ -513,6 +514,7 @@ object FormDesktop: TFormDesktop
         Top = 44
         Width = 24
         Anchors = [akTop, akRight]
+        BorderSpacing.Top = 2
         BorderSpacing.Right = 5
         Enabled = False
         ParentShowHint = False
@@ -531,6 +533,44 @@ object FormDesktop: TFormDesktop
           61EA06AD0000000049454E44AE426082
         }
         ShowHint = True
+      end
+      object Image_IsMemo_Y: TImage
+        AnchorSideLeft.Control = ComboBox_FieldName
+        AnchorSideTop.Control = ComboBox_FieldName
+        AnchorSideRight.Control = TabSheet_FmtCmt
+        AnchorSideRight.Side = asrBottom
+        Left = 795
+        Height = 24
+        Hint = '该字段支持FmtCmt'
+        Top = 44
+        Width = 24
+        Anchors = [akTop, akRight]
+        BorderSpacing.Top = 2
+        BorderSpacing.Right = 5
+        Enabled = False
+        ParentShowHint = False
+        Picture.Data = {
+          1754506F727461626C654E6574776F726B477261706869630C02000089504E47
+          0D0A1A0A0000000D494844520000001900000018080600000178B26650000000
+          097048597300000B1300000B1301009A9C180000001974455874536F66747761
+          72650041646F626520496D616765526561647971C9653C000001994944415478
+          DA6260C006EA8FC8FC07E2F720361392B800880008200CA5F3A1F47E4620A100
+          6483300340003122A9B80F15FCD068F34410C516745BB199BF1F88E136030410
+          610475FC7F065C66C3D84CB84C6041F71C0C807500FD00F39B008C0D10406421
+          46829E8702ACB660F5260E39649F7E802A2840D31040C879FD40AA008B650B80
+          CE4B64A004000410ED112316CFAE47535308F4C7048C108386D47A2C86F64303
+          052388618289A08883469E2154AC004503D0040758BC00152E408AF10B40EA01
+          B21AF4E47A018B930E406907E4D48A228806126091889E6591D3552034D9EC47
+          4F9044A560E4D4CB84452211EAEE03B010A328A601028CFEC9094F39040A5D7B
+          58818894FF3602F106A0573F9065099EBC880BE0CCA38C580C07B9F63E3643A0
+          2E87B93A1E29FD200347A43487D392F768D5094AEEC3A21E5B8E5504EA798035
+          6941F30CB20507F059004D8E1B6039014B0E61C05B6540810191F1E18023DFE2
+          0CAEF958C23A11B9C440526B00CDAAE8BE772498BAA0855D3F19596202D08242
+          92F2093452FBD1F2073A00A5B6464271373C00004734A7434E36D01800000000
+          49454E44AE426082
+        }
+        ShowHint = True
+        Visible = False
       end
     end
     object TabSheet_Node_FormatEdit: TTabSheet
@@ -645,7 +685,7 @@ object FormDesktop: TFormDesktop
     Height = 559
     Top = 6
     Width = 200
-    ActivePage = TabSheet_Filter_Klass
+    ActivePage = TabSheet_Filter_Field
     Anchors = [akTop, akLeft, akRight, akBottom]
     Constraints.MinWidth = 200
     Font.CharSet = ANSI_CHARSET
@@ -654,7 +694,7 @@ object FormDesktop: TFormDesktop
     Font.Pitch = fpFixed
     Font.Quality = fqDraft
     ParentFont = False
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 7
     object TabSheet_Filter_Klass: TTabSheet
       Caption = '分类节点'
@@ -876,6 +916,7 @@ object FormDesktop: TFormDesktop
           '长整型 LargeInt'
           '浮点型 Float'
           '时间 DateTime'
+          '图像 Blob'
         )
         Style = csDropDownList
         TabOrder = 5
@@ -1019,6 +1060,14 @@ object FormDesktop: TFormDesktop
       object MenuItem_ClassTool: TMenuItem
         Caption = '分类工具'
         OnClick = MenuItem_ClassToolClick
+      end
+      object MenuItem_Tool_div01: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem_Tool_ProjectDir: TMenuItem
+        Caption = '当前工程所在位置'
+        Enabled = False
+        OnClick = MenuItem_Tool_ProjectDirClick
       end
     end
     object MenuItem_option: TMenuItem

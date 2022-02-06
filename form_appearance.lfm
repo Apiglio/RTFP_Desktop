@@ -59,7 +59,7 @@ object AppearanceForm: TAppearanceForm
     Height = 26
     Top = 256
     Width = 125
-    Caption = 'test'
+    Caption = '测试剪贴板'
     OnClick = Button1Click
     TabOrder = 3
   end

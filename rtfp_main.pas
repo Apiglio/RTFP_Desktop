@@ -2,6 +2,8 @@ unit RTFP_main;
 
 {$mode objfpc}{$H+}
 
+
+
 interface
 
 uses
@@ -15,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_dialog, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.1.2-alpha.3';
+  C_VERSION_NUMBER  = '0.1.2-alpha.4';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -52,13 +54,14 @@ type
     Combo_AddAttrs: TComboBox;
     Edit_AddField: TEdit;
     Edit_AddKlass: TEdit;
-    Image_IsMemo: TImage;
+    Image_IsMemo_N: TImage;
     ComboBox_AttrName: TComboBox;
     ComboBox_FieldName: TComboBox;
     DataSource_Main: TDataSource;
     DBGrid_Main: TDBGrid;
     Edit_DBGridMain_Filter: TEdit;
     Frame_AufScript1: TFrame_AufScript;
+    Image_IsMemo_Y: TImage;
     Image_PDF_View: TImage;
     Label_FieldType: TLabel;
     Label_AddAttrs: TLabel;
@@ -69,6 +72,8 @@ type
     LvlGraphControl: TLvlGraphControl;
     MainMenu: TMainMenu;
     Memo_FmtCmt: TMemo;
+    MenuItem_Tool_div01: TMenuItem;
+    MenuItem_Tool_ProjectDir: TMenuItem;
     MenuItem_DBGC_Title: TMenuItem;
     MenuItem_DBGC_div01: TMenuItem;
     MenuItem_DBGC_AS: TMenuItem;
@@ -256,6 +261,7 @@ type
     procedure MenuItem_project_openClick(Sender: TObject);
     procedure MenuItem_project_saveasClick(Sender: TObject);
     procedure MenuItem_project_saveClick(Sender: TObject);
+    procedure MenuItem_Tool_ProjectDirClick(Sender: TObject);
     procedure PageControl_NodeChange(Sender: TObject);
     procedure TabSheet_Project_AufScriptResize(Sender: TObject);
     procedure PropertiesValueListEditorEditingDone(Sender: TObject);
@@ -536,6 +542,7 @@ begin
   Self.MenuItem_project_zip.Enabled:=true;
   Self.MenuItem_project_unzip.Enabled:=false;
   Self.MenuItem_project_check.Enabled:=true;
+  Self.MenuItem_Tool_ProjectDir.Enabled:=true;
 
 end;
 
@@ -568,6 +575,7 @@ begin
   Self.MenuItem_project_zip.Enabled:=false;
   Self.MenuItem_project_unzip.Enabled:=true;
   Self.MenuItem_project_check.Enabled:=false;
+  Self.MenuItem_Tool_ProjectDir.Enabled:=false;
 
 end;
 
@@ -692,6 +700,12 @@ end;
 procedure TFormDesktop.MenuItem_project_saveClick(Sender: TObject);
 begin
   CurrentRTFP.Save;
+end;
+
+procedure TFormDesktop.MenuItem_Tool_ProjectDirClick(Sender: TObject);
+begin
+  if ProjectInvalid then exit;
+  TRTFP.OpenDir(CurrentRTFP.CurrentFileFull);
 end;
 
 
@@ -1046,7 +1060,8 @@ end;
 
 procedure TFormDesktop.MenuItem_option_appearanceClick(Sender: TObject);
 begin
-  AppearanceForm.Show;
+  AppearanceForm.ShowModal;
+  SetFocus;
 end;
 
 procedure TFormDesktop.MenuItem_option_settingClick(Sender: TObject);
@@ -1165,13 +1180,17 @@ begin
   fieldName:=ComboBox_FieldName.Items[ComboBox_FieldName.ItemIndex];
   ty:=CurrentRTFP.GetFieldType(attrName,fieldName);
   if ty=ftMemo then begin
-    Image_IsMemo.Picture.LoadFromFile(LocalPath+'Icon\checked_true.png');
-    Image_IsMemo.Hint:='该字段可支持FmtCmt';
+    //Image_IsMemo_N.Picture.LoadFromFile(LocalPath+'Icon\checked_true.png');
+    //Image_IsMemo_N.Hint:='该字段可支持FmtCmt';
+    Image_IsMemo_N.Visible:=false;
+    Image_IsMemo_Y.Visible:=true;
     Memo_FmtCmt.Enabled:=true;
     Button_FmtCmt_Post.Enabled:=false;
   end else begin
-    Image_IsMemo.Picture.LoadFromFile(LocalPath+'Icon\checked_false.png');
-    Image_IsMemo.Hint:='该字段不支持FmtCmt';
+    //Image_IsMemo_N.Picture.LoadFromFile(LocalPath+'Icon\checked_false.png');
+    //Image_IsMemo_N.Hint:='该字段不支持FmtCmt';
+    Image_IsMemo_N.Visible:=true;
+    Image_IsMemo_Y.Visible:=false;
     Memo_FmtCmt.Clear;
     Memo_FmtCmt.Enabled:=false;
     Button_FmtCmt_Post.Enabled:=false;
@@ -1276,7 +1295,7 @@ begin
     'Float':ChosenFieldType:=ftFloat;
     //'Date':ChosenFieldType:=ftDate;
     'DateTime':ChosenFieldType:=ftDateTime;
-    //'Blob':ChosenFieldType:=ftBlob;
+    'Blob':ChosenFieldType:=ftBlob;
     else begin
       assert(false,'Combo_FieldType中有unexpected类型');
       exit;
@@ -1360,7 +1379,7 @@ var PID:RTFP_ID;
     attrNa,fieldNa:string;
 begin
   if ProjectInvalid then exit;
-  if Image_IsMemo.Hint='该字段不支持FmtCmt' then exit;
+  if Image_IsMemo_N.Hint='该字段不支持FmtCmt' then exit;
   //PID:=Selected_PID;
   PID:=Label_FmtCmtPID.Caption;
   if PID='000000' then exit;
@@ -1377,7 +1396,7 @@ var PID:RTFP_ID;
     attrNa,fieldNa:string;
 begin
   if ProjectInvalid then exit;
-  if Image_IsMemo.Hint='该字段不支持FmtCmt' then exit;
+  if Image_IsMemo_N.Hint='该字段不支持FmtCmt' then exit;
   //PID:=Selected_PID;
   PID:=Label_FmtCmtPID.Caption;
   if PID='000000' then exit;

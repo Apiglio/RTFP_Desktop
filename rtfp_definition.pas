@@ -10,6 +10,7 @@
 //统一NodeEdit部分的编辑保存询问，下方的几个Tab共用一套Modified
 //尽快将所有弹窗统一样式
 //TKlass准备增加一个TKlassGroup类，和Attrs一样格式，这样才能保证ACL_ListView可以不重新折叠
+//重新创建删除的字段会出现错误(中间没有保存导致的)
 
 
 
@@ -27,7 +28,7 @@ interface
 
 uses
   Classes, SysUtils, Dialogs, ValEdit, LazUTF8, StdCtrls, ComCtrls, ExtCtrls, Forms,
-  ACL_ListView, Controls,
+  ACL_ListView, Controls, Graphics,
 
   {$ifdef Windows}
   Windows,
@@ -191,6 +192,8 @@ type
 
     procedure ReadFieldAsMemo(AName,AAttrsName:string;PID:RTFP_ID;buf:TStrings;AE:TAttrExtend);
     procedure EditFieldAsMemo(AName,AAttrsName:string;PID:RTFP_ID;buf:TStrings;AE:TAttrExtend);
+    procedure ReadFieldAsBitmap(AName,AAttrsName:string;PID:RTFP_ID;buf:Graphics.TBitMap;AE:TAttrExtend);
+    procedure EditFieldAsBitmap(AName,AAttrsName:string;PID:RTFP_ID;buf:Graphics.TBitMap;AE:TAttrExtend);
 
     //Klass
   public
@@ -584,13 +587,8 @@ begin
   if not AAuf.TryArgToString(3,AFieldName) then exit;
   if not AAuf.TryArgToString(4,AMEMO) then exit;
 
-  //if CurrentRTFP.CheckField(AFieldName,AAttrName,[ftString,ftMemo]) then
-    //begin
-      //CurrentRTFP.GetField(AFieldName,AAttrName,APID).AsString:=AMEMO;
-      CurrentRTFP.EditFieldAsString(AFieldName,AAttrName,APID,AMEMO,[aeCreateIfNoField,aeForceEditIfTypeDismatch]);
-      //AufScpt.writeln('属性修改成功。');
-    //end
-  //else AufScpt.writeln('属性类型不符，修改失败。');
+  CurrentRTFP.EditFieldAsString(AFieldName,AAttrName,APID,AMEMO,[aeCreateIfNoField,aeForceEditIfTypeDismatch]);
+
 
 end;
 procedure aufunc_ReadAttr(Sender:TObject);//attr.read PID,AttrName,FieldName,out
@@ -619,8 +617,6 @@ begin
     on AttrsNoPIDErr do begin AufScpt.writeln('找不到节点，读取失败。');AValue:='~NPErr';end;
     on AttrsNoFieldErr do begin AufScpt.writeln('找不到字段，读取失败。');AValue:='~NFErr';end;
     on AttrsTypeDismatchErr do begin AufScpt.writeln('属性类型不符，读取失败。');AValue:='~TDErr';end;
-    //AufScpt.writeln('读取失败。');
-    //AValue:='~Error';
   end;
   if show_message then AufScpt.writeln('Fields['+AAttrName+','+AFieldName+']='+AValue)
   else initiate_arv_str(AValue,arv);
@@ -1626,6 +1622,7 @@ end;
 procedure TRTFP.ReadFieldAsMemo(AName,AAttrsName:string;PID:RTFP_ID;buf:TStrings;AE:TAttrExtend);
 var tmpField:TField;
 begin
+  if buf=nil then exit;
   buf.Clear;
   if GetFieldType(AAttrsName,AName)=ftUnknown then
     begin
@@ -1644,6 +1641,7 @@ procedure TRTFP.EditFieldAsMemo(AName,AAttrsName:string;PID:RTFP_ID;buf:TStrings
 var tmpAG:TAttrsGroup;
     tmpField:TField;
 begin
+  if buf=nil then exit;
   case GetFieldType(AAttrsName,AName) of
     ftUnknown:
       begin
@@ -1672,6 +1670,85 @@ begin
       tmpAG:=FindAttrs(AAttrsName);
       tmpAG.Dbf.Edit;
       tmpField.AsString:=buf.CommaText;
+      tmpAG.Dbf.Post;
+      DataChange;
+    end
+  else begin
+    if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
+  end;
+end;
+
+procedure TRTFP.ReadFieldAsBitmap(AName,AAttrsName:string;PID:RTFP_ID;buf:Graphics.TBitMap;AE:TAttrExtend);
+var tmpField:TField;
+    str:TMemoryStream;
+begin
+  if buf=nil then exit;
+  //buf.Clear;
+  if GetFieldType(AAttrsName,AName)=ftUnknown then
+    begin
+      if aeFailIfNoField in AE then raise AttrsNoFieldErr.Create('找不到字段'+AAttrsName+'.'+AName+'！')
+      else exit;
+    end;
+  tmpField:=GetField(AName,AAttrsName,PID,not (aeFailIfNoPID in AE));
+  if tmpField<>nil then begin
+    str:=TMemoryStream.Create;
+    try
+      //TBlobField(tmpField).SaveToFile('img_convert_tmp.bmp');
+      //buf.Picture.Bitmap.LoadFromFile('img_convert_tmp.bmp');
+      TBlobField(tmpField).SaveToStream(str);
+      str.Position:=0;
+      buf.LoadFromStream(str);
+    finally
+      str.Free;
+    end;
+  end else begin
+    if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
+  end;
+end;
+
+procedure TRTFP.EditFieldAsBitmap(AName,AAttrsName:string;PID:RTFP_ID;buf:Graphics.TBitMap;AE:TAttrExtend);
+var tmpAG:TAttrsGroup;
+    tmpField:TField;
+    str:TMemoryStream;
+begin
+  if buf=nil then exit;
+  case GetFieldType(AAttrsName,AName) of
+    ftUnknown:
+      begin
+        if aeFailIfNoField in AE then raise AttrsNoFieldErr.Create('找不到字段'+AAttrsName+'.'+AName+'！')
+        else begin
+          if aeCreateIfNoField in AE then
+            begin
+              AddField(AName,AAttrsName,ftMemo{,0});
+            end
+          else exit;
+        end;
+      end;
+    ftBlob:;
+    else
+      begin
+        if aeFailIfTypeDismatch in AE then raise AttrsTypeDismatchErr.Create('字段'+AName+'.'+AAttrsName+'类型错误！')
+        else begin
+          //if aeForceEditIfTypeDismatch in AE then else //不存在强制编辑可能性
+            exit;
+        end;
+      end;
+  end;
+  tmpField:=GetField(AName,AAttrsName,PID,not (aeFailIfNoPID in AE));
+  if tmpField<>nil then
+    begin
+      tmpAG:=FindAttrs(AAttrsName);
+      tmpAG.Dbf.Edit;
+      str:=TMemoryStream.Create;
+      try
+        //buf.Picture.Bitmap.SaveToFile('img_convert_tmp.bmp');
+        //TBlobField(tmpField).LoadFromFile('img_convert_tmp.bmp');
+        buf.SaveToStream(str);
+        str.Position:=0;
+        TBlobField(tmpField).LoadFromStream(str);
+      finally
+        str.Free;
+      end;
       tmpAG.Dbf.Post;
       DataChange;
     end
@@ -3505,7 +3582,7 @@ begin
     inc(pi);
     attr_range[pi].max:=-1;
     attr_range[pi].min:=fields_cnt;
-    if not tmpAG.GroupShown then continue;
+    //if not tmpAG.GroupShown then continue;//这里的GroupShown用来表示ACL_ListView的折叠了，取消这个判断
     for tmpAF in tmpAG.FieldList do
       begin
         if not tmpAF.Shown then continue;
@@ -3934,7 +4011,7 @@ begin
         'edit':FormatPanel:=TFormatEditPanel.Create(TEdit);
         'combo':FormatPanel:=TFormatEditPanel.Create(TComboBox);
         'check':FormatPanel:=TFormatEditPanel.Create(TCheckBox);
-        //
+        'image':FormatPanel:=TFormatEditPanel.Create(TFmtImage);
         else continue;
       end;
 
@@ -3952,7 +4029,7 @@ begin
         Parent:=AScrollBox;
         BeginUpdateBounds;
         Anchors:=[akTop,akLeft,akRight];
-        TWinControl(Component).Enabled:=Editable;
+        TControl(Component).Enabled:=Editable;
         case Auf.nargs[6].arg of
           '0':begin
                 AnchorSideLeft.Control:=AScrollBox;
@@ -4030,6 +4107,7 @@ begin
         'TMemo':ReadFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[]);
         'TCheckBox':AsBoolean:=ReadFieldAsBoolean(FieldName,AttrsName,PID,[]);
         'TComboBox':AsString:=ReadFieldAsString(FieldName,AttrsName,PID,[]);
+        'TFmtImage':ReadFieldAsBitmap(FieldName,AttrsName,PID,AsBitmap,[]);
       end;
   end;
 end;
@@ -4043,10 +4121,11 @@ begin
     if TObject(Item).ClassType=TSplitter then continue;
     with TFormatEditPanel(Item) do
       case ComponentClass.ClassName of
-        'TEdit':EditFieldAsString(FieldName,AttrsName,PID,AsString,[]);
+        'TEdit':EditFieldAsString(FieldName,AttrsName,PID,AsString,[aeForceEditIfTypeDismatch]);
         'TMemo':EditFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[]);
         'TCheckBox':EditFieldAsBoolean(FieldName,AttrsName,PID,AsBoolean,[]);
         'TComboBox':EditFieldAsString(FieldName,AttrsName,PID,AsString,[]);
+        'TFmtImage':EditFieldAsBitmap(FieldName,AttrsName,PID,AsBitmap,[]);
       end;
   end;
 
@@ -4061,37 +4140,37 @@ end;
 
 procedure TRTFP.SetUser(str:string);
 begin
-  if {ProjectFileValue}FProjectTags.Values['创建用户']<>str then
+  if {}FProjectTags.Values['创建用户']<>str then
     begin
-      {ProjectFileValue}FProjectTags.Values['创建用户']:=str;
+      {}FProjectTags.Values['创建用户']:=str;
       Change;
     end;
 end;
 
 function TRTFP.GetTitle:string;
 begin
-  result:={ProjectFileValue}FProjectTags.Values['工程标题'];
+  result:={}FProjectTags.Values['工程标题'];
 end;
 
 procedure TRTFP.SetTitle(str:string);
 begin
-  if {ProjectFileValue}FProjectTags.Values['工程标题']<>str then
+  if {}FProjectTags.Values['工程标题']<>str then
     begin
-      {ProjectFileValue}FProjectTags.Values['工程标题']:=str;
+      {}FProjectTags.Values['工程标题']:=str;
       Change;
     end;
 end;
 
 function TRTFP.GetVersion:string;
 begin
-  result:={ProjectFileValue}FProjectTags.Values['最后保存版本'];
+  result:={}FProjectTags.Values['最后保存版本'];
 end;
 
 procedure TRTFP.SetVersion(str:string);
 begin
-  if {ProjectFileValue}FProjectTags.Values['最后保存版本']<>str then
+  if {}FProjectTags.Values['最后保存版本']<>str then
     begin
-      {ProjectFileValue}FProjectTags.Values['最后保存版本']:=str;
+      {}FProjectTags.Values['最后保存版本']:=str;
       Change;
     end;
 end;
@@ -4099,23 +4178,23 @@ end;
 
 function TRTFP.GetUser:string;
 begin
-  result:={ProjectFileValue}FProjectTags.Values['创建用户'];
+  result:={}FProjectTags.Values['创建用户'];
 end;
 
 
 
 procedure TRTFP.SetTag(index:string;str:string);
 begin
-  if {ProjectFileValue}FProjectTags.Values[index]<>str then
+  if {}FProjectTags.Values[index]<>str then
     begin
-      {ProjectFileValue}FProjectTags.Values[index]:=str;
+      {}FProjectTags.Values[index]:=str;
       Change;
     end;
 end;
 
 function TRTFP.GetTag(index:string):string;
 begin
-  result:={ProjectFileValue}FProjectTags.Values[index];
+  result:={}FProjectTags.Values[index];
 end;
 
 function TRTFP.GetOpenPdfExe:ansistring;
@@ -4124,7 +4203,7 @@ begin
   if result='' then
     begin
       result:=DefaultOpenExe;
-      {ProjectFileValue}FProjectTags.Values['PDF打开方式']:=result;
+      {}FProjectTags.Values['PDF打开方式']:=result;
     end;
 end;
 
@@ -4134,7 +4213,7 @@ begin
   if result='' then
     begin
       result:=DefaultOpenExe;
-      {ProjectFileValue}FProjectTags.Values['CAJ打开方式']:=result;
+      {}FProjectTags.Values['CAJ打开方式']:=result;
     end;
 end;
 
