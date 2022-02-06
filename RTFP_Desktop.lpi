@@ -162,7 +162,7 @@
     </Linking>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="5">
+    <Exceptions Count="7">
       <Item1>
         <Name Value="EAbort"/>
       </Item1>
@@ -178,6 +178,12 @@
       <Item5>
         <Name Value="AttrsNoPIDErr"/>
       </Item5>
+      <Item6>
+        <Name Value="Unknown"/>
+      </Item6>
+      <Item7>
+        <Name Value="EDatabaseError"/>
+      </Item7>
     </Exceptions>
   </Debugging>
 </CONFIG>
