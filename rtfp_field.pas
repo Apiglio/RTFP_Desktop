@@ -12,7 +12,7 @@ unit rtfp_field;
 interface
 
 uses
-  Classes, SysUtils, db, dbf;
+  Classes, SysUtils, db, dbf, rtfp_constants;
 
 type
 
@@ -24,14 +24,20 @@ type
   TAttrsField = class(TCollectionItem)
   private
     FFieldName:string;
-    //FDataType:TFieldType;
     FFieldDef:TFieldDef;
     FAttrsGroup:TAttrsGroup;
     FShown:boolean;
+    FOnChangeVisibility:TNotifyEvent;
+    FUpdating:boolean;
+  protected
+    procedure SetShown(value:boolean);
   public
     constructor Create(ACollection: TCollection);
-    property Shown:boolean read FShown write FShown;
-    //property DataType:TFieldType read FDataType write FDataType;
+    procedure BeginUpdate;
+    procedure EndUpdate;
+
+    property Shown:boolean read FShown write SetShown;
+    property OnChangeVisibility:TNotifyEvent read FOnChangeVisibility write FOnChangeVisibility;
     property FieldDef:TFieldDef read FFieldDef;
     property FieldName:string read FFieldName write FFieldName;
     property AttrsGroup:TAttrsGroup read FAttrsGroup;
@@ -74,12 +80,15 @@ type
     FDbf:TDbf;
     FFieldList:TAttrsFieldList;
     FGroupShown:boolean;
+  protected
+    function GetIsEmpty:boolean;
   public
     property Name:string read FName;
     property FullPath:string read FFullPath;
     property FieldList:TAttrsFieldList read FFieldList;
     property Dbf:Tdbf read FDbf;
     property GroupShown:boolean read FGroupShown write FGroupShown;//如果为true，FieldFilter会以此为筛选条件
+    property IsEmpty:boolean read GetIsEmpty;
   public
     constructor Create(ACollection:TCollection);override;
     destructor Destroy;override;
@@ -126,13 +135,32 @@ uses rtfp_files;
 
 { TAttrsField }
 
+procedure TAttrsField.SetShown(value:boolean);
+begin
+  if FShown<>value then begin
+    FShown:=value;
+    if (not FUpdating) and (FOnChangeVisibility<>nil) then FOnChangeVisibility(Self);
+  end;
+end;
+
 constructor TAttrsField.Create(ACollection: TCollection);
 begin
   if Assigned(ACollection) and (ACollection is TAttrsFieldList) then
     inherited Create(ACollection)
   else raise Exception.Create('TAttrsField.Create: unassigned or wrong ListType');
+  FUpdating:=false;
+  FOnChangeVisibility:=nil;
 end;
 
+procedure TAttrsField.BeginUpdate;
+begin
+  FUpdating:=true;
+end;
+
+procedure TAttrsField.EndUpdate;
+begin
+  FUpdating:=false;
+end;
 
 { TAttrsFieldEnumerator }
 
@@ -190,6 +218,9 @@ end;
 procedure TAttrsFieldList.Clear;
 begin
   inherited Clear;
+  //Self.BeginUpdate;
+  //while Self.Count>0 do Self.Delete(0);
+  //Self.EndUpdate;
 end;
 
 function TAttrsFieldList.FindItemIndexByName(AName:string):integer;
@@ -223,6 +254,7 @@ begin
   else raise Exception.Create('TAttrsGroup.Create: unassigned');
   FDbf:=TDbf.Create(nil);
   FFieldList:=TAttrsFieldList.Create(nil);
+  FGroupShown:=true;
 end;
 
 destructor TAttrsGroup.Destroy;
@@ -235,6 +267,7 @@ end;
 procedure TAttrsGroup.LoadFieldListFromDbf;
 var pi:integer;
 begin
+  FFieldList.Clear;
   with FDbf do
     begin
       if not Active then Open;
@@ -245,6 +278,20 @@ begin
           inc(pi);
         end;
     end;
+end;
+
+function TAttrsGroup.GetIsEmpty:boolean;
+var pi:integer;
+begin
+  result:=false;
+  if FFieldList.Count>2 then exit;
+  for pi:=0 to FFieldList.Count-1 do
+    begin
+      if (FFieldList[pi].FieldName<>_Col_PID_)
+      and (FFieldList[pi].FieldName<>_Col_OID_)
+      then exit;
+    end;
+  result:=true;
 end;
 
 { TAttrsGroupEnumerator }
@@ -291,6 +338,8 @@ end;
 function TAttrsGroupList.AddEx(AFullPath,AName:string): TAttrsGroup;
 begin
   Result := inherited Add as TAttrsGroup;
+  AFullPath:=StringReplace(AFullPath,'\\','\',[rfReplaceAll]);//不会吧，不是这里的问题吧
+  AFullPath:=StringReplace(AFullPath,'\\','\',[rfReplaceAll]);//斜杠要整理一下
   result.FFullPath:=AFullPath;
   result.FName:=AName;
   result.FDbf:=TDbf.Create(Self.FOwner);
@@ -299,6 +348,9 @@ end;
 procedure TAttrsGroupList.Clear;
 begin
   inherited Clear;
+  //Self.BeginUpdate;
+  //while Self.Count>0 do Self.Delete(0);
+  //Self.EndUpdate;
 end;
 
 function TAttrsGroupList.GetEnumerator:TAttrsGroupEnumerator;
@@ -341,10 +393,10 @@ begin
       begin
         pathname:=(stmp as TRTFP_FileItem).Name;
         groupname:=ExtractFilename(pathname);
-        if pos('.dbf',pathname)<>length(pathname)-3 then continue;
-        if pos('_run.dbf',pathname)=length(pathname)-7 then continue;
+        if pos('.dbf',lowercase(pathname))<>length(pathname)-3 then continue;
+        if pos('_run.dbf',lowercase(pathname))=length(pathname)-7 then continue;
         if lowercase(ExtractFileExt(groupname))='.dbf' then groupname:=Copy(groupname,1,length(groupname)-4);
-        if lowercase(ExtractFileExt(pathname))='.dbf' then pathname:=Copy(pathname,1,length(pathname)-4);
+        {if lowercase(ExtractFileExt(pathname))='.dbf' then }pathname:=Copy(pathname,1,length(pathname)-4);
         //ShowMessage(groupname+#13#10+pathname);
         Self.AddEx(APath+'\'+pathname,groupname);
       end;
