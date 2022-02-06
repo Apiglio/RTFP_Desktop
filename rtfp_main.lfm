@@ -1,8 +1,9 @@
 object FormDesktop: TFormDesktop
-  Left = 440
+  Left = 659
   Height = 618
-  Top = 263
+  Top = 287
   Width = 946
+  AllowDropFiles = True
   Caption = 'RTFP Desktop'
   ClientHeight = 593
   ClientWidth = 946
@@ -13,6 +14,7 @@ object FormDesktop: TFormDesktop
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
+  OnDropFiles = FormDropFiles
   OnResize = FormResize
   LCLVersion = '1.8.4.0'
   object StatusBar: TStatusBar
@@ -33,9 +35,9 @@ object FormDesktop: TFormDesktop
     Height = 255
     Top = 0
     Width = 778
-    ActivePage = TabSheet_Project_Properties
+    ActivePage = TabSheet_Project_AufScript
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 0
+    TabIndex = 4
     TabOrder = 1
     object TabSheet_Project_Properties: TTabSheet
       Caption = '工程信息'
@@ -53,6 +55,7 @@ object FormDesktop: TFormDesktop
         Top = 0
         Width = 256
         Anchors = [akTop, akLeft, akBottom]
+        Enabled = False
         FixedCols = 0
         RowCount = 2
         TabOrder = 0
@@ -81,11 +84,36 @@ object FormDesktop: TFormDesktop
         Left = 0
         Height = 222
         Top = 0
-        Width = 770
+        Width = 620
         Anchors = [akTop, akLeft, akRight, akBottom]
+        BorderSpacing.Right = 150
         Color = clWindow
         Columns = <>
         TabOrder = 0
+      end
+      object CheckListBox_MainAttrFilter: TCheckListBox
+        AnchorSideLeft.Control = DBGrid_Main
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideTop.Control = TabSheet_Project_DataGrid
+        AnchorSideRight.Control = TabSheet_Project_DataGrid
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = TabSheet_Project_DataGrid
+        AnchorSideBottom.Side = asrBottom
+        Left = 620
+        Height = 222
+        Top = 0
+        Width = 150
+        Anchors = [akTop, akRight, akBottom]
+        Items.Strings = (
+          '文件基础信息'
+          '分类'
+          '注解'
+        )
+        ItemHeight = 21
+        TabOrder = 1
+        Data = {
+          03000000000000
+        }
       end
     end
     object TabSheet_Project_Classifaction: TTabSheet
@@ -218,9 +246,9 @@ object FormDesktop: TFormDesktop
     Height = 306
     Top = 261
     Width = 778
-    ActivePage = TabSheet_Node_PDF
+    ActivePage = TabSheet_Node_View
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 2
+    TabIndex = 0
     TabOrder = 5
     OnChange = PageControl_NodeChange
     object TabSheet_Node_View: TTabSheet
@@ -248,14 +276,17 @@ object FormDesktop: TFormDesktop
       end
       object MenuItem_project_save: TMenuItem
         Caption = '保存'
+        Enabled = False
         OnClick = MenuItem_project_saveClick
       end
       object MenuItem_project_saveas: TMenuItem
         Caption = '另存为'
+        Enabled = False
         OnClick = MenuItem_project_saveasClick
       end
       object MenuItem_project_close: TMenuItem
         Caption = '关闭'
+        Enabled = False
         OnClick = MenuItem_project_closeClick
       end
       object MenuItem1: TMenuItem
@@ -263,6 +294,7 @@ object FormDesktop: TFormDesktop
       end
       object MenuItem_project_zip: TMenuItem
         Caption = '压缩导出'
+        Enabled = False
       end
       object MenuItem_project_unzip: TMenuItem
         Caption = '解压导入'
@@ -272,6 +304,7 @@ object FormDesktop: TFormDesktop
       end
       object MenuItem_project_check: TMenuItem
         Caption = '检查工程'
+        Enabled = False
       end
     end
     object MenuItem_edit: TMenuItem
@@ -302,6 +335,8 @@ object FormDesktop: TFormDesktop
   end
   object OpenDialog_Project: TOpenDialog
     Title = '打开工程'
+    DefaultExt = '.*.rtfp'
+    Filter = 'RTFP工程文件(*.rtfp)|*.rtfp|所有文件|*.*'
     left = 64
     top = 496
   end

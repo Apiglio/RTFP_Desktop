@@ -124,15 +124,16 @@ object Form_NewProject: TForm_NewProject
     BorderSpacing.Bottom = 15
     Enabled = False
     Items.Strings = (
-      '名称合法'
+      '工程名称合法'
       '无同名目录'
       '无同名文件'
-      '可用磁盘空间'
+      '路径长度'
+      '磁盘空间'
     )
     ItemHeight = 21
     TabOrder = 4
     Data = {
-      0400000000000000
+      050000000000000000
     }
   end
   object Label_ProjectCanBuild: TLabel
