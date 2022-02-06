@@ -1,0 +1,9 @@
+/backup
+/convert/*
+/DefaultDB/*
+/his
+/lib
+/format_example
+*.bak
+*.exe
+recent_project.dat
