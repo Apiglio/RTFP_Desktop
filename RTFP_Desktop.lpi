@@ -54,7 +54,7 @@
         <PackageName Value="LCL"/>
       </Item10>
     </RequiredPackages>
-    <Units Count="17">
+    <Units Count="19">
       <Unit0>
         <Filename Value="RTFP_Desktop.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -147,6 +147,14 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit16>
+      <Unit17>
+        <Filename Value="rtfp_tags.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="rtfp_misc.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit18>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -169,7 +177,7 @@
     </Linking>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="7">
+    <Exceptions Count="8">
       <Item1>
         <Name Value="EAbort"/>
       </Item1>
@@ -191,6 +199,9 @@
       <Item7>
         <Name Value="EDatabaseError"/>
       </Item7>
+      <Item8>
+        <Name Value="EConvertError"/>
+      </Item8>
     </Exceptions>
   </Debugging>
 </CONFIG>
