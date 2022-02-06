@@ -378,7 +378,7 @@ object FormDesktop: TFormDesktop
         )
         ColWidths = (
           80
-          534
+          513
         )
       end
       object Button_NodeViewRecover: TButton
@@ -774,35 +774,35 @@ object FormDesktop: TFormDesktop
       Caption = '打开'
       OnClick = MenuItem_OpenDefaultClick
     end
-    object MenuItem_OpenAsCaj: TMenuItem
-      Caption = '作为CAJ打开'
-      OnClick = MenuItem_OpenAsCajClick
-    end
-    object MenuItem_OpenAsPdf: TMenuItem
-      Caption = '作为PDF打开'
-      OnClick = MenuItem_OpenAsPdfClick
-    end
-    object MenuItem_OpenDir: TMenuItem
-      Caption = '打开所在文件夹'
-      OnClick = MenuItem_OpenDirClick
+    object MenuItem_AdvOpen: TMenuItem
+      Caption = '打开方式'
+      object MenuItem_AdvOpen_PDF: TMenuItem
+        Caption = '打开PDF'
+        OnClick = MenuItem_AdvOpen_PDFClick
+      end
+      object MenuItem_AdvOpen_CAJ: TMenuItem
+        Caption = '打开CAJ'
+        OnClick = MenuItem_AdvOpen_CAJClick
+      end
+      object MenuItem_AdvOpen_Dir: TMenuItem
+        Caption = '打开文件夹'
+        OnClick = MenuItem_AdvOpen_DirClick
+      end
+      object MenuItem_AdvOpen_Link: TMenuItem
+        Caption = '打开链接'
+        OnClick = MenuItem_AdvOpen_LinkClick
+      end
     end
     object MenuItem_pop_div01: TMenuItem
       Caption = '-'
     end
     object MenuItem_BasicReferences: TMenuItem
-      Caption = '基础信息'
+      Caption = '修改基础信息'
+      OnClick = MenuItem_BasicReferencesClick
     end
-    object MenuItem_Tree: TMenuItem
-      Caption = '从属关系'
-      object MenuItem_Tree_Into: TMenuItem
-        Caption = '显示子节点'
-      end
-      object MenuItem_Tree_Back: TMenuItem
-        Caption = '返回父节点'
-      end
-    end
-    object MenuItem_pop_div02: TMenuItem
-      Caption = '-'
+    object MenuItem_Klass: TMenuItem
+      Caption = '修改分类信息'
+      OnClick = MenuItem_KlassClick
     end
     object MenuItem_Mark: TMenuItem
       Caption = '标记'
@@ -815,9 +815,17 @@ object FormDesktop: TFormDesktop
         OnClick = MenuItem_Mark_IsRead_NoClick
       end
     end
-    object MenuItem_Klass: TMenuItem
-      Caption = '分类'
-      OnClick = MenuItem_KlassClick
+    object MenuItem_pop_div02: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem_Tree: TMenuItem
+      Caption = '从属关系'
+      object MenuItem_Tree_Into: TMenuItem
+        Caption = '显示子节点'
+      end
+      object MenuItem_Tree_Back: TMenuItem
+        Caption = '返回父节点'
+      end
     end
     object MenuItem_pop_div03: TMenuItem
       Caption = '-'
