@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_dialog, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.1-alpha.1';
+  C_VERSION_NUMBER  = '0.2.1-alpha.2';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -72,6 +72,10 @@ type
     LvlGraphControl: TLvlGraphControl;
     MainMenu: TMainMenu;
     Memo_FmtCmt: TMemo;
+    MenuItem_DBGC_div03: TMenuItem;
+    MenuItem_DBGC_DisplayOpt: TMenuItem;
+    MenuItem_FieldMgr_div01: TMenuItem;
+    MenuItem_FieldMgr_DisplayOption: TMenuItem;
     MenuItem_project_profile: TMenuItem;
     MenuItem_klass_SourceClass: TMenuItem;
     MenuItem_DBGC_Calc: TMenuItem;
@@ -203,6 +207,8 @@ type
     procedure ComboBox_FormatEditChange(Sender: TObject);
     procedure DataSource_MainUpdateData(Sender: TObject);
     procedure DBGrid_MainCellClick(Column: TColumn);
+    procedure DBGrid_MainDrawColumnCell(Sender: TObject; const Rect: TRect;
+      DataCol: Integer; Column: TColumn; State: TGridDrawState);
     procedure DBGrid_MainKeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure DBGrid_MainMouseUp(Sender: TObject; Button: TMouseButton;
@@ -241,6 +247,7 @@ type
     procedure MenuItem_ClassMgr_UnCheckAllClick(Sender: TObject);
     procedure MenuItem_ClassToolClick(Sender: TObject);
     procedure MenuItem_DBGC_CalcClick(Sender: TObject);
+    procedure MenuItem_DBGC_DisplayOptClick(Sender: TObject);
     procedure MenuItem_DBGC_SeekClick(Sender: TObject);
     procedure MenuItem_DBGC_TitleClick(Sender: TObject);
     procedure MenuItem_DeletePaperClick(Sender: TObject);
@@ -248,6 +255,7 @@ type
     procedure MenuItem_FieldMgr_DelClick(Sender: TObject);
     procedure MenuItem_FieldMgr_EditClick(Sender: TObject);
     procedure MenuItem_FieldMgr_RenClick(Sender: TObject);
+    procedure MenuItem_FieldMgr_DisplayOptionClick(Sender: TObject);
     procedure MenuItem_KlassClick(Sender: TObject);
     procedure MenuItem_klass_AddKlassClick(Sender: TObject);
     procedure MenuItem_klass_DelKlassClick(Sender: TObject);
@@ -341,7 +349,7 @@ var
 implementation
 uses form_new_project, form_cite_trans, form_classmanager, form_import,
      form_appearance, rtfp_field, rtfp_class, form_options, form_report_tool,
-     form_repeated_checker, form_project_profile;
+     form_repeated_checker, form_project_profile, form_field_display_option;
 
 {$R *.lfm}
 
@@ -1019,6 +1027,13 @@ begin
   end;
 end;
 
+procedure TFormDesktop.MenuItem_DBGC_DisplayOptClick(Sender:TObject);
+begin
+  if ProjectInvalid then exit;
+  FormFieldDisplayOption.Call(TAttrsField(CurrentRTFP.PaperDSFieldDefs[LastDBGridPos.x-1]));
+  SetFocus;
+end;
+
 procedure TFormDesktop.MenuItem_DBGC_SeekClick(Sender: TObject);
 var searchstr:string;
     bm:TBookMark;
@@ -1105,6 +1120,23 @@ end;
 procedure TFormDesktop.MenuItem_FieldMgr_RenClick(Sender: TObject);
 begin
   if ProjectInvalid then exit;
+end;
+
+procedure TFormDesktop.MenuItem_FieldMgr_DisplayOptionClick(Sender: TObject);
+var tmpNode:TACL_TreeNode;
+begin
+  if ProjectInvalid then exit;
+  tmpNode:=TACL_TreeNode(AListView_Attrs.Selected.Data);
+  if tmpNode=nil then exit;
+  if tmpNode.Data is TAttrsGroup then
+    exit
+  else if tmpNode.Data is TAttrsField then
+    begin
+      FormFieldDisplayOption.Call(TAttrsField(tmpNode.Data));
+      SetFocus;
+      CurrentRTFP.UpdateCurrentRec(Selected_PID);
+    end
+  else assert(false,'ACL_TreeNode中有unexpected的类型对象');
 end;
 
 procedure TFormDesktop.MenuItem_KlassClick(Sender: TObject);
@@ -1647,6 +1679,53 @@ end;
 procedure TFormDesktop.DBGrid_MainCellClick(Column: TColumn);
 begin
   NodeViewValidate;
+end;
+
+procedure TFormDesktop.DBGrid_MainDrawColumnCell(Sender: TObject;
+  const Rect: TRect; DataCol: Integer; Column: TColumn; State: TGridDrawState);
+var tmpFD:TFieldDef;
+    tmpA:Pointer;
+    tmpCL:TColor;
+  function min(a,b:integer):integer;
+  begin
+    if a>b then result:=b else result:=a;
+  end;
+
+begin
+  //if Column.Field.FieldName<>_Col_PID_ then exit;
+  tmpCL:=$ff000000;
+  tmpFD:=Column.Field.FieldDef;
+  tmpA:=CurrentRTFP.PaperDSFieldDefs.Items[DataCol];
+  if tmpA=nil then exit;
+  if TObject(tmpA) is TAttrsField then with TAttrsField(tmpA).FieldDisplayOption do
+    begin
+      if colorize_process<>nil then
+      tmpCL:=colorize_process(v1,v2,c1,c2,expression,Column.Field);
+    end;
+  if tmpCL and $ff000000 <> $ff000000 then begin
+    (Sender as TDBGrid).Canvas.Brush.Color:=tmpCL;
+    (Sender as TDBGrid).Canvas.FillRect(Rect);
+  end;
+{
+  case tmpFD.DataType of
+    ftMemo:
+      begin
+        //(Sender as TDBGrid).DrawCellText();
+      end;
+    ftBlob:
+      begin
+
+      end;
+    else
+      begin
+}
+        (Sender as TDBGrid).DefaultDrawColumnCell(Rect,DataCol,Column,State);
+        //这里不错，或许可以把PaperDS中的ftString改回ftMemo，
+        //同时可以在主表显示图片
+{
+      end;
+  end;
+}
 end;
 
 procedure TFormDesktop.DBGrid_MainKeyUp(Sender: TObject; var Key: Word;

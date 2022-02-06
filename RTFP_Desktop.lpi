@@ -57,7 +57,7 @@
         <PackageName Value="LCL"/>
       </Item11>
     </RequiredPackages>
-    <Units Count="24">
+    <Units Count="25">
       <Unit0>
         <Filename Value="RTFP_Desktop.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -190,6 +190,13 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit23>
+      <Unit24>
+        <Filename Value="form_field_display_option.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="FormFieldDisplayOption"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit24>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

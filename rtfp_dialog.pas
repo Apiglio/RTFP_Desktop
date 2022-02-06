@@ -395,7 +395,7 @@ end;
 
 function ShowMsgImage(const ACaption:string;const ABitmap:TBitmap;ShowPixelInfo:boolean=false):string;
 var
-  W,H,Sep,Margin:Integer;
+  W,H,Sep,Margin,ScrollWidth:Integer;
   Frm:TForm;
   Scroll:TScrollBox;
   Image:TImage;
@@ -403,12 +403,18 @@ begin
   if ABitmap.Width*ABitmap.Height=0 then exit;
   Margin:=24;
   Sep:=8;
+  ScrollWidth:=5;//避免触发ScrollBar
   Result:='';
   Frm:=TForm.Create(FormDesktop);
   try
 
-    W:=Min(ABitmap.Width,600);
-    H:=ABitmap.Height*W div ABitmap.Width;
+    if (Screen.Width/Screen.Height)>=(ABitmap.Width/ABitmap.Height) then begin
+      H:=Min(ABitmap.Height,Screen.Height-180);
+      W:=ABitmap.Width*H div ABitmap.Height;
+    end else begin
+      W:=Min(ABitmap.Width,Screen.Width-180);
+      H:=ABitmap.Height*W div ABitmap.Width;
+    end;
 
     with frm do begin
       BorderStyle:=bsSizeable;
@@ -416,9 +422,10 @@ begin
         Caption:=ACaption+' ('+IntToStr(ABitmap.Width)+'x'+IntToStr(ABitmap.Height)+')'
       else
         Caption:=ACaption;
-      ClientWidth:=W+2*Margin;
-      ClientHeight:=H+2*Margin;
-      Position:=poOwnerFormCenter;
+      ClientWidth:=W+2*Margin+ScrollWidth;
+      ClientHeight:=H+2*Margin+ScrollWidth;
+      //Position:=poOwnerFormCenter;
+      Position:=poScreenCenter;
       KeyPreview:=true;
     end;
 

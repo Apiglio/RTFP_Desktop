@@ -12,13 +12,22 @@ unit rtfp_field;
 interface
 
 uses
-  Classes, SysUtils, db, dbf, rtfp_constants;
+  Classes, SysUtils, db, dbf, rtfp_constants, Graphics;
 
 type
 
   TAttrsFieldList = class;
   TAttrsGroup = class;
   TAttrsGroupList = class;
+
+  TColorizeProcess = function(v1,v2:double;c1,c2:TColor;expresion:string;Value:TField):TColor;
+
+  TFieldDisplayOption = record
+    v1,v2:double;
+    c1,c2:TColor;
+    expression:string;
+    colorize_process:TColorizeProcess;
+  end;
 
 
   TAttrsField = class(TCollectionItem)
@@ -29,6 +38,7 @@ type
     FShown:boolean;
     FOnChangeVisibility:TNotifyEvent;
     FUpdating:boolean;
+    FFieldDisplayOption:TFieldDisplayOption;
   protected
     procedure SetShown(value:boolean);
   public
@@ -41,6 +51,7 @@ type
     property FieldDef:TFieldDef read FFieldDef;
     property FieldName:string read FFieldName write FFieldName;
     property AttrsGroup:TAttrsGroup read FAttrsGroup;
+    property FieldDisplayOption:TFieldDisplayOption read FFieldDisplayOption write FFieldDisplayOption;
   end;
 
   TAttrsFieldEnumerator = class(TCollectionEnumerator)
@@ -152,6 +163,7 @@ begin
   else raise Exception.Create('TAttrsField.Create: unassigned or wrong ListType');
   FUpdating:=false;
   FOnChangeVisibility:=nil;
+  FFieldDisplayOption.colorize_process:=nil;
 end;
 
 procedure TAttrsField.BeginUpdate;

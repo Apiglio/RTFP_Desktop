@@ -10,7 +10,7 @@ uses
   Forms, lnetvisual, {pack_powerpdf, }RTFP_main,{ dbflaz, memdslaz,}
   form_new_project, form_cite_trans, form_import, lazcontrols,
   tachartlazaruspkg, form_classmanager, form_appearance, form_options,
-  form_report_tool, form_repeated_checker, form_project_profile;
+  form_report_tool, form_repeated_checker, form_project_profile, form_field_display_option;
 
 {$R *.res}
 
@@ -27,6 +27,7 @@ begin
   Application.CreateForm(TFormReportTool, FormReportTool);
   Application.CreateForm(TFormRepeatedChecker, FormRepeatedChecker);
   Application.CreateForm(TFormProjectProfile, FormProjectProfile);
+  Application.CreateForm(TFormFieldDisplayOption, FormFieldDisplayOption);
   Application.Run;
 end.
 
