@@ -887,15 +887,15 @@ object Form_ImportFiles: TForm_ImportFiles
       Height = 480
       Top = 41
       Width = 435
-      ActivePage = TabSheet_AddImage
+      ActivePage = TabSheet_AddPaper
       Anchors = [akTop, akLeft, akRight, akBottom]
       BorderSpacing.Top = 40
-      TabIndex = 2
+      TabIndex = 0
       TabOrder = 0
       object TabSheet_AddPaper: TTabSheet
         Caption = '创建文件节点'
         ClientHeight = 447
-        ClientWidth = 771
+        ClientWidth = 427
         object StaticText_ImportFileNames: TStaticText
           Left = 0
           Height = 21
@@ -910,7 +910,7 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideRight.Side = asrBottom
           AnchorSideBottom.Control = TabSheet_AddPaper
           AnchorSideBottom.Side = asrBottom
-          Left = 644
+          Left = 300
           Height = 37
           Top = 400
           Width = 117
@@ -944,7 +944,7 @@ object Form_ImportFiles: TForm_ImportFiles
           Left = 0
           Height = 357
           Top = 30
-          Width = 771
+          Width = 427
           Anchors = [akTop, akLeft, akRight, akBottom]
           BorderSpacing.Top = 30
           BorderSpacing.Bottom = 60
@@ -985,7 +985,7 @@ object Form_ImportFiles: TForm_ImportFiles
           Left = 248
           Height = 28
           Top = 404
-          Width = 381
+          Width = 37
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Left = 15
           BorderSpacing.Right = 15

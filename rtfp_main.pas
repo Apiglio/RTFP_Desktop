@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_dialog, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.1.2-alpha.4';
+  C_VERSION_NUMBER  = '0.1.2-alpha.5';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -72,6 +72,8 @@ type
     LvlGraphControl: TLvlGraphControl;
     MainMenu: TMainMenu;
     Memo_FmtCmt: TMemo;
+    MenuItem_RepeatedChecker: TMenuItem;
+    MenuItem_ExportTool: TMenuItem;
     MenuItem_Tool_div01: TMenuItem;
     MenuItem_Tool_ProjectDir: TMenuItem;
     MenuItem_DBGC_Title: TMenuItem;
@@ -239,7 +241,9 @@ type
     procedure MenuItem_ClassMgr_RenClick(Sender: TObject);
     procedure MenuItem_ClassMgr_UnCheckAllClick(Sender: TObject);
     procedure MenuItem_ClassToolClick(Sender: TObject);
+    procedure MenuItem_DBGC_TitleClick(Sender: TObject);
     procedure MenuItem_DeletePaperClick(Sender: TObject);
+    procedure MenuItem_ExportToolClick(Sender: TObject);
     procedure MenuItem_FieldMgr_DelClick(Sender: TObject);
     procedure MenuItem_FieldMgr_EditClick(Sender: TObject);
     procedure MenuItem_FieldMgr_RenClick(Sender: TObject);
@@ -261,6 +265,7 @@ type
     procedure MenuItem_project_openClick(Sender: TObject);
     procedure MenuItem_project_saveasClick(Sender: TObject);
     procedure MenuItem_project_saveClick(Sender: TObject);
+    procedure MenuItem_RepeatedCheckerClick(Sender: TObject);
     procedure MenuItem_Tool_ProjectDirClick(Sender: TObject);
     procedure PageControl_NodeChange(Sender: TObject);
     procedure TabSheet_Project_AufScriptResize(Sender: TObject);
@@ -327,7 +332,8 @@ var
 
 implementation
 uses form_new_project, form_cite_trans, form_classmanager, form_import,
-     form_appearance, rtfp_field, rtfp_class, form_options;
+     form_appearance, rtfp_field, rtfp_class, form_options, form_report_tool,
+     form_repeated_checker;
 
 {$R *.lfm}
 
@@ -363,12 +369,7 @@ var filename:string;
 begin
   if not ProjectInvalid then
     begin
-      case ShowMsgYesNoCancel('打开工程','打开此工程需要关闭当前工程，是否需要保存？') of
-        'Yes':CurrentRTFP.Save;
-        'No':;
-        else exit;
-      end;
-      CurrentRTFP.Close;
+      if not CurrentRTFP.Close then exit;
     end;
   if not assigned(CurrentRTFP) then
     begin
@@ -394,7 +395,7 @@ begin
     end;
   str:=TStringList.Create;
   try
-    str.LoadFromFile(filename);
+    if FileExists(filename) then str.LoadFromFile(filename);
     for stmp in str do
       begin
         if MenuItem_project_recent.Count>10 then continue;
@@ -702,6 +703,13 @@ begin
   CurrentRTFP.Save;
 end;
 
+procedure TFormDesktop.MenuItem_RepeatedCheckerClick(Sender: TObject);
+begin
+  if ProjectInvalid then exit;
+  FormRepeatedChecker.ShowModal;
+  SetFocus;
+end;
+
 procedure TFormDesktop.MenuItem_Tool_ProjectDirClick(Sender: TObject);
 begin
   if ProjectInvalid then exit;
@@ -924,6 +932,11 @@ begin
   ClassManagerForm.ShowModal;//ClassManagerForm.show;
 end;
 
+procedure TFormDesktop.MenuItem_DBGC_TitleClick(Sender: TObject);
+begin
+  Clipboard.AsText:=(Sender as TMenuItem).Caption;
+end;
+
 procedure TFormDesktop.MenuItem_DeletePaperClick(Sender: TObject);
 begin
   if ProjectInvalid then exit;
@@ -931,6 +944,12 @@ begin
     'Yes':CurrentRTFP.DeletePaper(Selected_PID);
     else exit;
   end;
+end;
+
+procedure TFormDesktop.MenuItem_ExportToolClick(Sender: TObject);
+begin
+  FormReportTool.ShowModal;
+  SetFocus;
 end;
 
 procedure TFormDesktop.MenuItem_FieldMgr_DelClick(Sender: TObject);
@@ -1125,6 +1144,7 @@ begin
       Self.EventLink(CurrentRTFP);
       CurrentRTFP.Open(UTF8ToWinCP(ParamStr(1)));
     end;
+
 end;
 
 procedure TFormDesktop.FormDropFiles(Sender: TObject;
@@ -1265,7 +1285,7 @@ begin
     //Button_AddFieldClick中使用nil作为参数调用则不需要再询问
   end else begin
     case ShowMsgYesNoAll('创建属性组','是否创建名为“'+GroupName+'”的属性组？') of
-      'Yes':CurrentRTFP.AddAttrs(GroupName);
+      'Yes':if CurrentRTFP.AddAttrs(GroupName)=nil then ShowMsgOK('警告','属性组创建失败');
       else exit;
     end;
   end;
@@ -1333,10 +1353,10 @@ begin
     end;
   end;
   if confirmed then begin
-    CurrentRTFP.AddField(FieldName,GroupName,ChosenFieldType);
+    if CurrentRTFP.AddField(FieldName,GroupName,ChosenFieldType)=nil then ShowMsgOK('警告','字段列创建失败');
   end else begin
     case ShowMsgYesNoAll('创建字段列('+fieldclassname+')','是否在属性组“'+GroupName+'”中创建名为“'+FieldName+'”的字段列？') of
-      'Yes':CurrentRTFP.AddField(FieldName,GroupName,ChosenFieldType);
+      'Yes':if CurrentRTFP.AddField(FieldName,GroupName,ChosenFieldType)=nil then ShowMsgOK('警告','字段列创建失败');
       else exit;
     end;
   end;
@@ -1350,6 +1370,7 @@ begin
   if Edit_AddKlass.Caption='' then exit;
   klassname:=ExtractFileName(Edit_AddKlass.Caption);
   klasspath:=ExtractFilePath(Edit_AddKlass.Caption);
+  klasspath:=StringReplace(klasspath,'/','\',[rfReplaceAll]);
   if length(klassname)>40 then begin
     ShowMsgOK('警告','分类名称长度不能大于40个字节');
     exit;
@@ -1364,7 +1385,7 @@ begin
       exit;
     end;
   case ShowMsgYesNoAll('创建分类','是否创建名为“'+Edit_AddKlass.Caption+'”的分类？') of
-    'Yes':CurrentRTFP.AddKlass(klassname,klasspath);
+    'Yes':if CurrentRTFP.AddKlass(klassname,klasspath)=nil then ShowMsgOK('警告','分组创建失败');
     else exit;
   end;
 end;
@@ -1424,7 +1445,9 @@ begin
   //温和的筛选方式
   if ProjectInvalid then exit;
   MainGridValidate(CurrentRTFP);
+  if FShowWaitForm then FWaitForm.Show;
   CurrentRTFP.TableFilter(Edit_DBGridMain_Filter.Caption);
+  if FShowWaitForm then FWaitForm.Hide;
 end;
 
 procedure TFormDesktop.Button_NodeViewRecoverClick(Sender: TObject);

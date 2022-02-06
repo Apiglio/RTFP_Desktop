@@ -9,7 +9,8 @@ uses
   Interfaces, // this includes the LCL widgetset
   Forms, lnetvisual, {pack_powerpdf, }RTFP_main,{ dbflaz, memdslaz,}
   form_new_project, form_cite_trans, form_import, lazcontrols,
-  form_classmanager, form_appearance, form_options;
+  form_classmanager, form_appearance, form_options, form_report_tool,
+  form_repeated_checker;
 
 {$R *.res}
 
@@ -23,6 +24,8 @@ begin
   Application.CreateForm(TClassManagerForm, ClassManagerForm);
   Application.CreateForm(TAppearanceForm, AppearanceForm);
   Application.CreateForm(TFormOptions, FormOptions);
+  Application.CreateForm(TFormReportTool, FormReportTool);
+  Application.CreateForm(TFormRepeatedChecker, FormRepeatedChecker);
   Application.Run;
 end.
 

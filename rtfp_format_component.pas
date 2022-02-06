@@ -246,7 +246,8 @@ begin
   FPopupMenu.Items[4].OnClick:=nil;
   FPopupMenu.Items[5].Caption:='压缩图片';
   FPopupMenu.Items[5].OnClick:=@CompressPicture;
-  //OnMouseUp:=@FmtMouseUp;
+  //FImage.OnMouseUp:=@FmtMouseUp;
+  FImage.OnDblClick:=@OpenPicture;
   PopupMenu:=FPopupMenu;
 end;
 destructor TFmtImage.Destroy;
@@ -274,7 +275,7 @@ begin
   end;
   case FClass.ClassName of
     'TEdit':FComponent:=TEdit.Create(Self);
-    'TMemo':FComponent:=TMemo.Create(Self);
+    'TMemo':begin FComponent:=TMemo.Create(Self);TMemo(FComponent).ScrollBars:=ssAutoVertical;end;
     'TComboBox':FComponent:=TComboBox.Create(Self);
     'TCheckBox':FComponent:=TCheckBox.Create(Self);
     'TFmtImage':FComponent:=TFmtImage.Create(Self);
@@ -303,7 +304,6 @@ begin
     TWinControl(FComponent).Parent:=Self
   else begin
     TFmtImage(FComponent).Parent:=Self;
-    //
   end;
 
   Self.Resize;

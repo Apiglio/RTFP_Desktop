@@ -3,14 +3,16 @@
 //年表功能要考虑增加了
 //网页下载要研究一下JS
 //字段更新日志
-//尽快增加Picture Attachment和剪贴板输入
+//尽快增加Picture Attachment和剪贴板输入(在做了)
 //增加文献节点文件名格式化功能
 //增刊期数的导入有问题，摘要的逗号导致换行
 //Memo字段的搜索
 //统一NodeEdit部分的编辑保存询问，下方的几个Tab共用一套Modified
-//尽快将所有弹窗统一样式
+//尽快将所有弹窗统一样式（在做了，有点小问题，按键中文或者自动布局还没有处理好）
 //TKlass准备增加一个TKlassGroup类，和Attrs一样格式，这样才能保证ACL_ListView可以不重新折叠
 //重新创建删除的字段会出现错误(中间没有保存导致的)
+//FormatEdit的管理
+//SimilarChk的进度条和ListView的协调好像不够
 
 
 
@@ -52,6 +54,12 @@ type
   TablesUse = set of byte;
   TAddPaperMethod = (apmFullBackup,apmAddress,apmWebsite,apmReference);
   //几种文档入库方式: 复制备份/本地链接/网址链接/数据入库
+
+  TSimChkOption = (scoFileName,scoTitle,scoFileHash,scoWeblnk,scoDOI,
+                   scoEqual,scoContain,scoHalffit,                     //匹配模式：完全相等、包含和半长度匹配
+                   scoDB,scoDS);                                       //匹配总体：PaperDB、PaperDS
+
+  TSimChkOptions = set of TSimChkOption;
 
 
   AttrsError=class(Exception)
@@ -103,6 +111,10 @@ type
     function GetOpenPdfExe:ansistring;
     function GetOpenCajExe:ansistring;
 
+    function GetPaperCount:integer;
+    function GetBackupPaperCount:integer;
+    function GetExternPaperCount:integer;
+    function GetWeblnkPaperCount:integer;
 
   public
     //工程基本属性
@@ -118,6 +130,12 @@ type
     property FormatList:TStringList read FFormatList;
     property KlassList:TKlassList read FKlassList;
     property FieldList:TAttrsGroupList read FFieldList;
+
+    property CountPaper:integer read GetPaperCount;
+    property CountBackupPaper:integer read GetBackupPaperCount;
+    property CountExternPaper:integer read GetExternPaperCount;
+    property CountWeblnkPaper:integer read GetWeblnkPaperCount;
+
 
   private
     procedure SetPaths(filename:string);
@@ -233,6 +251,11 @@ type
     function FindPaper(fullfilename:string):RTFP_ID;//查找具体文件在工程中的PID，未找到返回000000
     function DeletePaper(PID:RTFP_ID):boolean;//移除指定PID的文献
     function UpdatePaper(PID:RTFP_ID;fullfilename:string;AddPaperMethod:TAddPaperMethod):boolean;//更新指定PID的文件
+
+    procedure GetPIDList(AList:TStrings);
+    procedure GetPIDList_DS(AList:TStrings);
+    procedure GetSimilarPIDList(AList:TStrings;ASimChkOption:TSimChkOptions;PB:TProgressBar=nil);
+    function GetPaperAttrs(AFieldName:string;PID:RTFP_ID):string;
 
     procedure OpenPaper(PID:RTFP_ID;exename:string='');
     procedure OpenPaperAsPDF(PID:RTFP_ID);inline;
@@ -402,6 +425,9 @@ type
     class function GetDateDir:string;inline;
 
     class function IsProjectFile(filename:ansistring):boolean;
+    class function IsKlassName(klassname:ansistring):boolean;
+    class function IsAttrsName(attrsname:ansistring):boolean;
+    class function IsFieldName(fieldname:ansistring):boolean;
     class function IsRTFPID(PID:string):boolean;
 
     class function FieldMinWidth(AFieldDef:TFieldDef):integer;
@@ -864,9 +890,11 @@ begin
   if not AAuf.TryArgToString(1,check) then exit;
   if not AAuf.TryArgToString(2,target) then exit;
 
-  if TRTFP.VersionCheck(check,target) then
-  AufScpt.writeln('T') else AufScpt.writeln('F');
+  //if TRTFP.VersionCheck(check,target) then
+  //AufScpt.writeln('T') else AufScpt.writeln('F');
   //
+
+  AufScpt.writeln(LongestCommonSubString(check,target));
 
 end;
 
@@ -958,6 +986,7 @@ begin
 
   FUserList:=TStringList.Create;
   FFormatList:=TStringList.Create;
+  FFormatList.Sorted:=true;
 
   FFilePath:='';
   FFileName:='';
@@ -1176,6 +1205,8 @@ end;
 function TRTFP.AddAttrs(AName:string):TAttrsGroup;
 var tmp:TAttrsGroup;
 begin
+  result:=nil;
+  if not TRTFP.IsAttrsName(AName) then exit;
   if FFieldList.FindItemIndexByName(AName)>=0 then exit;
   tmp:=FFieldList.AddEx('attr\'+AName,AName);
   if not OpenDbf(tmp.FullPath,tmp.Dbf) then begin
@@ -1216,6 +1247,9 @@ function TRTFP.AddField(AName:string;AAttrsName:string;AType:TFieldType{;ASize:w
 var tmpAG:TAttrsGroup;
     tmpAF:TAttrsField;
 begin
+  result:=nil;
+  if not TRTFP.IsAttrsName(AAttrsName) then exit;
+  if not TRTFP.IsFieldName(AName) then exit;
   tmpAG:=FindAttrs(AAttrsName);
   if tmpAG=nil then tmpAG:=AddAttrs(AAttrsName);
   tmpAF:=tmpAG.FieldList.FindItemByName(AName);
@@ -1235,7 +1269,7 @@ begin
       tmpAG.AddField(Dbf.FieldDefs.Find(AName));//LoadFieldListFromDbf;
       FieldChange;
     end;
-  result:=tmpAF;
+  result:=tmpAG.FieldList.FindItemByName(AName);
 end;
 
 function TRTFP.FindField(AName:string;AAttrsName:string):TAttrsField;
@@ -1630,9 +1664,9 @@ begin
       else exit;
     end;
   tmpField:=GetField(AName,AAttrsName,PID,not (aeFailIfNoPID in AE));
-  if tmpField<>nil then
-    buf.CommaText:=tmpField.AsString
-  else begin
+  if tmpField<>nil then begin
+    buf.Text:=tmpField.AsString;
+  end else begin
     if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
   end;
 end;
@@ -1669,7 +1703,7 @@ begin
     begin
       tmpAG:=FindAttrs(AAttrsName);
       tmpAG.Dbf.Edit;
-      tmpField.AsString:=buf.CommaText;
+      tmpField.AsString:=buf.Text;
       tmpAG.Dbf.Post;
       DataChange;
     end
@@ -1819,6 +1853,8 @@ end;
 function TRTFP.AddKlass(klassname:string;pathname:string='\'):TKlass;
 var tmp:TKlass;
 begin
+  result:=nil;
+  if not TRTFP.IsKlassName(klassname) then exit;
   if FKlassList.FindItemIndexByName(klassname)>=0 then exit;
   tmp:=FKlassList.AddEx('class\'+pathname+'\'+klassname,klassname);
   ForceDirectories(FFilePath+FRootFolder+'\class\'+pathname);
@@ -1840,6 +1876,7 @@ var index,recNumber:integer;
     tmp:TKlass;
     PID:RTFP_ID;
     str:TStringList;
+    attrs_modified:boolean;
 begin
   index:=FKlassList.FindItemIndexByName(klassname);
   if index<0 then exit;
@@ -1847,11 +1884,13 @@ begin
 
   str:=TStringList.Create;
   str.Sorted:=true;
+  attrs_modified:=false;
   BeginUpdate;
   try
     with tmp.Dbf do begin
       if not Active then Open;
       First;
+      if not EOF then attrs_modified:=true;
       while not EOF do
         begin
           PID:=FieldByName(_Col_PID_).AsString;
@@ -1869,6 +1908,7 @@ begin
   DeleteDbf(tmp.FullPath,tmp.Dbf);
   FKlassList.Delete(index);
   ClassChange;
+  if attrs_modified then DataChange;
 end;
 
 
@@ -2203,16 +2243,18 @@ end;
 
 procedure TRTFP.LoadFormatList;
 var str:TStringList;
+    tmp:integer;
 begin
-  with FFormatList do try
-    begin
+  with FFormatList do begin
+    try
       Clear;
       LoadFromFile(Self.FFilePath+Self.FRootFolder+'\format.dat');
+    except
+      //
     end;
-  except
-    Clear;
-    Add('default.fmt');
+    if not Find('default.fmt',tmp) then Add('default.fmt');
   end;
+
   if not FileExists(Self.FFilePath+Self.FRootFolder+'\format\default.fmt') then
     begin
       str:=TStringList.Create;
@@ -2811,6 +2853,172 @@ begin
   result:=true;
 end;
 
+procedure TRTFP.GetPIDList(AList:TStrings);
+begin
+  with FPaperDB do
+    begin
+      if not Active then Open;
+      First;
+      while not EOF do
+        begin
+          AList.Add(FieldByName(_Col_PID_).AsString);
+          Next;
+        end;
+    end;
+end;
+procedure TRTFP.GetPIDList_DS(AList:TStrings);
+var bm:TBookMark;
+begin
+  with FPaperDS do
+    begin
+      BeginUpdate;
+      bm:=Bookmark;
+      First;
+      while not EOF do
+        begin
+          AList.Add(FieldByName(_Col_PID_).AsString);
+          Next;
+        end;
+      GotoBookmark(bm);
+      EndUpdate;
+    end;
+end;
+procedure TRTFP.GetSimilarPIDList(AList:TStrings;ASimChkOption:TSimChkOptions;PB:TProgressBar=nil);
+var PIDs,lst1,lst2:TStringList;
+    id1,id2:RTFP_ID;
+    stmp:string;
+    index,pi:integer;
+    function EqualCompare:boolean;
+    var s1,s2:string;
+    begin
+      result:=true;
+      for s1 in lst1 do
+        for s2 in lst2 do
+          if s1=s2 then exit;
+      result:=false;
+    end;
+    function ContainCompare:boolean;
+    var s1,s2:string;
+    begin
+      result:=true;
+      for s1 in lst1 do
+        for s2 in lst2 do
+          if (pos(s1,s2)>0) or (pos(s2,s1)>0) then exit;
+      result:=false;
+    end;
+    function HalffitCompare:boolean;
+    var s1,s2:string;
+        len1,len2,len:integer;
+    begin
+      result:=true;
+      for s1 in lst1 do for s2 in lst2 do
+        begin
+          len:=length(LongestCommonSubString(s1,s2));
+          len1:=length(s1) div 2;
+          len2:=length(s2) div 2;
+          if (len>len1) and (len>len2) then exit;
+        end;
+      result:=false;
+    end;
+
+begin
+  PIDs:=TStringList.Create;
+  lst1:=TStringList.Create;
+  lst2:=TStringList.Create;
+  with FPaperDB do if not Active then Open;
+  try
+    if scoDB in ASimChkOption then GetPIDList(PIDs)
+    else {if scoDS in ASimChkOption then }GetPIDList_DS(PIDs);
+    if PB<>nil then begin
+      PB.Max:=PIDs.Count*PIDs.Count div 2;
+      PB.Position:=0;
+    end;
+    pi:=0;
+    for id1 in PIDs do
+      begin
+        for id2 in PIDs do
+          begin
+            inc(pi);
+            if PB<>nil then begin
+              PB.Position:=pi;
+              Application.ProcessMessages;
+            end;
+            if id1=id2 then break;
+            lst1.Clear;
+            lst2.Clear;
+            if scoFileName in ASimChkOption then
+              begin
+                FPaperDB.IndexName:='id';
+                if not FPaperDB.SearchKey(id1,stEqual) then continue;
+                lst1.Add(FPaperDB.FieldByName(_Col_Paper_FileName_).AsString);
+                if not FPaperDB.SearchKey(id2,stEqual) then continue;
+                lst2.Add(FPaperDB.FieldByName(_Col_Paper_FileName_).AsString);
+              end;
+            if scoFileHash in ASimChkOption then
+              begin
+                FPaperDB.IndexName:='id';
+                if not FPaperDB.SearchKey(id1,stEqual) then continue;
+                lst1.Add(FPaperDB.FieldByName(_Col_Paper_FileHash_).AsString);
+                if not FPaperDB.SearchKey(id2,stEqual) then continue;
+                lst2.Add(FPaperDB.FieldByName(_Col_Paper_FileHash_).AsString);
+              end;
+            if scoTitle in ASimChkOption then
+              begin
+                lst1.Add(ReadFieldAsString(_Col_basic_Title_,_Attrs_Basic_,id1,[]));
+                lst2.Add(ReadFieldAsString(_Col_basic_Title_,_Attrs_Basic_,id2,[]));
+              end;
+            if scoWeblnk in ASimChkOption then
+              begin
+                lst1.Add(ReadFieldAsString(_Col_basic_Link_,_Attrs_Basic_,id1,[]));
+                lst2.Add(ReadFieldAsString(_Col_basic_Link_,_Attrs_Basic_,id2,[]));
+              end;
+            if scoDOI in ASimChkOption then
+              begin
+                lst1.Add(ReadFieldAsString(_Col_basic_doi_,_Attrs_Basic_,id1,[]));
+                lst2.Add(ReadFieldAsString(_Col_basic_doi_,_Attrs_Basic_,id2,[]));
+              end;
+            lst1.Sorted:=true;
+            lst2.Sorted:=true;
+            while lst1.Find('',index) do lst1.Delete(index);
+            while lst2.Find('',index) do lst2.Delete(index);
+            //ShowMessageFmt('lst1[%d],lst2[%d]',[lst1.Count,lst2.Count]);
+            if scoEqual in ASimChkOption then
+              begin
+                if EqualCompare then AList.Add(id1+'-'+id2);
+              end
+            else if scoContain in ASimChkOption then
+              begin
+                if ContainCompare then AList.Add(id1+'-'+id2);
+              end
+            else {if scoHalffit in ASimChkOption then}
+              begin
+                if HalffitCompare then AList.Add(id1+'-'+id2);
+              end;
+          end;
+      end;
+    if PB<>nil then PB.Position:=PB.Max;
+  finally
+    PIDs.Free;
+    lst1.Free;
+    lst2.Free;
+  end;
+
+end;
+
+function TRTFP.GetPaperAttrs(AFieldName:string;PID:RTFP_ID):string;
+begin
+  with FPaperDB do
+    begin
+      if not Active then Open;
+      IndexName:='id';
+      if SearchKey(PID,stEqual) then
+        begin
+          result:=FieldByName(AFieldName).AsString;
+        end
+      else result:='';
+    end;
+end;
+
 procedure TRTFP.OpenPaper(PID:RTFP_ID;exename:string='');
 var filename:string;
 begin
@@ -3158,8 +3366,7 @@ begin
           'Period-期','Period','期':FieldByName(_Col_basic_Issue_).AsString:=attr;
           'Roll-卷','Roll','卷':FieldByName(_Col_basic_Volume_).AsString:=attr;
           'Keyword-关键词','Keyword','关键词':FieldByName(_Col_basic_Keyword_).AsString:=attr;
-          'Summary-摘要','Summary','摘要','Summary-快照','快照':
-            FieldByName(_Col_basic_Summary_).AsString:=attr;
+          'Summary-摘要','Summary','摘要','Summary-快照','快照':FieldByName(_Col_basic_Summary_).AsString:=attr;
           'PageCount-页数','PageCount','页数':FieldByName(_Col_basic_PageCount_).AsString:=attr;
           'Page-页码','Page','页码':FieldByName(_Col_basic_Page_).AsString:=attr;
           //'SrcDatabase-来源库':FieldByName(_Col_basic_来源库_).AsString:=attr;
@@ -4217,6 +4424,50 @@ begin
     end;
 end;
 
+function TRTFP.GetPaperCount:integer;
+begin
+  with FPaperDB do begin
+    if not Active then Open;
+    result:=RecordCount;
+  end;
+end;
+function TRTFP.GetBackupPaperCount:integer;
+begin
+  result:=0;
+  with FPaperDB do begin
+    if not Active then Open;
+    First;
+    while not EOF do begin
+      if FieldByName(_Col_Paper_Is_Backup_).AsBoolean then inc(result);
+      Next;
+    end;
+  end;
+end;
+function TRTFP.GetExternPaperCount:integer;
+begin
+  result:=0;
+  with FPaperDB do begin
+    if not Active then Open;
+    First;
+    while not EOF do begin
+      if FieldByName(_Col_Paper_Folder_).AsString='extern' then inc(result);
+      Next;
+    end;
+  end;
+end;
+function TRTFP.GetWeblnkPaperCount:integer;
+begin
+  result:=0;
+  with FPaperDB do begin
+    if not Active then Open;
+    First;
+    while not EOF do begin
+      if FieldByName(_Col_Paper_Folder_).AsString='weblnk' then inc(result);
+      Next;
+    end;
+  end;
+end;
+
 class function TRTFP.NumToID(Num:dword):RTFP_ID;
 begin
   result:='';
@@ -4286,6 +4537,51 @@ begin
     po:=pos('.',ext);
   until po<=0;
   if lowercase(ext)='rtfp' then result:=true;
+end;
+class function TRTFP.IsKlassName(klassname:ansistring):boolean;
+var acc:integer;
+begin
+  result:=false;
+  acc:=0;
+  if klassname='' then exit;
+  while klassname<>'' do
+    begin
+      if not (klassname[1] in ['a'..'z','A'..'Z','0'..'9',#128..#255,#32,'(',')','_','-','&','+',':','"','''']) then exit;
+      inc(acc);
+      if acc>40 then exit;
+      delete(klassname,1,1);
+    end;
+  result:=true;
+end;
+class function TRTFP.IsAttrsName(attrsname:ansistring):boolean;
+var acc:integer;
+begin
+  result:=false;
+  acc:=0;
+  if attrsname='' then exit;
+  while attrsname<>'' do
+    begin
+      if not (attrsname[1] in ['a'..'z','A'..'Z','0'..'9',#128..#255,'_','-']) then exit;
+      inc(acc);
+      if acc>20 then exit;
+      delete(attrsname,1,1);
+    end;
+  result:=true;
+end;
+class function TRTFP.IsFieldName(fieldname:ansistring):boolean;
+var acc:integer;
+begin
+  result:=false;
+  acc:=0;
+  if fieldname='' then exit;
+  while fieldname<>'' do
+    begin
+      if not (fieldname[1] in ['a'..'z','A'..'Z','0'..'9',#128..#255,'_','-']) then exit;
+      inc(acc);
+      if acc>12 then exit;
+      delete(fieldname,1,1);
+    end;
+  result:=true;
 end;
 
 class function TRTFP.IsRTFPID(PID:string):boolean;
