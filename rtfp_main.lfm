@@ -631,6 +631,7 @@ object FormDesktop: TFormDesktop
         BorderSpacing.Right = 5
         BorderSpacing.Bottom = 5
         Caption = '提交修改'
+        OnClick = Button_FormatEditPostClick
         TabOrder = 1
       end
       object Button_FormatEditRecover: TButton
@@ -648,6 +649,7 @@ object FormDesktop: TFormDesktop
         BorderSpacing.Left = 5
         BorderSpacing.Bottom = 5
         Caption = '重置修改'
+        OnClick = Button_FormatEditRecoverClick
         TabOrder = 2
       end
       object Button_FormatEditLock: TButton
@@ -665,6 +667,7 @@ object FormDesktop: TFormDesktop
         BorderSpacing.Left = 5
         BorderSpacing.Bottom = 5
         Caption = '锁定'
+        OnClick = Button_FormatEditLockClick
         TabOrder = 3
       end
     end

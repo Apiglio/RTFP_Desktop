@@ -313,6 +313,9 @@ type
     property each_attrs:TAttrsGroupList read FFieldList;
 
   public //连接显示
+
+    procedure UpdatePIDExpr(PID:RTFP_ID;AufScpt:TAufScript);
+
     procedure ProjectPropertiesValidate(AValueListEditor:TValueListEditor);
     procedure ProjectPropertiesDataPost(AValueListEditor:TValueListEditor);
 
@@ -336,8 +339,8 @@ type
     procedure FormatEditBuild(AScrollBox:TScrollBox;AFormat:string);
     procedure FormatEditBuild(AScrollBox:TScrollBox;AFormat:TStrings);
     procedure FormatEditClear(AScrollBox:TScrollBox);
-    procedure FormatEditValidate(AScrollBox:TScrollBox;PID:string);
-    procedure FormatEditDataPost(AScrollBox:TScrollBox;PID:string);
+    procedure FormatEditValidate(PID:string);
+    procedure FormatEditDataPost(PID:string);
 
 
   private
@@ -698,6 +701,29 @@ begin
   AufScpt.writeln('字段删除成功。');
 end;
 
+procedure aufunc_RebuildFormatEdit(Sender:TObject);
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    filename:string;
+    str:TStringList;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(2) then exit;
+  if not AAuf.TryArgToString(1,filename) then exit;
+  filename:=CurrentRTFP.FFilePath+CurrentRTFP.FRootFolder+'\format\'+filename;
+  if FileExists(filename) then begin
+    str:=TStringList.Create;
+    try
+      str.LoadFromFile(filename);
+      CurrentRTFP.FormatEditClear(FormDesktop.ScrollBox_Node_FormatEdit);
+      CurrentRTFP.FormatEditBuild(FormDesktop.ScrollBox_Node_FormatEdit,str);
+      AufScpt.writeln('成功加载'+filename+'布局文件。');
+    finally
+      str.Free;
+    end;
+  end else AufScpt.writeln('未找到'+filename+'布局文件！');
+end;
 
 
 procedure aufunc_newPaperId(Sender:TObject);
@@ -875,7 +901,8 @@ begin
 
     Script.add_func('update.begin',@aufunc_BeginUpdate,'filename','开始更新模式');
     Script.add_func('update.end',@aufunc_EndUpdate,'filename','结束更新模式');
-
+    //Script.add_func('fmtcmp.rebuild',@aufunc_RebuildFormatEdit,'filename','从filename中加载FormatEdit布局');
+    //把FmtCmp改掉，取消泛型
 
     Script.add_func('hash',@aufunc_FileHash,'filename','返回FileHash');
     Script.add_func('save',@aufunc_save,'','强制保存');
@@ -3184,6 +3211,10 @@ begin
   end;
 end;
 
+procedure TRTFP.UpdatePIDExpr(PID:RTFP_ID;AufScpt:TAufScript);
+begin
+  AufScpt.Expression.Global.TryAddExp('CPID',narg('"',PID,'"'));
+end;
 
 procedure TRTFP.ProjectPropertiesValidate(AValueListEditor:TValueListEditor);
 begin
@@ -3648,11 +3679,17 @@ begin
   str:=TStringList.Create;
   if AFormat<>'test' then str.Add(AFormat)
   else begin
-    str.Add('edit '+_Attrs_Basic_+','+_Col_basic_Title_+',标题,10,50,0,2');
-    str.Add('edit '+_Attrs_Basic_+','+_Col_basic_Author_+',作者,70,50,0,1');
-    str.Add('edit '+_Attrs_Basic_+','+_Col_basic_Year_+',年份,70,50,1,2');
-    str.Add('edit '+_Attrs_Basic_+','+_Col_basic_Keyword_+',关键词,130,50,0,2');
-    str.Add('memo '+_Attrs_Basic_+','+_Col_basic_Summary_+',摘要,10,170,2,4');
+    str.Add('edit '+_Attrs_Basic_+','+_Col_basic_Title_+',标题,10,50,0,2,editable');
+    str.Add('edit '+_Attrs_Basic_+','+_Col_basic_Author_+',作者,70,50,0,1,editable');
+    str.Add('edit '+_Attrs_Basic_+','+_Col_basic_Year_+',年份,70,50,1,2,editable');
+    str.Add('edit '+_Attrs_Basic_+','+_Col_basic_Keyword_+',关键词,130,50,0,2,editable');
+    str.Add('memo '+_Attrs_Basic_+','+_Col_basic_Summary_+',摘要,10,170,2,4,editable');
+    str.Add('edit '+_Attrs_Basic_+','+_Col_basic_Source_+',来源,190,50,0,1,editable');
+    str.Add('edit '+_Attrs_Notes_+','+_Col_notes_Rank_+',评分,190,50,1,2,editable');
+    str.Add('check '+_Attrs_Class_+','+_Col_class_Is_Read_+',是否已读,190,50,2,3,editable');
+    str.Add('edit '+_Attrs_Class_+','+_Col_class_DefaultCl_+',分类,190,50,3,4,uneditable');
+    str.Add('memo '+_Attrs_Notes_+','+_Col_notes_Comment_+',笔记,240,240,0,4,editable');
+
   end;
   Self.FormatEditBuild(AScrollBox,str);
   str.Free;
@@ -3661,7 +3698,7 @@ end;
 procedure TRTFP.FormatEditBuild(AScrollBox:TScrollBox;AFormat:TStrings);
 var Cmp:TFmtCmp;
     index:integer;
-    stmp:string;
+    stmp,is_editable:string;
     tmp:integer;
 begin
   assert(FFormatEditComponentList.Count=0,'FormatEditBuild之前需要FormatEditClear！');
@@ -3693,6 +3730,13 @@ begin
         //'':Cmp:=TFmtMemo.Create;
         else continue;
       end;
+
+      is_editable:='';
+      if Auf.ArgsCount>8 then Auf.TryArgToString(8,is_editable);
+      if lowercase(is_editable)='editable' then Cmp.Editable:=true
+      else Cmp.Editable:=false;
+
+      Add(Cmp);
       Cmp.SetAttrsName(Auf.nargs[1].arg);
       Cmp.SetFieldName(Auf.nargs[2].arg);
       Cmp.SetDisplayName(Auf.nargs[3].arg);
@@ -3730,6 +3774,7 @@ begin
         Parent:=AScrollBox;
         BeginUpdateBounds;
         Anchors:=[akTop,akLeft,akRight];
+        Enabled:=Cmp.Editable;
         case Auf.nargs[6].arg of
           '0':begin
                 AnchorSideLeft.Control:=AScrollBox;
@@ -3794,14 +3839,45 @@ begin
       end;
 end;
 
-procedure TRTFP.FormatEditValidate(AScrollBox:TScrollBox;PID:string);
+procedure TRTFP.FormatEditValidate(PID:string);
+var Cmp_Index:integer;
+    FmtCmp:TFmtCmp;
+    Cmp:TComponent;
 begin
+  for Cmp_Index:=0 to FFormatEditComponentList.Count-1 do
+    begin
+      FmtCmp:=TFmtCmp(FFormatEditComponentList[Cmp_Index]);
+      Cmp:=TComponent(FmtCmp.GetComponent);
+      if Cmp is TEdit then
+        TEdit(FmtCmp.GetComponent).Caption:=ReadFieldAsString(FmtCmp.GetFieldName,FmtCmp.GetAttrsName,PID,[]);
+      if Cmp is TMemo then
+        ReadFieldAsMemo(FmtCmp.GetFieldName,FmtCmp.GetAttrsName,PID,TMemo(FmtCmp.GetComponent).Lines,[]);
+      if Cmp is TCheckBox then
+        TCheckBox(FmtCmp.GetComponent).Checked:=ReadFieldAsBoolean(FmtCmp.GetFieldName,FmtCmp.GetAttrsName,PID,[]);
 
+    end;
 end;
 
-procedure TRTFP.FormatEditDataPost(AScrollBox:TScrollBox;PID:string);
+procedure TRTFP.FormatEditDataPost(PID:string);
+var Cmp_Index:integer;
+    FmtCmp:TFmtCmp;
+    Cmp:TComponent;
 begin
+  BeginUpdate;
+  for Cmp_Index:=0 to FFormatEditComponentList.Count-1 do
+    begin
+      FmtCmp:=TFmtCmp(FFormatEditComponentList[Cmp_Index]);
+      Cmp:=TComponent(FmtCmp.GetComponent);
+      if not FmtCmp.Editable then continue;
+      if Cmp is TEdit then
+        EditFieldAsString(FmtCmp.GetFieldName,FmtCmp.GetAttrsName,PID,TEdit(FmtCmp.GetComponent).Caption,[aeForceEditIfTypeDismatch]);
+      if Cmp is TMemo then
+        EditFieldAsMemo(FmtCmp.GetFieldName,FmtCmp.GetAttrsName,PID,TMemo(FmtCmp.GetComponent).Lines,[aeForceEditIfTypeDismatch]);
+      if Cmp is TCheckBox then
+        EditFieldAsBoolean(FmtCmp.GetFieldName,FmtCmp.GetAttrsName,PID,TCheckBox(FmtCmp.GetComponent).Checked,[aeForceEditIfTypeDismatch]);
 
+    end;
+  EndUpdate;
 end;
 
 procedure TRTFP.SetUser(str:string);

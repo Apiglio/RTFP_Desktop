@@ -15,7 +15,7 @@ uses
   RTFP_definition, rtfp_constants, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.1.1-alpha.15';//如果增加了CheckAttrs的机制，请改成0.1.2
+  C_VERSION_NUMBER  = '0.1.1-alpha.16';//如果增加了CheckAttrs的机制，请改成0.1.2
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -137,6 +137,9 @@ type
       );
     procedure Button_FmtCmt_PostClick(Sender: TObject);
     procedure Button_FmtCmt_RecoverClick(Sender: TObject);
+    procedure Button_FormatEditLockClick(Sender: TObject);
+    procedure Button_FormatEditPostClick(Sender: TObject);
+    procedure Button_FormatEditRecoverClick(Sender: TObject);
     procedure Button_MainFilterClick(Sender: TObject);
     procedure Button_NodeViewAddAttrClick(Sender: TObject);
     procedure Button_NodeViewPostClick(Sender: TObject);
@@ -420,6 +423,7 @@ begin
   if PID='000000' then exit;
   StatusBar.Panels[0].Text:=PID;
   StatusBar.Panels[1].Text:=Selected_FileName;
+  CurrentRTFP.UpdatePIDExpr(PID,Self.Frame_AufScript1.Auf.Script);
 
   //节点字段
   //ValueListEditor_NodeView.Clear;
@@ -441,6 +445,12 @@ begin
     Label_FmtCmtPID.Caption:=PID;
     Button_FmtCmt_Post.Enabled:=false;
   end;
+
+  //FormatEdit
+  CurrentRTFP.FormatEditValidate(PID);
+  //类似于FmtCmt的保存询问机制需要覆盖所有的节点编辑选项卡
+
+
 end;
 
 procedure TFormDesktop.NodeViewDataPost;
@@ -642,6 +652,7 @@ begin
   Self.Frame_AufScript1.AufGenerator;
   AufScriptFuncDefineRTFP(Self.Frame_AufScript1.Auf);
   Self.Frame_AufScript1.HighLighterReNew;
+  CurrentRTFP.UpdatePIDExpr('000000',Self.Frame_AufScript1.Auf.Script);
 
   LocalPath:=ExtractFilePath(ParamStr(0));
 
@@ -810,6 +821,21 @@ begin
     fieldNa:=ComboBox_FieldName.Items[ComboBox_FieldName.ItemIndex];
     CurrentRTFP.FmtCmtValidate(PID,attrNa,fieldNa,Memo_FmtCmt);
   end;
+end;
+
+procedure TFormDesktop.Button_FormatEditLockClick(Sender: TObject);
+begin
+  ///
+end;
+
+procedure TFormDesktop.Button_FormatEditPostClick(Sender: TObject);
+begin
+  CurrentRTFP.FormatEditDataPost(Selected_PID);
+end;
+
+procedure TFormDesktop.Button_FormatEditRecoverClick(Sender: TObject);
+begin
+  CurrentRTFP.FormatEditValidate(Selected_PID);
 end;
 
 procedure TFormDesktop.Button_MainFilterClick(Sender: TObject);

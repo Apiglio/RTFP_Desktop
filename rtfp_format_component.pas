@@ -1,3 +1,5 @@
+//推荐取消泛型，改用指针
+
 unit rtfp_format_component;
 
 {$mode objfpc}{$H+}
@@ -12,6 +14,7 @@ type
   TFmtCmp = class
   public
     TitleLabel:TLabel;
+    FEditable:boolean;
   public
     function GetAttrsName:string;virtual;abstract;
     function GetFieldName:string;virtual;abstract;
@@ -24,6 +27,7 @@ type
   public
     constructor Create;virtual;
     destructor Destroy;virtual;
+    property Editable:boolean read FEditable write FEditable;
   end;
 
   generic TFmtComponent<T>=class(TFmtCmp)
@@ -56,6 +60,13 @@ type
   TFmtSplitter = specialize TFmtComponent<TSplitter>;
   //TFmt = specialize TFmtComponent<T>;
 
+  RTFP_ID_Exchange = string;
+
+
+  //procedure FmtCmpGetLoadFromDB(PID:RTFP_ID_Exchange;Cmp:TFmtCmp);
+  //procedure FmtCmpSetSaveToDB(PID:RTFP_ID_Exchange;Cmp:TFmtCmp);
+
+
 
 implementation
 
@@ -63,10 +74,12 @@ constructor TFmtCmp.Create;
 begin
   inherited Create;
   TitleLabel:=TLabel.Create(nil);
+  FEditable:=true;
 end;
 
 destructor TFmtCmp.Destroy;
 begin
+  TitleLabel.Parent:=nil;
   TitleLabel.Free;
   inherited Destroy;
 end;
@@ -81,7 +94,8 @@ end;
 
 destructor TFmtComponent.Destroy;
 begin
-  TObject(FComponent).Free;
+  TWinControl(FComponent).Parent:=nil;
+  TComponent(FComponent).Free;
   inherited Destroy;
 end;
 
