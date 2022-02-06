@@ -215,16 +215,16 @@ begin
         if CurrentRTFP.FindPaper(FFileNames[pi]) = '000000' then
           begin
             if CheckBox_UpdatePaper.Checked then begin
-              if pi=0 then
-                newPID:=FormDesktop.Selected_PID
-              else
-                newPID:='000000';
-              if newPID<>'000000' then CurrentRTFP.UpdatePaper(newPID,FFileNames[pi]);
+              if pi=0 then newPID:=FormDesktop.Selected_PID else newPID:='000000';
+              if newPID<>'000000' then begin
+                if CheckBox_AddPaperMethod.Checked then CurrentRTFP.UpdatePaper(newPID,FFileNames[pi],apmFullBackup)
+                else CurrentRTFP.UpdatePaper(newPID,FFileNames[pi],apmAddress);
+              end;
             end else begin
               if CheckBox_AddPaperMethod.Checked then
                 newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmFullBackup)
               else
-                newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmReference);
+                newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmAddress);
             end;
             if newPID<>'000000' then begin
               CheckListBox_ImportFileNames.Items[pi].SubItems[0]:='导入成功';

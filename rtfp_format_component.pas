@@ -11,6 +11,53 @@ uses
 
 type
 
+  TFormatEditPanel = class(TPanel)
+  private
+    FComponent:Pointer;
+    FLabel:TLabel;
+    FClass:TClass;
+
+    FDisplayName,FAttrsName,FFieldName:string;
+    FEditable:boolean;
+  public
+    constructor Create(CmpClass:TClass);
+    destructor Destroy;
+
+  public
+    property TitleLabel:TLabel read FLabel;
+    property Component:Pointer read FComponent;
+    property ComponentClass:TClass read FClass;
+
+    property DisplayName:string read FDisplayName write FDisplayName;
+    property AttrsName:string read FAttrsName write FAttrsName;
+    property FieldName:string read FFieldName write FFieldName;
+
+    property Editable:boolean read FEditable write FEditable;
+
+
+  protected
+    function GetBool:boolean;
+    function GetLInt:int64;
+    function GetFloat:double;
+    function GetString:string;
+
+    function GetLines:TStrings;
+
+    procedure SetBool(value:boolean);
+    procedure SetLInt(value:int64);
+    procedure SetFloat(value:double);
+    procedure SetString(value:string);
+
+  public
+    property AsBoolean:boolean read GetBool write SetBool;
+    property AsLargeInt:int64 read GetLInt write SetLInt;
+    property AsFloat:double read GetFloat write SetFloat;
+    property AsString:string read GetString write SetString;
+    property AsMemo:TStrings read GetLines;
+
+
+  end;
+
   TFmtCmp = class
   public
     TitleLabel:TLabel;
@@ -69,6 +116,120 @@ type
 
 
 implementation
+
+
+constructor TFormatEditPanel.Create(CmpClass:TClass);
+begin
+  inherited Create(nil);
+  Self.BevelWidth:=0;
+  FClass:=CmpClass;
+  FLabel:=TLabel.Create(Self);
+  with FLabel do begin
+    Parent:=Self;
+    Height:=28;
+    Anchors:=[akTop,akLeft];
+    AnchorSideLeft.Control:=Self;
+    AnchorSideLeft.Side:=asrLeft;
+    BorderSpacing.Left:=0;
+    AnchorSideTop.Control:=Self;
+    AnchorSideTop.Side:=asrTop;
+    BorderSpacing.Top:=0;
+  end;
+  case FClass.ClassName of
+    'TEdit':FComponent:=TEdit.Create(Self);
+    'TMemo':FComponent:=TMemo.Create(Self);
+    'TComboBox':FComponent:=TComboBox.Create(Self);
+    'TCheckBox':FComponent:=TCheckBox.Create(Self);
+    else raise Exception.Create('FormatEditPanel Type Error');
+  end;
+  with TWinControl(FComponent) do begin
+    Parent:=Self;
+    Anchors:=[akTop,akLeft,akRight,akBottom];
+    AnchorSideLeft.Control:=Self;
+    AnchorSideLeft.Side:=asrLeft;
+    BorderSpacing.Left:=0;
+
+    AnchorSideTop.Control:=Self;
+    AnchorSideTop.Side:=asrTop;
+    BorderSpacing.Top:=TitleLabel.Height;
+
+    AnchorSideRight.Control:=Self;
+    AnchorSideRight.Side:=asrRight;
+    BorderSpacing.Right:=0;
+
+    AnchorSideBottom.Control:=Self;
+    AnchorSideBottom.Side:=asrBottom;
+    BorderSpacing.Bottom:=10;
+
+  end;
+  Self.Resize;
+end;
+
+destructor TFormatEditPanel.Destroy;
+begin
+  FLabel.Free;
+  case FClass.ClassName of
+    'TEdit':TEdit(FComponent).Free;
+    'TMemo':TMemo(FComponent).Free;
+    'TComboBox':TComboBox(FComponent).Free;
+    'TCheckBox':TCheckBox(FComponent).Free;
+    else raise Exception.Create('FormatEditPanel Type Error');
+  end;
+  inherited Destroy;
+end;
+
+function TFormatEditPanel.GetBool:boolean;
+begin
+  assert(FClass=TCheckBox,'非checkbox不能调用AsBoolean');
+  result:=TCheckBox(FComponent).Checked;
+end;
+function TFormatEditPanel.GetLInt:int64;
+begin
+  assert(FClass=TEdit,'非edit不能调用AsLargeInt');
+  try result:=StrToInt(TEdit(FComponent).Caption);
+  except result:=0 end;
+end;
+function TFormatEditPanel.GetFloat:double;
+begin
+  assert(FClass=TEdit,'非edit不能调用AsFloat');
+  try result:=StrToFloat(TEdit(FComponent).Caption);
+  except result:=0 end;
+end;
+function TFormatEditPanel.GetString:string;
+begin
+  assert(FClass=TEdit,'非edit不能调用AsString');
+  result:=TEdit(FComponent).Caption;
+end;
+
+function TFormatEditPanel.GetLines:TStrings;
+begin
+  assert(FClass=TMemo,'非memo不能调用AsLines');
+  result:=TMemo(FComponent).Lines;
+end;
+
+procedure TFormatEditPanel.SetBool(value:boolean);
+begin
+  assert(FClass=TCheckBox,'非checkbox不能调用AsBoolean');
+  TCheckBox(FComponent).Checked:=value;
+end;
+procedure TFormatEditPanel.SetLInt(value:int64);
+begin
+  assert(FClass=TEdit,'非edit不能调用AsLargeInt');
+  TEdit(FComponent).Caption:=IntToStr(value);
+end;
+procedure TFormatEditPanel.SetFloat(value:double);
+begin
+  assert(FClass=TEdit,'非edit不能调用AsLargeInt');
+  TEdit(FComponent).Caption:=FloatToStr(value);
+end;
+procedure TFormatEditPanel.SetString(value:string);
+begin
+  assert(FClass=TEdit,'非edit不能调用AsString');
+  TEdit(FComponent).Caption:=value;
+end;
+
+
+
 
 constructor TFmtCmp.Create;
 begin

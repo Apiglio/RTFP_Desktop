@@ -1,0 +1,33 @@
+object AppearanceForm: TAppearanceForm
+  Left = 503
+  Height = 374
+  Top = 382
+  Width = 531
+  Caption = '外观'
+  ClientHeight = 374
+  ClientWidth = 531
+  DesignTimePPI = 120
+  OnDeactivate = FormDeactivate
+  Position = poScreenCenter
+  LCLVersion = '1.8.4.0'
+  object ColorBox: TColorBox
+    Left = 16
+    Height = 26
+    Top = 144
+    Width = 144
+    ItemHeight = 20
+    OnChange = ColorBoxChange
+    TabOrder = 0
+  end
+  object TrackBar: TTrackBar
+    Left = 16
+    Height = 24
+    Top = 184
+    Width = 501
+    Max = 255
+    Min = 16
+    OnChange = TrackBarChange
+    Position = 255
+    TabOrder = 1
+  end
+end

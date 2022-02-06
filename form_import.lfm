@@ -46,10 +46,10 @@ object Form_ImportFiles: TForm_ImportFiles
     Left = 0
     Height = 522
     Top = 0
-    Width = 606
+    Width = 502
     Anchors = [akTop, akLeft, akRight, akBottom]
     ClientHeight = 522
-    ClientWidth = 606
+    ClientWidth = 502
     ParentShowHint = False
     TabOrder = 1
     object Panel_Buttons: TPanel
@@ -59,7 +59,7 @@ object Form_ImportFiles: TForm_ImportFiles
       AnchorSideTop.Side = asrCenter
       AnchorSideBottom.Control = Owner
       AnchorSideBottom.Side = asrBottom
-      Left = 12
+      Left = -40
       Height = 388
       Top = 67
       Width = 583
@@ -868,13 +868,13 @@ object Form_ImportFiles: TForm_ImportFiles
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = ProgressBar_ImportFiles
-    Left = 606
+    Left = 502
     Height = 522
     Top = 0
-    Width = 253
+    Width = 357
     Anchors = [akTop, akLeft, akRight, akBottom]
     ClientHeight = 522
-    ClientWidth = 253
+    ClientWidth = 357
     TabOrder = 2
     object PageControl_ImportFiles: TPageControl
       AnchorSideLeft.Control = Panel_R
@@ -886,7 +886,7 @@ object Form_ImportFiles: TForm_ImportFiles
       Left = 1
       Height = 480
       Top = 41
-      Width = 251
+      Width = 355
       ActivePage = TabSheet_AddPaper
       Anchors = [akTop, akLeft, akRight, akBottom]
       BorderSpacing.Top = 40
@@ -895,7 +895,7 @@ object Form_ImportFiles: TForm_ImportFiles
       object TabSheet_AddPaper: TTabSheet
         Caption = '创建文件节点'
         ClientHeight = 447
-        ClientWidth = 243
+        ClientWidth = 347
         object StaticText_ImportFileNames: TStaticText
           Left = 0
           Height = 21
@@ -910,7 +910,7 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideRight.Side = asrBottom
           AnchorSideBottom.Control = TabSheet_AddPaper
           AnchorSideBottom.Side = asrBottom
-          Left = 116
+          Left = 220
           Height = 37
           Top = 400
           Width = 117
@@ -944,7 +944,7 @@ object Form_ImportFiles: TForm_ImportFiles
           Left = 0
           Height = 357
           Top = 30
-          Width = 243
+          Width = 347
           Anchors = [akTop, akLeft, akRight, akBottom]
           BorderSpacing.Top = 30
           BorderSpacing.Bottom = 60
@@ -1009,7 +1009,7 @@ object Form_ImportFiles: TForm_ImportFiles
       AnchorSideRight.Side = asrBottom
       AnchorSideBottom.Control = Panel_R
       AnchorSideBottom.Side = asrBottom
-      Left = 180
+      Left = 284
       Height = 39
       Top = 1
       Width = 72
@@ -1022,7 +1022,7 @@ object Form_ImportFiles: TForm_ImportFiles
   object SplitterImportFilesV: TSplitter
     AnchorSideTop.Control = Owner
     AnchorSideBottom.Control = ProgressBar_ImportFiles
-    Left = 600
+    Left = 496
     Height = 522
     Top = 0
     Width = 6
