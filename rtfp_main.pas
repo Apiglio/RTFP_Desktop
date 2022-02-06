@@ -15,7 +15,7 @@ uses
   RTFP_definition, rtfp_constants, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.1.1-alpha.16';//如果增加了CheckAttrs的机制，请改成0.1.2
+  C_VERSION_NUMBER  = '0.1.1-alpha.17';//如果增加了CheckAttrs的机制，请改成0.1.2
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -59,6 +59,7 @@ type
     LvlGraphControl: TLvlGraphControl;
     MainMenu: TMainMenu;
     Memo_FmtCmt: TMemo;
+    MenuItem_option_appearance: TMenuItem;
     MenuItem_AdvOpen_PDF: TMenuItem;
     MenuItem_AdvOpen_CAJ: TMenuItem;
     MenuItem_AdvOpen_Dir: TMenuItem;
@@ -181,6 +182,7 @@ type
     procedure MenuItem_OpenDirClick(Sender: TObject);
     procedure MenuItem_OpenLinkClick(Sender: TObject);
     procedure MenuItem_option_aboutClick(Sender: TObject);
+    procedure MenuItem_option_appearanceClick(Sender: TObject);
     procedure MenuItem_project_closeClick(Sender: TObject);
     procedure MenuItem_project_newClick(Sender: TObject);
     procedure MenuItem_project_openClick(Sender: TObject);
@@ -240,7 +242,7 @@ var
   LocalPath:string;
 
 implementation
-uses form_new_project, form_cite_trans, form_classmanager, form_import,
+uses form_new_project, form_cite_trans, form_classmanager, form_import, form_appearance,
      rtfp_field, rtfp_class;
 
 {$R *.lfm}
@@ -422,7 +424,7 @@ begin
   PID:=Selected_PID;
   if PID='000000' then exit;
   StatusBar.Panels[0].Text:=PID;
-  StatusBar.Panels[1].Text:=Selected_FileName;
+  StatusBar.Panels[1].Text:=ExtractFileName(Selected_FileName);
   CurrentRTFP.UpdatePIDExpr(PID,Self.Frame_AufScript1.Auf.Script);
 
   //节点字段
@@ -625,6 +627,11 @@ begin
            + #13#10 + ' - Reading Technique For Paperwork.'
            + #13#10 + ' - Reference Tool by Free Pascal.'
            + #13#10 + ' - Read The F Paper.', mtCustom,[mbOK],0);
+end;
+
+procedure TFormDesktop.MenuItem_option_appearanceClick(Sender: TObject);
+begin
+  AppearanceForm.Show;
 end;
 
 procedure TFormDesktop.PageControl_NodeChange(Sender: TObject);

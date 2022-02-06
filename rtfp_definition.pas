@@ -1,6 +1,5 @@
 //引用PDF里的图片
 //字段选项化，进度表可以是checkboxlist的形式
-//ACL_ListView折叠属性组时，字段不会随着子项勾选的取消而关闭
 //年表功能要考虑增加了
 //网页下载要研究一下JS
 //字段更新日志
@@ -8,7 +7,6 @@
 //增加文献节点文件名格式化功能
 //增刊期数的导入有问题
 //Memo字段的搜索
-//相对路径节点创建
 
 
 
@@ -35,7 +33,7 @@ uses
   Apiglio_Useful, auf_ram_var, rtfp_pdfobj, rtfp_files, rtfp_class, rtfp_field,
   rtfp_constants,
   {$endif}
-  db, dbf, dbf_fields, sqldb, memds;
+  db, dbf, dbf_common, dbf_fields, sqldb, memds;
 
 
 type
@@ -97,8 +95,6 @@ type
 
     procedure SetTag(index:string;str:string);
     function GetTag(index:string):string;
-
-
 
 
     function GetOpenPdfExe:ansistring;
@@ -240,7 +236,7 @@ type
     function AddPaper(fullfilename:string;AddPaperMethod:TAddPaperMethod=apmFullBackup):RTFP_ID;//新增一个文献到工程
     function FindPaper(fullfilename:string):RTFP_ID;//查找具体文件在工程中的PID，未找到返回000000
     function DeletePaper(PID:RTFP_ID):boolean;//移除指定PID的文献
-    function UpdatePaper(PID:RTFP_ID;fullfilename:string):boolean;//更新指定PID的文件
+    function UpdatePaper(PID:RTFP_ID;fullfilename:string;AddPaperMethod:TAddPaperMethod):boolean;//更新指定PID的文件
 
     procedure OpenPaper(PID:RTFP_ID;exename:string='');
     procedure OpenPaperAsPDF(PID:RTFP_ID);inline;
@@ -413,7 +409,7 @@ type
     class function FileCopy(source,dest:string;bFailIfExist:boolean):boolean;//utf8的string版本
     class function FileDelete(source:string):boolean;//utf8的string版本
     class function MakeDir(filename:string):boolean;inline;
-    class function OpenDir(pathname:string):boolean;inline;
+    class function OpenDir(filename:string):boolean;inline;
     class function OpenFile(filename:string;exefile:string=''):boolean;inline;
     class function OpenLink(linkage:string):boolean;inline;
 
@@ -1291,16 +1287,12 @@ begin
   tmpAF:=FindField(AName,AAttrsName);
   if tmpAF=nil then exit;//所以没有的字段读取就会报错 nil.AsString之类的错误
   tmpAG:=FindAttrs(AAttrsName);
+
   with tmpAG.Dbf do
     begin
       if not Active then Open;
-      First;
-      while not EOF do
-        begin
-          if FieldByName(_Col_PID_).AsString=PID then break;
-          Next;
-        end;
-      if EOF then begin
+      IndexName:='id';
+      if not SearchKey(PID,stEqual) then begin
         if not NewPidIfNotExists then exit;
         Append;
         Edit;
@@ -1309,6 +1301,7 @@ begin
       end;
       result:=FieldByName(AName);
     end;
+
 end;
 
 function TRTFP.GetFieldType(attrNa,fieldNa:string):TFieldType;
@@ -2291,86 +2284,101 @@ var PID:RTFP_ID;
     is_updating:boolean;
 begin
   result:='000000';
-  if (AddPaperMethod<>apmFullBackup) and (AddPaperMethod<>apmReference) then
+  if not (AddPaperMethod in [apmFullBackup,apmReference,apmAddress]) then
     begin
-      assert(false,'暂不支持apmFullBackup和apmReference以外的方式。');
+      assert(false,'暂不支持apmWebsite的方式。');
       exit;
     end;
 
   tmpPDF:=TRTFP_PDF.Create(nil);
-  IF fullfilename<>'' THEN BEGIN
-    DateDir:=TRTFP.GetDateDir;
-    FileName:=ExtractFileName(fullfilename);
-    if AddPaperMethod=apmFullBackup then begin
-      TargetDir:=FFilePath+FRootFolder+'\paper\'+DateDir;
-      if FileExists(TargetDir+'\'+FileName) then
-        case MessageDlg('相同的备份路径','正在导入的文件“'+fullfilename
-        +'”的默认备份地址存在重名，覆盖会导致两个文献节点共用一个备份文件。'
-        +'若两个文件不相同，会导致旧版本备份文件被覆盖，且难以复原。'
-        +'是否覆盖？',mtWarning,[mbYes,mbNo],0) of
-          rnmbYes:{do nothing};
-          rnmbNo:exit;
+  TRY
+
+    IF fullfilename<>'' THEN BEGIN
+      case AddPaperMethod of
+        apmFullBackup:
+          begin
+            DateDir:=TRTFP.GetDateDir;
+            FileName:=ExtractFileName(fullfilename);
+            TargetDir:=FFilePath+FRootFolder+'\paper\'+DateDir;
+            if FileExists(TargetDir+'\'+FileName) then
+              case MessageDlg('相同的备份路径','正在导入的文件“'+fullfilename
+              +'”的默认备份地址存在重名，覆盖会导致两个文献节点共用一个备份文件。'
+              +'若两个文件不相同，会导致旧版本备份文件被覆盖，且难以复原。'
+              +'是否覆盖？',mtWarning,[mbYes,mbNo],0) of
+                rnmbYes:{do nothing};
+                rnmbNo:exit;
+            end;
+          end;
+        apmAddress:
+          begin
+            DateDir:='extern';
+            FileName:=fullfilename;
+            if length(FileName)>240 then exit;
+            //TargetDir:=FFilePath+FRootFolder+'\paper\'+DateDir;
+          end;
       end;
+      tmpPDF.LoadPdf(fullfilename);
+    END ELSE BEGIN
+      if AddPaperMethod=apmFullBackup then exit;
+      DateDir:='';
+      FileName:='';
+    END;
+
+    is_updating:=FIsUpdating;
+    if not is_updating then BeginUpdate;
+
+    PID:=NewPaperID;
+    //FPaperDB.Last;//此时游标已经在Last位置
+    with FPaperDB do begin
+      Insert;
+      FieldByName(_Col_PID_).AsString:=PID;
+      FieldByName(_Col_Paper_Is_Backup_).AsBoolean:=(AddPaperMethod=apmFullBackup);
+      FieldByName(_Col_Paper_Folder_).AsString:=DateDir;
+      FieldByName(_Col_Paper_FileName_).AsString:=FileName;
+      FieldByName(_Col_Paper_FileSize_).AsLargeInt:=tmpPDF.Size;
+      FieldByName(_Col_Paper_FileHash_).AsString:=tmpPDF.Hash;
+      Post;
     end;
-    tmpPDF.LoadPdf(fullfilename);
-  END ELSE BEGIN
-    DateDir:='';
-    FileName:='';
+
+    //0-文献基本信息要专门的算法
+    EditFieldAsInteger(_Col_basic_Has_Ext_,_Attrs_Basic_,PID,0,[]);
+
+    //1-分类
+    EditFieldAsBoolean(_Col_class_Is_Read_,_Attrs_Class_,PID,false,[]);
+
+    //2-注解
+    //这里之后要考虑不是pdf或者pdf读取错误的情况
+    //这不是一个好做法，会大量浪费算力，但是现在先让他爬起来吧，再优化
+    EditFieldAsInteger(_Col_notes_User_,_Attrs_Notes_,PID,0,[]);
+    EditFieldAsDateTime(_Col_notes_CreateTime_,_Attrs_Notes_,PID,Now,[]);
+    EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now,[]);
+    EditFieldAsDateTime(_Col_notes_CheckTime_,_Attrs_Notes_,PID,Now,[]);
+
+    //3-元数据
+    //这里之后要考虑不是pdf或者pdf读取错误的情况
+    //这不是一个好做法，会大量浪费算力，但是现在先让他爬起来吧，再优化
+    EditFieldAsString(_Col_metas_Title_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Title']^,[]);
+    EditFieldAsString(_Col_metas_Authors_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Author']^,[]);
+    EditFieldAsString(_Col_metas_Subject_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Subject']^,[]);
+    EditFieldAsString(_Col_metas_Keyword_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Keywords']^,[]);
+    EditFieldAsString(_Col_metas_Creator_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Creator']^,[]);
+    EditFieldAsString(_Col_metas_Produce_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Producer']^,[]);
+    EditFieldAsString(_Col_metas_CreDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:CreationDate']^,[]);
+    EditFieldAsString(_Col_metas_ModDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:ModDate']^,[]);
+
+    if not is_updating then EndUpdate;
+
+    IF fullfilename<>'' THEN BEGIN
+      if AddPaperMethod=apmFullBackup then begin
+        ForceDirectories(TargetDir);
+        tmpPDF.CopyTo(TargetDir+'\'+FileName);//尚未加入长度检验
+      end;
+      tmpPDF.ClosePdf;
+    END;
+
+  FINALLY
+    tmpPDF.Free;
   END;
-
-  is_updating:=FIsUpdating;
-  if not is_updating then BeginUpdate;
-
-  PID:=NewPaperID;
-  //FPaperDB.Last;//此时游标已经在Last位置
-  with FPaperDB do begin
-    Insert;
-    FieldByName(_Col_PID_).AsString:=PID;
-    FieldByName(_Col_Paper_Is_Backup_).AsBoolean:=(AddPaperMethod=apmFullBackup);
-    FieldByName(_Col_Paper_Folder_).AsString:=DateDir;
-    FieldByName(_Col_Paper_FileName_).AsString:=FileName;
-    FieldByName(_Col_Paper_FileSize_).AsLargeInt:=tmpPDF.Size;
-    FieldByName(_Col_Paper_FileHash_).AsString:=tmpPDF.Hash;
-    Post;
-  end;
-
-  //0-文献基本信息要专门的算法
-  EditFieldAsInteger(_Col_basic_Has_Ext_,_Attrs_Basic_,PID,0,[]);
-
-  //1-分类
-  EditFieldAsBoolean(_Col_class_Is_Read_,_Attrs_Class_,PID,false,[]);
-
-  //2-注解
-  //这里之后要考虑不是pdf或者pdf读取错误的情况
-  //这不是一个好做法，会大量浪费算力，但是现在先让他爬起来吧，再优化
-  EditFieldAsInteger(_Col_notes_User_,_Attrs_Notes_,PID,0,[]);
-  EditFieldAsDateTime(_Col_notes_CreateTime_,_Attrs_Notes_,PID,Now,[]);
-  EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now,[]);
-  EditFieldAsDateTime(_Col_notes_CheckTime_,_Attrs_Notes_,PID,Now,[]);
-
-  //3-元数据
-  //这里之后要考虑不是pdf或者pdf读取错误的情况
-  //这不是一个好做法，会大量浪费算力，但是现在先让他爬起来吧，再优化
-  EditFieldAsString(_Col_metas_Title_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Title']^,[]);
-  EditFieldAsString(_Col_metas_Authors_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Author']^,[]);
-  EditFieldAsString(_Col_metas_Subject_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Subject']^,[]);
-  EditFieldAsString(_Col_metas_Keyword_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Keywords']^,[]);
-  EditFieldAsString(_Col_metas_Creator_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Creator']^,[]);
-  EditFieldAsString(_Col_metas_Produce_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Producer']^,[]);
-  EditFieldAsString(_Col_metas_CreDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:CreationDate']^,[]);
-  EditFieldAsString(_Col_metas_ModDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:ModDate']^,[]);
-
-  if not is_updating then EndUpdate;
-
-  IF fullfilename<>'' THEN BEGIN
-    if AddPaperMethod=apmFullBackup then begin
-      ForceDirectories(TargetDir);
-      tmpPDF.CopyTo(TargetDir+'\'+FileName);//尚未加入长度检验
-    end;
-    tmpPDF.ClosePdf;
-  END;
-  tmpPDF.Free;
-
   RecordChange;
   result:=PID;
 end;
@@ -2398,8 +2406,8 @@ begin
             begin
               if not cps then begin CpStr:=TMemoryStream.Create;cps:=true end;
               FName:=FFilePath+FRootFolder+'\paper\'+FieldByName(_Col_Paper_Folder_).AsString+'\'+FieldByName(_Col_Paper_FileName_).AsString;
-              retry:=false;
               repeat try
+                retry:=false;
                 CpStr.LoadFromFile(FName);
                 if CompareMem(FileStream.Memory,CpStr.Memory,FileStream.Size) then PID:=FieldByName(_Col_PID_).AsString;
               except
@@ -2428,42 +2436,29 @@ begin
   if not TRTFP.IsRTFPID(PID) then exit;
   with FPaperDB do begin
     if not Active then Open;
-    First;
-    while not EOF do
+    IndexName:='id';
+    if SearchKey(PID,stEqual) then
       begin
-        if FieldByName(_Col_PID_).AsString=PID then begin
-          if FieldByName(_Col_Paper_Is_Backup_).AsBoolean then
-            case MessageDlg('删除确认','删除文献节点对应的文件可能会导致其他共用此文件的节点失去文件连接，并且操作后无法恢复，是否继续？',mtWarning,[mbYes,mbNo],0) of
-              rnmbYes:TRTFP.FileDelete(FFilePath+FRootFolder+'\paper\'
-                                      +FieldByName(_Col_Paper_Folder_).AsString
-                                      +'\'+FieldByName(_Col_Paper_FileName_).AsString
-                                      );
-              rnmbNo:;
-            end;
-          Delete;
-          break;
-        end;
-        Next;
+        if FieldByName(_Col_Paper_Is_Backup_).AsBoolean then
+          case MessageDlg('删除确认','删除文献节点对应的文件可能会导致其他共用此文件的节点失去文件连接，并且操作后无法恢复，是否继续？',mtWarning,[mbYes,mbNo],0) of
+            rnmbYes:
+              TRTFP.FileDelete(FFilePath+FRootFolder+'\paper\'+FieldByName(_Col_Paper_Folder_).AsString+'\'+FieldByName(_Col_Paper_FileName_).AsString);
+            rnmbNo:;
+          end;
+        Delete;
       end;
   end;
   for AG in FFieldList do with AG.Dbf do
     begin
       if not Active then Open;
-      First;
-      while not EOF do
-        begin
-          if FieldByName(_Col_PID_).AsString=PID then begin
-            Delete;
-            break;
-          end;
-          Next;
-        end;
+      IndexName:='id';
+      if SearchKey(PID,stEqual) then Delete;
     end;
   RecordChange;
   result:=true;
 end;
 
-function TRTFP.UpdatePaper(PID:RTFP_ID;fullfilename:string):boolean;//更新指定PID的文件
+function TRTFP.UpdatePaper(PID:RTFP_ID;fullfilename:string;AddPaperMethod:TAddPaperMethod):boolean;//更新指定PID的文件
 var old_dir,old_file:string;
     old_backup:boolean;
     DateDir,FileName,TargetDir:string;
@@ -2471,18 +2466,12 @@ var old_dir,old_file:string;
 begin
   result:=false;
   if not TRTFP.IsRTFPID(PID) then exit;
+  assert(AddPaperMethod in [apmFullBackup,apmAddress],'不接受apmFullBackup和apmAddress以外的方式');
 
   with FPaperDB do begin
     if not Active then Open;
-    First;
-    while not EOF do
-      begin
-        if FieldByName(_Col_PID_).AsString=PID then begin
-          break;
-        end;
-        Next;
-      end;
-    if EOF then begin
+    IndexName:='id';
+    if not SearchKey(PID,stEqual) then begin
       MessageDlg('未找到记录','没有找到PID为'+PID+'的文献节点',mtError,[mbCancel],0);
       exit;
     end;
@@ -2493,62 +2482,76 @@ begin
     end;
   end;
 
-  DateDir:=TRTFP.GetDateDir;
-  FileName:=ExtractFileName(fullfilename);
-
-  TargetDir:=FFilePath+FRootFolder+'\paper\'+DateDir;
-  if FileExists(TargetDir+'\'+FileName) then
-    case MessageDlg('相同的备份路径','正在导入的文件“'+fullfilename
-    +'”的默认备份地址存在重名，覆盖会导致两个文献节点共用一个备份文件。'
-    +'若两个文件不相同，会导致旧版本备份文件被覆盖，且难以复原。'
-    +'是否覆盖？',mtWarning,[mbYes,mbNo],0) of
-      rnmbYes:{do nothing};
-      rnmbNo:exit;
+  case AddPaperMethod of
+    apmFullBackup:
+      begin
+        DateDir:=TRTFP.GetDateDir;
+        FileName:=ExtractFileName(fullfilename);
+        TargetDir:=FFilePath+FRootFolder+'\paper\'+DateDir;
+        if FileExists(TargetDir+'\'+FileName) then
+          case MessageDlg('相同的备份路径','正在导入的文件“'+fullfilename
+          +'”的默认备份地址存在重名，覆盖会导致两个文献节点共用一个备份文件。'
+          +'若两个文件不相同，会导致旧版本备份文件被覆盖，且难以复原。'
+          +'是否覆盖？',mtWarning,[mbYes,mbNo],0) of
+            rnmbYes:{do nothing};
+            rnmbNo:exit;
+        end;
+      end;
+    apmAddress:
+      begin
+        DateDir:='extern';
+        FileName:=fullfilename;
+        TargetDir:=fullfilename;
+      end;
   end;
 
   tmpPDF:=TRTFP_PDF.Create(nil);
-  tmpPDF.LoadPdf(fullfilename);
+  TRY
+    tmpPDF.LoadPdf(fullfilename);
 
-  BeginUpdate;
+    BeginUpdate;
 
-  //此时游标已经在PID位置
-  with FPaperDB do begin
-    Edit;
-    FieldByName(_Col_Paper_Is_Backup_).AsBoolean:=true;
-    FieldByName(_Col_Paper_Folder_).AsString:=DateDir;
-    FieldByName(_Col_Paper_FileName_).AsString:=FileName;
-    FieldByName(_Col_Paper_FileSize_).AsLargeInt:=tmpPDF.Size;
-    FieldByName(_Col_Paper_FileHash_).AsString:=tmpPDF.Hash;
-    Post;
-  end;
+    //此时游标已经在PID位置
+    with FPaperDB do begin
+      Edit;
+      FieldByName(_Col_Paper_Is_Backup_).AsBoolean:=AddPaperMethod=apmFullBackup;
+      FieldByName(_Col_Paper_Folder_).AsString:=DateDir;
+      FieldByName(_Col_Paper_FileName_).AsString:=FileName;
+      FieldByName(_Col_Paper_FileSize_).AsLargeInt:=tmpPDF.Size;
+      FieldByName(_Col_Paper_FileHash_).AsString:=tmpPDF.Hash;
+      Post;
+    end;
 
-  //2-注解
-  EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now,[]);
+    //2-注解
+    EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now,[]);
 
-  //3-元数据
-  //这里之后要考虑不是pdf或者pdf读取错误的情况
-  //这不是一个好做法，会大量浪费算力，但是现在先让他爬起来吧，再优化
-  EditFieldAsString(_Col_metas_Title_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Title']^,[]);
-  EditFieldAsString(_Col_metas_Authors_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Author']^,[]);
-  EditFieldAsString(_Col_metas_Subject_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Subject']^,[]);
-  EditFieldAsString(_Col_metas_Keyword_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Keywords']^,[]);
-  EditFieldAsString(_Col_metas_Creator_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Creator']^,[]);
-  EditFieldAsString(_Col_metas_Produce_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Producer']^,[]);
-  EditFieldAsString(_Col_metas_CreDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:CreationDate']^,[]);
-  EditFieldAsString(_Col_metas_ModDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:ModDate']^,[]);
+    //3-元数据
+    //这里之后要考虑不是pdf或者pdf读取错误的情况
+    //这不是一个好做法，会大量浪费算力，但是现在先让他爬起来吧，再优化
+    EditFieldAsString(_Col_metas_Title_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Title']^,[]);
+    EditFieldAsString(_Col_metas_Authors_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Author']^,[]);
+    EditFieldAsString(_Col_metas_Subject_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Subject']^,[]);
+    EditFieldAsString(_Col_metas_Keyword_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Keywords']^,[]);
+    EditFieldAsString(_Col_metas_Creator_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Creator']^,[]);
+    EditFieldAsString(_Col_metas_Produce_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Producer']^,[]);
+    EditFieldAsString(_Col_metas_CreDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:CreationDate']^,[]);
+    EditFieldAsString(_Col_metas_ModDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:ModDate']^,[]);
 
-  EndUpdate;
+    EndUpdate;
 
-  ForceDirectories(TargetDir);
-  tmpPDF.CopyTo(TargetDir+'\'+FileName);//尚未加入长度检验
-  if old_backup then begin
-    TRTFP.FileDelete(FFilePath+FRootFolder+'\paper\'+old_dir+'\'+old_file);
-    FPaperDB.FieldByName(_Col_Paper_Is_Backup_).AsBoolean:=true;
-  end;
+    if AddPaperMethod=apmFullBackup then begin
+      ForceDirectories(TargetDir);
+      tmpPDF.CopyTo(TargetDir+'\'+FileName);//尚未加入长度检验
+    end;
+    if old_backup then begin
+      TRTFP.FileDelete(FFilePath+FRootFolder+'\paper\'+old_dir+'\'+old_file);
+      FPaperDB.FieldByName(_Col_Paper_Is_Backup_).AsBoolean:=true;
+    end;
 
-  tmpPDF.ClosePdf;
-  tmpPDF.Free;
-
+    tmpPDF.ClosePdf;
+  FINALLY
+    tmpPDF.Free;
+  END;
   RecordChange;
   result:=true;
 end;
@@ -2557,20 +2560,29 @@ procedure TRTFP.OpenPaper(PID:RTFP_ID;exename:string='');
 var filename:string;
 begin
   with FPaperDB do begin
-    First;
-    while not EOF do
+    if not Active then Open;
+    IndexName:='id';
+    if not SearchKey(PID,stEqual) then
       begin
-        if FieldByName(_Col_PID_).AsString=PID then break;
-        Next;
+        assert(false,'未找到PID');
+        exit;
       end;
-    if EOF then begin assert(false,'未找到PID');exit;end;
-    if FieldByName(_Col_Paper_Is_Backup_).AsBoolean then begin
+    if FieldByName(_Col_Paper_Is_Backup_).AsBoolean then
       filename:=Utf8ToWinCP(FFilePath+FRootFolder+'\paper\'
         +FieldByName(_Col_Paper_Folder_).AsString+'\'
-        +FieldByName(_Col_Paper_FileName_).AsString);
-      TRTFP.OpenFile(filename,exename);
-    end else
-      ShowMessage('非备份文献节点不能通过此方法打开！');
+        +FieldByName(_Col_Paper_FileName_).AsString)
+    else begin
+      case FieldByName(_Col_Paper_Folder_).AsString of
+        'extern':filename:=Utf8ToWinCP(FieldByName(_Col_Paper_FileName_).AsString);
+        'weblnk':
+          begin
+            filename:=ReadFieldAsString(_Attrs_Basic_,_Col_basic_Link_,PID,[]);
+            if filename='' then filename:=ReadFieldAsString(_Attrs_Basic_,_Col_basic_doi_,PID,[]);
+          end;
+        else begin ShowMessage('非备份文献节点不能通过此方法打开！');exit;end;
+      end;
+    end;
+    TRTFP.OpenFile(filename,exename);
   end;
 end;
 
@@ -2588,19 +2600,24 @@ procedure TRTFP.OpenPaperDir(PID:RTFP_ID);
 var filename:string;
 begin
   with FPaperDB do begin
-    First;
-    while not EOF do
+    if not Active then Open;
+    IndexName:='id';
+    if not SearchKey(PID,stEqual) then
       begin
-        if FieldByName(_Col_PID_).AsString=PID then break;
-        Next;
+        assert(false,'未找到PID');
+        exit;
       end;
-    if EOF then begin assert(false,'未找到PID');exit;end;
-    if FieldByName(_Col_Paper_Is_Backup_).AsBoolean then begin
+    if FieldByName(_Col_Paper_Is_Backup_).AsBoolean then
       filename:=Utf8ToWinCP(FFilePath+FRootFolder+'\paper\'
-        +FieldByName(_Col_Paper_Folder_).AsString+'\');
-      TRTFP.OpenDir(filename);
-    end else
-      ShowMessage('非备份文献节点不能通过此方法打开！');
+        +FieldByName(_Col_Paper_Folder_).AsString+'\'
+        +FieldByName(_Col_Paper_FileName_).AsString)
+    else begin
+      case FieldByName(_Col_Paper_Folder_).AsString of
+        'extern':filename:=Utf8ToWinCP(FieldByName(_Col_Paper_FileName_).AsString);
+        else begin ShowMessage('非备份文献节点不能通过此方法打开！');exit;end;
+      end;
+    end;
+    TRTFP.OpenDir(filename);
   end;
 end;
 
@@ -2621,15 +2638,13 @@ begin
   if index<0 then exit;
   with FKlassList[index].Dbf do begin
     if not Active then Open;
-    First;
-    while not EOF do
-      begin
-        if FieldByName(_Col_PID_).AsString = PID then begin result:=true;exit end;
-        Next;
-      end;
-    Insert;
-    FieldByName(_Col_PID_).AsString:=PID;
-    Post;
+    IndexName:='id';
+    if not SearchKey(PID,stEqual) then begin
+      Last;//有必要吗？
+      Insert;
+      FieldByName(_Col_PID_).AsString:=PID;
+      Post;
+    end;
   end;
   //修改字段
   stmp:=TStringList.Create;
@@ -2656,12 +2671,8 @@ begin
   if index<0 then exit;
   with FKlassList[index].Dbf do begin
     if not Active then Open;
-    First;
-    while not EOF do
-      begin
-        if FieldByName(_Col_PID_).AsString = PID then begin Delete;break end;
-        Next;
-      end;
+    IndexName:='id';
+    if SearchKey(PID,stEqual) then Delete;
   end;
   //修改字段
   stmp:=TStringList.Create;
@@ -2747,13 +2758,8 @@ begin
   //CheckBasicFields;
   with AG.Dbf do begin
     if not Active then Open;
-    First;
-    while not EOF do
-      begin
-        if FieldByName(_Col_PID_).AsString=PID then break;
-        Next;
-      end;
-    if EOF then Append;
+    IndexName:='id';
+    if not SearchKey(PID,stEqual) then begin Last;Append;end;
     Edit;
     result:=Fields;
   end;
@@ -3255,7 +3261,6 @@ var tmpDbf:TDbf;
     tmpAF:TAttrsField;
     dat_type:TFieldType;
     bm:TBookMark;
-    //init_rec_no1,init_rec_no2:longint;
 
 begin
   BeginUpdate;
@@ -3340,53 +3345,12 @@ begin
       tmpDbf:=FFieldList[pj].Dbf;
       if tmpDbf.EOF and tmpDbf.BOF then continue;
 
-      {
-      if tmpDbf.EOF then tmpDbf.First;
-      init_rec_no1:=tmpDbf.RecNo;
-      repeat
-        PID:=tmpDbf.FieldByName(_Col_PID_).AsString;
-        if FPaperDS.EOF then FPaperDS.First;
-        init_rec_no2:=FPaperDS.RecNo;
-        repeat
-          if FPaperDS.FieldByName(_Col_PID_).AsString=PID then
-            begin
-            FPaperDS.Edit;
-            for pi:=attr_range[pj].min to attr_range[pj].max do begin
-              case FPaperDS.Fields[pi].DataType of
-                ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo{,ftFmtMemo,ftFixedChar}:
-                  FPaperDS.Fields[pi].AsString:=tmpDbf.Fields[fields_ref[pi].FI].AsString;
-                ftBoolean:
-                  FPaperDS.Fields[pi].AsBoolean:=tmpDbf.Fields[fields_ref[pi].FI].AsBoolean;
-                ftFloat:
-                  FPaperDS.Fields[pi].AsFloat:=tmpDbf.Fields[fields_ref[pi].FI].AsFloat;
-                ftInteger,ftLargeint,ftSmallint,ftWord:
-                  FPaperDS.Fields[pi].AsLargeInt:=tmpDbf.Fields[fields_ref[pi].FI].AsLargeInt;
-                ftDateTime,ftDate,ftTime:
-                  FPaperDS.Fields[pi].AsDateTime:=tmpDbf.Fields[fields_ref[pi].FI].AsDateTime
-                else assert(false,'FPaperDS.Fields[pi].DataType未预设。');
-              end;
-            end;
-            FPaperDS.Post;
-            end;
-          FPaperDS.Next;
-          if FPaperDS.EOF then FPaperDS.First;
-        until FPaperDS.RecNo=init_rec_no2;
-        tmpDbf.Next;
-        if tmpDbf.EOF then tmpDbf.First;
-      until tmpDbf.RecNo=init_rec_no1;
-      }
 
-
-      //{
-      tmpDbf.First;
-      if not tmpDbf.EOF then repeat
-        PID:=tmpDbf.FieldByName(_Col_PID_).AsString;
-        FPaperDS.First;
-        if not FPaperDS.EOF then repeat
-          if FPaperDS.FieldByName(_Col_PID_).AsString=PID then break;
-          FPaperDS.Next;
-        until FPaperDS.EOF;
-        if not FPaperDS.EOF then begin
+      FPaperDS.First;
+      if not FPaperDS.EOF then repeat
+        PID:=FPaperDS.FieldByName(_Col_PID_).AsString;
+        tmpDbf.IndexName:='id';
+        if tmpDbf.SearchKey(PID,stEqual) then begin
           FPaperDS.Edit;
           for pi:=attr_range[pj].min to attr_range[pj].max do begin
             case FPaperDS.Fields[pi].DataType of
@@ -3404,11 +3368,9 @@ begin
             end;
           end;
           FPaperDS.Post;
-        end else assert(false,'分表有主表没有的PID');
-        tmpDbf.Next;
-      until tmpDbf.EOF;
-      //}
-
+        end;
+        FPaperDS.Next;
+      until FPaperDS.EOF;
     end;
 
   END;
@@ -3551,12 +3513,8 @@ begin
     begin
       with tmpAG.Dbf do
         begin
-          First;
-          while not EOF do
-            begin
-              if FieldByName(_Col_PID_).AsString=PID then break;
-              Next;
-            end;
+          IndexName:='id';
+          if not SearchKey(PID,stEqual) then continue;
         end;
       for tmpAF in tmpAG.FieldList do
         begin
@@ -3662,14 +3620,14 @@ var TreWidth,FullWidth:integer;
 begin
   with FFormatEditComponentList do begin
     if Count<3 then exit;
-    if TObject(Items[0]).ClassType<>TFmtSplitter then exit;
-    if TObject(Items[1]).ClassType<>TFmtSplitter then exit;
-    if TObject(Items[2]).ClassType<>TFmtSplitter then exit;
+    if TObject(Items[0]).ClassType<>TSplitter then exit;
+    if TObject(Items[1]).ClassType<>TSplitter then exit;
+    if TObject(Items[2]).ClassType<>TSplitter then exit;
     FullWidth:=(Sender as TScrollBox).Width;
     TreWidth:=(FullWidth - 12) div 3;
-    TSplitter(TFmtSplitter(Items[0]).Component).Left:=TreWidth + 6;
-    TSplitter(TFmtSplitter(Items[2]).Component).Left:=FullWidth - TreWidth - 12;
-    TSplitter(TFmtSplitter(Items[1]).Component).Left:=(FullWidth - 6) div 2;
+    TSplitter(Items[0]).Left:=TreWidth + 6;
+    TSplitter(Items[2]).Left:=FullWidth - TreWidth - 12;
+    TSplitter(Items[1]).Left:=(FullWidth - 6) div 2;
   end;
 end;
 
@@ -3679,16 +3637,17 @@ begin
   str:=TStringList.Create;
   if AFormat<>'test' then str.Add(AFormat)
   else begin
-    str.Add('edit '+_Attrs_Basic_+','+_Col_basic_Title_+',标题,10,50,0,2,editable');
-    str.Add('edit '+_Attrs_Basic_+','+_Col_basic_Author_+',作者,70,50,0,1,editable');
-    str.Add('edit '+_Attrs_Basic_+','+_Col_basic_Year_+',年份,70,50,1,2,editable');
-    str.Add('edit '+_Attrs_Basic_+','+_Col_basic_Keyword_+',关键词,130,50,0,2,editable');
-    str.Add('memo '+_Attrs_Basic_+','+_Col_basic_Summary_+',摘要,10,170,2,4,editable');
-    str.Add('edit '+_Attrs_Basic_+','+_Col_basic_Source_+',来源,190,50,0,1,editable');
-    str.Add('edit '+_Attrs_Notes_+','+_Col_notes_Rank_+',评分,190,50,1,2,editable');
-    str.Add('check '+_Attrs_Class_+','+_Col_class_Is_Read_+',是否已读,190,50,2,3,editable');
-    str.Add('edit '+_Attrs_Class_+','+_Col_class_DefaultCl_+',分类,190,50,3,4,uneditable');
-    str.Add('memo '+_Attrs_Notes_+','+_Col_notes_Comment_+',笔记,240,240,0,4,editable');
+
+    str.Add('edit '+_Attrs_Basic_+','+_Col_basic_Title_+',标题,0,70,0,2,editable');
+    str.Add('edit '+_Attrs_Basic_+','+_Col_basic_Author_+',作者,70,70,0,1,editable');
+    str.Add('edit '+_Attrs_Basic_+','+_Col_basic_Year_+',年份,70,70,1,2,editable');
+    str.Add('edit '+_Attrs_Basic_+','+_Col_basic_Keyword_+',关键词,140,70,0,2,editable');
+    str.Add('memo '+_Attrs_Basic_+','+_Col_basic_Summary_+',摘要,0,210,2,4,editable');
+    str.Add('edit '+_Attrs_Basic_+','+_Col_basic_Source_+',来源,210,70,0,1,editable');
+    str.Add('edit '+_Attrs_Notes_+','+_Col_notes_Rank_+',评分,210,70,1,2,editable');
+    str.Add('check '+_Attrs_Class_+','+_Col_class_Is_Read_+',是否已读,210,70,2,3,editable');
+    str.Add('edit '+_Attrs_Class_+','+_Col_class_DefaultCl_+',分类,210,70,3,4,uneditable');
+    str.Add('memo '+_Attrs_Notes_+','+_Col_notes_FurtherCmt_+',FurtherCmt,280,280,0,4,editable');
 
   end;
   Self.FormatEditBuild(AScrollBox,str);
@@ -3696,7 +3655,8 @@ begin
 end;
 
 procedure TRTFP.FormatEditBuild(AScrollBox:TScrollBox;AFormat:TStrings);
-var Cmp:TFmtCmp;
+var SplitterObj:TSplitter;
+    FormatPanel:TFormatEditPanel;
     index:integer;
     stmp,is_editable:string;
     tmp:integer;
@@ -3704,8 +3664,8 @@ begin
   assert(FFormatEditComponentList.Count=0,'FormatEditBuild之前需要FormatEditClear！');
   with FFormatEditComponentList do begin
     for index:=0 to 2 do begin
-      Cmp:=TFmtSplitter.Create;
-      with TSplitter(Cmp.GetComponent) do
+      SplitterObj:=TSplitter.Create(AScrollBox);
+      with SplitterObj do
         begin
           Parent:=AScrollBox;
           Align:=alNone;
@@ -3715,7 +3675,7 @@ begin
           Height:=6;
           Enabled:=false;
         end;
-      Add(Cmp);
+      Add(SplitterObj);
     end;
     //在这里写format-script
     for stmp in AFormat do begin
@@ -3723,104 +3683,76 @@ begin
       Auf.ReadArgs(stmp);
       if Auf.ArgsCount<8 then continue;
       case lowercase(Auf.nargs[0].arg) of
-        'memo':Cmp:=TFmtMemo.Create;
-        'edit':Cmp:=TFmtEdit.Create;
-        'combo':Cmp:=TFmtComboBox.Create;
-        'check':Cmp:=TFmtCheckBox.Create;
-        //'':Cmp:=TFmtMemo.Create;
+        'memo':FormatPanel:=TFormatEditPanel.Create(TMemo);
+        'edit':FormatPanel:=TFormatEditPanel.Create(TEdit);
+        'combo':FormatPanel:=TFormatEditPanel.Create(TComboBox);
+        'check':FormatPanel:=TFormatEditPanel.Create(TCheckBox);
+        //
         else continue;
       end;
 
       is_editable:='';
       if Auf.ArgsCount>8 then Auf.TryArgToString(8,is_editable);
-      if lowercase(is_editable)='editable' then Cmp.Editable:=true
-      else Cmp.Editable:=false;
+      if lowercase(is_editable)='editable' then FormatPanel.Editable:=true
+      else FormatPanel.Editable:=false;
 
-      Add(Cmp);
-      Cmp.SetAttrsName(Auf.nargs[1].arg);
-      Cmp.SetFieldName(Auf.nargs[2].arg);
-      Cmp.SetDisplayName(Auf.nargs[3].arg);
-      Cmp.TitleLabel.Caption:=Auf.nargs[3].arg+': ';
-      with Cmp.TitleLabel do begin
-        Parent:=AScrollBox;
-        //BeginUpdateBounds;
-        Anchors:=[akTop,akLeft];
-        case Auf.nargs[6].arg of
-          '0':begin
-                AnchorSideLeft.Control:=AScrollBox;
-                AnchorSideLeft.Side:=asrTop;
-                BorderSpacing.Left:=6;
-              end;
-          '1':begin
-                AnchorSideLeft.Control:=TSplitter(TFmtCmp(FFormatEditComponentList.Items[0]).GetComponent);
-                AnchorSideLeft.Side:=asrBottom;
-              end;
-          '2':begin
-                AnchorSideLeft.Control:=TSplitter(TFmtCmp(FFormatEditComponentList.Items[1]).GetComponent);
-                AnchorSideLeft.Side:=asrBottom;
-              end;
-          '3':begin
-                AnchorSideLeft.Control:=TSplitter(TFmtCmp(FFormatEditComponentList.Items[2]).GetComponent);
-                AnchorSideLeft.Side:=asrBottom;
-              end;
-          else ;
-        end;
-        AnchorSideTop.Control:=AScrollBox;
-        AnchorSideTop.Side:=asrTop;
-        BorderSpacing.Top:=Usf.to_i(Auf.nargs[4].arg);
-        //EndUpdateBounds;
-      end;
-      with TWinControl(Cmp.GetComponent) do begin
+      Add(FormatPanel);
+      FormatPanel.AttrsName:=Auf.nargs[1].arg;
+      FormatPanel.FieldName:=Auf.nargs[2].arg;
+      FormatPanel.DisplayName:=Auf.nargs[3].arg;
+      FormatPanel.TitleLabel.Caption:=Auf.nargs[3].arg+': ';
+      with FormatPanel do begin
         Parent:=AScrollBox;
         BeginUpdateBounds;
         Anchors:=[akTop,akLeft,akRight];
-        Enabled:=Cmp.Editable;
+        TWinControl(Component).Enabled:=Editable;
         case Auf.nargs[6].arg of
           '0':begin
                 AnchorSideLeft.Control:=AScrollBox;
-                AnchorSideLeft.Side:=asrTop;
+                AnchorSideLeft.Side:=asrLeft;
                 BorderSpacing.Left:=6;
               end;
           '1':begin
-                AnchorSideLeft.Control:=TSplitter(TFmtCmp(FFormatEditComponentList.Items[0]).GetComponent);
-                AnchorSideLeft.Side:=asrBottom;
+                AnchorSideLeft.Control:=TSplitter(Items[0]);
+                AnchorSideLeft.Side:=asrRight;
               end;
           '2':begin
-                AnchorSideLeft.Control:=TSplitter(TFmtCmp(FFormatEditComponentList.Items[1]).GetComponent);
-                AnchorSideLeft.Side:=asrBottom;
+                AnchorSideLeft.Control:=TSplitter(Items[1]);
+                AnchorSideLeft.Side:=asrRight;
               end;
           '3':begin
-                AnchorSideLeft.Control:=TSplitter(TFmtCmp(FFormatEditComponentList.Items[2]).GetComponent);
-                AnchorSideLeft.Side:=asrBottom;
+                AnchorSideLeft.Control:=TSplitter(Items[2]);
+                AnchorSideLeft.Side:=asrRight;
               end;
           else ;
         end;
         case Auf.nargs[7].arg of
           '4':begin
                 AnchorSideRight.Control:=AScrollBox;
-                AnchorSideRight.Side:=asrBottom;
+                AnchorSideRight.Side:=asrRight;
                 BorderSpacing.Right:=6;
               end;
           '3':begin
-                AnchorSideRight.Control:=TSplitter(TFmtCmp(FFormatEditComponentList.Items[2]).GetComponent);
-                AnchorSideRight.Side:=asrTop;
+                AnchorSideRight.Control:=TSplitter(Items[2]);
+                AnchorSideRight.Side:=asrLeft;
               end;
           '2':begin
-                AnchorSideRight.Control:=TSplitter(TFmtCmp(FFormatEditComponentList.Items[1]).GetComponent);
-                AnchorSideRight.Side:=asrTop;
+                AnchorSideRight.Control:=TSplitter(Items[1]);
+                AnchorSideRight.Side:=asrLeft;
               end;
           '1':begin
-                AnchorSideRight.Control:=TSplitter(TFmtCmp(FFormatEditComponentList.Items[0]).GetComponent);
-                AnchorSideRight.Side:=asrTop;
+                AnchorSideRight.Control:=TSplitter(Items[0]);
+                AnchorSideRight.Side:=asrLeft;
               end;
           else ;
         end;
+
         AnchorSideTop.Control:=AScrollBox;
         AnchorSideTop.Side:=asrTop;
-        BorderSpacing.Top:=Usf.to_i(Auf.nargs[4].arg)+20;
+        BorderSpacing.Top:=Usf.to_i(Auf.nargs[4].arg);
         EndUpdateBounds;
         tmp:=Usf.to_i(Auf.nargs[5].arg);
-        Height:=tmp-20;
+        Height:=tmp;
       end;
     end;
   end;
@@ -3840,44 +3772,38 @@ begin
 end;
 
 procedure TRTFP.FormatEditValidate(PID:string);
-var Cmp_Index:integer;
-    FmtCmp:TFmtCmp;
-    Cmp:TComponent;
+var Item:Pointer;
 begin
-  for Cmp_Index:=0 to FFormatEditComponentList.Count-1 do
-    begin
-      FmtCmp:=TFmtCmp(FFormatEditComponentList[Cmp_Index]);
-      Cmp:=TComponent(FmtCmp.GetComponent);
-      if Cmp is TEdit then
-        TEdit(FmtCmp.GetComponent).Caption:=ReadFieldAsString(FmtCmp.GetFieldName,FmtCmp.GetAttrsName,PID,[]);
-      if Cmp is TMemo then
-        ReadFieldAsMemo(FmtCmp.GetFieldName,FmtCmp.GetAttrsName,PID,TMemo(FmtCmp.GetComponent).Lines,[]);
-      if Cmp is TCheckBox then
-        TCheckBox(FmtCmp.GetComponent).Checked:=ReadFieldAsBoolean(FmtCmp.GetFieldName,FmtCmp.GetAttrsName,PID,[]);
-
-    end;
+  for Item in FFormatEditComponentList do begin
+    if TObject(Item).ClassType=TSplitter then continue;
+    with TFormatEditPanel(Item) do
+      case ComponentClass.ClassName of
+        'TEdit':AsString:=ReadFieldAsString(FieldName,AttrsName,PID,[]);
+        'TMemo':ReadFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[]);
+        'TCheckBox':AsBoolean:=ReadFieldAsBoolean(FieldName,AttrsName,PID,[]);
+        'TComboBox':AsString:=ReadFieldAsString(FieldName,AttrsName,PID,[]);
+      end;
+  end;
 end;
 
 procedure TRTFP.FormatEditDataPost(PID:string);
-var Cmp_Index:integer;
-    FmtCmp:TFmtCmp;
-    Cmp:TComponent;
+var Item:Pointer;
 begin
   BeginUpdate;
-  for Cmp_Index:=0 to FFormatEditComponentList.Count-1 do
-    begin
-      FmtCmp:=TFmtCmp(FFormatEditComponentList[Cmp_Index]);
-      Cmp:=TComponent(FmtCmp.GetComponent);
-      if not FmtCmp.Editable then continue;
-      if Cmp is TEdit then
-        EditFieldAsString(FmtCmp.GetFieldName,FmtCmp.GetAttrsName,PID,TEdit(FmtCmp.GetComponent).Caption,[aeForceEditIfTypeDismatch]);
-      if Cmp is TMemo then
-        EditFieldAsMemo(FmtCmp.GetFieldName,FmtCmp.GetAttrsName,PID,TMemo(FmtCmp.GetComponent).Lines,[aeForceEditIfTypeDismatch]);
-      if Cmp is TCheckBox then
-        EditFieldAsBoolean(FmtCmp.GetFieldName,FmtCmp.GetAttrsName,PID,TCheckBox(FmtCmp.GetComponent).Checked,[aeForceEditIfTypeDismatch]);
 
-    end;
+  for Item in FFormatEditComponentList do begin
+    if TObject(Item).ClassType=TSplitter then continue;
+    with TFormatEditPanel(Item) do
+      case ComponentClass.ClassName of
+        'TEdit':EditFieldAsString(FieldName,AttrsName,PID,AsString,[]);
+        'TMemo':EditFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[]);
+        'TCheckBox':EditFieldAsBoolean(FieldName,AttrsName,PID,AsBoolean,[]);
+        'TComboBox':EditFieldAsString(FieldName,AttrsName,PID,AsString,[]);
+      end;
+  end;
+
   EndUpdate;
+  DataChange;
 end;
 
 procedure TRTFP.SetUser(str:string);
@@ -4232,10 +4158,10 @@ begin
   result:=ForceDirectories(filename);
 end;
 
-class function TRTFP.OpenDir(pathname:string):boolean;
+class function TRTFP.OpenDir(filename:string):boolean;
 begin
   {$ifdef Windows}
-  ShellExecute(0,'open','explorer.exe',pchar('"'+pathname+'"'),'',SW_NORMAL);
+  ShellExecute(0,'open','explorer',pchar('/select,"'+filename+'"'),nil,SW_NORMAL);
   {$endif}
 end;
 
