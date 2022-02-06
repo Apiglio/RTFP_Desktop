@@ -134,6 +134,7 @@ object FormDesktop: TFormDesktop
           ReadOnly = True
           TabOrder = 0
           OnCellClick = DBGrid_MainCellClick
+          OnDrawColumnCell = DBGrid_MainDrawColumnCell
           OnKeyUp = DBGrid_MainKeyUp
           OnMouseUp = DBGrid_MainMouseUp
           OnMouseWheel = DBGrid_MainMouseWheel
@@ -698,7 +699,7 @@ object FormDesktop: TFormDesktop
     TabOrder = 7
     object TabSheet_Filter_Klass: TTabSheet
       Caption = '分类节点'
-      ClientHeight = 528
+      ClientHeight = 534
       ClientWidth = 192
       object AListView_Klass: TACL_ListView
         AnchorSideLeft.Control = TabSheet_Filter_Klass
@@ -708,7 +709,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Control = TabSheet_Filter_Klass
         AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 492
+        Height = 498
         Top = 0
         Width = 192
         Anchors = [akTop, akLeft, akRight, akBottom]
@@ -740,7 +741,7 @@ object FormDesktop: TFormDesktop
         Left = 166
         Height = 26
         Hint = '长度限制在40个字节（约13个汉字），'#13#10'可使用的特殊符号包括：()_-+&"'':'
-        Top = 497
+        Top = 503
         Width = 26
         Anchors = [akRight, akBottom]
         BorderSpacing.Bottom = 5
@@ -758,7 +759,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrBottom
         Left = 50
         Height = 26
-        Top = 497
+        Top = 503
         Width = 116
         Anchors = [akLeft, akRight, akBottom]
         BorderSpacing.Bottom = 5
@@ -770,7 +771,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrCenter
         Left = 2
         Height = 18
-        Top = 501
+        Top = 507
         Width = 48
         Anchors = [akLeft, akBottom]
         BorderSpacing.Left = 2
@@ -1275,6 +1276,13 @@ object FormDesktop: TFormDesktop
       Enabled = False
       OnClick = MenuItem_FieldMgr_EditClick
     end
+    object MenuItem_FieldMgr_div01: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem_FieldMgr_DisplayOption: TMenuItem
+      Caption = '单元格着色'
+      OnClick = MenuItem_FieldMgr_DisplayOptionClick
+    end
   end
   object PopupMenu_MainDBGrid_Column: TPopupMenu
     left = 96
@@ -1302,6 +1310,13 @@ object FormDesktop: TFormDesktop
     object MenuItem_DBGC_Calc: TMenuItem
       Caption = '字段计算'
       OnClick = MenuItem_DBGC_CalcClick
+    end
+    object MenuItem_DBGC_div03: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem_DBGC_DisplayOpt: TMenuItem
+      Caption = '单元格设色'
+      OnClick = MenuItem_DBGC_DisplayOptClick
     end
   end
 end

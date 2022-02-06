@@ -18,6 +18,8 @@ type
     Button_ExportRefs: TButton;
     Button_ImportCite: TButton;
     Button_ExportCite: TButton;
+    ComboBox_DefaultCl: TComboBox;
+    Label_DefaultCl: TLabel;
     Memo_Reference: TMemo;
     Memo_Cite: TMemo;
     PaintBox_Arrows: TPaintBox;
@@ -45,7 +47,7 @@ var
   Form_CiteTrans: TForm_CiteTrans;
 
 implementation
-uses RTFP_main, RTFP_definition;
+uses RTFP_main, RTFP_definition, rtfp_class;
 
 {$R *.lfm}
 
@@ -103,16 +105,18 @@ begin
 end;
 
 procedure TForm_CiteTrans.Button_ImportPapersClick(Sender: TObject);
+var tmpKL:TKlass;
 begin
   if ProjectInvalid then exit;
   if TabControl_CiteStyle.TabIndex<0 then exit;
+  tmpKL:=TKlass(ComboBox_DefaultCl.Items.Objects[ComboBox_DefaultCl.ItemIndex]);
   case TabControl_CiteStyle.Tabs[TabControl_CiteStyle.TabIndex] of
-    'E-Study':CurrentRTFP.ImportPapersFromEStudy(Memo_Cite.Lines);
-    'RefWorks':CurrentRTFP.ImportPapersFromRefWork(Memo_Cite.Lines);
-    'EndNote':CurrentRTFP.ImportPapersFromEndNote(Memo_Cite.Lines);
-    'NoteExpress':CurrentRTFP.ImportPapersFromNoteExpress(Memo_Cite.Lines);
-    'NoteFirst':CurrentRTFP.ImportPapersFromNoteFirst(Memo_Cite.Lines);
-    'RIS':CurrentRTFP.ImportPapersFromRIS(Memo_Cite.Lines);
+    'E-Study':CurrentRTFP.ImportPapersFromEStudy(Memo_Cite.Lines,tmpKL);
+    'RefWorks':CurrentRTFP.ImportPapersFromRefWork(Memo_Cite.Lines,tmpKL);
+    'EndNote':CurrentRTFP.ImportPapersFromEndNote(Memo_Cite.Lines,tmpKL);
+    'NoteExpress':CurrentRTFP.ImportPapersFromNoteExpress(Memo_Cite.Lines,tmpKL);
+    'NoteFirst':CurrentRTFP.ImportPapersFromNoteFirst(Memo_Cite.Lines,tmpKL);
+    'RIS':CurrentRTFP.ImportPapersFromRIS(Memo_Cite.Lines,tmpKL);
     else exit;
   end;
   FormDesktop.Validate(CurrentRTFP);
@@ -151,74 +155,76 @@ begin
 end;
 
 procedure TForm_CiteTrans.FormShow(Sender: TObject);
+var tmpKL:TKlass;
 begin
   FormDesktop.Panel_DBGridMain.Parent:=Self.Panel_DBGrid_Temporary;
   FormDesktop.Panel_DBGridMain.Align:=alClient;
+
+  ComboBox_DefaultCl.Clear;
+  ComboBox_DefaultCl.AddItem('无默认分类',nil);
+  for tmpKL in CurrentRTFP.KlassList do
+    if tmpKL.FilterEnabled then
+      ComboBox_DefaultCl.AddItem(tmpKL.Name,tmpKL);
+  ComboBox_DefaultCl.ItemIndex:=0;
+
 end;
 
 procedure TForm_CiteTrans.PaintBox_ArrowsPaint(Sender: TObject);
-var button_center:integer;
+var button_center,col_1,col_2,col_3,col_4,row_1,row_2,row_3,row_4,half:integer;
 begin
   with PaintBox_Arrows.Canvas.Pen do
     begin
-      Color:=clBlack;
+      Color:=clGray;
       Style:=psSolid;
       Mode:=pmCopy;
       Width:=1;
     end;
-  PaintBox_Arrows.Canvas.Line(0,24,50,24);
-  PaintBox_Arrows.Canvas.Line(170,24,200,24);
-  PaintBox_Arrows.Canvas.Arc(192,8,208,24,0,-90*16);
-  PaintBox_Arrows.Canvas.Line(208,16,208,0);
-  PaintBox_Arrows.Canvas.Line(200,8,208,0);
-  PaintBox_Arrows.Canvas.Line(216,8,208,0);
 
-  PaintBox_Arrows.Canvas.Line(0,75,50,75);
-  PaintBox_Arrows.Canvas.Line(170,75,200,75);
-  PaintBox_Arrows.Canvas.Arc(192,75,208,91,0,90*16);
-  PaintBox_Arrows.Canvas.Line(208,83,208,99);
-  PaintBox_Arrows.Canvas.Line(200,91,208,99);
-  PaintBox_Arrows.Canvas.Line(216,91,208,99);
-  {
-  with PaintBox_Arrows.Canvas.Pen do
-    begin
-      Color:=clBlack;
-      Style:=psSolid;
-      Mode:=pmCopy;
-      Width:=1;
-    end;
-  }
-  PaintBox_Arrows.Canvas.Line(0,36,220,36);
-  PaintBox_Arrows.Canvas.Line(340,36,380,36);
-  PaintBox_Arrows.Canvas.Arc(372,20,388,36,0,-90*16);
-  PaintBox_Arrows.Canvas.Line(388,28,388,0);
-  PaintBox_Arrows.Canvas.Line(0,36,8,28);
-  PaintBox_Arrows.Canvas.Line(0,36,8,44);
-  PaintBox_Arrows.Canvas.Line(380,1,396,1);
-
-  PaintBox_Arrows.Canvas.Line(0,63,220,63);
-  PaintBox_Arrows.Canvas.Line(340,63,380,63);
-  PaintBox_Arrows.Canvas.Arc(372,63,388,79,0,90*16);
-  PaintBox_Arrows.Canvas.Line(388,69,388,99);
-  PaintBox_Arrows.Canvas.Line(0,63,8,55);
-  PaintBox_Arrows.Canvas.Line(0,63,8,71);
-  PaintBox_Arrows.Canvas.Line(380,98,396,98);
-  {
-  with PaintBox_Arrows.Canvas.Pen do
-    begin
-      Color:=clBlack;
-      Style:=psSolid;
-      Mode:=pmCopy;
-      Width:=1;
-    end;
-  }
+  col_1:=Button_ExportCite.Left - PaintBox_Arrows.Left;
+  col_2:=Button_ExportCite.Left + Button_ExportCite.Width - PaintBox_Arrows.Left;
+  col_3:=Button_ImportCite.Left - PaintBox_Arrows.Left;
+  col_4:=Button_ImportCite.Left + Button_ImportCite.Width - PaintBox_Arrows.Left;
+  row_1:=Button_ExportCite.Top+Button_ExportCite.Height div 2 - PaintBox_Arrows.Top;
+  row_2:=Button_ImportCite.Top+Button_ImportCite.Height div 2 - PaintBox_Arrows.Top + 8;
+  row_3:=Button_ImportRefs.Top+Button_ImportRefs.Height div 2 - PaintBox_Arrows.Top - 8;
+  row_4:=Button_ExportRefs.Top+Button_ExportRefs.Height div 2 - PaintBox_Arrows.Top;
+  half:=Button_ExportCite.Height div 2;
   button_center:=Button_ImportPapers.Left + Button_ImportPapers.Width div 2 - PaintBox_Arrows.Left;
-  //ShowMessage(IntToStr(button_center));
+
+  PaintBox_Arrows.Canvas.Line(0,           row_1,    col_1,      row_1);
+  PaintBox_Arrows.Canvas.Line(col_2,       row_1,    col_2+30,   row_1);
+  PaintBox_Arrows.Canvas.Arc( col_2+30-8,  row_1-16, col_2+30+8, row_1,0,-90*16);
+  PaintBox_Arrows.Canvas.Line(col_2+30+8,  row_1-8,  col_2+30+8, 0);
+  PaintBox_Arrows.Canvas.Line(col_2+30,    8,        col_2+30+8, 0);
+  PaintBox_Arrows.Canvas.Line(col_2+30+16, 8,        col_2+30+8, 0);
+
+  PaintBox_Arrows.Canvas.Line(0,           row_4,    col_1,      row_4);
+  PaintBox_Arrows.Canvas.Line(col_2,       row_4,    col_2+30,   row_4);
+  PaintBox_Arrows.Canvas.Arc( col_2+30-8,  row_4,    col_2+30+8, row_4+14,0,90*16);
+  PaintBox_Arrows.Canvas.Line(col_2+30+8,  row_4+6,  col_2+30+8, row_4+14);
+  PaintBox_Arrows.Canvas.Line(col_2+30,    row_4+6,  col_2+30+8, row_4+14);
+  PaintBox_Arrows.Canvas.Line(col_2+30+16, row_4+6,  col_2+30+8, row_4+14);
+
+  PaintBox_Arrows.Canvas.Line(0,           row_2,    col_3,      row_2);
+  PaintBox_Arrows.Canvas.Line(col_4,       row_2,    col_4+30,   row_2);
+  PaintBox_Arrows.Canvas.Arc( col_4+30-8,  row_2-16, col_4+30+8, row_2,0,-90*16);
+  PaintBox_Arrows.Canvas.Line(col_4+30+8,  row_2-8,  col_4+30+8, 0);
+  PaintBox_Arrows.Canvas.Line(0,           row_2,    8,          row_2-8);
+  PaintBox_Arrows.Canvas.Line(0,           row_2,    8,          row_2+8);
+  PaintBox_Arrows.Canvas.Line(col_4+30,    1,        col_4+30+16,1);
+
+  PaintBox_Arrows.Canvas.Line(0,           row_3,    col_3,      row_3);
+  PaintBox_Arrows.Canvas.Line(col_4,       row_3,    col_4+30,   row_3);
+  PaintBox_Arrows.Canvas.Arc( col_4+30-8,  row_3,    col_4+30+8, row_3+16,0,90*16);
+  PaintBox_Arrows.Canvas.Line(col_4+30+8,  row_3+6,  col_4+30+8, row_4+12);
+  PaintBox_Arrows.Canvas.Line(0,           row_3,    8,          row_3-8);
+  PaintBox_Arrows.Canvas.Line(0,           row_3,    8,          row_3+8);
+  PaintBox_Arrows.Canvas.Line(col_4+30,    row_4+12, col_4+30+16,row_4+12);
 
   PaintBox_Arrows.Canvas.Line(button_center-8,1,button_center+8,1);
-  PaintBox_Arrows.Canvas.Line(button_center,1,button_center,26);
-  PaintBox_Arrows.Canvas.Line(button_center-8,18,button_center,26);
-  PaintBox_Arrows.Canvas.Line(button_center+8,18,button_center,26);
+  PaintBox_Arrows.Canvas.Line(button_center,1,button_center,16);
+  PaintBox_Arrows.Canvas.Line(button_center-8,8,button_center,16);
+  PaintBox_Arrows.Canvas.Line(button_center+8,8,button_center,16);
 
 end;
 

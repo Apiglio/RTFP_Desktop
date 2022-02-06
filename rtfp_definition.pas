@@ -2,8 +2,6 @@
 //字段选项化，进度表可以是checkboxlist的形式
 //网页下载要研究一下JS
 //字段更新日志(有必要吗)
-//尽快增加Picture Attachment和剪贴板输入(在做了)
-//增加文献节点文件名格式化功能(有必要吗)
 //增刊期数的导入有问题
 //Memo字段的搜索
 //统一NodeEdit部分的编辑保存询问，下方的几个Tab共用一套Modified
@@ -14,17 +12,12 @@
 //增加替换URL的加载模式用以适用不同的webvpn
 //每一个formatEditComponent增加Modified属性用来判断是否修改，在editable和uneditable之间加一个freeze
 //uneditable改为提交数据时提示不能修改
-//01234改为0123456
 //validate以后分类列表全部折叠
 //FWaitForm加进度条
 //FormatEdit没有的字段要有专门的表示
 //“待注脚知识元”
 //FormatEdit快捷键提交
 //截图转文字想想办法，试试内嵌python
-
-
-
-
 
 
 //{$define insert}
@@ -332,20 +325,23 @@ type
     function GetAPA(PID:RTFP_ID):string;
     function GetChaXin(PID:RTFP_ID):string;
 
-    procedure ImportPapersFromEStudy(str:TStrings);
-    procedure ImportPapersFromRefWork(str:TStrings);
-    procedure ImportPapersFromEndNote(str:TStrings);
-    procedure ImportPapersFromNoteExpress(str:TStrings);
-    procedure ImportPapersFromNoteFirst(str:TStrings);
-    procedure ImportPapersFromRIS(str:TStrings);
+    procedure ImportPapersFromEStudy(str:TStrings;DefaultCl:TKlass);
+    procedure ImportPapersFromRefWork(str:TStrings;DefaultCl:TKlass);
+    procedure ImportPapersFromEndNote(str:TStrings;DefaultCl:TKlass);
+    procedure ImportPapersFromNoteExpress(str:TStrings;DefaultCl:TKlass);
+    procedure ImportPapersFromNoteFirst(str:TStrings;DefaultCl:TKlass);
+    procedure ImportPapersFromRIS(str:TStrings;DefaultCl:TKlass);
 
 
   private //显示连接
     FPaperDS:TMemDataSet;
+    FPaperDSFieldDefs:TList;
     FFormatEditComponentList:TList;
+
 
   public //连接显示
     property PaperDS:TMemDataSet read FPaperDS;//筛选后的总表，直接连接DBGrid
+    property PaperDSFieldDefs:TList read FPaperDSFieldDefs write FPaperDSFieldDefs;
     property FormatComponents:TList read FFormatEditComponentList;
 
   public //连接显示
@@ -1001,6 +997,7 @@ begin
   inherited Create(AOwner);
 
   FPaperDS:=TMemDataset.Create(Self);
+  PaperDSFieldDefs:=TList.Create;
   FFormatEditComponentList:=TList.Create;
 
   //ProjectFileValue:=TValueListEditor.Create(nil);
@@ -1072,6 +1069,7 @@ begin
   FProjectTags.Free;
 
   FPaperDS.Free;
+  PaperDSFieldDefs.Free;
   FFormatEditComponentList.Free;
 
   inherited Destroy;
@@ -3709,7 +3707,7 @@ begin
 end;
 procedure TRTFP.LoadFromRefWork(PID:RTFP_ID;str:TStrings);
 begin
-  ShowMsgOK('警告','unimplemented');
+  ShowMsgOK('警告','暂不支持导入RefWork');
 end;
 procedure TRTFP.LoadFromEndNote(PID:RTFP_ID;str:TStrings);
 var stmp,attr:string;
@@ -3768,11 +3766,11 @@ begin
 end;
 procedure TRTFP.LoadFromNoteExpress(PID:RTFP_ID;str:TStrings);
 begin
-  ShowMsgOK('警告','unimplemented');
+  ShowMsgOK('警告','暂不支持导入NoteExpress');
 end;
 procedure TRTFP.LoadFromNoteFirst(PID:RTFP_ID;str:TStrings);
 begin
-  ShowMsgOK('警告','unimplemented');
+  ShowMsgOK('警告','暂不支持导入NoteFirst');
 end;
 procedure TRTFP.LoadFromRIS(PID:RTFP_ID;str:TStrings);
 var stmp,attr:string;
@@ -3837,11 +3835,11 @@ end;
 
 procedure TRTFP.SaveToEStudy(PID:RTFP_ID;str:TStrings);
 begin
-  ShowMsgOK('警告','unimplemented');
+  ShowMsgOK('警告','暂不支持导出EStudy');
 end;
 procedure TRTFP.SaveToRefWork(PID:RTFP_ID;str:TStrings);
 begin
-  ShowMsgOK('警告','unimplemented');
+  ShowMsgOK('警告','暂不支持导出RefWork');
 end;
 procedure TRTFP.SaveToEndNote(PID:RTFP_ID;str:TStrings);
 var stmp,reftype:string;
@@ -3900,36 +3898,36 @@ begin
 end;
 procedure TRTFP.SaveToNoteExpress(PID:RTFP_ID;str:TStrings);
 begin
-  ShowMsgOK('警告','unimplemented');
+  ShowMsgOK('警告','暂不支持导出NoteExpress');
 end;
 procedure TRTFP.SaveToNoteFirst(PID:RTFP_ID;str:TStrings);
 begin
-  ShowMsgOK('警告','unimplemented');
+  ShowMsgOK('警告','暂不支持导出NoteFirst');
 end;
 procedure TRTFP.SaveToRIS(PID:RTFP_ID;str:TStrings);
 begin
-  ShowMsgOK('警告','unimplemented');
+  ShowMsgOK('警告','暂不支持导出RIS');
 end;
 
 procedure TRTFP.SetGBT7714(PID:RTFP_ID;str:string);
 begin
-  ShowMsgOK('警告','unimplemented');
+  ShowMsgOK('警告','暂不支持导入GB/T 7714');
 end;
 procedure TRTFP.SetCAJCD(PID:RTFP_ID;str:string);
 begin
-  ShowMsgOK('警告','unimplemented');
+  ShowMsgOK('警告','暂不支持导入CAJ/CD');
 end;
 procedure TRTFP.SetMLA(PID:RTFP_ID;str:string);
 begin
-  ShowMsgOK('警告','unimplemented');
+  ShowMsgOK('警告','暂不支持导入MLA');
 end;
 procedure TRTFP.SetAPA(PID:RTFP_ID;str:string);
 begin
-  ShowMsgOK('警告','unimplemented');
+  ShowMsgOK('警告','暂不支持导入APA');
 end;
 procedure TRTFP.SetChaXin(PID:RTFP_ID;str:string);
 begin
-  ShowMsgOK('警告','unimplemented');
+  ShowMsgOK('警告','暂不支持导入查新');
 end;
 
 function TRTFP.GetGBT7714(PID:RTFP_ID):string;
@@ -4085,22 +4083,22 @@ begin
 end;
 function TRTFP.GetCAJCD(PID:RTFP_ID):string;
 begin
-  ShowMsgOK('警告','unimplemented');
+  ShowMsgOK('警告','暂不支持导出CAJ/CD');
 end;
 function TRTFP.GetMLA(PID:RTFP_ID):string;
 begin
-  ShowMsgOK('警告','unimplemented');
+  ShowMsgOK('警告','暂不支持导出MLA');
 end;
 function TRTFP.GetAPA(PID:RTFP_ID):string;
 begin
-  ShowMsgOK('警告','unimplemented');
+  ShowMsgOK('警告','暂不支持导出APA');
 end;
 function TRTFP.GetChaXin(PID:RTFP_ID):string;
 begin
-  ShowMsgOK('警告','unimplemented');
+  ShowMsgOK('警告','暂不支持导出查新');
 end;
 
-procedure TRTFP.ImportPapersFromEStudy(str:TStrings);
+procedure TRTFP.ImportPapersFromEStudy(str:TStrings;DefaultCl:TKlass);
 var stmp:TStringList;
     PID,line,header:string;
     poss:integer;
@@ -4119,6 +4117,7 @@ begin
           'Link-链接','Link','链接':
             begin
               PID:=AddPaper('',apmReference);
+              if DefaultCl<>nil then KlassInclude(DefaultCl.Name,PID);
               LoadFromEStudy(PID,stmp);
               stmp.Clear;
             end;
@@ -4131,23 +4130,23 @@ begin
     ConfirmState.Disable;
   end;
 end;
-procedure TRTFP.ImportPapersFromRefWork(str:TStrings);
+procedure TRTFP.ImportPapersFromRefWork(str:TStrings;DefaultCl:TKlass);
 begin
-  ShowMsgOK('警告','unimplemented');
+  ShowMsgOK('警告','暂不支持批量导入RefWork');
 end;
-procedure TRTFP.ImportPapersFromEndNote(str:TStrings);
+procedure TRTFP.ImportPapersFromEndNote(str:TStrings;DefaultCl:TKlass);
 begin
-  ShowMsgOK('警告','unimplemented');
+  ShowMsgOK('警告','暂不支持批量导入EndNote');
 end;
-procedure TRTFP.ImportPapersFromNoteExpress(str:TStrings);
+procedure TRTFP.ImportPapersFromNoteExpress(str:TStrings;DefaultCl:TKlass);
 begin
-  ShowMsgOK('警告','unimplemented');
+  ShowMsgOK('警告','暂不支持批量导入NoteExpress');
 end;
-procedure TRTFP.ImportPapersFromNoteFirst(str:TStrings);
+procedure TRTFP.ImportPapersFromNoteFirst(str:TStrings;DefaultCl:TKlass);
 begin
-  ShowMsgOK('警告','unimplemented');
+  ShowMsgOK('警告','暂不支持批量导入NoteFirst');
 end;
-procedure TRTFP.ImportPapersFromRIS(str:TStrings);
+procedure TRTFP.ImportPapersFromRIS(str:TStrings;DefaultCl:TKlass);
 var stmp:TStringList;
     PID,line,header:string;
 begin
@@ -4163,6 +4162,7 @@ begin
           'ER':
             begin
               PID:=AddPaper('',apmReference);
+              if DefaultCl<>nil then KlassInclude(DefaultCl.Name,PID);
               LoadFromRIS(PID,stmp);
               stmp.Clear;
             end;
@@ -4262,151 +4262,153 @@ var tmpDbf:TDbf;
 begin
 
   if (not IsUpdating) and (FOnMainGridRebuilding<>nil) then FOnMainGridRebuilding(Self);
-
   BeginUpdate;
-  bm:=FPaperDS.GetBookmark;
-  FPaperDS.Clear;
-  tmpDbf:=FPaperDB;
-  fields_cnt:=0;
-  for pcol:=0 to tmpDbf.FieldDefs.Count-1 do
-    begin
-      tmpFieldDef:=tmpDbf.FieldDefs.Items[pcol];
-      //case
-      FPaperDS.FieldDefs.Add(tmpFieldDef.Name,tmpFieldDef.DataType,tmpFieldDef.Size);
-      fields_ref[fields_cnt].AG:=nil;
-      fields_ref[fields_cnt].FI:=tmpFieldDef.Index;
-      inc(fields_cnt);
-      //end
-    end;
-  paperDB_cnt:=fields_cnt;
-  pi:=-1;
-  for tmpAG in FFieldList do begin
-    inc(pi);
-    attr_range[pi].max:=-1;
-    attr_range[pi].min:=fields_cnt;
-    //if not tmpAG.GroupShown then continue;//这里的GroupShown用来表示ACL_ListView的折叠了，取消这个判断
-    for tmpAF in tmpAG.FieldList do
-      begin
-        if not tmpAF.Shown then continue;
-        attr_range[pi].max:=fields_cnt;
-        tmpFieldDef:=tmpAF.FieldDef;
-
-        dat_type:=tmpFieldDef.DataType;
-        case dat_type of
-          ftMemo,ftWideMemo,ftFmtMemo:
-            //FPaperDS.FieldDefs.Add(Usf.zeroplus(pi,2)+tmpFieldDef.Name,ftString,255);
-            FPaperDS.FieldDefs.Add(tmpFieldDef.Name+'('+tmpAG.Name+')',ftString,255);
-          else
-            //FPaperDS.FieldDefs.Add(Usf.zeroplus(pi,2)+tmpFieldDef.Name,dat_type,tmpFieldDef.Size);
-            FPaperDS.FieldDefs.Add(tmpFieldDef.Name+'('+tmpAG.Name+')',dat_type,tmpFieldDef.Size);
-        end;
-        fields_ref[fields_cnt].AG:=tmpAG;
-        fields_ref[fields_cnt].FI:=tmpFieldDef.Index;
-        inc(fields_cnt);
-      end;
-  end;
-  max_attr:=pi;
-
-  FPaperDS.CreateTable;
-  FPaperDS.Open;
-  FPaperDS.Last;
-
-  IF (FKlassList.Count=0) or (FKlassList.AllUnChecked) THEN BEGIN
+  try
+    bm:=FPaperDS.GetBookmark;
+    FPaperDS.Clear;
+    PaperDSFieldDefs.Clear;
     tmpDbf:=FPaperDB;
-    tmpDbf.First;
-    if not tmpDbf.EOF then repeat
-      FPaperDS.Append;
-      for pi:=0 to paperDB_cnt-1 do
+    fields_cnt:=0;
+    for pcol:=0 to tmpDbf.FieldDefs.Count-1 do
+      begin
+        tmpFieldDef:=tmpDbf.FieldDefs.Items[pcol];
+        //case
+        FPaperDS.FieldDefs.Add(tmpFieldDef.Name,tmpFieldDef.DataType,tmpFieldDef.Size);
+        fields_ref[fields_cnt].AG:=nil;
+        fields_ref[fields_cnt].FI:=tmpFieldDef.Index;
+        PaperDSFieldDefs.Add(nil);//基础的PaperAttrs没有对应的AttrsField，所以用nil代替。
+        inc(fields_cnt);
+        //end
+      end;
+    paperDB_cnt:=fields_cnt;
+    pi:=-1;
+    for tmpAG in FFieldList do begin
+      inc(pi);
+      attr_range[pi].max:=-1;
+      attr_range[pi].min:=fields_cnt;
+      //if not tmpAG.GroupShown then continue;//这里的GroupShown用来表示ACL_ListView的折叠了，取消这个判断
+      for tmpAF in tmpAG.FieldList do
         begin
-          with FPaperDS.Fields[pi] do case DataType of
-            ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo{,ftFmtMemo,ftFixedChar}:FPaperDS.Fields[pi].AsString:=tmpDbf.Fields[fields_ref[pi].FI].AsString;
-            ftBoolean:FPaperDS.Fields[pi].AsBoolean:=tmpDbf.Fields[fields_ref[pi].FI].AsBoolean;
-            ftFloat:FPaperDS.Fields[pi].AsFloat:=tmpDbf.Fields[fields_ref[pi].FI].AsFloat;
-            ftInteger,ftLargeint,ftSmallint,ftWord:FPaperDS.Fields[pi].AsLargeInt:=tmpDbf.Fields[fields_ref[pi].FI].AsLargeInt;
-            ftDateTime,ftDate,ftTime:FPaperDS.Fields[pi].AsDateTime:=tmpDbf.Fields[fields_ref[pi].FI].AsDateTime;
-            else assert(false,'FPaperDS.Fields[pi].DataType未预设。');
+          if not tmpAF.Shown then continue;
+          attr_range[pi].max:=fields_cnt;
+          tmpFieldDef:=tmpAF.FieldDef;
+
+          dat_type:=tmpFieldDef.DataType;
+          case dat_type of
+            ftMemo,ftWideMemo,ftFmtMemo:
+              //FPaperDS.FieldDefs.Add(Usf.zeroplus(pi,2)+tmpFieldDef.Name,ftString,255);
+              FPaperDS.FieldDefs.Add(tmpFieldDef.Name+'('+tmpAG.Name+')',ftString,255);
+            else
+              //FPaperDS.FieldDefs.Add(Usf.zeroplus(pi,2)+tmpFieldDef.Name,dat_type,tmpFieldDef.Size);
+              FPaperDS.FieldDefs.Add(tmpFieldDef.Name+'('+tmpAG.Name+')',dat_type,tmpFieldDef.Size);
+          end;
+          fields_ref[fields_cnt].AG:=tmpAG;
+          fields_ref[fields_cnt].FI:=tmpFieldDef.Index;
+          PaperDSFieldDefs.Add(tmpAF);
+          inc(fields_cnt);
+        end;
+    end;
+    max_attr:=pi;
+
+    FPaperDS.CreateTable;
+    FPaperDS.Open;
+    FPaperDS.Last;
+
+    IF (FKlassList.Count=0) or (FKlassList.AllUnChecked) THEN BEGIN
+      tmpDbf:=FPaperDB;
+      tmpDbf.First;
+      if not tmpDbf.EOF then repeat
+        FPaperDS.Append;
+        for pi:=0 to paperDB_cnt-1 do
+          begin
+            with FPaperDS.Fields[pi] do case DataType of
+              ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo{,ftFmtMemo,ftFixedChar}:FPaperDS.Fields[pi].AsString:=tmpDbf.Fields[fields_ref[pi].FI].AsString;
+              ftBoolean:FPaperDS.Fields[pi].AsBoolean:=tmpDbf.Fields[fields_ref[pi].FI].AsBoolean;
+              ftFloat:FPaperDS.Fields[pi].AsFloat:=tmpDbf.Fields[fields_ref[pi].FI].AsFloat;
+              ftInteger,ftLargeint,ftSmallint,ftWord:FPaperDS.Fields[pi].AsLargeInt:=tmpDbf.Fields[fields_ref[pi].FI].AsLargeInt;
+              ftDateTime,ftDate,ftTime:FPaperDS.Fields[pi].AsDateTime:=tmpDbf.Fields[fields_ref[pi].FI].AsDateTime;
+              else assert(false,'FPaperDS.Fields[pi].DataType未预设。');
+            end;
+          end;
+        tmpDbf.Next;
+      until tmpDbf.EOF;
+    END ELSE BEGIN
+      for klass in FKlassList do
+        begin
+          with klass.Dbf do begin
+            if not klass.FilterEnabled then continue;
+            if not Active then Open;
+            First;
+            while not EOF do
+              begin
+                InsertPaperDS(FieldByName(_Col_PID_).AsString);
+                Next;
+              end;
           end;
         end;
-      tmpDbf.Next;
-    until tmpDbf.EOF;
-  END ELSE BEGIN
-    for klass in FKlassList do
-      begin
-        with klass.Dbf do begin
-          if not klass.FilterEnabled then continue;
-          if not Active then Open;
-          First;
-          while not EOF do
-            begin
-              InsertPaperDS(FieldByName(_Col_PID_).AsString);
-              Next;
-            end;
-        end;
-      end;
-    FPaperDS.First;
-    if not FPaperDS.Active then FPaperDB.Open;
-    FPaperDB.IndexName:='id';
-    while not FPaperDS.EOF do begin
-      if FPaperDB.SearchKey(FPaperDS.FieldByName(_Col_PID_).AsString,stEqual) then
-        begin
-          FPaperDS.Edit;
-          for pi:=0 to paperDB_cnt-1 do
-            begin
-              with FPaperDS.Fields[pi] do case DataType of
-                ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo{,ftFmtMemo,ftFixedChar}:FPaperDS.Fields[pi].AsString:=tmpDbf.Fields[fields_ref[pi].FI].AsString;
-                ftBoolean:FPaperDS.Fields[pi].AsBoolean:=tmpDbf.Fields[fields_ref[pi].FI].AsBoolean;
-                ftFloat:FPaperDS.Fields[pi].AsFloat:=tmpDbf.Fields[fields_ref[pi].FI].AsFloat;
-                ftInteger,ftLargeint,ftSmallint,ftWord:FPaperDS.Fields[pi].AsLargeInt:=tmpDbf.Fields[fields_ref[pi].FI].AsLargeInt;
-                ftDateTime,ftDate,ftTime:FPaperDS.Fields[pi].AsDateTime:=tmpDbf.Fields[fields_ref[pi].FI].AsDateTime;
-                else assert(false,'FPaperDS.Fields[pi].DataType未预设。');
-              end;
-            end;
-          FPaperDS.Post;
-        end;
-      FPaperDS.Next;
-    end;
-  END;
-
-  IF FPaperDS.EOF and FPaperDS.BOF THEN ELSE BEGIN
-    for pj:=0 to max_attr do
-      begin
-        if attr_range[pj].min > attr_range[pj].max then continue;
-        tmpDbf:=FFieldList[pj].Dbf;
-        if tmpDbf.EOF and tmpDbf.BOF then continue;
-
-        FPaperDS.First;
-        if not FPaperDS.EOF then repeat
-          PID:=FPaperDS.FieldByName(_Col_PID_).AsString;
-          tmpDbf.IndexName:='id';
-          if tmpDbf.SearchKey(PID,stEqual) then begin
+      FPaperDS.First;
+      if not FPaperDS.Active then FPaperDB.Open;
+      FPaperDB.IndexName:='id';
+      while not FPaperDS.EOF do begin
+        if FPaperDB.SearchKey(FPaperDS.FieldByName(_Col_PID_).AsString,stEqual) then
+          begin
             FPaperDS.Edit;
-            for pi:=attr_range[pj].min to attr_range[pj].max do begin
-              case FPaperDS.Fields[pi].DataType of
-                ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo{,ftFmtMemo,ftFixedChar}:
-                  FPaperDS.Fields[pi].AsString:=tmpDbf.Fields[fields_ref[pi].FI].AsString;
-                ftBoolean:
-                  FPaperDS.Fields[pi].AsBoolean:=tmpDbf.Fields[fields_ref[pi].FI].AsBoolean;
-                ftFloat:
-                  FPaperDS.Fields[pi].AsFloat:=tmpDbf.Fields[fields_ref[pi].FI].AsFloat;
-                ftInteger,ftLargeint,ftSmallint,ftWord:
-                  FPaperDS.Fields[pi].AsLargeInt:=tmpDbf.Fields[fields_ref[pi].FI].AsLargeInt;
-                ftDateTime,ftDate,ftTime:
-                  FPaperDS.Fields[pi].AsDateTime:=tmpDbf.Fields[fields_ref[pi].FI].AsDateTime
-                else assert(false,'FPaperDS.Fields[pi].DataType未预设。');
+            for pi:=0 to paperDB_cnt-1 do
+              begin
+                with FPaperDS.Fields[pi] do case DataType of
+                  ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo{,ftFmtMemo,ftFixedChar}:FPaperDS.Fields[pi].AsString:=tmpDbf.Fields[fields_ref[pi].FI].AsString;
+                  ftBoolean:FPaperDS.Fields[pi].AsBoolean:=tmpDbf.Fields[fields_ref[pi].FI].AsBoolean;
+                  ftFloat:FPaperDS.Fields[pi].AsFloat:=tmpDbf.Fields[fields_ref[pi].FI].AsFloat;
+                  ftInteger,ftLargeint,ftSmallint,ftWord:FPaperDS.Fields[pi].AsLargeInt:=tmpDbf.Fields[fields_ref[pi].FI].AsLargeInt;
+                  ftDateTime,ftDate,ftTime:FPaperDS.Fields[pi].AsDateTime:=tmpDbf.Fields[fields_ref[pi].FI].AsDateTime;
+                  else assert(false,'FPaperDS.Fields[pi].DataType未预设。');
+                end;
               end;
-            end;
             FPaperDS.Post;
           end;
-          FPaperDS.Next;
-        until FPaperDS.EOF;
+        FPaperDS.Next;
       end;
-  END;
-  if FPaperDS.BookmarkValid(bm) then FPaperDS.GotoBookmark(bm);
-  //if FOnTableValidateDone<>nil then FOnTableValidateDone(Self);
-  EndUpdate;
+    END;
 
-  if (not IsUpdating) and (FOnMainGridRebuildDone<>nil) then FOnMainGridRebuildDone(Self);
+    IF FPaperDS.EOF and FPaperDS.BOF THEN ELSE BEGIN
+      for pj:=0 to max_attr do
+        begin
+          if attr_range[pj].min > attr_range[pj].max then continue;
+          tmpDbf:=FFieldList[pj].Dbf;
+          if tmpDbf.EOF and tmpDbf.BOF then continue;
 
+          FPaperDS.First;
+          if not FPaperDS.EOF then repeat
+            PID:=FPaperDS.FieldByName(_Col_PID_).AsString;
+            tmpDbf.IndexName:='id';
+            if tmpDbf.SearchKey(PID,stEqual) then begin
+              FPaperDS.Edit;
+              for pi:=attr_range[pj].min to attr_range[pj].max do begin
+                case FPaperDS.Fields[pi].DataType of
+                  ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo{,ftFmtMemo,ftFixedChar}:
+                    FPaperDS.Fields[pi].AsString:=tmpDbf.Fields[fields_ref[pi].FI].AsString;
+                  ftBoolean:
+                    FPaperDS.Fields[pi].AsBoolean:=tmpDbf.Fields[fields_ref[pi].FI].AsBoolean;
+                  ftFloat:
+                    FPaperDS.Fields[pi].AsFloat:=tmpDbf.Fields[fields_ref[pi].FI].AsFloat;
+                  ftInteger,ftLargeint,ftSmallint,ftWord:
+                    FPaperDS.Fields[pi].AsLargeInt:=tmpDbf.Fields[fields_ref[pi].FI].AsLargeInt;
+                  ftDateTime,ftDate,ftTime:
+                    FPaperDS.Fields[pi].AsDateTime:=tmpDbf.Fields[fields_ref[pi].FI].AsDateTime
+                  else assert(false,'FPaperDS.Fields[pi].DataType未预设。');
+                end;
+              end;
+              FPaperDS.Post;
+            end;
+            FPaperDS.Next;
+          until FPaperDS.EOF;
+        end;
+    END;
+    if FPaperDS.BookmarkValid(bm) then FPaperDS.GotoBookmark(bm);
+  finally
+    EndUpdate;
+    if (not IsUpdating) and (FOnMainGridRebuildDone<>nil) then FOnMainGridRebuildDone(Self);
+  end;
 end;
 
 procedure TRTFP.UpdateCurrentRec(PID:RTFP_ID);
@@ -4472,59 +4474,68 @@ begin
   //<    les      小于
   //<=   leq      小等
 
-  StringReplace(cmd,'=',' eql ',[rfReplaceAll]);
-  StringReplace(cmd,'!=',' neq ',[rfReplaceAll]);
-  StringReplace(cmd,'<>',' neq ',[rfReplaceAll]);
-  StringReplace(cmd,'>',' gtr ',[rfReplaceAll]);
-  StringReplace(cmd,'>=',' gtq ',[rfReplaceAll]);
-  StringReplace(cmd,'<',' les ',[rfReplaceAll]);
-  StringReplace(cmd,'<=',' leq ',[rfReplaceAll]);
+  if (not IsUpdating) and (FOnMainGridRebuilding<>nil) then FOnMainGridRebuilding(Self);
+  BeginUpdate;
+  try
 
-  Auf.Script.IO_fptr.error:=nil;
-  Auf.Script.IO_fptr.print:=nil;
-  Auf.Script.IO_fptr.echo:=nil;
-  Auf.ReadArgs(cmd);
-  if Auf.ArgsCount<2 then exit;
+    StringReplace(cmd,'=',' eql ',[rfReplaceAll]);
+    StringReplace(cmd,'!=',' neq ',[rfReplaceAll]);
+    StringReplace(cmd,'<>',' neq ',[rfReplaceAll]);
+    StringReplace(cmd,'>',' gtr ',[rfReplaceAll]);
+    StringReplace(cmd,'>=',' gtq ',[rfReplaceAll]);
+    StringReplace(cmd,'<',' les ',[rfReplaceAll]);
+    StringReplace(cmd,'<=',' leq ',[rfReplaceAll]);
 
-  colname:=Auf.nargs[0].arg;
-  method:=Auf.nargs[1].arg;
-  value:=Auf.nargs[2].arg;
+    Auf.Script.IO_fptr.error:=nil;
+    Auf.Script.IO_fptr.print:=nil;
+    Auf.Script.IO_fptr.echo:=nil;
+    Auf.ReadArgs(cmd);
+    if Auf.ArgsCount<2 then exit;
 
-  case method of
-    'true','false':;
-    else if Auf.ArgsCount<3 then exit;
-  end;
+    colname:=Auf.nargs[0].arg;
+    method:=Auf.nargs[1].arg;
+    value:=Auf.nargs[2].arg;
 
-  col_num:=0;
-  while col_num<FPaperDS.FieldDefs.Count do
-    begin
-      if FPaperDS.FieldDefs[col_num].Name=colname then break;
-      inc(col_num);
+    case method of
+      'true','false':;
+      else if Auf.ArgsCount<3 then exit;
     end;
-  if col_num>=FPaperDS.FieldDefs.Count then exit;
-  with FPaperDS do
-    begin
-      if not Active then Open;//没有必要吧
-      BeginUpdate;
-      First;
-      while not EOF do
-        begin
-          case lowercase(method) of
-            'eql':if Fields[Col_num].AsString<>value then Delete else Next;
-            'neq':if Fields[Col_num].AsString=value then Delete else Next;
-            'in':if pos(Fields[Col_num].AsString,value)<=0 then Delete else Next;
-            'has':if pos(value,Fields[Col_num].AsString)<=0 then Delete else Next;
-            'true':if not Fields[Col_num].AsBoolean then Delete else Next;
-            'false':if Fields[Col_num].AsBoolean then Delete else Next;
-            'gtr':if Fields[Col_num].AsLargeInt<=Usf.to_f(value) then Delete else Next;
-            'gtq':if Fields[Col_num].AsLargeInt<Usf.to_f(value) then Delete else Next;
-            'les':if Fields[Col_num].AsLargeInt>=Usf.to_f(value) then Delete else Next;
-            'leq':if Fields[Col_num].AsLargeInt>Usf.to_f(value) then Delete else Next;
-            else exit;
+
+    col_num:=0;
+    while col_num<FPaperDS.FieldDefs.Count do
+      begin
+        if FPaperDS.FieldDefs[col_num].Name=colname then break;
+        inc(col_num);
+      end;
+    if col_num>=FPaperDS.FieldDefs.Count then exit;
+
+    with FPaperDS do
+      begin
+        if not Active then Open;//没有必要吧
+
+        First;
+        while not EOF do
+          begin
+            case lowercase(method) of
+              'eql':if Fields[Col_num].AsString<>value then Delete else Next;
+              'neq':if Fields[Col_num].AsString=value then Delete else Next;
+              'in':if pos(Fields[Col_num].AsString,value)<=0 then Delete else Next;
+              'has':if pos(value,Fields[Col_num].AsString)<=0 then Delete else Next;
+              'true':if not Fields[Col_num].AsBoolean then Delete else Next;
+              'false':if Fields[Col_num].AsBoolean then Delete else Next;
+              'gtr':if Fields[Col_num].AsLargeInt<=Usf.to_f(value) then Delete else Next;
+              'gtq':if Fields[Col_num].AsLargeInt<Usf.to_f(value) then Delete else Next;
+              'les':if Fields[Col_num].AsLargeInt>=Usf.to_f(value) then Delete else Next;
+              'leq':if Fields[Col_num].AsLargeInt>Usf.to_f(value) then Delete else Next;
+              else exit;
+            end;
           end;
-        end;
-      EndUpdate;
-    end;
+
+      end;
+  finally
+    EndUpdate;
+    if (not IsUpdating) and (FOnMainGridRebuildDone<>nil) then FOnMainGridRebuildDone(Self);
+  end;
 end;
 
 procedure TRTFP.FieldListValidate(AListView:TListView);
