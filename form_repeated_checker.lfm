@@ -2,10 +2,10 @@ object FormRepeatedChecker: TFormRepeatedChecker
   Left = 527
   Height = 881
   Top = 40
-  Width = 873
+  Width = 1025
   Caption = '查重与合并'
   ClientHeight = 881
-  ClientWidth = 873
+  ClientWidth = 1025
   Constraints.MinHeight = 360
   Constraints.MinWidth = 640
   DesignTimePPI = 120
@@ -18,9 +18,9 @@ object FormRepeatedChecker: TFormRepeatedChecker
     AnchorSideTop.Control = Owner
     AnchorSideBottom.Control = ProgressBar_Chk
     Left = 10
-    Height = 617
+    Height = 600
     Top = 10
-    Width = 222
+    Width = 254
     Anchors = [akTop, akLeft, akBottom]
     BorderSpacing.Left = 10
     BorderSpacing.Top = 10
@@ -39,7 +39,7 @@ object FormRepeatedChecker: TFormRepeatedChecker
     Left = 10
     Height = 36
     Top = 835
-    Width = 222
+    Width = 254
     Anchors = [akLeft, akRight, akBottom]
     BorderSpacing.Top = 5
     BorderSpacing.Bottom = 10
@@ -56,8 +56,8 @@ object FormRepeatedChecker: TFormRepeatedChecker
     AnchorSideBottom.Control = Splitter_Opt
     Left = 10
     Height = 12
-    Top = 632
-    Width = 222
+    Top = 615
+    Width = 254
     Anchors = [akLeft, akRight, akBottom]
     BorderSpacing.Top = 5
     BorderSpacing.Bottom = 5
@@ -70,10 +70,10 @@ object FormRepeatedChecker: TFormRepeatedChecker
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Button_RecommandSelection
-    Left = 242
+    Left = 274
     Height = 815
     Top = 10
-    Width = 621
+    Width = 741
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 10
     BorderSpacing.Top = 10
@@ -112,12 +112,12 @@ object FormRepeatedChecker: TFormRepeatedChecker
     AnchorSideRight.Control = Button_UnSelectAll
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 442
+    Left = 543
     Height = 36
     Top = 835
-    Width = 70
+    Width = 66
     Anchors = [akRight, akBottom]
-    BorderSpacing.Right = 5
+    BorderSpacing.Right = 2
     BorderSpacing.Bottom = 10
     Caption = '全部主要'
     OnClick = Button_SelectAllClick
@@ -128,10 +128,10 @@ object FormRepeatedChecker: TFormRepeatedChecker
     AnchorSideLeft.Side = asrCenter
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 517
+    Left = 611
     Height = 36
     Top = 835
-    Width = 70
+    Width = 66
     Anchors = [akLeft, akBottom]
     BorderSpacing.Bottom = 10
     Caption = '全部次要'
@@ -143,12 +143,12 @@ object FormRepeatedChecker: TFormRepeatedChecker
     AnchorSideLeft.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 592
+    Left = 679
     Height = 36
     Top = 835
-    Width = 70
+    Width = 66
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Left = 5
+    BorderSpacing.Left = 2
     BorderSpacing.Bottom = 10
     Caption = '智能选择'
     OnClick = Button_RecommandSelectionClick
@@ -159,12 +159,12 @@ object FormRepeatedChecker: TFormRepeatedChecker
     AnchorSideLeft.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 677
+    Left = 750
     Height = 36
     Top = 835
-    Width = 70
+    Width = 66
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Left = 15
+    BorderSpacing.Left = 5
     BorderSpacing.Bottom = 10
     Caption = '合并'
     OnClick = Button_ApplyCombinationClick
@@ -174,12 +174,12 @@ object FormRepeatedChecker: TFormRepeatedChecker
     AnchorSideRight.Control = Button_SelectAll
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 357
+    Left = 472
     Height = 36
     Top = 835
-    Width = 70
+    Width = 66
     Anchors = [akRight, akBottom]
-    BorderSpacing.Right = 15
+    BorderSpacing.Right = 5
     BorderSpacing.Bottom = 10
     Caption = '全部合并'
     OnClick = Button_ApplyAllClick
@@ -192,9 +192,9 @@ object FormRepeatedChecker: TFormRepeatedChecker
     AnchorSideBottom.Control = Splitter_Opt
     AnchorSideBottom.Side = asrBottom
     Left = 10
-    Height = 83
-    Top = 649
-    Width = 108
+    Height = 105
+    Top = 632
+    Width = 124
     Anchors = [akTop, akLeft, akRight, akBottom]
     AutoFill = True
     Caption = '匹配模式'
@@ -205,13 +205,14 @@ object FormRepeatedChecker: TFormRepeatedChecker
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
-    ClientHeight = 63
-    ClientWidth = 104
+    ClientHeight = 85
+    ClientWidth = 120
     ItemIndex = 0
     Items.Strings = (
       '完全相同'
       '文本包含'
-      '半匹配'
+      '严格半匹配'
+      '汉字半匹配'
     )
     TabOrder = 9
   end
@@ -221,9 +222,9 @@ object FormRepeatedChecker: TFormRepeatedChecker
     AnchorSideTop.Control = ProgressBar_Chk
     AnchorSideTop.Side = asrBottom
     AnchorSideBottom.Control = CheckGroup_ColMode
-    Left = 118
-    Height = 83
-    Top = 649
+    Left = 134
+    Height = 105
+    Top = 632
     Width = 6
     Align = alNone
     Anchors = [akLeft, akBottom]
@@ -236,10 +237,10 @@ object FormRepeatedChecker: TFormRepeatedChecker
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Splitter_Opt
     AnchorSideBottom.Side = asrBottom
-    Left = 124
-    Height = 83
-    Top = 649
-    Width = 108
+    Left = 140
+    Height = 105
+    Top = 632
+    Width = 124
     Anchors = [akTop, akLeft, akRight, akBottom]
     AutoFill = True
     Caption = '总体'
@@ -250,8 +251,8 @@ object FormRepeatedChecker: TFormRepeatedChecker
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
-    ClientHeight = 63
-    ClientWidth = 104
+    ClientHeight = 85
+    ClientWidth = 120
     ItemIndex = 0
     Items.Strings = (
       '主表显示'
@@ -267,7 +268,7 @@ object FormRepeatedChecker: TFormRepeatedChecker
     Left = 10
     Height = 93
     Top = 737
-    Width = 222
+    Width = 254
     Anchors = [akLeft, akRight, akBottom]
     AutoFill = True
     BorderSpacing.Bottom = 5
@@ -281,7 +282,7 @@ object FormRepeatedChecker: TFormRepeatedChecker
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 2
     ClientHeight = 73
-    ClientWidth = 218
+    ClientWidth = 250
     Columns = 2
     Items.Strings = (
       '文件名'

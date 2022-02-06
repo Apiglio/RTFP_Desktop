@@ -351,9 +351,9 @@ object FormDesktop: TFormDesktop
     Height = 199
     Top = 372
     Width = 832
-    ActivePage = TabSheet_Node_FormatEdit
+    ActivePage = TabSheet_FmtCmt
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 2
+    TabIndex = 1
     TabOrder = 4
     OnChange = PageControl_NodeChange
     object TabSheet_Node_PDF: TTabSheet
@@ -374,7 +374,7 @@ object FormDesktop: TFormDesktop
     end
     object TabSheet_FmtCmt: TTabSheet
       Caption = '编辑属性(单个)'
-      ClientHeight = 164
+      ClientHeight = 166
       ClientWidth = 824
       object Button_FmtCmt_Post: TButton
         AnchorSideLeft.Control = ComboBox_AttrName
@@ -383,7 +383,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Control = Button_FmtCmt_Recover
         Left = 677
         Height = 32
-        Top = 80
+        Top = 82
         Width = 142
         Anchors = [akLeft, akRight, akBottom]
         BorderSpacing.Right = 5
@@ -401,7 +401,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrBottom
         Left = 677
         Height = 32
-        Top = 122
+        Top = 124
         Width = 142
         Anchors = [akLeft, akRight, akBottom]
         BorderSpacing.Right = 5
@@ -418,7 +418,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Control = TabSheet_FmtCmt
         AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 164
+        Height = 166
         Top = 0
         Width = 599
         Anchors = [akTop, akLeft, akRight, akBottom]
@@ -434,7 +434,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Control = ComboBox_FieldName
         Left = 677
         Height = 28
-        Top = 4
+        Top = 6
         Width = 112
         Anchors = [akRight, akBottom]
         BorderSpacing.Right = 35
@@ -454,7 +454,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Control = Button_FmtCmt_Post
         Left = 677
         Height = 28
-        Top = 42
+        Top = 44
         Width = 112
         Anchors = [akRight, akBottom]
         BorderSpacing.Right = 35
@@ -474,7 +474,7 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Control = ComboBox_AttrName
         Left = 609
         Height = 21
-        Top = 8
+        Top = 10
         Width = 68
         Anchors = [akTop, akRight]
         Caption = '属性组：'
@@ -486,7 +486,7 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Control = ComboBox_FieldName
         Left = 609
         Height = 21
-        Top = 46
+        Top = 48
         Width = 68
         Anchors = [akTop, akRight]
         Caption = '字段名：'
@@ -497,7 +497,7 @@ object FormDesktop: TFormDesktop
         AnchorSideTop.Control = Button_FmtCmt_Post
         Left = 609
         Height = 15
-        Top = 110
+        Top = 112
         Width = 48
         BorderSpacing.Top = 30
         Caption = '000000'
@@ -511,7 +511,7 @@ object FormDesktop: TFormDesktop
         Left = 795
         Height = 24
         Hint = '该字段不支持FmtCmt'
-        Top = 44
+        Top = 46
         Width = 24
         Anchors = [akTop, akRight]
         BorderSpacing.Top = 2
@@ -542,7 +542,7 @@ object FormDesktop: TFormDesktop
         Left = 795
         Height = 24
         Hint = '该字段支持FmtCmt'
-        Top = 44
+        Top = 46
         Width = 24
         Anchors = [akTop, akRight]
         BorderSpacing.Top = 2
@@ -1023,41 +1023,30 @@ object FormDesktop: TFormDesktop
         Caption = '检查工程'
         Enabled = False
       end
+      object MenuItem_project_profile: TMenuItem
+        Caption = '工程统计概览'
+        OnClick = MenuItem_project_profileClick
+      end
     end
-    object MenuItem_AttributeMenu: TMenuItem
-      Caption = '属性'
-      object MenuItem_Attr_AddKlass: TMenuItem
+    object MenuItem_KlassMenu: TMenuItem
+      Caption = '分类'
+      object MenuItem_klass_AddKlass: TMenuItem
         Caption = '新增分类'
-        OnClick = MenuItem_Attr_AddKlassClick
+        OnClick = MenuItem_klass_AddKlassClick
       end
-      object MenuItem_Attr_DelKlass: TMenuItem
+      object MenuItem_klass_DelKlass: TMenuItem
         Caption = '删除分类'
-        OnClick = MenuItem_Attr_DelKlassClick
+        OnClick = MenuItem_klass_DelKlassClick
       end
-      object MenuItem_Attr_div01: TMenuItem
+      object MenuItem_klass_div01: TMenuItem
         Caption = '-'
       end
-      object MenuItem_Klass_check: TMenuItem
+      object MenuItem_klass_check: TMenuItem
         Caption = '重新构建分类索引'
       end
-      object MenuItem_Attr_div02: TMenuItem
-        Caption = '-'
-      end
-      object MenuItem_Attr_AddAttrs: TMenuItem
-        Caption = '新增属性组'
-        OnClick = MenuItem_Attr_AddAttrsClick
-      end
-      object MenuItem_Attr_DelAttrs: TMenuItem
-        Caption = '删除属性组'
-      end
-      object MenuItem_Attr_AddField: TMenuItem
-        Caption = '新增字段列'
-      end
-      object MenuItem_Attr_DelField: TMenuItem
-        Caption = '删除字段列'
-      end
-      object MenuItem_Attr_EditField: TMenuItem
-        Caption = '编辑字段列'
+      object MenuItem_klass_SourceClass: TMenuItem
+        Caption = '重新构建来源分类'
+        OnClick = MenuItem_klass_SourceClassClick
       end
     end
     object MenuItem_Tool: TMenuItem
@@ -1301,6 +1290,17 @@ object FormDesktop: TFormDesktop
     end
     object MenuItem_DBGC_DS: TMenuItem
       Caption = '降序排序'
+    end
+    object MenuItem_DBGC_div02: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem_DBGC_Seek: TMenuItem
+      Caption = '查找值'
+      OnClick = MenuItem_DBGC_SeekClick
+    end
+    object MenuItem_DBGC_Calc: TMenuItem
+      Caption = '字段计算'
+      OnClick = MenuItem_DBGC_CalcClick
     end
   end
 end

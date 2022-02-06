@@ -32,10 +32,12 @@ object FormReportTool: TFormReportTool
       '工程基础信息'
       '导出字段数据'
       '导出当前主表'
+      '字段数据统计'
       '分类统计'
       '属性统计'
     )
     ItemHeight = 20
+    OnDblClick = ListBox_ListDblClick
     OnSelectionChange = ListBox_ListSelectionChange
     TabOrder = 0
   end

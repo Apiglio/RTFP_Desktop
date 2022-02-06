@@ -10,14 +10,14 @@ uses
   Classes, SysUtils, db, dbf, sqldb, mssqlconn, FileUtil, Forms, Controls,
   Graphics, Dialogs, ComCtrls, Menus, ExtCtrls, DBGrids, Grids, ValEdit,
   StdCtrls, DbCtrls, LazUTF8, LvlGraphCtrl,
-  Clipbrd, LCLType, Buttons,
+  Clipbrd, LCLType, Buttons, Regexpr,
 
   AufScript_Frame, ACL_ListView, TreeListView, lNetComponents,
 
   RTFP_definition, rtfp_constants, rtfp_dialog, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.1.2-alpha.6';
+  C_VERSION_NUMBER  = '0.1.2-alpha.7';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -72,6 +72,11 @@ type
     LvlGraphControl: TLvlGraphControl;
     MainMenu: TMainMenu;
     Memo_FmtCmt: TMemo;
+    MenuItem_project_profile: TMenuItem;
+    MenuItem_klass_SourceClass: TMenuItem;
+    MenuItem_DBGC_Calc: TMenuItem;
+    MenuItem_DBGC_div02: TMenuItem;
+    MenuItem_DBGC_Seek: TMenuItem;
     MenuItem_RepeatedChecker: TMenuItem;
     MenuItem_ExportTool: TMenuItem;
     MenuItem_Tool_div01: TMenuItem;
@@ -96,23 +101,17 @@ type
     MenuItem_FieldMgr_Ren: TMenuItem;
     MenuItem_FieldMgr_Edit: TMenuItem;
     MenuItem_option_div01: TMenuItem;
-    MenuItem_Attr_EditField: TMenuItem;
-    MenuItem_Attr_DelField: TMenuItem;
-    MenuItem_Attr_AddAttrs: TMenuItem;
-    MenuItem_Attr_DelAttrs: TMenuItem;
-    MenuItem_Attr_AddField: TMenuItem;
-    MenuItem_Attr_div02: TMenuItem;
-    MenuItem_Attr_div01: TMenuItem;
+    MenuItem_klass_div01: TMenuItem;
     MenuItem_ClassMgr_UnCheckAll: TMenuItem;
     MenuItem_ClassMgr_CheckAll: TMenuItem;
     MenuItem_ClassMgr_div01: TMenuItem;
     MenuItem_ClassMgr_CDir: TMenuItem;
     MenuItem_ClassMgr_Del: TMenuItem;
     MenuItem_ClassMgr_Ren: TMenuItem;
-    MenuItem_Klass_check: TMenuItem;
-    MenuItem_Attr_DelKlass: TMenuItem;
-    MenuItem_Attr_AddKlass: TMenuItem;
-    MenuItem_AttributeMenu: TMenuItem;
+    MenuItem_klass_check: TMenuItem;
+    MenuItem_klass_DelKlass: TMenuItem;
+    MenuItem_klass_AddKlass: TMenuItem;
+    MenuItem_KlassMenu: TMenuItem;
     MenuItem_option_appearance: TMenuItem;
     MenuItem_AdvOpen_PDF: TMenuItem;
     MenuItem_AdvOpen_CAJ: TMenuItem;
@@ -198,7 +197,7 @@ type
     procedure Button_NodeViewRecoverClick(Sender: TObject);
     procedure Button_Project_NodeView_FreshClick(Sender: TObject);
     procedure Button_tempClick(Sender: TObject);
-    procedure CheckListBox_MainAttrFilterClickCheck(Sender: TObject);
+    //procedure CheckListBox_MainAttrFilterClickCheck(Sender: TObject);
     procedure ComboBox_AttrNameChange(Sender: TObject);
     procedure ComboBox_FieldNameChange(Sender: TObject);
     procedure ComboBox_FormatEditChange(Sender: TObject);
@@ -241,6 +240,8 @@ type
     procedure MenuItem_ClassMgr_RenClick(Sender: TObject);
     procedure MenuItem_ClassMgr_UnCheckAllClick(Sender: TObject);
     procedure MenuItem_ClassToolClick(Sender: TObject);
+    procedure MenuItem_DBGC_CalcClick(Sender: TObject);
+    procedure MenuItem_DBGC_SeekClick(Sender: TObject);
     procedure MenuItem_DBGC_TitleClick(Sender: TObject);
     procedure MenuItem_DeletePaperClick(Sender: TObject);
     procedure MenuItem_ExportToolClick(Sender: TObject);
@@ -248,8 +249,9 @@ type
     procedure MenuItem_FieldMgr_EditClick(Sender: TObject);
     procedure MenuItem_FieldMgr_RenClick(Sender: TObject);
     procedure MenuItem_KlassClick(Sender: TObject);
-    procedure MenuItem_Attr_AddKlassClick(Sender: TObject);
-    procedure MenuItem_Attr_DelKlassClick(Sender: TObject);
+    procedure MenuItem_klass_AddKlassClick(Sender: TObject);
+    procedure MenuItem_klass_DelKlassClick(Sender: TObject);
+    procedure MenuItem_klass_SourceClassClick(Sender: TObject);
     procedure MenuItem_Mark_IsRead_NoClick(Sender: TObject);
     procedure MenuItem_Mark_IsRead_YesClick(Sender: TObject);
     procedure MenuItem_OpenAsCajClick(Sender: TObject);
@@ -263,6 +265,7 @@ type
     procedure MenuItem_project_closeClick(Sender: TObject);
     procedure MenuItem_project_newClick(Sender: TObject);
     procedure MenuItem_project_openClick(Sender: TObject);
+    procedure MenuItem_project_profileClick(Sender: TObject);
     procedure MenuItem_project_saveasClick(Sender: TObject);
     procedure MenuItem_project_saveClick(Sender: TObject);
     procedure MenuItem_RepeatedCheckerClick(Sender: TObject);
@@ -275,6 +278,9 @@ type
     FWaitForm:TForm;
     FWaitLabel:TLabel;
     FShowWaitForm:boolean;
+
+    LastDBGridPos:TPoint;
+
   public
     property ShowWaitForm:boolean read FShowWaitForm write FShowWaitForm;
 
@@ -300,7 +306,9 @@ type
     procedure Validate(Sender:TObject);//更新显示
     procedure ClassListValidate(Sender:TObject);//分类更新时的操作
     procedure FieldListValidate(Sender:TObject);//分类更新时的操作
-    procedure MainGridValidate(Sender:TObject);
+    procedure MainGridRebuilding(Sender:TObject);
+    procedure MainGridRebuildDone(Sender:TObject);
+    procedure MainGridUpdateRec(Sender:TObject;PID:RTFP_ID);
     procedure FormatListValidate(Sender:TObject);
 
     procedure FirstEdit(Sender:TObject);//工程第一次编辑
@@ -333,7 +341,7 @@ var
 implementation
 uses form_new_project, form_cite_trans, form_classmanager, form_import,
      form_appearance, rtfp_field, rtfp_class, form_options, form_report_tool,
-     form_repeated_checker;
+     form_repeated_checker, form_project_profile;
 
 {$R *.lfm}
 
@@ -356,8 +364,12 @@ begin
   Sender.onSaveDone:=@ProjectSaveDone;
   Sender.onCloseDone:=@ProjectCloseDone;
   Sender.onClose:=@ProjectClose;
+
   Sender.onChange:=@Validate;
-  Sender.onDataChange:=@MainGridValidate;
+  //Sender.onDataChange:=@MainGridValidate;
+  //Sender.onDataChange:=@MainGridUpdateRec;
+  Sender.OnMainGridRebuilding:=@MainGridRebuilding;
+  Sender.OnMainGridRebuildDone:=@MainGridRebuildDone;
   Sender.onClassChange:=@ClassListValidate;
   Sender.onFieldChange:=@FieldListValidate;
   //Sender.OnTableValidateDone:=@DBGridColumnAdjusting;
@@ -440,13 +452,17 @@ end;
 procedure TFormDesktop.Validate(Sender:TObject);
 var changed_str:string;
 begin
+  if ProjectInvalid then begin
+    Self.Caption:=C_SOFTWARE_NAME;
+    exit;
+  end;
   if (Sender as TRTFP).IsChanged then changed_str:=' *'
   else changed_str:='';
   //标题
   if (Sender as TRTFP).Title <> '' then
     Self.Caption:=C_SOFTWARE_NAME+' - '+(Sender as TRTFP).Title + changed_str
   else
-    Self.Caption:=C_SOFTWARE_NAME;
+    Self.Caption:=C_SOFTWARE_NAME+' - '+'<无标题>' + changed_str;
   //工程信息 标签页
   CurrentRTFP.ProjectPropertiesValidate(Self.PropertiesValueListEditor);
   //文献节点 标签页
@@ -471,13 +487,26 @@ begin
   Combo_AddAttrs.SelText:=stored_AG;
 end;
 
-procedure TFormDesktop.MainGridValidate(Sender:TObject);
+procedure TFormDesktop.MainGridRebuilding(Sender:TObject);
 begin
   Self.DBGrid_Main.Visible:=false;
   if FShowWaitForm then FWaitForm.Show;
-  (Sender as TRTFP).TableValidate;
+  //(Sender as TRTFP).RebuildMainGrid;//(Sender as TRTFP).TableValidate;
+  //if FShowWaitForm then FWaitForm.Hide;
+  //Self.DBGrid_Main.Visible:=true;
+end;
+procedure TFormDesktop.MainGridRebuildDone(Sender:TObject);
+begin
+  //Self.DBGrid_Main.Visible:=false;
+  //if FShowWaitForm then FWaitForm.Show;
+  //(Sender as TRTFP).RebuildMainGrid;//(Sender as TRTFP).TableValidate;
   if FShowWaitForm then FWaitForm.Hide;
   Self.DBGrid_Main.Visible:=true;
+end;
+
+procedure TFormDesktop.MainGridUpdateRec(Sender:TObject;PID:RTFP_ID);
+begin
+  (Sender as TRTFP).UpdateCurrentRec(PID);
 end;
 
 procedure TFormDesktop.FormatListValidate(Sender:TObject);
@@ -514,6 +543,8 @@ begin
   ComboBox_FieldName.Clear;
   Combo_AddAttrs.Clear;
   ComboBox_FormatEdit.Clear;
+  Image_IsMemo_Y.Visible:=false;
+  Image_IsMemo_N.Visible:=true;
 end;
 
 procedure TFormDesktop.ProjectOpenDone(Sender:TObject);
@@ -531,7 +562,7 @@ begin
   CurrentRTFP.AttrNameValidate(ComboBox_AttrName.Items);
 
   Self.Validate(Sender);
-  Self.MainGridValidate(Sender);
+  CurrentRTFP.RebuildMainGrid;//Self.MainGridValidate(Sender);
   CurrentRTFP.FormatEditBuild(Self.ScrollBox_Node_FormatEdit,'default.fmt');
 
 
@@ -691,6 +722,13 @@ begin
 
   if Self.OpenDialog_Project.Execute then
     CurrentRTFP.Open(UTF8ToWinCP(Self.OpenDialog_Project.FileName));
+end;
+
+procedure TFormDesktop.MenuItem_project_profileClick(Sender: TObject);
+begin
+  if ProjectInvalid then exit;
+  FormProjectProfile.ShowModal;
+  SetFocus;
 end;
 
 procedure TFormDesktop.MenuItem_project_saveasClick(Sender: TObject);
@@ -880,16 +918,22 @@ procedure TFormDesktop.MenuItem_ClassMgr_DelClick(Sender: TObject);
 var klassname:string;
     tmpNode:TACL_TreeNode;
     tmpLV:TACL_ListView;
+    tmpKL:TKlass;
+    filter:boolean;
 begin
   if ProjectInvalid then exit;
   tmpLV:=AListView_Klass;
   tmpNode:=TACL_TreeNode(tmpLV.Selected.Data);
   if tmpNode<>nil then
   klassname:=tmpNode.Name;
+  tmpKL:=CurrentRTFP.KlassList.FindItemByName(klassname);
+  if tmpKL=nil then exit;
+  filter:=tmpKL.FilterEnabled;
   case ShowMsgYesNoAll('删除分类','是否删除“'+klassname+'”分类？') of
     'Yes':CurrentRTFP.DeleteKlass(klassname);
     else exit;
   end;
+  if filter then CurrentRTFP.RebuildMainGrid;
 end;
 
 procedure TFormDesktop.MenuItem_ClassMgr_RenClick(Sender: TObject);
@@ -915,7 +959,7 @@ begin
   tmpNode.CheckAll;
   CurrentRTFP.EndUpdate;
   AListView_Klass.RePaint;
-  MainGridValidate(CurrentRTFP);
+  CurrentRTFP.RebuildMainGrid;//MainGridValidate(CurrentRTFP);
 end;
 
 procedure TFormDesktop.MenuItem_ClassMgr_UnCheckAllClick(Sender: TObject);
@@ -927,7 +971,7 @@ begin
   tmpNode.UnCheckAll;
   CurrentRTFP.EndUpdate;
   AListView_Klass.RePaint;
-  MainGridValidate(CurrentRTFP);
+  CurrentRTFP.RebuildMainGrid;//MainGridValidate(CurrentRTFP);
 end;
 
 procedure TFormDesktop.MenuItem_ClassToolClick(Sender: TObject);
@@ -935,6 +979,40 @@ begin
   if ProjectInvalid then exit;
   ClassManagerForm.ShowModal;//ClassManagerForm.show;
   SetFocus;
+end;
+
+procedure TFormDesktop.MenuItem_DBGC_CalcClick(Sender: TObject);
+begin
+  //计算字段
+end;
+
+procedure TFormDesktop.MenuItem_DBGC_SeekClick(Sender: TObject);
+var searchstr:string;
+    bm:TBookMark;
+    reg:TRegexpr;
+begin
+  if ProjectInvalid then exit;
+  reg:=TRegexpr.Create;
+  try
+  searchstr:=ShowMsgEdit('跳转到符合条件的字段值','正则表达式（匹配空值请输入“^$”或“\A\Z”）：','');
+  if searchstr='' then exit
+  else reg.Expression:=searchstr;
+  with DBGrid_Main.DataSource.DataSet do
+    begin
+      bm:=Bookmark;
+      while not EOF do
+        begin
+          if reg.Exec(Fields[LastDBGridPos.x-1].AsString) then exit;
+          Next;
+        end;
+      if EOF then begin
+        searchstr:=ShowMsgOK('未找到','未找到符合条件的字段值。');
+        GotoBookmark(bm);
+      end;
+    end;
+  finally
+    reg.Free;
+  end;
 end;
 
 procedure TFormDesktop.MenuItem_DBGC_TitleClick(Sender: TObject);
@@ -1001,7 +1079,7 @@ begin
   ClassManagerForm.Show;
 end;
 
-procedure TFormDesktop.MenuItem_Attr_AddKlassClick(Sender: TObject);
+procedure TFormDesktop.MenuItem_klass_AddKlassClick(Sender: TObject);
 var klassname,pathname:string;
 begin
   if ProjectInvalid then exit;
@@ -1014,7 +1092,7 @@ begin
     end;
 end;
 
-procedure TFormDesktop.MenuItem_Attr_DelKlassClick(Sender: TObject);
+procedure TFormDesktop.MenuItem_klass_DelKlassClick(Sender: TObject);
 var klassname:string;
     str:TStringList;
     tmpKL:TKlass;
@@ -1027,6 +1105,36 @@ begin
     if klassname<>'' then CurrentRTFP.DeleteKlass(klassname);
   finally
     str.Free;
+  end;
+end;
+
+procedure TFormDesktop.MenuItem_klass_SourceClassClick(Sender: TObject);
+var PID:RTFP_ID;
+    source,klassname:string;
+    PIDList:TStringList;
+begin
+  //太慢了，要点其他操作缓解一下，或者做进度条和耗时提示
+  if ProjectInvalid then exit;
+  //if ShowMsgYesNoAll('重建来源分类','重建来源分类会删除已有的全部“来源”文件夹下的分类，是否继续？')<>'Yes' then exit;
+  PIDList:=TStringList.Create;
+  try
+    CurrentRTFP.GetPIDList(PIDList);
+    CurrentRTFP.BeginUpdate;
+    for PID in PIDList do
+      begin
+        source:=CurrentRTFP.ReadFieldAsString(_Col_basic_Source_,_Attrs_Basic_,PID,[]);
+        if source<>'' then
+          begin
+            klassname:='《'+source+'》';
+            CurrentRTFP.AddKlass(klassname,'\来源库\');
+            CurrentRTFP.KlassInclude(klassname,PID);
+          end;
+      end;
+  finally
+    PIDList.Free;
+    CurrentRTFP.EndUpdate;
+    CurrentRTFP.ClassChange;
+    ShowMsgOK('重建来源分类','来源库已重建完成！');
   end;
 end;
 
@@ -1179,13 +1287,13 @@ begin
     end;
 
 end;
-
+{
 procedure TFormDesktop.CheckListBox_MainAttrFilterClickCheck(Sender: TObject);
 begin
   if ProjectInvalid then exit;
-  MainGridValidate(CurrentRTFP);
+  CurrentRTFP.RebuildMainGrid;//MainGridValidate(CurrentRTFP);
 end;
-
+}
 procedure TFormDesktop.ComboBox_AttrNameChange(Sender: TObject);
 var str:string;
 begin
@@ -1256,7 +1364,7 @@ begin
   if tmpA is TAttrsField then
     begin
       (tmpA as TAttrsField).Shown:=Item.Checked;
-      CurrentRTFP.DataChange;//MainGridValidate(CurrentRTFP);
+      CurrentRTFP.RebuildMainGrid;//MainGridValidate(CurrentRTFP);//CurrentRTFP.DataChange;
     end
   else if tmpA is TAttrsGroup then
     begin
@@ -1272,7 +1380,7 @@ begin
   tmpKL:=TKlass(Item.Data);
   if tmpKL<>nil then begin
     tmpKL.FilterEnabled:=Item.Checked;
-    CurrentRTFP.DataChange;//MainGridValidate(CurrentRTFP);
+    CurrentRTFP.RebuildMainGrid;//MainGridValidate(CurrentRTFP);//CurrentRTFP.DataChange;
   end;
 end;
 
@@ -1408,7 +1516,7 @@ var PID:RTFP_ID;
     attrNa,fieldNa:string;
 begin
   if ProjectInvalid then exit;
-  if Image_IsMemo_N.Hint='该字段不支持FmtCmt' then exit;
+  if Image_IsMemo_N.Visible then exit;
   //PID:=Selected_PID;
   PID:=Label_FmtCmtPID.Caption;
   if PID='000000' then exit;
@@ -1425,7 +1533,7 @@ var PID:RTFP_ID;
     attrNa,fieldNa:string;
 begin
   if ProjectInvalid then exit;
-  if Image_IsMemo_N.Hint='该字段不支持FmtCmt' then exit;
+  if Image_IsMemo_N.Visible then exit;
   //PID:=Selected_PID;
   PID:=Label_FmtCmtPID.Caption;
   if PID='000000' then exit;
@@ -1452,7 +1560,7 @@ procedure TFormDesktop.Button_MainFilterClick(Sender: TObject);
 begin
   //温和的筛选方式
   if ProjectInvalid then exit;
-  MainGridValidate(CurrentRTFP);
+  CurrentRTFP.RebuildMainGrid;//MainGridValidate(CurrentRTFP);
   if FShowWaitForm then FWaitForm.Show;
   CurrentRTFP.TableFilter(Edit_DBGridMain_Filter.Caption);
   if FShowWaitForm then FWaitForm.Hide;
@@ -1504,6 +1612,7 @@ begin
         begin
           vCell:=MouseCoord(X,Y);
           //ShowMessageFmt('cell=<%d,%d>',[Cell.x,Cell.y]);
+          LastDBGridPos:=vCell;
           if vCell.y=0 then begin
             PopupMenu:=Self.PopupMenu_MainDBGrid_Column;
             if vCell.x>0 then PopupMenu_MainDBGrid_Column.Items[0].Caption:=Columns[vCell.x-1].FieldName
@@ -1527,7 +1636,7 @@ end;
 
 procedure TFormDesktop.Edit_DBGridMain_FilterChange(Sender: TObject);
 begin
-  //有点激进的筛选方式
+  //激进的筛选方式
   //MainGridValidate(CurrentRTFP);
   //CurrentRTFP.TableFilter((Sender as TEdit).Caption);
 end;

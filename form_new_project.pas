@@ -128,7 +128,7 @@ end;
 
 procedure TForm_NewProject.FormDeactivate(Sender: TObject);
 begin
-  Self.Hide;
+  //Self.Hide;
 end;
 
 procedure TForm_NewProject.Renew;

@@ -1,6 +1,5 @@
 //引用PDF里的图片
 //字段选项化，进度表可以是checkboxlist的形式
-//年表功能要考虑增加了
 //网页下载要研究一下JS
 //字段更新日志
 //尽快增加Picture Attachment和剪贴板输入(在做了)
@@ -12,7 +11,15 @@
 //TKlass准备增加一个TKlassGroup类，和Attrs一样格式，这样才能保证ACL_ListView可以不重新折叠
 //重新创建删除的字段会出现错误(中间没有保存导致的)
 //FormatEdit的管理
-//SimilarChk的进度条和ListView的协调好像不够
+//增加替换URL的加载模式用以适用不同的webvpn
+//新增节点要能设置默认分类
+//MainDBValidate改到OnFieldOrRecordChange
+//专门做一个OnDataChange的validate
+//每一个formatEditComponent增加Modified属性用来判断是否修改，在editable和uneditable之间加一个freeze
+//uneditable改为提交数据时提示不能修改
+//01234改为0123456
+//validate以后分类列表全部折叠
+//FWaitForm加进度条
 
 
 
@@ -46,6 +53,7 @@ uses
 type
 
   RTFP_ID=string;//六位64进制数
+  TPIDNotifyEvent = procedure(Sender:TObject;PID:RTFP_ID) of object;
 
   TFieldTypeSet = set of TFieldType;
   TAttrExtendUnit = (aeFailIfNoPID,aeFailIfNoField,aeFailIfTypeDismatch,
@@ -56,7 +64,7 @@ type
   //几种文档入库方式: 复制备份/本地链接/网址链接/数据入库
 
   TSimChkOption = (scoFileName,scoTitle,scoFileHash,scoWeblnk,scoDOI,
-                   scoEqual,scoContain,scoHalffit,                     //匹配模式：完全相等、包含和半长度匹配
+                   scoEqual,scoContain,scoHalffit,scoHalffitUnsigned,  //匹配模式：完全相等、包含和半长度匹配(典型/无符号)
                    scoDB,scoDS);                                       //匹配总体：PaperDB、PaperDS
 
   TSimChkOptions = set of TSimChkOption;
@@ -257,7 +265,7 @@ type
     //Paper
     function AddPaper(fullfilename:string;AddPaperMethod:TAddPaperMethod=apmFullBackup):RTFP_ID;//新增一个文献到工程
     function FindPaper(fullfilename:string):RTFP_ID;//查找具体文件在工程中的PID，未找到返回000000
-    function DeletePaper(PID:RTFP_ID):boolean;//移除指定PID的文献
+    function DeletePaper(PID:RTFP_ID;PreserveFileNoAsk:boolean=false):boolean;//移除指定PID的文献，第二参数true在MergePaper中使用
     function UpdatePaper(PID:RTFP_ID;fullfilename:string;AddPaperMethod:TAddPaperMethod):boolean;//更新指定PID的文件
     function MergePaper(PID_Main,PID_Vice:RTFP_ID;AFieldSelectOption:TFieldSelectOptions):boolean;//合并两个文献节点
 
@@ -341,7 +349,8 @@ type
     procedure ProjectPropertiesValidate(AValueListEditor:TValueListEditor);
     procedure ProjectPropertiesDataPost(AValueListEditor:TValueListEditor);
 
-    procedure TableValidate;
+    procedure RebuildMainGrid;
+    procedure UpdateCurrentRec(PID:RTFP_ID);
     procedure TableFilter(cmd:string);
 
     procedure FieldListValidate(AListView:TListView);
@@ -365,7 +374,8 @@ type
   private
     FIsOpen:boolean;
     FIsChanged:boolean;
-    FIsUpdating:boolean;//true时不触发onChange
+    //FIsUpdating:boolean;//true时不触发onChange
+    FUpdatingLevel:integer;//为0时触发onChange，每次BeginUpdate+1，EndUpdate-1
 
     FOnNew,FOnNewDone:TNotifyEvent;
     FOnOpen,FOnOpenDone:TNotifyEvent;
@@ -373,15 +383,20 @@ type
     FOnSaveAs,FOnSaveAsDone:TNotifyEvent;
     FOnClose,FOnCloseDone:TNotifyEvent;
 
-    FOnTableValidateDone:TNotifyEvent;
+    //FOnTableValidateDone:TNotifyEvent;
+    FOnMainGridRebuilding,FOnMainGridRebuildDone:TNotifyEvent;
 
     FOnFirstEdit,FOnChange:TNotifyEvent;
     FOnDataChange,FOnFieldChange,FOnRecordChange:TNotifyEvent;
     FOnClassChange,FOnUsersChange,FOnFormatListChange:TNotifyEvent;
 
+  protected
+    function GetIsUpdating:boolean;
+
   public
     property IsOpen:boolean read FIsOpen;
     property IsChanged:boolean read FIsChanged;
+    property IsUpdating:boolean read GetIsUpdating;
   public
     procedure BeginUpdate;
     procedure EndUpdate;
@@ -397,7 +412,9 @@ type
     property onClose:TNotifyEvent read FOnClose write FOnClose;
     property onCloseDone:TNotifyEvent read FOnCloseDone write FOnCloseDone;
 
-    property OnTableValidateDone:TNotifyEvent read FOnTableValidateDone write FOnTableValidateDone;
+    //property OnTableValidateDone:TNotifyEvent read FOnTableValidateDone write FOnTableValidateDone;
+    property OnMainGridRebuilding:TNotifyEvent read FOnMainGridRebuilding write FOnMainGridRebuilding;
+    property OnMainGridRebuildDone:TNotifyEvent read FOnMainGridRebuildDone write FOnMainGridRebuildDone;
 
     property onFirstEdit:TNotifyEvent read FOnFirstEdit write FOnFirstEdit;
     property onChange:TNotifyEvent read FOnChange write FOnChange;
@@ -411,7 +428,7 @@ type
 
   public
     procedure Change;//用于标记工程已经发生改变，如果之前未改变，会触发OnFirstEdit
-    procedure DataChange;//数据修改，也会触发Change事件
+    procedure DataChange(PID:RTFP_ID);//数据修改，也会触发Change事件
     procedure FieldChange;//字段修改，也会触发DataChange和Change事件
     procedure RecordChange;//记录修改，也会触发DataChange和Change事件
     procedure FieldAndRecordChange;//记录和字段同时修改，也会触发DataChange和Change事件
@@ -1003,7 +1020,8 @@ begin
 
   FIsChanged:=false;
   FIsOpen:=false;
-  FIsUpdating:=false;
+  //FIsUpdating:=false;
+  FUpdatingLevel:=0;
 
   FOnNew:=nil;
   FOnNewDone:=nil;
@@ -1016,7 +1034,9 @@ begin
   FOnClose:=nil;
   FOnCloseDone:=nil;
 
-  FOnTableValidateDone:=nil;
+  //FOnTableValidateDone:=nil;
+  FOnMainGridRebuildDone:=nil;
+  FOnMainGridRebuilding:=nil;
 
   FOnFirstEdit:=nil;
   FOnChange:=nil;
@@ -1496,7 +1516,7 @@ begin
       tmpAG.Dbf.Edit;
       tmpField.AsString:=value;
       tmpAG.Dbf.Post;
-      DataChange;
+      DataChange(PID);
     end
   else begin
     if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
@@ -1536,7 +1556,7 @@ begin
       tmpAG.Dbf.Edit;
       tmpField.AsInteger:=value;
       tmpAG.Dbf.Post;
-      DataChange;
+      DataChange(PID);
     end
   else begin
     if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
@@ -1576,7 +1596,7 @@ begin
       tmpAG.Dbf.Edit;
       tmpField.AsBoolean:=value;
       tmpAG.Dbf.Post;
-      DataChange;
+      DataChange(PID);
     end
   else begin
     if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
@@ -1616,7 +1636,7 @@ begin
       tmpAG.Dbf.Edit;
       tmpField.AsDateTime:=value;
       tmpAG.Dbf.Post;
-      DataChange;
+      DataChange(PID);
     end
   else begin
     if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
@@ -1656,7 +1676,7 @@ begin
       tmpAG.Dbf.Edit;
       tmpField.AsFloat:=value;
       tmpAG.Dbf.Post;
-      DataChange;
+      DataChange(PID);
     end
   else begin
     if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
@@ -1715,7 +1735,7 @@ begin
       tmpAG.Dbf.Edit;
       tmpField.AsString:=buf.Text;
       tmpAG.Dbf.Post;
-      DataChange;
+      DataChange(PID);
     end
   else begin
     if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
@@ -1794,7 +1814,7 @@ begin
         str.Free;
       end;
       tmpAG.Dbf.Post;
-      DataChange;
+      DataChange(PID);
     end
   else begin
     if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
@@ -1918,7 +1938,7 @@ begin
   DeleteDbf(tmp.FullPath,tmp.Dbf);
   FKlassList.Delete(index);
   ClassChange;
-  if attrs_modified then DataChange;
+  if attrs_modified then RebuildMainGrid{DataChange};
 end;
 
 
@@ -2330,6 +2350,7 @@ begin
 
   EndUpdate;
 
+  RebuildMainGrid;
   ClassChange;
   FieldAndRecordChange;
 
@@ -2361,6 +2382,7 @@ begin
 
   EndUpdate;
 
+  RebuildMainGrid;
   ClassChange;
   FieldAndRecordChange;
 
@@ -2404,7 +2426,7 @@ begin
   EndUpdate;
 
   ClassChange;
-  FieldAndRecordChange;
+  //FieldAndRecordChange;
 
   Self.FIsChanged:=false;
   if FOnSaveDone <> nil then FOnSaveDone(Self);
@@ -2451,43 +2473,47 @@ procedure TRTFP.Change;
 begin
   if (not Self.FIsChanged) and (@onFirstEdit<>nil) then Self.onFirstEdit(Self);
   Self.FIsChanged:=true;
-  if (not FIsUpdating) and (FOnChange<>nil) then FOnChange(Self);
+  if (not IsUpdating) and (FOnChange<>nil) then FOnChange(Self);
 end;
 
-procedure TRTFP.DataChange;
+procedure TRTFP.DataChange(PID:RTFP_ID);
 begin
-  if (not FIsUpdating) and (FOnDataChange<>nil) then FOnDataChange(Self);
+  if (not IsUpdating) and (FOnDataChange<>nil) then FOnDataChange(Self);
+  if (not IsUpdating) then UpdateCurrentRec(PID);
   Change;
 end;
 procedure TRTFP.FieldChange;
 begin
-  if (not FIsUpdating) and (FOnFieldChange<>nil) then FOnFieldChange(Self);
-  DataChange;
+  if (not IsUpdating) and (FOnFieldChange<>nil) then FOnFieldChange(Self);
+  if (not IsUpdating) then RebuildMainGrid;
+  {Data}Change;
 end;
 procedure TRTFP.RecordChange;
 begin
-  if (not FIsUpdating) and (FOnRecordChange<>nil) then FOnRecordChange(Self);
-  DataChange;
+  if (not IsUpdating) and (FOnRecordChange<>nil) then FOnRecordChange(Self);
+  if (not IsUpdating) then RebuildMainGrid;
+  {Data}Change;
 end;
 procedure TRTFP.FieldAndRecordChange;
 begin
-  if (not FIsUpdating) and (FOnFieldChange<>nil) then FOnFieldChange(Self);
-  if (not FIsUpdating) and (FOnRecordChange<>nil) then FOnRecordChange(Self);
-  DataChange;
+  if (not IsUpdating) and (FOnFieldChange<>nil) then FOnFieldChange(Self);
+  if (not IsUpdating) and (FOnRecordChange<>nil) then FOnRecordChange(Self);
+  if (not IsUpdating) then RebuildMainGrid;
+  {Data}Change;
 end;
 procedure TRTFP.ClassChange;
 begin
-  if (not FIsUpdating) and (FOnClassChange<>nil) then FOnClassChange(Self);
+  if (not IsUpdating) and (FOnClassChange<>nil) then FOnClassChange(Self);
   Change;
 end;
 procedure TRTFP.UsersChange;
 begin
-  if (not FIsUpdating) and (FOnUsersChange<>nil) then FOnUsersChange(Self);
+  if (not IsUpdating) and (FOnUsersChange<>nil) then FOnUsersChange(Self);
   Change;
 end;
 procedure TRTFP.FormatListChange;
 begin
-  if (not FIsUpdating) and (FOnFormatListChange<>nil) then FOnFormatListChange(Self);
+  if (not IsUpdating) and (FOnFormatListChange<>nil) then FOnFormatListChange(Self);
   Change;
 end;
 
@@ -2589,7 +2615,7 @@ function TRTFP.AddPaper(fullfilename:string;AddPaperMethod:TAddPaperMethod=apmFu
 var PID:RTFP_ID;
     DateDir,TargetDir,FileName:string;
     tmpPDF:TRTFP_PDF;
-    is_updating:boolean;
+    //is_updating:boolean;
 begin
   result:='000000';
   if not (AddPaperMethod in [apmFullBackup,apmReference,apmAddress]) then
@@ -2632,8 +2658,9 @@ begin
       FileName:='';
     END;
 
-    is_updating:=FIsUpdating;
-    if not is_updating then BeginUpdate;
+    //is_updating:=IsUpdating;
+    //if not is_updating then BeginUpdate;
+    BeginUpdate;
 
     PID:=NewPaperID;
     //FPaperDB.Last;//此时游标已经在Last位置
@@ -2674,7 +2701,8 @@ begin
     EditFieldAsString(_Col_metas_CreDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:CreationDate']^,[]);
     EditFieldAsString(_Col_metas_ModDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:ModDate']^,[]);
 
-    if not is_updating then EndUpdate;
+    //if not is_updating then EndUpdate;
+    EndUpdate;
 
     IF fullfilename<>'' THEN BEGIN
       if AddPaperMethod=apmFullBackup then begin
@@ -2737,8 +2765,10 @@ begin
   FileStream.Free;
 end;
 
-function TRTFP.DeletePaper(PID:RTFP_ID):boolean;//移除指定PID的文献
+function TRTFP.DeletePaper(PID:RTFP_ID;PreserveFileNoAsk:boolean=false):boolean;//移除指定PID的文献
 var AG:TAttrsGroup;
+    klass_list:TStringList;
+    klass_name:string;
 begin
   result:=false;
   if not TRTFP.IsRTFPID(PID) then exit;
@@ -2748,12 +2778,21 @@ begin
     if SearchKey(PID,stEqual) then
       begin
         if FieldByName(_Col_Paper_Is_Backup_).AsBoolean then
-          case ShowMsgYesNoAll('删除确认','删除文献节点对应的文件可能会导致其他共用此文件的节点失去文件连接，并且操作后无法恢复，是否继续？',true) of
-            'Yes':TRTFP.FileDelete(FFilePath+FRootFolder+'\paper\'+FieldByName(_Col_Paper_Folder_).AsString+'\'+FieldByName(_Col_Paper_FileName_).AsString);
-            else ;
-          end;
+          if not PreserveFileNoAsk then
+            case ShowMsgYesNoAll('删除确认','删除文献节点对应的文件可能会导致其他共用此文件的节点失去文件连接，并且操作后无法恢复，是否继续？',true) of
+              'Yes':TRTFP.FileDelete(FFilePath+FRootFolder+'\paper\'+FieldByName(_Col_Paper_Folder_).AsString+'\'+FieldByName(_Col_Paper_FileName_).AsString);
+              else ;
+            end
+          else ;//PreserveFileNoAsk=true时直接不删除
         Delete;
       end;
+  end;
+  klass_list:=TStringList.Create;
+  try
+    GetPaperKlass(PID,klass_list);
+    for klass_name in klass_list do KlassExclude(klass_name,PID);
+  finally
+    klass_list.Free;
   end;
   for AG in FFieldList do with AG.Dbf do
     begin
@@ -2961,7 +3000,7 @@ begin
   finally
     klass_list.Free;
   end;
-  result:=DeletePaper(PID_Vice);
+  result:=DeletePaper(PID_Vice,true);
 end;
 
 procedure TRTFP.GetPIDList(AList:TStrings);
@@ -3025,6 +3064,32 @@ var PIDs,lst1,lst2:TStringList;
       for s1 in lst1 do for s2 in lst2 do
         begin
           len:=length(LongestCommonSubString(s1,s2));
+          len1:=length(s1) div 2;
+          len2:=length(s2) div 2;
+          if (len>len1) and (len>len2) then exit;
+        end;
+      result:=false;
+    end;
+    function unsign_string(str:string):string;
+    var index:integer;
+    begin
+      index:=1;
+      result:=str;
+      while index<=length(result) do
+        begin
+          if byte(ord(result[index])) <128 then delete(result,index,1)
+          else inc(index);
+        end;
+    end;
+
+    function HalffitUnsignedCompare:boolean;
+    var s1,s2:string;
+        len1,len2,len:integer;
+    begin
+      result:=true;
+      for s1 in lst1 do for s2 in lst2 do
+        begin
+          len:=length(LongestCommonSubString(unsign_string(s1),unsign_string(s2)));
           len1:=length(s1) div 2;
           len2:=length(s2) div 2;
           if (len>len1) and (len>len2) then exit;
@@ -3101,9 +3166,13 @@ begin
               begin
                 if ContainCompare then AList.Add(id1+'-'+id2);
               end
-            else {if scoHalffit in ASimChkOption then}
+            else if scoHalffit in ASimChkOption then
               begin
                 if HalffitCompare then AList.Add(id1+'-'+id2);
+              end
+            else {if scoHalffitRough in ASimChkOption then}
+              begin
+                if HalffitUnsignedCompare then AList.Add(id1+'-'+id2);
               end;
           end;
       end;
@@ -3242,7 +3311,8 @@ begin
     stmp.Free;
   end;
 
-  DataChange;
+  RebuildMainGrid;
+  {Data}Change;
   result:=true;
 end;
 
@@ -3270,7 +3340,8 @@ begin
     stmp.Free;
   end;
 
-  DataChange;
+  RebuildMainGrid;
+  {Data}Change;
   result:=true;
 end;
 
@@ -3303,14 +3374,20 @@ begin
   EndUpdate;
 end;
 
+function TRTFP.GetIsUpdating:boolean;
+begin
+  result:=FUpdatingLevel<>0;
+end;
 procedure TRTFP.BeginUpdate;
 begin
-  FIsUpdating:=true;
+  //FIsUpdating:=true;
+  inc(FUpdatingLevel);
 end;
 
 procedure TRTFP.EndUpdate;
 begin
-  FIsUpdating:=false;
+  //IsUpdating:=false;
+  dec(FUpdatingLevel);
 end;
 
 function TRTFP.AddImage(fullfilename:string):RTFP_ID;//新增一个图片到工程
@@ -3835,7 +3912,7 @@ begin
   Self.Tag['CAJ打开方式']:=AValueListEditor.Values['CAJ打开方式'];
 end;
 
-procedure TRTFP.TableValidate;
+procedure TRTFP.RebuildMainGrid;
 var tmpDbf:TDbf;
     tmpFieldDef:TFieldDef;
     PID:RTFP_ID;
@@ -3890,6 +3967,9 @@ var tmpDbf:TDbf;
     end;
 
 begin
+
+  if (not IsUpdating) and (FOnMainGridRebuilding<>nil) then FOnMainGridRebuilding(Self);
+
   BeginUpdate;
   bm:=FPaperDS.GetBookmark;
   FPaperDS.Clear;
@@ -4029,7 +4109,57 @@ begin
       end;
   END;
   if FPaperDS.BookmarkValid(bm) then FPaperDS.GotoBookmark(bm);
-  if FOnTableValidateDone<>nil then FOnTableValidateDone(Self);
+  //if FOnTableValidateDone<>nil then FOnTableValidateDone(Self);
+  EndUpdate;
+
+  if (not IsUpdating) and (FOnMainGridRebuildDone<>nil) then FOnMainGridRebuildDone(Self);
+
+end;
+
+procedure TRTFP.UpdateCurrentRec(PID:RTFP_ID);
+var nowPID:RTFP_ID;
+    fieldname,attrsname:string;
+    field_index,poss,len:integer;
+    bm:TBookMark;
+begin
+  nowPID:=FPaperDS.FieldByName(_Col_PID_).AsString;
+  if PID='' then PID:=NowPID;
+  BeginUpdate;
+  if nowPID<>PID then with FPaperDS do begin
+    bm:=Bookmark;
+    First;
+    while not EOF do
+      begin
+        if FieldByName(_Col_PID_).AsString=PID then break;
+        Next;
+      end;
+    if EOF then begin ShowMsgOK('错误','UpdateCurrentRec找不到PID');exit;end;
+  end;
+
+  FPaperDS.Edit;
+
+  for field_index:=0 to FPaperDS.FieldDefs.Count-1 do
+    begin
+      fieldname:=FPaperDS.FieldDefs[field_index].Name;
+      if fieldname=_Col_PID_ then continue;
+      poss:=pos('(',fieldname);
+      if poss>0 then begin
+        len:=length(fieldname);
+        attrsname:=fieldname;
+        delete(fieldname,poss,len);
+        delete(attrsname,1,poss);
+        delete(attrsname,length(attrsname),1);
+        FPaperDS.Fields[field_index].AsString:=ReadFieldAsString(fieldname,attrsname,PID,[]);
+      end else begin
+        FPaperDS.Fields[field_index].AsString:=GetPaperAttrs(fieldname,PID);
+      end;
+    end;
+
+  FPaperDS.Post;
+
+  if nowPID<>PID then with FPaperDS do begin
+    if BookmarkValid(bm) then GotoBookmark(bm);
+  end;
   EndUpdate;
 
 end;
@@ -4459,7 +4589,7 @@ begin
   end;
 
   EndUpdate;
-  DataChange;
+  DataChange(PID);
 end;
 
 function TRTFP.GetCurrentPathFull:string;
@@ -4547,10 +4677,18 @@ begin
 end;
 
 function TRTFP.GetPaperCount:integer;
+var acc:integer;
 begin
+  acc:=0;
   with FPaperDB do begin
     if not Active then Open;
-    result:=RecordCount;
+    First;
+    while not EOF do
+      begin
+        inc(acc);
+        Next;
+      end;
+    result:=acc;
   end;
 end;
 function TRTFP.GetBackupPaperCount:integer;

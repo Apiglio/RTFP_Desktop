@@ -13,8 +13,30 @@ interface
 uses
   Classes, SysUtils;
 
+type
 
-function LongestCommonSubString(s1,s2:string):string;
+
+  TStrHashItem = class(TObject)
+  public
+    Name:string;
+    Count:int64;
+  end;
+
+  TStrHash = class(TList)
+  protected
+    function FindByName(str:string):TStrHashItem;
+    function GetNamedItemCount(str:string):int64;
+    procedure SetNamedItemCount(str:string;value:int64);
+    procedure Clear;
+  public
+    procedure NamedItemAddCount(str:string;value:int64=1);
+    property NamedItem[str:string]:int64 read GetNamedItemCount write SetNamedItemCount;default;
+  end;
+
+
+
+function LongestCommonSubString(s1,s2:string):string;//最大共同子串
+function LongestOrdinalCombination(s1,s2:string):string;//最大共同子串组合
 
 implementation
 
@@ -74,6 +96,70 @@ begin
 
 end;
 
+function LongestOrdinalCombination(s1,s2:string):string;
+begin
+  //心态崩了，逻辑有点复杂
+  //大概的意思是在对比矩阵的基础上寻找最大非零对角线，然后同行同列全部置0，重复直到全0
+end;
+
+
+function TStrHash.FindByName(str:string):TStrHashItem;
+var index:integer;
+begin
+  result:=nil;
+  index:=0;
+  while index<Count do
+    begin
+      if TStrHashItem(Items[index]).Name=str then
+        begin
+          result:=TStrHashItem(Items[index]);
+          exit;
+        end;
+      inc(index);
+    end;
+end;
+function TStrHash.GetNamedItemCount(str:string):int64;
+var tmpItem:TStrHashItem;
+begin
+  result:=-1;
+  tmpItem:=FindByName(str);
+  if tmpItem=nil then exit;
+  result:=tmpItem.Count;
+end;
+procedure TStrHash.SetNamedItemCount(str:string;value:int64);
+var tmpItem:TStrHashItem;
+begin
+  tmpItem:=FindByName(str);
+  if tmpItem=nil then
+    begin
+      tmpItem:=TStrHashItem.Create;
+      tmpItem.Name:=str;
+      tmpItem.Count:=value;
+      Add(tmpItem);
+    end
+  else tmpItem.Count:=value;
+end;
+procedure TStrHash.Clear;
+begin
+  while Count>0 do
+    begin
+      TStrHashItem(Items[0]).Free;
+      Delete(0);
+    end;
+end;
+procedure TStrHash.NamedItemAddCount(str:string;value:int64=1);
+var tmpItem:TStrHashItem;
+begin
+  tmpItem:=FindByName(str);
+  if tmpItem=nil then
+    begin
+      tmpItem:=TStrHashItem.Create;
+      tmpItem.Name:=str;
+      tmpItem.Count:=value;
+      Add(tmpItem);
+    end
+  else tmpItem.Count:=tmpItem.Count+value;
+end;
 
 end.
 
