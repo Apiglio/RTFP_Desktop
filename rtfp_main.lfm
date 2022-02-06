@@ -35,9 +35,9 @@ object FormDesktop: TFormDesktop
     Height = 319
     Top = 0
     Width = 872
-    ActivePage = TabSheet_Project_DataGrid
+    ActivePage = TabSheet_Project_Properties
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 1
     object TabSheet_Project_Properties: TTabSheet
       Caption = '工程信息'
@@ -46,16 +46,14 @@ object FormDesktop: TFormDesktop
       object PropertiesValueListEditor: TValueListEditor
         AnchorSideLeft.Control = TabSheet_Project_Properties
         AnchorSideTop.Control = TabSheet_Project_Properties
-        AnchorSideRight.Control = TabSheet_Project_Properties
-        AnchorSideRight.Side = asrCenter
+        AnchorSideRight.Control = Splitter_PropertiesV
         AnchorSideBottom.Control = TabSheet_Project_Properties
         AnchorSideBottom.Side = asrBottom
         Left = 0
         Height = 286
         Top = 0
-        Width = 360
-        Anchors = [akTop, akLeft, akBottom]
-        Enabled = False
+        Width = 858
+        Anchors = [akTop, akLeft, akRight, akBottom]
         FixedCols = 0
         RowCount = 2
         TabOrder = 0
@@ -66,8 +64,21 @@ object FormDesktop: TFormDesktop
         )
         ColWidths = (
           80
-          276
+          774
         )
+      end
+      object Splitter_PropertiesV: TSplitter
+        AnchorSideTop.Control = TabSheet_Project_Properties
+        AnchorSideRight.Control = TabSheet_Project_Properties
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = TabSheet_Project_Properties
+        AnchorSideBottom.Side = asrBottom
+        Left = 858
+        Height = 286
+        Top = 0
+        Width = 6
+        Align = alNone
+        Anchors = [akTop, akRight, akBottom]
       end
     end
     object TabSheet_Project_DataGrid: TTabSheet
@@ -101,10 +112,12 @@ object FormDesktop: TFormDesktop
           Top = 1
           Width = 712
           Anchors = [akTop, akLeft, akRight, akBottom]
+          AutoFillColumns = True
           Color = clWindow
           Columns = <>
           DataSource = DataSource_Main
-          Options = [dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgRowSelect, dgAlwaysShowSelection, dgConfirmDelete, dgCancelOnExit, dgDblClickAutoSize]
+          Options = [dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgRowSelect, dgAlwaysShowSelection, dgConfirmDelete, dgCancelOnExit, dgAnyButtonCanSelect, dgDblClickAutoSize]
+          PopupMenu = PopupMenu_MainDBGrid
           TabOrder = 0
           OnCellClick = DBGrid_MainCellClick
           OnKeyUp = DBGrid_MainKeyUp
@@ -533,5 +546,17 @@ object FormDesktop: TFormDesktop
   object DataSource_Attrs: TDataSource
     left = 64
     top = 88
+  end
+  object PopupMenu_MainDBGrid: TPopupMenu
+    left = 64
+    top = 368
+    object MenuItem_OpenAsPdf: TMenuItem
+      Caption = '作为PDF打开'
+      OnClick = MenuItem_OpenAsPdfClick
+    end
+    object MenuItem_OpenAsCaj: TMenuItem
+      Caption = '作为CAJ打开'
+      OnClick = MenuItem_OpenAsCajClick
+    end
   end
 end

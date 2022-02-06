@@ -14,7 +14,7 @@ uses
   RTFP_definition, Types;
 
 const
-  C_VERSION_NUMBER  = '0.1.0-alpha.6';
+  C_VERSION_NUMBER  = '0.1.0-alpha.7';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -41,6 +41,8 @@ type
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem5: TMenuItem;
+    MenuItem_OpenAsPdf: TMenuItem;
+    MenuItem_OpenAsCaj: TMenuItem;
     MenuItem_project_recent: TMenuItem;
     MenuItem_ImportFromOther: TMenuItem;
     MenuItem_ExportToOther: TMenuItem;
@@ -69,7 +71,9 @@ type
     PageControl_Project: TPageControl;
     Panel_DBGridMain: TPanel;
     Panel_Release: TPanel;
+    PopupMenu_MainDBGrid: TPopupMenu;
     SaveDialog_project: TSaveDialog;
+    Splitter_PropertiesV: TSplitter;
     Splitter_RightH: TSplitter;
     Splitter_MainV: TSplitter;
     StatusBar: TStatusBar;
@@ -98,6 +102,8 @@ type
     procedure FormDropFiles(Sender: TObject; const FileNames: array of String);
     procedure FormResize(Sender: TObject);
     procedure MenuItem_CIteToolClick(Sender: TObject);
+    procedure MenuItem_OpenAsCajClick(Sender: TObject);
+    procedure MenuItem_OpenAsPdfClick(Sender: TObject);
     procedure MenuItem_option_aboutClick(Sender: TObject);
     procedure MenuItem_project_closeClick(Sender: TObject);
     procedure MenuItem_project_newClick(Sender: TObject);
@@ -392,9 +398,28 @@ begin
   Form_CiteTrans.show;
 end;
 
+procedure TFormDesktop.MenuItem_OpenAsCajClick(Sender: TObject);
+begin
+  if not assigned(CurrentRTFP) then exit;
+  if not CurrentRTFP.IsOpen then exit;
+  CurrentRTFP.OpenPaperAsCaj(Self.DataSource_Main.DataSet.FieldByName(_Col_PID_).AsString);
+end;
+
+procedure TFormDesktop.MenuItem_OpenAsPdfClick(Sender: TObject);
+begin
+  if not assigned(CurrentRTFP) then exit;
+  if not CurrentRTFP.IsOpen then exit;
+  CurrentRTFP.OpenPaperAsPdf(Self.DataSource_Main.DataSet.FieldByName(_Col_PID_).AsString);
+end;
+
 procedure TFormDesktop.MenuItem_option_aboutClick(Sender: TObject);
 begin
-  MessageDlg('关于',C_SOFTWARE_NAME + #13#10 + '版本： ' + C_VERSION_NUMBER + #13#10 + '作者： ' + C_SOFTWARE_AUTHOR,mtCustom,[mbOK],0);
+  MessageDlg('关于',C_SOFTWARE_NAME + #13#10
+           + '版本： ' + C_VERSION_NUMBER + #13#10
+           + '作者： ' + C_SOFTWARE_AUTHOR + #13#10
+           + #13#10 + ' - Reading Technique For Paperwork.'
+           + #13#10 + ' - Reference Tool by Free Pascal.'
+           + #13#10 + ' - Read The F Paper.', mtCustom,[mbOK],0);
 end;
 
 procedure TFormDesktop.PageControl_NodeChange(Sender: TObject);
@@ -409,14 +434,12 @@ end;
 
 procedure TFormDesktop.PropertiesValueListEditorEditingDone(Sender: TObject);
 begin
-  if assigned(CurrentRTFP) then
-    begin
-      if CurrentRTFP.IsOpen then
-        begin
-          CurrentRTFP.Title:=Utf8ToWinCP(Self.PropertiesValueListEditor.Values['工程标题']);
-          CurrentRTFP.User:=Utf8ToWinCP(Self.PropertiesValueListEditor.Values['创建用户']);
-        end;
-    end;
+  if not assigned(CurrentRTFP) then  exit;
+  if not CurrentRTFP.IsOpen then exit;
+
+  //CurrentRTFP.Title:=Utf8ToWinCP(Self.PropertiesValueListEditor.Values['工程标题']);
+  //CurrentRTFP.User:=Utf8ToWinCP(Self.PropertiesValueListEditor.Values['创建用户']);
+  CurrentRTFP.ProjectPropertiesDataPost(Self.PropertiesValueListEditor);
 end;
 
 procedure TFormDesktop.FormCreate(Sender: TObject);
@@ -424,6 +447,18 @@ begin
   Self.Frame_AufScript1.AufGenerator;
   AufScriptFuncDefineRTFP(Self.Frame_AufScript1.Auf);
   Self.Frame_AufScript1.HighLighterReNew;
+
+  if ParamCount<>0 then
+    begin
+      if assigned(CurrentRTFP) then
+      begin
+        if CurrentRTFP.IsOpen then CurrentRTFP.Close;
+        CurrentRTFP.Free;
+      end;
+      CurrentRTFP:=TRTFP.Create(FormDesktop);
+      Self.EventLink(CurrentRTFP);
+      CurrentRTFP.Open(UTF8ToWinCP(ParamStr(1)));
+    end;
 
   //CurrentRTFP:=TRTFP.Create(Self);
 end;
@@ -436,8 +471,8 @@ begin
   if not CurrentRTFP.IsOpen then exit;
   len:=Length(FileNames);
 
-  Form_ImportFiles.Show;
-
+  Form_ImportFiles.Call(FileNames);
+  {
   for pi:=0 to len-1 do
     begin
       if CurrentRTFP.FindPaper(FileNames[pi]) = '000000' then
@@ -445,6 +480,7 @@ begin
       else
         ShowMessage(FileNames[pi]+'已在库内。');
     end;
+  }
 end;
 
 procedure TFormDesktop.FormClose(Sender: TObject; var CloseAction: TCloseAction

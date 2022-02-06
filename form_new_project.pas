@@ -107,7 +107,7 @@ begin
   CurrentRTFP:=TRTFP.Create(FormDesktop);
   FormDesktop.EventLink(CurrentRTFP);
 
-  CurrentRTFP.New(Self.FileFullName,Self.FileName,'Apiglio');
+  CurrentRTFP.New((Self.FileFullName),(Self.FileName),'Apiglio');
 
   Self.Hide;
 
