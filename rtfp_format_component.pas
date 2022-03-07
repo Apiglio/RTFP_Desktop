@@ -22,12 +22,17 @@ type
   private
     FPopupMenu:TPopupMenu;
     FImage:TImage;
+  private
+    procedure BandSolo(band:byte);
   protected
-    procedure FmtMouseUp(Sender:TObject;Button:TMouseButton;Shift:TShiftState;X,Y:Integer);
     procedure PastePicture(Sender:TObject);
     procedure CopyPicture(Sender:TObject);
     procedure OpenPicture(Sender:TObject);
     procedure CompressPicture(Sender:TObject);
+
+    procedure BandSolo_R(Sender:TObject);
+    procedure BandSolo_G(Sender:TObject);
+    procedure BandSolo_B(Sender:TObject);
 
   public
     constructor Create(AOwner:TComponent);override;
@@ -48,6 +53,9 @@ type
     constructor Create(CmpClass:TClass);
     destructor Destroy;
 
+  protected
+    procedure SetEditable(inp:boolean);
+
   public
     property TitleLabel:TLabel read FLabel;
     property Component:Pointer read FComponent;
@@ -57,8 +65,7 @@ type
     property AttrsName:string read FAttrsName write FAttrsName;
     property FieldName:string read FFieldName write FFieldName;
 
-    property Editable:boolean read FEditable write FEditable;
-
+    property Editable:boolean read FEditable write SetEditable;
 
   protected
     function GetBool:boolean;
@@ -117,59 +124,39 @@ begin
   DestIntfImage.Free;
 end;
 
-
-//版权声明：本文为CSDN博主「OK_boom」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
-//原文链接：https://blog.csdn.net/rocklee/article/details/23772391
-procedure SmoothResize(Src,Dst: TBitmap;newWidth,newHeight:integer);
-var x,y,xP,yP,yP2,xP2:Integer;
-    Read,Read2:PLine;
-    t,z,iz,z2,iz2:Integer;
-    pc:PFColor;
+procedure TFmtImage.BandSolo(band:byte);
+var pi,pj:integer;
+    ptr:pdword;
+    tmpBitMap:TBitmap;
+    r:TRect;
 begin
-  if src.Width=1 then Exit;
-  Dst.Width:=newWidth;
-  Dst.Height:=newHeight;
-  {
-  if (Dst.Width = src.Width) and (Dst.Height = src.Height) then begin
-    CopyMemory(Dst.Bits,Bits,Size);
-    Exit;
+  if band>3 then exit;
+  tmpBitMap:=TBitmap.Create;
+  try
+    tmpBitMap.PixelFormat:=pf32bit;
+    r.Top:=0;
+    r.Left:=0;
+    r.Width:=FImage.Picture.Bitmap.Width;
+    r.Height:=FImage.Picture.Bitmap.Height;
+
+    tmpBitMap.SetSize(r.Width,r.Height);
+    tmpBitMap.Canvas.CopyRect(r,FImage.Picture.Bitmap.Canvas,r);
+    for pi:=0 to r.Height-1 do
+      begin
+        for pj:=0 to r.Width-1 do
+          begin
+            ptr:=tmpBitMap.ScanLine[pi];
+            ptr:=ptr+pj;
+            ptr^:=ptr^ shr (band*8);
+            ptr^:=ptr^ and $000000ff;
+            ptr^:=ptr^ * $10101;
+          end;
+      end;
+    //FImage.Picture.Bitmap:=tmpBitMap;
+    FImage.Picture.Bitmap.Canvas.CopyRect(r,tmpBitMap.Canvas,r);//通道化没有立刻更改显示????怎么回事????
+  finally
+    tmpBitMap.Free;
   end;
-  }
-  xP2:=((src.Width-1) shl 16) div Dst.Width;
-  yP2:=((src.Height-1) shl 16) div Dst.Height;
-  yP:=0;
-  for y:=0 to Dst.Height-1 do begin
-    xP:=0;
-    Read:=src.ScanLine[yP shr 16];
-    if yP shr 16 < src.Height - 1 then Read2:=src.ScanLine[yP shr 16+1]
-    else Read2:=src.ScanLine[yP shr 16];
-    pc:=Dst.ScanLine[y];
-    z2:=yP and $FFFF;
-    iz2:=$10000-z2;
-    for x:=0 to Dst.Width-1 do begin
-      t:=xP shr 16;
-      z:=xP and $FFFF;
-      iz:=$10000-z;
-      pc^.b:=(((Read^[t].b*iz+Read^[t+1].b*z) shr 16)*iz2+((Read2^[t].b*iz+Read2^[t+1].b*z) shr 16)*z2) shr 16;
-      pc^.r:=(((Read^[t].r*iz+Read^[t+1].r*z) shr 16)*iz2+((Read2^[t].r*iz+Read2^[t+1].r*z) shr 16)*z2) shr 16;
-      pc^.g:=(((Read^[t].g*iz+Read^[t+1].g*z) shr 16)*iz2+((Read2^[t].g*iz+Read2^[t+1].g*z) shr 16)*z2) shr 16;
-      Inc(pc);
-      Inc(xP,xP2);
-    end;
-    Inc(yP, yP2);
-  end;
-end;
-
-
-
-
-procedure TFmtImage.FmtMouseUp(Sender:TObject;Button:TMouseButton;Shift:TShiftState;X,Y:Integer);
-begin
-  //if (Button=mbRight) and (Shift=[]) then
-  //  begin
-      //FPopupMenu.PopUp;
-      MessageBox(0,'AA','AAA',mb_OK);
-  //  end;
 end;
 
 procedure TFmtImage.PastePicture(Sender:TObject);
@@ -209,10 +196,24 @@ begin
     //SmoothResize(FImage.Picture.Bitmap,tmpBitmap,nw,nh);
     StretchDrawBitmapToBitmap(FImage.Picture.Bitmap,tmpBitmap,nw,nh);
     FImage.Picture.Bitmap:=tmpBitmap;
+    Repaint;
   finally
     tmpBitmap.Free;
   end;
 end;
+procedure TFmtImage.BandSolo_R(Sender:TObject);
+begin
+  BandSolo(2);
+end;
+procedure TFmtImage.BandSolo_G(Sender:TObject);
+begin
+  BandSolo(1);
+end;
+procedure TFmtImage.BandSolo_B(Sender:TObject);
+begin
+  BandSolo(0);
+end;
+
 constructor TFmtImage.Create(AOwner:TComponent);
 begin
   inherited Create(AOwner);
@@ -234,6 +235,7 @@ begin
   FPopupMenu.Items.Add(TMenuItem.Create(Self));
   FPopupMenu.Items.Add(TMenuItem.Create(Self));
   FPopupMenu.Items.Add(TMenuItem.Create(Self));
+  FPopupMenu.Items.Add(TMenuItem.Create(Self));
   FPopupMenu.Items[0].Caption:='打开';
   FPopupMenu.Items[0].OnClick:=@OpenPicture;
   FPopupMenu.Items[1].Caption:='-';
@@ -246,7 +248,20 @@ begin
   FPopupMenu.Items[4].OnClick:=nil;
   FPopupMenu.Items[5].Caption:='压缩图片';
   FPopupMenu.Items[5].OnClick:=@CompressPicture;
-  //FImage.OnMouseUp:=@FmtMouseUp;
+  FPopupMenu.Items[6].Caption:='通道灰度图';
+  FPopupMenu.Items[6].OnClick:=nil;
+
+  FPopupMenu.Items[6].Add(TMenuItem.Create(Self));
+  FPopupMenu.Items[6].Add(TMenuItem.Create(Self));
+  FPopupMenu.Items[6].Add(TMenuItem.Create(Self));
+
+  FPopupMenu.Items[6].Items[0].Caption:='红通道';
+  FPopupMenu.Items[6].Items[0].OnClick:=@BandSolo_R;
+  FPopupMenu.Items[6].Items[1].Caption:='绿通道';
+  FPopupMenu.Items[6].Items[1].OnClick:=@BandSolo_G;
+  FPopupMenu.Items[6].Items[2].Caption:='蓝通道';
+  FPopupMenu.Items[6].Items[2].OnClick:=@BandSolo_B;
+
   FImage.OnDblClick:=@OpenPicture;
   PopupMenu:=FPopupMenu;
 end;
@@ -279,6 +294,7 @@ begin
     'TComboBox':FComponent:=TComboBox.Create(Self);
     'TCheckBox':FComponent:=TCheckBox.Create(Self);
     'TFmtImage':FComponent:=TFmtImage.Create(Self);
+    'TListBox':FComponent:=TListBox.Create(Self);
     else raise Exception.Create('FormatEditPanel Type Error');
   end;
   with TControl(FComponent) do begin
@@ -318,9 +334,23 @@ begin
     'TComboBox':TComboBox(FComponent).Free;
     'TCheckBox':TCheckBox(FComponent).Free;
     'TFmtImage':TFmtImage(FComponent).Free;
+    'TListBox':TListBox(FComponent).Free;
     else raise Exception.Create('FormatEditPanel Type Error');
   end;
   inherited Destroy;
+end;
+
+procedure TFormatEditPanel.SetEditable(inp:boolean);
+begin
+  case FClass.ClassName of
+    'TEdit':TEdit(FComponent).ReadOnly:=not inp;
+    'TMemo':TMemo(FComponent).ReadOnly:=not inp;
+    'TComboBox':TComboBox(FComponent).ReadOnly:=not inp;
+    'TCheckBox':TCheckBox(FComponent).Enabled:=inp;
+    'TFmtImage':TFmtImage(FComponent).Enabled:=inp;
+    'TListBox':TListBox(FComponent).Enabled:=inp;
+    else raise Exception.Create('FormatEditPanel Type Error');
+  end;
 end;
 
 function TFormatEditPanel.GetBool:boolean;
@@ -364,6 +394,7 @@ function TFormatEditPanel.GetLines:TStrings;
 begin
   case FClass.ClassName of
     'TMemo':result:=TMemo(FComponent).Lines;
+    'TListBox':result:=TListBox(FComponent).Items;
     else result:=nil;
   end;
 end;

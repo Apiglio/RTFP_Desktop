@@ -1,7 +1,7 @@
 object ClassManagerForm: TClassManagerForm
-  Left = 565
+  Left = 720
   Height = 493
-  Top = 256
+  Top = 288
   Width = 847
   Anchors = [akTop]
   Caption = '分类管理器'
