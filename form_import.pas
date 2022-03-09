@@ -42,6 +42,7 @@ type
     Panel_AddNote: TPanel;
     Panel_AddImage: TPanel;
     ProgressBar_ImportFiles: TProgressBar;
+    RadioGroup_AddPaperMethod: TRadioGroup;
     SplitterImportFilesV: TSplitter;
     StaticText_ImportFileNames: TStaticText;
     StaticText_1: TStaticText;
@@ -88,6 +89,9 @@ type
     procedure Phase1;
     procedure Phase2;
 
+  public
+    IsBackup:boolean;//为真时导入文件采用复制方式，为假则删除源文件
+
 
   end;
 
@@ -110,7 +114,8 @@ begin
   for pi:=0 to len-1 do FFilenames.Add(AFileNames[pi]);
   SplitterImportFilesV.Left:=Width-6;
   Button_ImportFileNamesCheck.Enabled:=true;
-  Button_ImportFileNamesCheck.Caption:='开始导入';
+  if IsBackup then RadioGroup_AddPaperMethod.ItemIndex:=0
+  else RadioGroup_AddPaperMethod.ItemIndex:=1;
   Button_BackToPrev.Enabled:=true;
   ProgressBar_ImportFiles.Position:=0;
   Edit_UpdatePaper.Caption:=FormDesktop.Selected_PID+' - '+FormDesktop.Selected_FileName;
@@ -246,14 +251,18 @@ begin
             if CheckBox_UpdatePaper.Checked then begin
               if pi=0 then newPID:=FormDesktop.Selected_PID else newPID:='000000';
               if newPID<>'000000' then begin
-                if CheckBox_AddPaperMethod.Checked then CurrentRTFP.UpdatePaper(newPID,FFileNames[pi],apmFullBackup)
-                else CurrentRTFP.UpdatePaper(newPID,FFileNames[pi],apmAddress);
+                case RadioGroup_AddPaperMethod.ItemIndex of
+                  0:CurrentRTFP.UpdatePaper(newPID,FFileNames[pi],apmFullBackup);
+                  1:CurrentRTFP.UpdatePaper(newPID,FFileNames[pi],apmCutBackup);
+                  2:CurrentRTFP.UpdatePaper(newPID,FFileNames[pi],apmAddress);
+                end;
               end;
             end else begin
-              if CheckBox_AddPaperMethod.Checked then
-                newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmFullBackup)
-              else
-                newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmAddress);
+              case RadioGroup_AddPaperMethod.ItemIndex of
+                0:newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmFullBackup);
+                1:newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmCutBackup);
+                2:newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmAddress);
+              end;
             end;
             if newPID<>'000000' then begin
               CheckListBox_ImportFileNames.Items[pi].SubItems[0]:='导入成功';
@@ -343,7 +352,8 @@ begin
   case (Sender as TPanel).Hint of
     '备份文件节点':
       begin
-        CheckBox_AddPaperMethod.Checked:=true;
+        //CheckBox_AddPaperMethod.Checked:=true;
+        RadioGroup_AddPaperMethod.ItemIndex:=0;
         PageControl_ImportFiles.PageIndex:=TabSheet_AddPaper.PageIndex;
         CheckListBox_ImportFileNames.Clear;
         CheckBox_UpdatePaper.Checked:=false;
@@ -357,7 +367,8 @@ begin
       end;
     '链接文件节点':
       begin
-        CheckBox_AddPaperMethod.Checked:=false;
+        //CheckBox_AddPaperMethod.Checked:=false;
+        RadioGroup_AddPaperMethod.ItemIndex:=2;
         PageControl_ImportFiles.PageIndex:=TabSheet_AddPaper.PageIndex;
         CheckListBox_ImportFileNames.Clear;
         CheckBox_UpdatePaper.Checked:=false;
@@ -374,6 +385,7 @@ begin
       begin
         begin
           CheckBox_AddPaperMethod.Checked:=true;
+          RadioGroup_AddPaperMethod.ItemIndex:=0;
           PageControl_ImportFiles.PageIndex:=TabSheet_AddPaper.PageIndex;
           CheckListBox_ImportFileNames.Clear;
           CheckBox_UpdatePaper.Checked:=true;

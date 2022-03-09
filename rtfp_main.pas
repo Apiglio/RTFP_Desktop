@@ -7,17 +7,19 @@ unit RTFP_main;
 interface
 
 uses
-  Classes, SysUtils, db, dbf, sqldb, mssqlconn, FileUtil, Forms, Controls,
-  Graphics, Dialogs, ComCtrls, Menus, ExtCtrls, DBGrids, Grids, ValEdit,
-  StdCtrls, DbCtrls, LazUTF8, LvlGraphCtrl,
-  Clipbrd, LCLType, Buttons, Regexpr,
+  Classes, SysUtils, db, dbf, dbf_common, memds, sqldb, mssqlconn, FileUtil,
+  Forms, Controls, Graphics, Dialogs, ComCtrls, Menus, ExtCtrls, DBGrids, Grids,
+  ValEdit, StdCtrls, DbCtrls, LazUTF8, LvlGraphCtrl, SynEdit,
+  SynHighlighterDiff, SynHighlighterIni, SynHighlighterLFM, SynHighlighterPo,
+  synhighlighterunixshellscript, SynHighlighterTeX, Clipbrd, LCLType, Buttons,
+  Regexpr,
 
-  AufScript_Frame, ACL_ListView, TreeListView, lNetComponents,
+  Apiglio_Useful, AufScript_Frame, ACL_ListView, TreeListView, lNetComponents,
 
   RTFP_definition, rtfp_constants, rtfp_dialog, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.1-alpha.2';
+  C_VERSION_NUMBER  = '0.2.1-alpha.3';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -38,6 +40,10 @@ type
   TFormDesktop = class(TForm)
     AListView_Klass: TACL_ListView;
     AListView_Attrs: TACL_ListView;
+    Button_help: TButton;
+    Button_FormatEdit_Ren: TButton;
+    Button_FormatEdit_Del: TButton;
+    Button_FormatEdit_Add: TButton;
     Button_FieldType: TButton;
     Button_AddAttrs: TButton;
     Button_AddField: TButton;
@@ -69,9 +75,17 @@ type
     Label_AddKlass: TLabel;
     Label_FmtCmtPID: TLabel;
     Label_MainFilter: TLabel;
+    ListBox_FormatEditMgr: TListBox;
     LvlGraphControl: TLvlGraphControl;
     MainMenu: TMainMenu;
     Memo_FmtCmt: TMemo;
+    MenuItem_NewPaper: TMenuItem;
+    MenuItem_Node_New: TMenuItem;
+    MenuItem_Node_div01: TMenuItem;
+    MenuItem_Node: TMenuItem;
+    MenuItem_CB_RefNum_InOrder: TMenuItem;
+    MenuItem_CB_RefNum_AurYear: TMenuItem;
+    MenuItem_CB_RefNumFormat: TMenuItem;
     MenuItem_DBGC_div03: TMenuItem;
     MenuItem_DBGC_DisplayOpt: TMenuItem;
     MenuItem_FieldMgr_div01: TMenuItem;
@@ -176,6 +190,10 @@ type
     StaticText_AttrNameCombo: TStaticText;
     StaticText_FieldNameCombo: TStaticText;
     StatusBar: TStatusBar;
+    StringGrid_FormatEditLayout: TStringGrid;
+    SynEdit_FEMgr: TSynEdit;
+    SynUNIXShellScriptSyn: TSynUNIXShellScriptSyn;
+    TabSheet_Project_FormatEditMgr: TTabSheet;
     TabSheet_Node_FormatEdit: TTabSheet;
     TabSheet_Filter_Klass: TTabSheet;
     TabSheet_Filter_Field: TTabSheet;
@@ -196,6 +214,10 @@ type
     procedure Button_FmtCmt_RecoverClick(Sender: TObject);
     procedure Button_FormatEditPostClick(Sender: TObject);
     procedure Button_FormatEditRecoverClick(Sender: TObject);
+    procedure Button_FormatEdit_AddClick(Sender: TObject);
+    procedure Button_FormatEdit_DelClick(Sender: TObject);
+    procedure Button_FormatEdit_RenClick(Sender: TObject);
+    procedure Button_helpClick(Sender: TObject);
     procedure Button_MainFilterClick(Sender: TObject);
 
     procedure Button_NodeViewRecoverClick(Sender: TObject);
@@ -207,6 +229,7 @@ type
     procedure ComboBox_FormatEditChange(Sender: TObject);
     procedure DataSource_MainUpdateData(Sender: TObject);
     procedure DBGrid_MainCellClick(Column: TColumn);
+    procedure DBGrid_MainColumnSized(Sender: TObject);
     procedure DBGrid_MainDrawColumnCell(Sender: TObject; const Rect: TRect;
       DataCol: Integer; Column: TColumn; State: TGridDrawState);
     procedure DBGrid_MainKeyUp(Sender: TObject; var Key: Word;
@@ -222,6 +245,8 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDropFiles(Sender: TObject; const FileNames: array of String);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormResize(Sender: TObject);
     procedure Memo_FmtCmtChange(Sender: TObject);
     procedure MenuItem_AdvOpen_CAJClick(Sender: TObject);
@@ -235,6 +260,8 @@ type
     procedure MenuItem_CB_Cite_MLAClick(Sender: TObject);
     procedure MenuItem_CB_FilenamefullClick(Sender: TObject);
     procedure MenuItem_CB_PIDClick(Sender: TObject);
+    procedure MenuItem_CB_RefNum_AurYearClick(Sender: TObject);
+    procedure MenuItem_CB_RefNum_InOrderClick(Sender: TObject);
     procedure MenuItem_CB_Ref_EndNoteClick(Sender: TObject);
     procedure MenuItem_CB_Ref_EStudyClick(Sender: TObject);
     procedure MenuItem_CB_Ref_RISClick(Sender: TObject);
@@ -258,10 +285,13 @@ type
     procedure MenuItem_FieldMgr_DisplayOptionClick(Sender: TObject);
     procedure MenuItem_KlassClick(Sender: TObject);
     procedure MenuItem_klass_AddKlassClick(Sender: TObject);
+    procedure MenuItem_klass_checkClick(Sender: TObject);
     procedure MenuItem_klass_DelKlassClick(Sender: TObject);
     procedure MenuItem_klass_SourceClassClick(Sender: TObject);
     procedure MenuItem_Mark_IsRead_NoClick(Sender: TObject);
     procedure MenuItem_Mark_IsRead_YesClick(Sender: TObject);
+    procedure MenuItem_NewPaperClick(Sender: TObject);
+    procedure MenuItem_Node_NewClick(Sender: TObject);
     procedure MenuItem_OpenAsCajClick(Sender: TObject);
     procedure MenuItem_OpenAsPdfClick(Sender: TObject);
     procedure MenuItem_OpenDefaultClick(Sender: TObject);
@@ -279,6 +309,9 @@ type
     procedure MenuItem_RepeatedCheckerClick(Sender: TObject);
     procedure MenuItem_Tool_ProjectDirClick(Sender: TObject);
     procedure PageControl_NodeChange(Sender: TObject);
+    procedure StringGrid_FormatEditLayoutMouseUp(Sender: TObject;
+      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure SynEdit_FEMgrClick(Sender: TObject);
     procedure TabSheet_Project_AufScriptResize(Sender: TObject);
     procedure PropertiesValueListEditorEditingDone(Sender: TObject);
 
@@ -286,6 +319,7 @@ type
     FWaitForm:TForm;
     FWaitLabel:TLabel;
     FShowWaitForm:boolean;
+    FMainForm_ShiftState:TShiftState;
 
     LastDBGridPos:TPoint;
 
@@ -302,6 +336,7 @@ type
   //private
   public
     function Selected_PID:RTFP_ID;//根据DBGrid_Main的选择返回PID
+    function Select_PID(PID:RTFP_ID):Boolean;
     function Selected_FileName:string;//根据DBGrid_Main的选择返回文件名
 
   public
@@ -329,12 +364,20 @@ type
     procedure ProjectSaveDone(Sender:TObject);//工程保存
 
     procedure DBGridColumnAdjusting(Sender:TObject);
+    procedure DBGridColumnAllocating(Sender:TObject);
 
     //以下与下半部分的NodeView有关
     procedure ViewPdfValidate;
     //预览pdf
     procedure NodeViewValidate;
     //根据当前DBGrid_Main的选择状态更新NodeView显示
+
+  public
+    //能使用快捷键的命令
+    function Action_NewPaper:boolean;
+
+  public
+    procedure debugline(str:string);
 
 
   end;
@@ -349,7 +392,8 @@ var
 implementation
 uses form_new_project, form_cite_trans, form_classmanager, form_import,
      form_appearance, rtfp_field, rtfp_class, form_options, form_report_tool,
-     form_repeated_checker, form_project_profile, form_field_display_option;
+     form_repeated_checker, form_project_profile, form_field_display_option,
+     form_formatedit_option;
 
 {$R *.lfm}
 
@@ -363,6 +407,11 @@ begin
 end;
 
 { TFormDesktop }
+
+procedure TFormDesktop.debugline(str:string);
+begin
+  Frame_AufScript1.Auf.Script.writeln(str);
+end;
 
 procedure TFormDesktop.EventLink(Sender:TRTFP);//链接所有事件
 begin
@@ -394,10 +443,12 @@ begin
   if not assigned(CurrentRTFP) then
     begin
       CurrentRTFP:=TRTFP.Create(FormDesktop);
+      CurrentRTFP.SetAuf(Frame_AufScript1.Auf);
       Self.EventLink(CurrentRTFP);
     end;
   filename:=(Sender as TMenuItem).Caption;
-  if FileExists(filename) then CurrentRTFP.Open(UTF8ToWinCP(filename))
+  if FileExists(filename) then
+    CurrentRTFP.Open(UTF8ToWinCP(filename))
   else ShowMsgOK('未找到工程','工程文件未找到！');
 end;
 
@@ -519,8 +570,9 @@ end;
 
 procedure TFormDesktop.FormatListValidate(Sender:TObject);
 var stmp,stored:string;
-    marked,acc:integer;
+    marked,acc,index:integer;
 begin
+  //NodeTab
   stored:=ComboBox_FormatEdit.SelText;
   if stored='' then stored:='default.fmt';
   ComboBox_FormatEdit.Clear;
@@ -533,6 +585,13 @@ begin
       inc(acc);
     end;
   if marked>=0 then ComboBox_FormatEdit.ItemIndex:=marked;
+
+  //ProjectTab
+  index:=ListBox_FormatEditMgr.ItemIndex;
+  ListBox_FormatEditMgr.Clear;
+  for stmp in (Sender as TRTFP).FormatList do ListBox_FormatEditMgr.Items.Add(stmp);
+  if ListBox_FormatEditMgr.Count>index then ListBox_FormatEditMgr.ItemIndex:=index;
+
 end;
 
 procedure TFormDesktop.FirstEdit(Sender:TObject);
@@ -627,11 +686,40 @@ end;
 
 procedure TFormDesktop.DBGridColumnAdjusting(Sender:TObject);
 var index:integer;
+    AF:TAttrsField;
+    procedure DoDefault;
+    begin
+      with DBGrid_Main do Columns[index].Width:=TRTFP.FieldOptWidth(Columns[index].Field.FieldDef);
+    end;
+    procedure DoCustom(value:integer);
+    begin
+      with DBGrid_Main do Columns[index].Width:=value;
+    end;
+
 begin
+  if ProjectInvalid then exit;
   with DBGrid_Main do
   for index:=0 to Columns.Count-1 do
     begin
-      Columns[index].Width:=TRTFP.FieldOptWidth(Columns[index].Field.FieldDef);
+      AF:=TAttrsField(CurrentRTFP.PaperDSFieldDefs[index]);
+      if AF=nil then DoDefault
+      else if AF.FieldDisplayOption.display_width<0 then DoDefault
+      else DoCustom(AF.FieldDisplayOption.display_width);
+    end;
+end;
+
+procedure TFormDesktop.DBGridColumnAllocating(Sender:TObject);
+var index:integer;
+    AF:TAttrsField;
+begin
+  if ProjectInvalid then exit;
+  with DBGrid_Main do
+  for index:=0 to Columns.Count-1 do
+    begin
+      AF:=TAttrsField(CurrentRTFP.PaperDSFieldDefs[index]);
+      if AF=nil then continue;
+      if Columns[index].Width<2 then AF.FFieldDisplayOption.display_width:=2
+      else AF.FFieldDisplayOption.display_width:=Columns[index].Width;
     end;
 end;
 
@@ -653,6 +741,16 @@ begin
   if not DBGrid_Main.DataSource.DataSet.Active then exit;
   result:=DBGrid_Main.DataSource.DataSet.Fields.FieldByName(_Col_PID_).AsString;
 end;
+
+function TFormDesktop.Select_PID(PID:RTFP_ID):boolean;
+begin
+  result:=false;
+  if DBGrid_Main.DataSource.DataSet=nil then exit;
+  if not DBGrid_Main.DataSource.DataSet.Active then exit;
+  with TMemDataset(DBGrid_Main.DataSource.DataSet) do
+    if Locate(_Col_PID_,PID,[]) then result:=true;
+end;
+
 
 function TFormDesktop.Selected_FileName:string;
 begin
@@ -702,6 +800,26 @@ begin
 end;
 
 ////////////////////////////////////////////////////////////////////////////////
+//快捷键命令
+
+function TFormDesktop.Action_NewPaper:boolean;
+var node_name:string;
+    _pid:RTFP_ID;
+begin
+  if ProjectInvalid then exit;
+  //node_name:=ShowMsgEdit('新建节点','新节点名称：','');
+  //if not (node_name='') then
+  //  begin
+      _pid:=CurrentRTFP.AddPaper('',apmReference);
+      //DBGrid_Main.DataSource.DataSet.Last;
+      Select_PID(_pid);
+      NodeViewValidate;
+      //CurrentRTFP.EditFieldAsString(_Col_Paper_FileName_,'',_pid,node_name,[aeCreateIfNoField,aeFailIfNoPID]);
+  //  end
+  //else ShowMsgOK('新建节点','未指定名称，创建失败。');
+end;
+
+////////////////////////////////////////////////////////////////////////////////
 //菜单事件
 
 procedure TFormDesktop.MenuItem_project_closeClick(Sender: TObject);
@@ -723,13 +841,13 @@ begin
     if CurrentRTFP.IsOpen then CurrentRTFP.Close;
     CurrentRTFP.Free;
   end;
-
   CurrentRTFP:=TRTFP.Create(FormDesktop);
-
+  CurrentRTFP.SetAuf(Frame_AufScript1.Auf);
   Self.EventLink(CurrentRTFP);
 
   if Self.OpenDialog_Project.Execute then
     CurrentRTFP.Open(UTF8ToWinCP(Self.OpenDialog_Project.FileName));
+
 end;
 
 procedure TFormDesktop.MenuItem_project_profileClick(Sender: TObject);
@@ -812,6 +930,7 @@ end;
 procedure TFormDesktop.MenuItem_BasicReferencesClick(Sender: TObject);
 begin
   Form_CiteTrans.ShowModal;//Form_CiteTrans.Show;
+  SetFocus;
 end;
 
 procedure TFormDesktop.MenuItem_CB_Cite_APAClick(Sender: TObject);
@@ -845,6 +964,18 @@ procedure TFormDesktop.MenuItem_CB_PIDClick(Sender: TObject);
 begin
   if ProjectInvalid then exit;
   ClipBoard.AsText:=Selected_PID;
+end;
+
+procedure TFormDesktop.MenuItem_CB_RefNum_AurYearClick(Sender: TObject);
+begin
+  if ProjectInvalid then exit;
+  ClipBoard.AsText:=CurrentRTFP.GetRef_AurYear(Selected_PID);
+end;
+
+procedure TFormDesktop.MenuItem_CB_RefNum_InOrderClick(Sender: TObject);
+begin
+  if ProjectInvalid then exit;
+  ClipBoard.AsText:=CurrentRTFP.GetRef_InOrder(Selected_PID);
 end;
 
 procedure TFormDesktop.MenuItem_CB_Ref_EndNoteClick(Sender: TObject);
@@ -1141,7 +1272,8 @@ end;
 
 procedure TFormDesktop.MenuItem_KlassClick(Sender: TObject);
 begin
-  ClassManagerForm.Show;
+  ClassManagerForm.ShowModal;
+  SetFocus;
 end;
 
 procedure TFormDesktop.MenuItem_klass_AddKlassClick(Sender: TObject);
@@ -1155,6 +1287,54 @@ begin
       klassname:=ExtractFileName(klassname);
       CurrentRTFP.AddKlass(klassname,pathname);
     end;
+end;
+
+procedure TFormDesktop.MenuItem_klass_checkClick(Sender: TObject);
+var PID:RTFP_ID;
+    PIDList,ExcStr:TStringList;
+    codee:integer;
+    klassname:string;
+    tmpKL:TKlass;
+begin
+  if ProjectInvalid then exit;
+  //if ShowMsgYesNoAll('-------','-----，是否继续？')<>'Yes' then exit;
+  PIDList:=TStringList.Create;
+  ExcStr:=TStringList.Create;
+  ExcStr.Sorted:=true;
+  try
+    CurrentRTFP.GetPIDList(PIDList);
+    CurrentRTFP.BeginUpdate;
+    for PID in PIDList do
+      CurrentRTFP.EditFieldAsString(_Col_class_DefaultCl_,_Attrs_Class_,PID,'',[aeForceEditIfTypeDismatch]);
+    for tmpKL in CurrentRTFP.KlassList do
+      begin
+        with tmpKL.Dbf do
+          begin
+            klassname:=tmpKL.Name;
+            if not Active then Open;
+            First;
+            while not EOF do
+              begin
+                PID:=FieldByName(_Col_PID_).AsString;
+                ExcStr.Clear;
+                CurrentRTFP.ReadFieldAsMemo(_Col_class_DefaultCl_,_Attrs_Class_,PID,ExcStr,[]);
+                if not ExcStr.Find(klassname,codee) then begin
+                  ExcStr.Add(klassname);
+                  CurrentRTFP.EditFieldAsMemo(_Col_class_DefaultCl_,_Attrs_Class_,PID,ExcStr,[]);
+                end;
+                Next;
+              end;
+          end;
+        //
+      end;
+  finally
+    PIDList.Free;
+    ExcStr.Free;
+    CurrentRTFP.EndUpdate;
+    CurrentRTFP.ClassChange;
+    CurrentRTFP.RecordChange;
+    ShowMsgOK('更新分类字段','分类字段已根据分类索引重置');
+  end;
 end;
 
 procedure TFormDesktop.MenuItem_klass_DelKlassClick(Sender: TObject);
@@ -1180,7 +1360,7 @@ var PID:RTFP_ID;
 begin
   //太慢了，要点其他操作缓解一下，或者做进度条和耗时提示
   if ProjectInvalid then exit;
-  //if ShowMsgYesNoAll('重建来源分类','重建来源分类会删除已有的全部“来源”文件夹下的分类，是否继续？')<>'Yes' then exit;
+  //if ShowMsgYesNoAll('重建来源分类','重建来源分类会删除已有的全部“来源库”文件夹下的分类，是否继续？')<>'Yes' then exit;
   PIDList:=TStringList.Create;
   try
     CurrentRTFP.GetPIDList(PIDList);
@@ -1213,6 +1393,16 @@ procedure TFormDesktop.MenuItem_Mark_IsRead_YesClick(Sender: TObject);
 begin
   if ProjectInvalid then exit;
   CurrentRTFP.EditFieldAsBoolean(_Col_class_Is_Read_,_Attrs_Class_,Selected_PID,true,[]);
+end;
+
+procedure TFormDesktop.MenuItem_NewPaperClick(Sender: TObject);
+begin
+  Action_NewPaper;
+end;
+
+procedure TFormDesktop.MenuItem_Node_NewClick(Sender: TObject);
+begin
+  Action_NewPaper;
 end;
 
 procedure TFormDesktop.MenuItem_OpenAsCajClick(Sender: TObject);
@@ -1273,6 +1463,82 @@ begin
 
 end;
 
+procedure TFormDesktop.StringGrid_FormatEditLayoutMouseUp(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var tmpSG:TStringGrid;
+    pi,pj:integer;
+begin
+  if ProjectInvalid then exit;
+  if (Button = mbRight) and (Shift = []) then else exit;
+  tmpSG:=Sender as TStringGrid;
+  FormFormatEditOption.Call(
+    CurrentRTFP,
+    (tmpSG.Selection.Top-1)*70,
+    (tmpSG.Selection.Bottom)*70,
+    (tmpSG.Selection.Left-1),
+    tmpSG.Selection.Right);
+  SetFocus;
+  //ShowMsgOK('',FormFormatEditOption.Syntax);//直接得到的这个代码暂时用不了
+  SynEdit_FEMgr.Lines.Add(FormFormatEditOption.Syntax);
+
+  for pj:=tmpSG.Selection.Top to tmpSG.Selection.Bottom do
+    for pi:=tmpSG.Selection.Left to tmpSG.Selection.Right do
+      tmpSG.Cells[pi,pj]:='x';
+
+end;
+
+procedure TFormDesktop.SynEdit_FEMgrClick(Sender: TObject);
+var tmpSyn:TSynEdit;
+    ltext:string;
+    sel_row,tt,bb,ll,rr:integer;
+begin
+  tmpSyn:=Sender as TSynEdit;
+  sel_row:=tmpSyn.CaretY;
+  //点击以后的高亮不太好弄
+  ltext:=tmpSyn.LineText;
+  //ShowMessage(IntToStr(sel_row));
+  Auf.ReadArgs(ltext);
+  //edit 文献基础信息,关键词,关键词,140,70,0,2,editable
+  try
+
+    tt:=StrToInt(Auf.nargs[4].arg) div 70 + 1;
+    bb:=StrToInt(Auf.nargs[5].arg) div 70 + tt - 2;
+    case lowercase(Auf.nargs[6].arg) of
+      '0','l':ll:=1;
+      'lm':ll:=2;
+      '1','ml':ll:=3;
+      '2','m':ll:=4;
+      '3','mr':ll:=5;
+      'rm':ll:=6;
+      //'4','r':ll:=7;
+    end;
+    case lowercase(Auf.nargs[7].arg) of
+      //'0','l':rr:=0;
+      'lm':rr:=1;
+      '1','ml':rr:=2;
+      '2','m':rr:=3;
+      '3','mr':rr:=4;
+      'rm':rr:=5;
+      '4','r':rr:=6;
+    end;
+    with StringGrid_FormatEditLayout.Selection do
+      begin
+        Inflate(ll,tt,rr,bb);
+        //Top:=tt;
+        //Left:=ll;
+        //Right:=rr;
+        //Bottom:=bb;//坐标有误
+        //为啥选区不能更新？？
+      end;
+    StringGrid_FormatEditLayout.Update;
+
+  except
+
+  end;
+
+  //StringGrid_FormatEditLayout.Selection.Top;
+end;
+
 procedure TFormDesktop.TabSheet_Project_AufScriptResize(Sender: TObject);
 begin
   Self.Frame_AufScript1.FrameResize(nil);
@@ -1288,6 +1554,7 @@ begin
 end;
 
 procedure TFormDesktop.FormCreate(Sender: TObject);
+var pi:integer;
 begin
   Self.Frame_AufScript1.AufGenerator;
   AufScriptFuncDefineRTFP(Self.Frame_AufScript1.Auf);
@@ -1297,6 +1564,17 @@ begin
   LocalPath:=ExtractFilePath(ParamStr(0));
   if Self.Height>Screen.Height then Self.Height:=trunc(Screen.Height*0.8);
   if Self.Width>Screen.Width then Self.Height:=trunc(Screen.Width*0.8);
+
+  StringGrid_FormatEditLayout.Cells[1,0]:='L-LM';
+  StringGrid_FormatEditLayout.Cells[2,0]:='LM-ML';
+  StringGrid_FormatEditLayout.Cells[3,0]:='ML-M';
+  StringGrid_FormatEditLayout.Cells[4,0]:='M-MR';
+  StringGrid_FormatEditLayout.Cells[5,0]:='MR-RM';
+  StringGrid_FormatEditLayout.Cells[6,0]:='RM-R';
+
+  for pi:=1 to 99 do StringGrid_FormatEditLayout.Cells[0,pi]:=IntToStr(pi);
+  StringGrid_FormatEditLayout.ColWidths[0]:=36;
+
 
   FShowWaitForm:=true;
   FWaitForm:=TForm.Create(Self);
@@ -1326,6 +1604,8 @@ begin
       CurrentRTFP.Open(UTF8ToWinCP(ParamStr(1)));
     end;
 
+  FMainForm_ShiftState:=[];
+
 end;
 
 procedure TFormDesktop.FormDropFiles(Sender: TObject;
@@ -1341,17 +1621,45 @@ begin
           else CurrentRTFP.Free;
         end;
       CurrentRTFP:=TRTFP.Create(FormDesktop);
+      CurrentRTFP.SetAuf(Frame_AufScript1.Auf);
       Self.EventLink(CurrentRTFP);
+
       CurrentRTFP.Open(UTF8ToWinCP(FileNames[0]));
       SetFocus;
     end
   else
     begin
-      if not ProjectInvalid then Form_ImportFiles.Call(FileNames);
+      if not ProjectInvalid then
+        begin
+          Form_ImportFiles.IsBackup:=not (ssShift in FMainForm_ShiftState);
+          Form_ImportFiles.Call(FileNames);
+        end;
       SetFocus;
     end;
 
 end;
+
+procedure TFormDesktop.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  FMainForm_ShiftState+=Shift;
+  //ShowMsgOK('A','B'); ????????
+end;
+
+procedure TFormDesktop.FormKeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  FMainForm_ShiftState-=Shift;
+  //ShowMsgOK('A','B');
+  //为什么没有反应？？？
+  if ssCtrl in Shift then
+    begin
+      case Key of
+        78,110:Action_NewPaper;//N
+      end;
+    end;
+end;
+
 {
 procedure TFormDesktop.CheckListBox_MainAttrFilterClickCheck(Sender: TObject);
 begin
@@ -1645,6 +1953,52 @@ begin
   CurrentRTFP.FormatEditValidate(Selected_PID);
 end;
 
+procedure TFormDesktop.Button_FormatEdit_AddClick(Sender: TObject);
+var format_name:string;
+begin
+  if ProjectInvalid then exit;
+  format_name:=ShowMsgEdit('新建样式','样式名称：','');
+  if not (lowercase(ExtractFileExt(format_name)) = '.fmt') then format_name:=format_name+'.fmt';
+  if format_name<>'' then
+    if not CurrentRTFP.AddFormatEditNull(format_name) then
+      ShowMsgOK('新建样式','创建失败！'+#13#10+'样式已存在或名称有无效字符。');
+end;
+
+procedure TFormDesktop.Button_FormatEdit_DelClick(Sender: TObject);
+var index:integer;
+    format_name:string;
+begin
+  if ProjectInvalid then exit;
+  index:=ListBox_FormatEditMgr.ItemIndex;
+  if index<0 then ShowMsgOK('删除样式','请先选择一个样式文件！');
+  format_name:=ListBox_FormatEditMgr.Items[index];
+  case ShowMsgYesNoAll('删除样式','是否删除样式以下文件：'+#13#10+'  '+format_name) of
+    'Yes':if not CurrentRTFP.DelFormatEdit(format_name) then
+            ShowMsgOK('删除样式','删除失败！'+#13#10+'未找到样式或样式文件被占用。');
+    else ;
+  end;
+end;
+
+procedure TFormDesktop.Button_FormatEdit_RenClick(Sender: TObject);
+var index:integer;
+    format_name,newname:string;
+begin
+  if ProjectInvalid then exit;
+  index:=ListBox_FormatEditMgr.ItemIndex;
+  if index<0 then ShowMsgOK('重命名样式','请先选择一个样式文件！');
+  format_name:=ListBox_FormatEditMgr.Items[index];
+  newname:=ShowMsgEdit('重命名样式','将样式“'+format_name+'”重命名为：',format_name);
+  if (newname<>'') and (newname<>format_name) then
+    if not CurrentRTFP.RenFormatEdit(format_name,newname) then
+      ShowMsgOK('重命名样式','重命名失败！'+#13#10+'未找到样式或样式文件被占用。');
+end;
+
+procedure TFormDesktop.Button_helpClick(Sender: TObject);
+begin
+  ShowMsgOK('样式管理','在右侧窗格中选择一定范围的单元格，单击鼠标右键在此范围内创建字段项。'
+                      +'用于在“编辑属性(样式)”标签卡中查看文献节点的具体字段数据。');
+end;
+
 procedure TFormDesktop.Button_MainFilterClick(Sender: TObject);
 begin
   //温和的筛选方式
@@ -1681,6 +2035,11 @@ begin
   NodeViewValidate;
 end;
 
+procedure TFormDesktop.DBGrid_MainColumnSized(Sender: TObject);
+begin
+  Self.DBGridColumnAllocating(Sender);
+end;
+
 procedure TFormDesktop.DBGrid_MainDrawColumnCell(Sender: TObject;
   const Rect: TRect; DataCol: Integer; Column: TColumn; State: TGridDrawState);
 var tmpFD:TFieldDef;
@@ -1697,6 +2056,7 @@ begin
   tmpFD:=Column.Field.FieldDef;
   tmpA:=CurrentRTFP.PaperDSFieldDefs.Items[DataCol];
   if tmpA=nil then exit;
+  //if (Sender as TDBGrid).SelectedRows.Items[0]=(Sender as TDBGrid).DataSource.DataSet.RecNo then exit;
   if TObject(tmpA) is TAttrsField then with TAttrsField(tmpA).FieldDisplayOption do
     begin
       if colorize_process<>nil then
@@ -1713,9 +2073,7 @@ begin
         //(Sender as TDBGrid).DrawCellText();
       end;
     ftBlob:
-      begin
-
-      end;
+      begin end;
     else
       begin
 }
@@ -1731,6 +2089,16 @@ end;
 procedure TFormDesktop.DBGrid_MainKeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
+  if ssCtrl in Shift then
+    begin
+      case Key of
+        76:CurrentRTFP.OpenPaperLink(Selected_PID);//L
+        79:CurrentRTFP.OpenPaper(Selected_PID);//O
+        68:CurrentRTFP.OpenPaperDir(Selected_PID);//D
+        //76:CurrentRTFP.OpenPaperLink(Selected_PID);//L
+
+      end;
+    end;
   NodeViewValidate;
 end;
 
