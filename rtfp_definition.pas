@@ -229,6 +229,11 @@ type
   public
     function GetFieldType(attrNa,fieldNa:string):TFieldType;
 
+    function ReadBasicField(AAttrsName:string;PID:RTFP_ID):string;
+    procedure EditBasicField(AAttrsName:string;PID:RTFP_ID;value:string);
+    function ReadBasicBool(AAttrsName:string;PID:RTFP_ID):boolean;
+    procedure EditBasicBool(AAttrsName:string;PID:RTFP_ID;value:boolean);
+
     function ReadFieldAsString(AName,AAttrsName:string;PID:RTFP_ID;AE:TAttrExtend):string;
     function ReadFieldAsInteger(AName,AAttrsName:string;PID:RTFP_ID;AE:TAttrExtend):int64;
     function ReadFieldAsBoolean(AName,AAttrsName:string;PID:RTFP_ID;AE:TAttrExtend):boolean;
@@ -1499,6 +1504,68 @@ begin
   tmpAF:=tmpAG.FieldList.FindItemByName(fieldNa);
   if tmpAF=nil then exit;
   result:=tmpAF.FieldDef.DataType;
+end;
+
+function TRTFP.ReadBasicField(AAttrsName:string;PID:RTFP_ID):string;
+begin
+  with FPaperDB do begin
+    if not Active then Open;
+    IndexName:='id';
+    if not SearchKey(PID,stEqual) then
+      begin
+        assert(false,'未找到PID');
+        exit;
+      end;
+    result:=FieldByName(AAttrsName).AsString;
+  end;
+end;
+
+procedure TRTFP.EditBasicField(AAttrsName:string;PID:RTFP_ID;value:string);
+begin
+  with FPaperDB do begin
+    if not Active then Open;
+    IndexName:='id';
+    if not SearchKey(PID,stEqual) then
+      begin
+        assert(false,'未找到PID');
+        exit;
+      end;
+    Edit;
+    FieldByName(AAttrsName).AsString:=value;
+    Post;
+    DataChange(PID);
+  end;
+end;
+
+function TRTFP.ReadBasicBool(AAttrsName:string;PID:RTFP_ID):boolean;
+begin
+  with FPaperDB do begin
+    if not Active then Open;
+    IndexName:='id';
+    if not SearchKey(PID,stEqual) then
+      begin
+        assert(false,'未找到PID');
+        exit;
+      end;
+    result:=FieldByName(AAttrsName).AsBoolean;
+  end;
+end;
+
+procedure TRTFP.EditBasicBool(AAttrsName:string;PID:RTFP_ID;value:boolean);
+begin
+  with FPaperDB do begin
+    if not Active then Open;
+    IndexName:='id';
+    if not SearchKey(PID,stEqual) then
+      begin
+        assert(false,'未找到PID');
+        exit;
+      end;
+    Edit;
+    FieldByName(AAttrsName).AsBoolean:=value;
+    Post;
+    DataChange(PID);
+  end;
 end;
 
 function TRTFP.ReadFieldAsString(AName,AAttrsName:string;PID:RTFP_ID;AE:TAttrExtend):string;
@@ -3512,13 +3579,13 @@ begin
         'extern':filename:=Utf8ToWinCP(FieldByName(_Col_Paper_FileName_).AsString);
         'weblnk':
           begin
-            filename:=ReadFieldAsString(_Attrs_Basic_,_Col_basic_Link_,PID,[]);
-            if filename='' then filename:=ReadFieldAsString(_Attrs_Basic_,_Col_basic_doi_,PID,[]);
+            filename:=ReadFieldAsString(_Col_basic_Link_,_Attrs_Basic_,PID,[]);
+            if filename='' then filename:=ReadFieldAsString(_Col_basic_doi_,_Attrs_Basic_,PID,[]);
           end;
         else begin ShowMsgOK('警告','非备份文献节点不能通过此方法打开！');exit;end;
       end;
     end;
-    TRTFP.OpenFile(filename,exename);
+    if filename<>'' then TRTFP.OpenFile(filename,exename);
   end;
 end;
 
@@ -5608,6 +5675,8 @@ end;
 class function TRTFP.FileCopy(source,dest:string;bFailIfExist:boolean):boolean;
 begin
   {$ifdef Windows}
+  result:=false;
+  if not ForceDirectories(ExtractFilePath(dest)) then exit;
   result:=CopyFile(pchar(UTF8ToWinCP(source)),pchar(UTF8ToWinCP(dest)),bFailIfExist);
   {$endif}
 end;
