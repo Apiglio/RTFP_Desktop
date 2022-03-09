@@ -20,11 +20,8 @@ type
     Button_ImportFileNamesCheck: TButton;
     Button_BackToPrev: TButton;
     CheckBox_DefaultCl: TCheckBox;
-    CheckBox_UpdatePaper: TCheckBox;
-    CheckBox_AddPaperMethod: TCheckBox;
     CheckListBox_ImportFileNames: TListView;
     ComboBox_DefaultCl: TComboBox;
-    Edit_UpdatePaper: TEdit;
     Image_FileFullBackup: TImage;
     Image_FileReference: TImage;
     Image_TestFile: TImage;
@@ -42,6 +39,7 @@ type
     Panel_AddNote: TPanel;
     Panel_AddImage: TPanel;
     ProgressBar_ImportFiles: TProgressBar;
+    RadioGroup_AddPaperMethod: TRadioGroup;
     SplitterImportFilesV: TSplitter;
     StaticText_ImportFileNames: TStaticText;
     StaticText_1: TStaticText;
@@ -58,7 +56,6 @@ type
     procedure Button_ImportFileNamesCheckClick(Sender: TObject);
     procedure Button_ToMainFormClick(Sender: TObject);
     procedure CheckBox_DefaultClChange(Sender: TObject);
-    procedure CheckBox_UpdatePaperChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
@@ -82,11 +79,17 @@ type
     FFilenames:TStringList;
     FPhase:integer;
     FHaltoff:boolean;//退出时结束未完成的导入
+
+    Panel_Down:boolean;//六个按键的状态，重复按过快可能报错，加入这个变量限制快速按键操作
+
   public
     procedure Call(AFileNames: array of String);
     procedure Clear;
     procedure Phase1;
     procedure Phase2;
+
+  public
+    IsBackup:boolean;//为真时导入文件采用复制方式，为假则删除源文件
 
 
   end;
@@ -110,11 +113,10 @@ begin
   for pi:=0 to len-1 do FFilenames.Add(AFileNames[pi]);
   SplitterImportFilesV.Left:=Width-6;
   Button_ImportFileNamesCheck.Enabled:=true;
-  Button_ImportFileNamesCheck.Caption:='开始导入';
+  if IsBackup then RadioGroup_AddPaperMethod.ItemIndex:=0
+  else RadioGroup_AddPaperMethod.ItemIndex:=1;
   Button_BackToPrev.Enabled:=true;
   ProgressBar_ImportFiles.Position:=0;
-  Edit_UpdatePaper.Caption:=FormDesktop.Selected_PID+' - '+FormDesktop.Selected_FileName;
-  CheckBox_UpdatePaper.Checked:=false;
 
   ComboBox_DefaultCl.Clear;
   for tmpKL in CurrentRTFP.KlassList do
@@ -243,18 +245,24 @@ begin
         CheckListBox_ImportFileNames.ItemIndex:=pi;
         if CurrentRTFP.FindPaper(FFileNames[pi]) = '000000' then
           begin
+            {
             if CheckBox_UpdatePaper.Checked then begin
               if pi=0 then newPID:=FormDesktop.Selected_PID else newPID:='000000';
               if newPID<>'000000' then begin
-                if CheckBox_AddPaperMethod.Checked then CurrentRTFP.UpdatePaper(newPID,FFileNames[pi],apmFullBackup)
-                else CurrentRTFP.UpdatePaper(newPID,FFileNames[pi],apmAddress);
+                case RadioGroup_AddPaperMethod.ItemIndex of
+                  0:CurrentRTFP.UpdatePaper(newPID,FFileNames[pi],apmFullBackup);
+                  1:CurrentRTFP.UpdatePaper(newPID,FFileNames[pi],apmCutBackup);
+                  2:CurrentRTFP.UpdatePaper(newPID,FFileNames[pi],apmAddress);
+                end;
               end;
             end else begin
-              if CheckBox_AddPaperMethod.Checked then
-                newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmFullBackup)
-              else
-                newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmAddress);
-            end;
+            }
+              case RadioGroup_AddPaperMethod.ItemIndex of
+                0:newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmFullBackup);
+                1:newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmCutBackup);
+                2:newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmAddress);
+              end;
+            //end;
             if newPID<>'000000' then begin
               CheckListBox_ImportFileNames.Items[pi].SubItems[0]:='导入成功';
               index:=ComboBox_DefaultCl.ItemIndex;
@@ -307,15 +315,14 @@ begin
   else ComboBox_DefaultCl.Enabled:=false;
 end;
 
-procedure TForm_ImportFiles.CheckBox_UpdatePaperChange(Sender: TObject);
-begin
-  if (Sender as TCheckBox).Checked then Self.CheckBox_AddPaperMethod.Checked:=true;
-end;
+
 
 procedure TForm_ImportFiles.Image_MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var Panel:TPanel;
 begin
+  if Panel_Down then exit;
+  Panel_Down:=true;
   Panel:=(Sender as TImage).Parent as TPanel;
   Panel.OnMouseDown(Panel,Button,Shift,X,Y);
 end;
@@ -324,6 +331,8 @@ procedure TForm_ImportFiles.Image_MouseUp(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var Panel:TPanel;
 begin
+  if not Panel_Down then exit;
+  Panel_Down:=false;
   Panel:=(Sender as TImage).Parent as TPanel;
   Panel.OnMouseUp(Panel,Button,Shift,X,Y);
 end;
@@ -343,52 +352,19 @@ begin
   case (Sender as TPanel).Hint of
     '备份文件节点':
       begin
-        CheckBox_AddPaperMethod.Checked:=true;
         PageControl_ImportFiles.PageIndex:=TabSheet_AddPaper.PageIndex;
         CheckListBox_ImportFileNames.Clear;
-        CheckBox_UpdatePaper.Checked:=false;
         pi:=0;
         for stmp in FFileNames do begin
           CheckListBox_ImportFileNames.AddItem(stmp,nil);
           CheckListBox_ImportFileNames.Items[pi].SubItems.Add('待导入');
           inc(pi);
         end;
-
-      end;
-    '链接文件节点':
-      begin
-        CheckBox_AddPaperMethod.Checked:=false;
-        PageControl_ImportFiles.PageIndex:=TabSheet_AddPaper.PageIndex;
-        CheckListBox_ImportFileNames.Clear;
-        CheckBox_UpdatePaper.Checked:=false;
-        pi:=0;
-        for stmp in FFileNames do begin
-          CheckListBox_ImportFileNames.AddItem(stmp,nil);
-          CheckListBox_ImportFileNames.Items[pi].SubItems.Add('待导入');
-          inc(pi);
-        end;
-
       end;
     '识别文件':PageControl_ImportFiles.PageIndex:=TabSheet_TestFiles.PageIndex;
-    '更新节点文件':
-      begin
-        begin
-          CheckBox_AddPaperMethod.Checked:=true;
-          PageControl_ImportFiles.PageIndex:=TabSheet_AddPaper.PageIndex;
-          CheckListBox_ImportFileNames.Clear;
-          CheckBox_UpdatePaper.Checked:=true;
-          pi:=0;
-          for stmp in FFileNames do begin
-            CheckListBox_ImportFileNames.AddItem(stmp,nil);
-            CheckListBox_ImportFileNames.Items[pi].SubItems.Add('待导入');
-            inc(pi);
-          end;
-
-        end;
-      end;
     '创建笔记节点':PageControl_ImportFiles.PageIndex:=TabSheet_AddNote.PageIndex;
     '创建位图节点':PageControl_ImportFiles.PageIndex:=TabSheet_AddImage.PageIndex;
-    else ;
+    else exit;
   end;
   Phase2;
 end;

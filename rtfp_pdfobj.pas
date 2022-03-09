@@ -90,6 +90,7 @@ type
   public
     function FileEqual(buf:pbyte;buflen:uint64):boolean;
     procedure CopyTo(filename:string);
+    procedure DeleteRealFile;//在loadpdf之后用于删除FFileName路径中的文件
 
     procedure ShowPage(dc:HDC;page:uint64);
 
@@ -225,6 +226,13 @@ end;
 procedure TRTFP_PDF.CopyTo(filename:string);
 begin
   FMem.SaveToFile(filename);
+end;
+
+procedure TRTFP_PDF.DeleteRealFile;
+var f:file of byte;
+begin
+  assignfile(f,UTF8ToWinCP(FFilename));
+  erase(f);
 end;
 
 procedure TRTFP_PDF.ShowPage(dc:HDC;page:uint64);

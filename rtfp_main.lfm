@@ -1,12 +1,12 @@
 object FormDesktop: TFormDesktop
-  Left = 658
+  Left = 256
   Height = 622
-  Top = 245
-  Width = 1038
+  Top = 276
+  Width = 972
   AllowDropFiles = True
   Caption = 'RTFP Desktop'
   ClientHeight = 597
-  ClientWidth = 1038
+  ClientWidth = 972
   Constraints.MinHeight = 320
   Constraints.MinWidth = 640
   DesignTimePPI = 120
@@ -15,6 +15,8 @@ object FormDesktop: TFormDesktop
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDropFiles = FormDropFiles
+  OnKeyDown = FormKeyDown
+  OnKeyUp = FormKeyUp
   OnResize = FormResize
   Position = poScreenCenter
   LCLVersion = '1.8.4.0'
@@ -22,7 +24,7 @@ object FormDesktop: TFormDesktop
     Left = 0
     Height = 26
     Top = 571
-    Width = 1038
+    Width = 972
     Panels = <    
       item
         Width = 60
@@ -45,15 +47,15 @@ object FormDesktop: TFormDesktop
     Left = 206
     Height = 366
     Top = 0
-    Width = 832
+    Width = 766
     ActivePage = TabSheet_Project_DataGrid
     Anchors = [akTop, akLeft, akRight, akBottom]
     TabIndex = 1
     TabOrder = 1
     object TabSheet_Project_Properties: TTabSheet
       Caption = '工程信息'
-      ClientHeight = 329
-      ClientWidth = 824
+      ClientHeight = 333
+      ClientWidth = 758
       object PropertiesValueListEditor: TValueListEditor
         AnchorSideLeft.Control = TabSheet_Project_Properties
         AnchorSideTop.Control = TabSheet_Project_Properties
@@ -61,9 +63,9 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Control = TabSheet_Project_Properties
         AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 329
+        Height = 333
         Top = 0
-        Width = 818
+        Width = 752
         Anchors = [akTop, akLeft, akRight, akBottom]
         DefaultColWidth = 200
         FixedCols = 0
@@ -76,7 +78,7 @@ object FormDesktop: TFormDesktop
         )
         ColWidths = (
           200
-          593
+          527
         )
       end
       object Splitter_PropertiesV: TSplitter
@@ -85,8 +87,8 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = TabSheet_Project_Properties
         AnchorSideBottom.Side = asrBottom
-        Left = 818
-        Height = 329
+        Left = 752
+        Height = 333
         Top = 0
         Width = 6
         Align = alNone
@@ -96,7 +98,7 @@ object FormDesktop: TFormDesktop
     object TabSheet_Project_DataGrid: TTabSheet
       Caption = '文献节点'
       ClientHeight = 333
-      ClientWidth = 824
+      ClientWidth = 758
       object Panel_DBGridMain: TPanel
         AnchorSideLeft.Control = TabSheet_Project_DataGrid
         AnchorSideTop.Control = TabSheet_Project_DataGrid
@@ -107,11 +109,11 @@ object FormDesktop: TFormDesktop
         Left = 0
         Height = 333
         Top = 0
-        Width = 824
+        Width = 758
         Anchors = [akTop, akLeft, akRight, akBottom]
         Caption = 'Panel_DBGridMain'
         ClientHeight = 333
-        ClientWidth = 824
+        ClientWidth = 758
         TabOrder = 0
         object DBGrid_Main: TDBGrid
           AnchorSideLeft.Control = Panel_DBGridMain
@@ -123,7 +125,7 @@ object FormDesktop: TFormDesktop
           Left = 1
           Height = 303
           Top = 1
-          Width = 822
+          Width = 756
           Anchors = [akTop, akLeft, akRight, akBottom]
           BorderSpacing.Bottom = 28
           Color = clWindow
@@ -134,6 +136,7 @@ object FormDesktop: TFormDesktop
           ReadOnly = True
           TabOrder = 0
           OnCellClick = DBGrid_MainCellClick
+          OnColumnSized = DBGrid_MainColumnSized
           OnDrawColumnCell = DBGrid_MainDrawColumnCell
           OnKeyUp = DBGrid_MainKeyUp
           OnMouseUp = DBGrid_MainMouseUp
@@ -148,7 +151,7 @@ object FormDesktop: TFormDesktop
           Left = 71
           Height = 28
           Top = 304
-          Width = 692
+          Width = 626
           Anchors = [akLeft, akRight, akBottom]
           BorderSpacing.Left = 70
           BorderSpacing.Right = 60
@@ -181,7 +184,7 @@ object FormDesktop: TFormDesktop
           AnchorSideRight.Side = asrBottom
           AnchorSideBottom.Control = Edit_DBGridMain_Filter
           AnchorSideBottom.Side = asrBottom
-          Left = 763
+          Left = 697
           Height = 28
           Top = 304
           Width = 60
@@ -194,8 +197,8 @@ object FormDesktop: TFormDesktop
     end
     object TabSheet_Project_NodeView: TTabSheet
       Caption = '层次网络'
-      ClientHeight = 329
-      ClientWidth = 824
+      ClientHeight = 333
+      ClientWidth = 758
       object LvlGraphControl: TLvlGraphControl
         AnchorSideLeft.Control = TabSheet_Project_NodeView
         AnchorSideTop.Control = TabSheet_Project_NodeView
@@ -204,9 +207,9 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Control = TabSheet_Project_NodeView
         AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 329
+        Height = 333
         Top = 0
-        Width = 524
+        Width = 458
         Anchors = [akTop, akLeft, akRight, akBottom]
         BorderSpacing.Right = 300
         NodeStyle.DefaultImageIndex = -1
@@ -221,9 +224,9 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = TabSheet_Project_NodeView
         AnchorSideBottom.Side = asrBottom
-        Left = 728
+        Left = 662
         Height = 37
-        Top = 272
+        Top = 276
         Width = 76
         Anchors = [akRight, akBottom]
         BorderSpacing.Right = 20
@@ -233,59 +236,701 @@ object FormDesktop: TFormDesktop
         TabOrder = 1
       end
     end
+    object TabSheet_Project_FormatEditMgr: TTabSheet
+      Caption = '样式管理'
+      ClientHeight = 333
+      ClientWidth = 758
+      object ListBox_FormatEditMgr: TListBox
+        AnchorSideLeft.Control = TabSheet_Project_FormatEditMgr
+        AnchorSideTop.Control = TabSheet_Project_FormatEditMgr
+        AnchorSideBottom.Control = SynEdit_FEMgr
+        Left = 5
+        Height = 198
+        Top = 5
+        Width = 200
+        Anchors = [akTop, akLeft, akBottom]
+        BorderSpacing.Left = 5
+        BorderSpacing.Top = 5
+        BorderSpacing.Bottom = 35
+        ItemHeight = 0
+        TabOrder = 0
+      end
+      object StringGrid_FormatEditLayout: TStringGrid
+        AnchorSideLeft.Control = ListBox_FormatEditMgr
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = TabSheet_Project_FormatEditMgr
+        AnchorSideRight.Control = TabSheet_Project_FormatEditMgr
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = SynEdit_FEMgr
+        Left = 210
+        Height = 228
+        Top = 5
+        Width = 543
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        AutoFillColumns = True
+        BorderSpacing.Left = 5
+        BorderSpacing.Top = 5
+        BorderSpacing.Right = 5
+        BorderSpacing.Bottom = 5
+        ColCount = 7
+        ExtendedSelect = False
+        Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goSmoothScroll]
+        ParentShowHint = False
+        RowCount = 100
+        TabOrder = 1
+        OnMouseUp = StringGrid_FormatEditLayoutMouseUp
+        ColWidths = (
+          80
+          73
+          73
+          73
+          73
+          73
+          73
+        )
+      end
+      object Button_FormatEdit_Ren: TButton
+        AnchorSideLeft.Control = Button_FormatEdit_Del
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideRight.Control = ListBox_FormatEditMgr
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = SynEdit_FEMgr
+        Left = 180
+        Height = 25
+        Hint = '重命名样式'
+        Top = 208
+        Width = 25
+        Anchors = [akRight, akBottom]
+        BorderSpacing.Left = 5
+        BorderSpacing.Bottom = 5
+        Caption = 'R'
+        OnClick = Button_FormatEdit_RenClick
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 2
+      end
+      object Button_FormatEdit_Del: TButton
+        AnchorSideLeft.Control = Button_FormatEdit_Add
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideRight.Control = Button_FormatEdit_Ren
+        AnchorSideBottom.Control = SynEdit_FEMgr
+        Left = 150
+        Height = 25
+        Hint = '删除样式'
+        Top = 208
+        Width = 25
+        Anchors = [akRight, akBottom]
+        BorderSpacing.Left = 5
+        BorderSpacing.Right = 5
+        BorderSpacing.Bottom = 5
+        Caption = '-'
+        OnClick = Button_FormatEdit_DelClick
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 3
+      end
+      object Button_FormatEdit_Add: TButton
+        AnchorSideLeft.Control = ListBox_FormatEditMgr
+        AnchorSideRight.Control = Button_FormatEdit_Del
+        AnchorSideBottom.Control = SynEdit_FEMgr
+        Left = 120
+        Height = 25
+        Hint = '新建样式'
+        Top = 208
+        Width = 25
+        Anchors = [akRight, akBottom]
+        BorderSpacing.Right = 5
+        BorderSpacing.Bottom = 5
+        Caption = '+'
+        OnClick = Button_FormatEdit_AddClick
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 4
+      end
+      object Button_help: TButton
+        AnchorSideLeft.Control = TabSheet_Project_FormatEditMgr
+        AnchorSideTop.Control = Button_FormatEdit_Ren
+        AnchorSideRight.Control = Button_FormatEdit_Add
+        AnchorSideBottom.Control = SynEdit_FEMgr
+        Left = 5
+        Height = 25
+        Top = 208
+        Width = 110
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        BorderSpacing.Left = 5
+        BorderSpacing.Right = 5
+        BorderSpacing.Bottom = 5
+        Caption = '帮助'
+        OnClick = Button_helpClick
+        TabOrder = 5
+      end
+      inline SynEdit_FEMgr: TSynEdit
+        AnchorSideLeft.Control = TabSheet_Project_FormatEditMgr
+        AnchorSideRight.Control = TabSheet_Project_FormatEditMgr
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = TabSheet_Project_FormatEditMgr
+        AnchorSideBottom.Side = asrBottom
+        Left = 5
+        Height = 90
+        Top = 238
+        Width = 748
+        BorderSpacing.Left = 5
+        BorderSpacing.Right = 5
+        BorderSpacing.Bottom = 5
+        Anchors = [akLeft, akRight, akBottom]
+        Font.Height = -13
+        Font.Name = 'Courier New'
+        Font.Pitch = fpFixed
+        Font.Quality = fqNonAntialiased
+        ParentColor = False
+        ParentFont = False
+        TabOrder = 6
+        OnClick = SynEdit_FEMgrClick
+        Gutter.Width = 59
+        Gutter.MouseActions = <>
+        RightGutter.Width = 0
+        RightGutter.MouseActions = <>
+        Highlighter = SynUNIXShellScriptSyn
+        Keystrokes = <        
+          item
+            Command = ecUp
+            ShortCut = 38
+          end        
+          item
+            Command = ecSelUp
+            ShortCut = 8230
+          end        
+          item
+            Command = ecScrollUp
+            ShortCut = 16422
+          end        
+          item
+            Command = ecDown
+            ShortCut = 40
+          end        
+          item
+            Command = ecSelDown
+            ShortCut = 8232
+          end        
+          item
+            Command = ecScrollDown
+            ShortCut = 16424
+          end        
+          item
+            Command = ecLeft
+            ShortCut = 37
+          end        
+          item
+            Command = ecSelLeft
+            ShortCut = 8229
+          end        
+          item
+            Command = ecWordLeft
+            ShortCut = 16421
+          end        
+          item
+            Command = ecSelWordLeft
+            ShortCut = 24613
+          end        
+          item
+            Command = ecRight
+            ShortCut = 39
+          end        
+          item
+            Command = ecSelRight
+            ShortCut = 8231
+          end        
+          item
+            Command = ecWordRight
+            ShortCut = 16423
+          end        
+          item
+            Command = ecSelWordRight
+            ShortCut = 24615
+          end        
+          item
+            Command = ecPageDown
+            ShortCut = 34
+          end        
+          item
+            Command = ecSelPageDown
+            ShortCut = 8226
+          end        
+          item
+            Command = ecPageBottom
+            ShortCut = 16418
+          end        
+          item
+            Command = ecSelPageBottom
+            ShortCut = 24610
+          end        
+          item
+            Command = ecPageUp
+            ShortCut = 33
+          end        
+          item
+            Command = ecSelPageUp
+            ShortCut = 8225
+          end        
+          item
+            Command = ecPageTop
+            ShortCut = 16417
+          end        
+          item
+            Command = ecSelPageTop
+            ShortCut = 24609
+          end        
+          item
+            Command = ecLineStart
+            ShortCut = 36
+          end        
+          item
+            Command = ecSelLineStart
+            ShortCut = 8228
+          end        
+          item
+            Command = ecEditorTop
+            ShortCut = 16420
+          end        
+          item
+            Command = ecSelEditorTop
+            ShortCut = 24612
+          end        
+          item
+            Command = ecLineEnd
+            ShortCut = 35
+          end        
+          item
+            Command = ecSelLineEnd
+            ShortCut = 8227
+          end        
+          item
+            Command = ecEditorBottom
+            ShortCut = 16419
+          end        
+          item
+            Command = ecSelEditorBottom
+            ShortCut = 24611
+          end        
+          item
+            Command = ecToggleMode
+            ShortCut = 45
+          end        
+          item
+            Command = ecCopy
+            ShortCut = 16429
+          end        
+          item
+            Command = ecPaste
+            ShortCut = 8237
+          end        
+          item
+            Command = ecDeleteChar
+            ShortCut = 46
+          end        
+          item
+            Command = ecCut
+            ShortCut = 8238
+          end        
+          item
+            Command = ecDeleteLastChar
+            ShortCut = 8
+          end        
+          item
+            Command = ecDeleteLastChar
+            ShortCut = 8200
+          end        
+          item
+            Command = ecDeleteLastWord
+            ShortCut = 16392
+          end        
+          item
+            Command = ecUndo
+            ShortCut = 32776
+          end        
+          item
+            Command = ecRedo
+            ShortCut = 40968
+          end        
+          item
+            Command = ecLineBreak
+            ShortCut = 13
+          end        
+          item
+            Command = ecSelectAll
+            ShortCut = 16449
+          end        
+          item
+            Command = ecCopy
+            ShortCut = 16451
+          end        
+          item
+            Command = ecBlockIndent
+            ShortCut = 24649
+          end        
+          item
+            Command = ecLineBreak
+            ShortCut = 16461
+          end        
+          item
+            Command = ecInsertLine
+            ShortCut = 16462
+          end        
+          item
+            Command = ecDeleteWord
+            ShortCut = 16468
+          end        
+          item
+            Command = ecBlockUnindent
+            ShortCut = 24661
+          end        
+          item
+            Command = ecPaste
+            ShortCut = 16470
+          end        
+          item
+            Command = ecCut
+            ShortCut = 16472
+          end        
+          item
+            Command = ecDeleteLine
+            ShortCut = 16473
+          end        
+          item
+            Command = ecDeleteEOL
+            ShortCut = 24665
+          end        
+          item
+            Command = ecUndo
+            ShortCut = 16474
+          end        
+          item
+            Command = ecRedo
+            ShortCut = 24666
+          end        
+          item
+            Command = ecGotoMarker0
+            ShortCut = 16432
+          end        
+          item
+            Command = ecGotoMarker1
+            ShortCut = 16433
+          end        
+          item
+            Command = ecGotoMarker2
+            ShortCut = 16434
+          end        
+          item
+            Command = ecGotoMarker3
+            ShortCut = 16435
+          end        
+          item
+            Command = ecGotoMarker4
+            ShortCut = 16436
+          end        
+          item
+            Command = ecGotoMarker5
+            ShortCut = 16437
+          end        
+          item
+            Command = ecGotoMarker6
+            ShortCut = 16438
+          end        
+          item
+            Command = ecGotoMarker7
+            ShortCut = 16439
+          end        
+          item
+            Command = ecGotoMarker8
+            ShortCut = 16440
+          end        
+          item
+            Command = ecGotoMarker9
+            ShortCut = 16441
+          end        
+          item
+            Command = ecSetMarker0
+            ShortCut = 24624
+          end        
+          item
+            Command = ecSetMarker1
+            ShortCut = 24625
+          end        
+          item
+            Command = ecSetMarker2
+            ShortCut = 24626
+          end        
+          item
+            Command = ecSetMarker3
+            ShortCut = 24627
+          end        
+          item
+            Command = ecSetMarker4
+            ShortCut = 24628
+          end        
+          item
+            Command = ecSetMarker5
+            ShortCut = 24629
+          end        
+          item
+            Command = ecSetMarker6
+            ShortCut = 24630
+          end        
+          item
+            Command = ecSetMarker7
+            ShortCut = 24631
+          end        
+          item
+            Command = ecSetMarker8
+            ShortCut = 24632
+          end        
+          item
+            Command = ecSetMarker9
+            ShortCut = 24633
+          end        
+          item
+            Command = EcFoldLevel1
+            ShortCut = 41009
+          end        
+          item
+            Command = EcFoldLevel2
+            ShortCut = 41010
+          end        
+          item
+            Command = EcFoldLevel3
+            ShortCut = 41011
+          end        
+          item
+            Command = EcFoldLevel4
+            ShortCut = 41012
+          end        
+          item
+            Command = EcFoldLevel5
+            ShortCut = 41013
+          end        
+          item
+            Command = EcFoldLevel6
+            ShortCut = 41014
+          end        
+          item
+            Command = EcFoldLevel7
+            ShortCut = 41015
+          end        
+          item
+            Command = EcFoldLevel8
+            ShortCut = 41016
+          end        
+          item
+            Command = EcFoldLevel9
+            ShortCut = 41017
+          end        
+          item
+            Command = EcFoldLevel0
+            ShortCut = 41008
+          end        
+          item
+            Command = EcFoldCurrent
+            ShortCut = 41005
+          end        
+          item
+            Command = EcUnFoldCurrent
+            ShortCut = 41003
+          end        
+          item
+            Command = EcToggleMarkupWord
+            ShortCut = 32845
+          end        
+          item
+            Command = ecNormalSelect
+            ShortCut = 24654
+          end        
+          item
+            Command = ecColumnSelect
+            ShortCut = 24643
+          end        
+          item
+            Command = ecLineSelect
+            ShortCut = 24652
+          end        
+          item
+            Command = ecTab
+            ShortCut = 9
+          end        
+          item
+            Command = ecShiftTab
+            ShortCut = 8201
+          end        
+          item
+            Command = ecMatchBracket
+            ShortCut = 24642
+          end        
+          item
+            Command = ecColSelUp
+            ShortCut = 40998
+          end        
+          item
+            Command = ecColSelDown
+            ShortCut = 41000
+          end        
+          item
+            Command = ecColSelLeft
+            ShortCut = 40997
+          end        
+          item
+            Command = ecColSelRight
+            ShortCut = 40999
+          end        
+          item
+            Command = ecColSelPageDown
+            ShortCut = 40994
+          end        
+          item
+            Command = ecColSelPageBottom
+            ShortCut = 57378
+          end        
+          item
+            Command = ecColSelPageUp
+            ShortCut = 40993
+          end        
+          item
+            Command = ecColSelPageTop
+            ShortCut = 57377
+          end        
+          item
+            Command = ecColSelLineStart
+            ShortCut = 40996
+          end        
+          item
+            Command = ecColSelLineEnd
+            ShortCut = 40995
+          end        
+          item
+            Command = ecColSelEditorTop
+            ShortCut = 57380
+          end        
+          item
+            Command = ecColSelEditorBottom
+            ShortCut = 57379
+          end>
+        MouseActions = <>
+        MouseTextActions = <>
+        MouseSelActions = <>
+        VisibleSpecialChars = [vscSpace, vscTabAtLast]
+        ReadOnly = True
+        RightEdge = 160
+        ScrollBars = ssVertical
+        SelectedColor.BackPriority = 50
+        SelectedColor.ForePriority = 50
+        SelectedColor.FramePriority = 50
+        SelectedColor.BoldPriority = 50
+        SelectedColor.ItalicPriority = 50
+        SelectedColor.UnderlinePriority = 50
+        SelectedColor.StrikeOutPriority = 50
+        BracketHighlightStyle = sbhsBoth
+        BracketMatchColor.Background = clNone
+        BracketMatchColor.Foreground = clNone
+        BracketMatchColor.Style = [fsBold]
+        FoldedCodeColor.Background = clNone
+        FoldedCodeColor.Foreground = clGray
+        FoldedCodeColor.FrameColor = clGray
+        MouseLinkColor.Background = clNone
+        MouseLinkColor.Foreground = clBlue
+        LineHighlightColor.Background = clNone
+        LineHighlightColor.Foreground = clNone
+        DefaultSelectionMode = smLine
+        SelectionMode = smLine
+        inline SynLeftGutterPartList1: TSynGutterPartList
+          object SynGutterMarks1: TSynGutterMarks
+            Width = 24
+            MouseActions = <>
+          end
+          object SynGutterLineNumber1: TSynGutterLineNumber
+            Width = 17
+            MouseActions = <>
+            MarkupInfo.Background = clBtnFace
+            MarkupInfo.Foreground = clNone
+            DigitCount = 2
+            ShowOnlyLineNumbersMultiplesOf = 1
+            ZeroStart = False
+            LeadingZeros = False
+          end
+          object SynGutterChanges1: TSynGutterChanges
+            Width = 4
+            MouseActions = <>
+            ModifiedColor = 59900
+            SavedColor = clGreen
+          end
+          object SynGutterSeparator1: TSynGutterSeparator
+            Width = 2
+            MouseActions = <>
+            MarkupInfo.Background = clWhite
+            MarkupInfo.Foreground = clGray
+          end
+          object SynGutterCodeFolding1: TSynGutterCodeFolding
+            AutoSize = False
+            Width = 12
+            MouseActions = <>
+            MarkupInfo.Background = clNone
+            MarkupInfo.Foreground = clGray
+            MouseActionsExpanded = <>
+            MouseActionsCollapsed = <>
+          end
+        end
+      end
+    end
     object TabSheet_Project_AufScript: TTabSheet
       Caption = '脚本'
-      ClientHeight = 329
-      ClientWidth = 824
+      ClientHeight = 333
+      ClientWidth = 758
       OnResize = TabSheet_Project_AufScriptResize
       inline Frame_AufScript1: TFrame_AufScript
-        Height = 329
-        Width = 824
+        Height = 333
+        Width = 758
         Align = alClient
-        ClientHeight = 329
-        ClientWidth = 824
+        ClientHeight = 333
+        ClientWidth = 758
         inherited ProgressBar: TProgressBar
           AnchorSideLeft.Control = Frame_AufScript1
           AnchorSideRight.Control = Frame_AufScript1
           AnchorSideBottom.Control = Frame_AufScript1
           Height = 12
-          Top = 312
-          Width = 814
+          Top = 316
+          Width = 748
         end
         inherited Memo_out: TMemo
           AnchorSideRight.Control = Frame_AufScript1
-          Left = 560
-          Height = 245
+          Left = 494
+          Height = 249
           Top = 30
           Width = 259
         end
         inherited Button_run: TButton
-          Left = 560
-          Top = 280
+          Left = 494
+          Top = 284
           Width = 85
         end
         inherited Button_pause: TButton
-          Left = 647
-          Top = 280
+          Left = 581
+          Top = 284
           Width = 85
         end
         inherited Button_stop: TButton
-          Left = 734
-          Top = 280
+          Left = 668
+          Top = 284
           Width = 85
         end
         inherited Button_ScriptLoad: TButton
-          Top = 280
+          Top = 284
           Width = 85
         end
         inherited Button_ScriptSave: TButton
           Left = 219
-          Top = 280
+          Top = 284
           Width = 85
         end
         inherited Memo_cmd: TSynEdit
           AnchorSideLeft.Control = Frame_AufScript1
-          Height = 245
+          Height = 249
           Top = 30
           Width = 299
           Gutter.Width = 61
@@ -301,7 +946,7 @@ object FormDesktop: TFormDesktop
           AnchorSideTop.Control = Frame_AufScript1
           AnchorSideRight.Control = Frame_AufScript1
           Height = 20
-          Width = 814
+          Width = 748
         end
         inherited OpenDialog: TOpenDialog
           left = 350
@@ -334,7 +979,7 @@ object FormDesktop: TFormDesktop
     Left = 206
     Height = 6
     Top = 366
-    Width = 832
+    Width = 766
     Align = alNone
     Anchors = [akLeft, akRight]
     ResizeAnchor = akTop
@@ -351,7 +996,7 @@ object FormDesktop: TFormDesktop
     Left = 206
     Height = 199
     Top = 372
-    Width = 832
+    Width = 766
     ActivePage = TabSheet_FmtCmt
     Anchors = [akTop, akLeft, akRight, akBottom]
     TabIndex = 1
@@ -376,13 +1021,13 @@ object FormDesktop: TFormDesktop
     object TabSheet_FmtCmt: TTabSheet
       Caption = '编辑属性(单个)'
       ClientHeight = 166
-      ClientWidth = 824
+      ClientWidth = 758
       object Button_FmtCmt_Post: TButton
         AnchorSideLeft.Control = ComboBox_AttrName
         AnchorSideRight.Control = TabSheet_FmtCmt
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = Button_FmtCmt_Recover
-        Left = 677
+        Left = 611
         Height = 32
         Top = 82
         Width = 142
@@ -400,7 +1045,7 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = TabSheet_FmtCmt
         AnchorSideBottom.Side = asrBottom
-        Left = 677
+        Left = 611
         Height = 32
         Top = 124
         Width = 142
@@ -421,7 +1066,7 @@ object FormDesktop: TFormDesktop
         Left = 0
         Height = 166
         Top = 0
-        Width = 599
+        Width = 533
         Anchors = [akTop, akLeft, akRight, akBottom]
         BorderSpacing.Right = 225
         OnChange = Memo_FmtCmtChange
@@ -433,7 +1078,7 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Control = TabSheet_FmtCmt
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = ComboBox_FieldName
-        Left = 677
+        Left = 611
         Height = 28
         Top = 6
         Width = 112
@@ -453,7 +1098,7 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Control = TabSheet_FmtCmt
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = Button_FmtCmt_Post
-        Left = 677
+        Left = 611
         Height = 28
         Top = 44
         Width = 112
@@ -473,7 +1118,7 @@ object FormDesktop: TFormDesktop
         AnchorSideTop.Control = ComboBox_AttrName
         AnchorSideTop.Side = asrCenter
         AnchorSideRight.Control = ComboBox_AttrName
-        Left = 609
+        Left = 543
         Height = 21
         Top = 10
         Width = 68
@@ -485,7 +1130,7 @@ object FormDesktop: TFormDesktop
         AnchorSideTop.Control = ComboBox_FieldName
         AnchorSideTop.Side = asrCenter
         AnchorSideRight.Control = ComboBox_FieldName
-        Left = 609
+        Left = 543
         Height = 21
         Top = 48
         Width = 68
@@ -496,7 +1141,7 @@ object FormDesktop: TFormDesktop
       object Label_FmtCmtPID: TLabel
         AnchorSideLeft.Control = StaticText_AttrNameCombo
         AnchorSideTop.Control = Button_FmtCmt_Post
-        Left = 609
+        Left = 543
         Height = 15
         Top = 112
         Width = 48
@@ -509,7 +1154,7 @@ object FormDesktop: TFormDesktop
         AnchorSideTop.Control = ComboBox_FieldName
         AnchorSideRight.Control = TabSheet_FmtCmt
         AnchorSideRight.Side = asrBottom
-        Left = 795
+        Left = 729
         Height = 24
         Hint = '该字段不支持FmtCmt'
         Top = 46
@@ -540,7 +1185,7 @@ object FormDesktop: TFormDesktop
         AnchorSideTop.Control = ComboBox_FieldName
         AnchorSideRight.Control = TabSheet_FmtCmt
         AnchorSideRight.Side = asrBottom
-        Left = 795
+        Left = 729
         Height = 24
         Hint = '该字段支持FmtCmt'
         Top = 46
@@ -1030,6 +1675,16 @@ object FormDesktop: TFormDesktop
         OnClick = MenuItem_project_profileClick
       end
     end
+    object MenuItem_Node: TMenuItem
+      Caption = '节点'
+      object MenuItem_Node_New: TMenuItem
+        Caption = '新建节点'
+        OnClick = MenuItem_Node_NewClick
+      end
+      object MenuItem_Node_div01: TMenuItem
+        Caption = '-'
+      end
+    end
     object MenuItem_KlassMenu: TMenuItem
       Caption = '分类'
       object MenuItem_klass_AddKlass: TMenuItem
@@ -1044,7 +1699,8 @@ object FormDesktop: TFormDesktop
         Caption = '-'
       end
       object MenuItem_klass_check: TMenuItem
-        Caption = '重新构建分类索引'
+        Caption = '重新构建分类字段'
+        OnClick = MenuItem_klass_checkClick
       end
       object MenuItem_klass_SourceClass: TMenuItem
         Caption = '重新构建来源分类'
@@ -1173,7 +1829,7 @@ object FormDesktop: TFormDesktop
         end
       end
       object MenuItem_CB_CiteFormat: TMenuItem
-        Caption = '引注格式'
+        Caption = '参考格式'
         object MenuItem_CB_Cite_GB7714: TMenuItem
           Caption = 'GB/T 7714-2015'
           OnClick = MenuItem_CB_Cite_GB7714Click
@@ -1187,17 +1843,35 @@ object FormDesktop: TFormDesktop
           OnClick = MenuItem_CB_Cite_MLAClick
         end
       end
+      object MenuItem_CB_RefNumFormat: TMenuItem
+        Caption = '文献标注'
+        object MenuItem_CB_RefNum_InOrder: TMenuItem
+          Caption = '顺序编码制'
+          OnClick = MenuItem_CB_RefNum_InOrderClick
+        end
+        object MenuItem_CB_RefNum_AurYear: TMenuItem
+          Caption = '著者-出版年制'
+          OnClick = MenuItem_CB_RefNum_AurYearClick
+        end
+      end
     end
     object MenuItem_pop_div01: TMenuItem
       Caption = '-'
     end
-    object MenuItem_BasicReferences: TMenuItem
-      Caption = '修改基础信息'
-      OnClick = MenuItem_BasicReferencesClick
-    end
-    object MenuItem_Klass: TMenuItem
-      Caption = '修改分类信息'
-      OnClick = MenuItem_KlassClick
+    object MenuItem_Edit: TMenuItem
+      Caption = '编辑'
+      object MenuItem_EditReferences: TMenuItem
+        Caption = '编辑基础信息'
+        OnClick = MenuItem_EditReferencesClick
+      end
+      object MenuItem_EditKlass: TMenuItem
+        Caption = '编辑分类信息'
+        OnClick = MenuItem_EditKlassClick
+      end
+      object MenuItem_EditSource: TMenuItem
+        Caption = '编辑文件源'
+        OnClick = MenuItem_EditSourceClick
+      end
     end
     object MenuItem_Mark: TMenuItem
       Caption = '标记'
@@ -1225,6 +1899,10 @@ object FormDesktop: TFormDesktop
     object MenuItem_pop_div03: TMenuItem
       Caption = '-'
     end
+    object MenuItem_NewPaper: TMenuItem
+      Caption = '新建文献节点'
+      OnClick = MenuItem_NewPaperClick
+    end
     object MenuItem_DeletePaper: TMenuItem
       Caption = '删除文献节点'
       OnClick = MenuItem_DeletePaperClick
@@ -1232,7 +1910,7 @@ object FormDesktop: TFormDesktop
   end
   object PopupMenu_ClassManager: TPopupMenu
     left = 88
-    top = 320
+    top = 352
     object MenuItem_ClassMgr_Del: TMenuItem
       Caption = '删除分类'
       OnClick = MenuItem_ClassMgr_DelClick
@@ -1318,5 +1996,11 @@ object FormDesktop: TFormDesktop
       Caption = '单元格设色'
       OnClick = MenuItem_DBGC_DisplayOptClick
     end
+  end
+  object SynUNIXShellScriptSyn: TSynUNIXShellScriptSyn
+    DefaultFilter = 'UNIX Shell Scripts (*.sh)|*.sh'
+    Enabled = False
+    left = 552
+    top = 280
   end
 end

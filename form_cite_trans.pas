@@ -102,6 +102,7 @@ begin
     else exit;
   end;
   FormDesktop.Validate(CurrentRTFP);
+  Memo_Cite.Clear;
 end;
 
 procedure TForm_CiteTrans.Button_ImportPapersClick(Sender: TObject);
@@ -120,6 +121,7 @@ begin
     else exit;
   end;
   FormDesktop.Validate(CurrentRTFP);
+  Memo_Cite.Clear;
 end;
 
 procedure TForm_CiteTrans.Button_ImportRefsClick(Sender: TObject);
@@ -134,6 +136,7 @@ begin
     '查新':CurrentRTFP.SetChaXin(FormDesktop.Selected_PID,Memo_Reference.Lines.CommaText);
   end;
   FormDesktop.Validate(CurrentRTFP);
+  Memo_Reference.Clear;
 end;
 
 procedure TForm_CiteTrans.FormCreate(Sender: TObject);

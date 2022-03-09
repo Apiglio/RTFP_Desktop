@@ -57,7 +57,7 @@
         <PackageName Value="LCL"/>
       </Item11>
     </RequiredPackages>
-    <Units Count="25">
+    <Units Count="27">
       <Unit0>
         <Filename Value="RTFP_Desktop.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -197,6 +197,20 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit24>
+      <Unit25>
+        <Filename Value="form_formatedit_option.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="FormFormatEditOption"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit25>
+      <Unit26>
+        <Filename Value="forms\source_dialog.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form_FileSource"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit26>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -207,7 +221,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="..\FPC_Unit\Auf"/>
+      <OtherUnitFiles Value="..\FPC_Unit\Auf;forms"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>
@@ -219,7 +233,7 @@
     </Linking>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="9">
+    <Exceptions Count="11">
       <Item1>
         <Name Value="EAbort"/>
       </Item1>
@@ -248,6 +262,12 @@
       <Item9>
         <Name Value="Exception"/>
       </Item9>
+      <Item10>
+        <Name Value="RunError(219)"/>
+      </Item10>
+      <Item11>
+        <Name Value="EInvalidCast"/>
+      </Item11>
     </Exceptions>
   </Debugging>
 </CONFIG>

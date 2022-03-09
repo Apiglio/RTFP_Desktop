@@ -102,8 +102,8 @@ begin
   end;
 
   CurrentRTFP:=TRTFP.Create(FormDesktop);
+  CurrentRTFP.SetAuf(FormDesktop.Frame_AufScript1.Auf);
   FormDesktop.EventLink(CurrentRTFP);
-
   CurrentRTFP.New((Self.FileFullName),(Self.FileName),'Apiglio');
 
   //Self.Hide;
