@@ -1,7 +1,7 @@
 object Form_ImportFiles: TForm_ImportFiles
-  Left = 886
+  Left = 566
   Height = 582
-  Top = 240
+  Top = 276
   Width = 925
   Caption = '创建节点'
   ClientHeight = 582
@@ -911,8 +911,8 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideBottom.Control = TabSheet_AddPaper
           AnchorSideBottom.Side = asrBottom
           Left = 707
-          Height = 139
-          Top = 310
+          Height = 135
+          Top = 314
           Width = 94
           Anchors = [akRight, akBottom]
           BorderSpacing.Top = 10
@@ -928,7 +928,7 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 24
-          Top = 312
+          Top = 316
           Width = 84
           BorderSpacing.Left = 5
           Caption = '创建备份'
@@ -941,7 +941,7 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideRight.Side = asrBottom
           AnchorSideBottom.Control = Button_ImportFileNamesCheck
           Left = 0
-          Height = 270
+          Height = 274
           Top = 30
           Width = 811
           Anchors = [akTop, akLeft, akRight, akBottom]
@@ -968,7 +968,7 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideTop.Side = asrCenter
           Left = 128
           Height = 24
-          Top = 312
+          Top = 316
           Width = 144
           BorderSpacing.Left = 15
           Caption = '导入到当前节点：'
@@ -982,7 +982,7 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideRight.Control = Button_ImportFileNamesCheck
           Left = 277
           Height = 28
-          Top = 310
+          Top = 314
           Width = 415
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Left = 5
@@ -1023,8 +1023,8 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideTop.Control = Button_ImportFileNamesCheck
           AnchorSideTop.Side = asrCenter
           Left = 5
-          Height = 83
-          Top = 338
+          Height = 79
+          Top = 342
           Width = 108
           AutoFill = True
           BorderSpacing.Left = 5
@@ -1035,7 +1035,7 @@ object Form_ImportFiles: TForm_ImportFiles
           ChildSizing.ShrinkVertical = crsScaleChilds
           ChildSizing.Layout = cclLeftToRightThenTopToBottom
           ChildSizing.ControlsPerLine = 1
-          ClientHeight = 63
+          ClientHeight = 59
           ClientWidth = 104
           ItemIndex = 0
           Items.Strings = (
