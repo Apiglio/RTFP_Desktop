@@ -16,7 +16,7 @@ uses
 
   Apiglio_Useful, AufScript_Frame, ACL_ListView, TreeListView, lNetComponents,
 
-  RTFP_definition, rtfp_constants, rtfp_dialog, simpleipc, Types;
+  RTFP_definition, rtfp_constants, rtfp_dialog, source_dialog, simpleipc, Types;
 
 const
   C_VERSION_NUMBER  = '0.2.1-alpha.3';
@@ -79,6 +79,10 @@ type
     LvlGraphControl: TLvlGraphControl;
     MainMenu: TMainMenu;
     Memo_FmtCmt: TMemo;
+    MenuItem_EditSource: TMenuItem;
+    MenuItem_EditKlass: TMenuItem;
+    MenuItem_EditReferences: TMenuItem;
+    MenuItem_Edit: TMenuItem;
     MenuItem_NewPaper: TMenuItem;
     MenuItem_Node_New: TMenuItem;
     MenuItem_Node_div01: TMenuItem;
@@ -137,8 +141,6 @@ type
     MenuItem_AdvOpen_Link: TMenuItem;
     MenuItem_AdvOpen: TMenuItem;
     MenuItem_ClassTool: TMenuItem;
-    MenuItem_Klass: TMenuItem;
-    MenuItem_BasicReferences: TMenuItem;
     MenuItem_DeletePaper: TMenuItem;
     MenuItem_pop_div03: TMenuItem;
     MenuItem_Tree_Into: TMenuItem;
@@ -254,7 +256,7 @@ type
     procedure MenuItem_AdvOpen_LinkClick(Sender: TObject);
     procedure MenuItem_AdvOpen_PDFClick(Sender: TObject);
     procedure MenuItem_Attr_AddAttrsClick(Sender: TObject);
-    procedure MenuItem_BasicReferencesClick(Sender: TObject);
+    procedure MenuItem_EditReferencesClick(Sender: TObject);
     procedure MenuItem_CB_Cite_APAClick(Sender: TObject);
     procedure MenuItem_CB_Cite_GB7714Click(Sender: TObject);
     procedure MenuItem_CB_Cite_MLAClick(Sender: TObject);
@@ -278,12 +280,13 @@ type
     procedure MenuItem_DBGC_SeekClick(Sender: TObject);
     procedure MenuItem_DBGC_TitleClick(Sender: TObject);
     procedure MenuItem_DeletePaperClick(Sender: TObject);
+    procedure MenuItem_EditSourceClick(Sender: TObject);
     procedure MenuItem_ExportToolClick(Sender: TObject);
     procedure MenuItem_FieldMgr_DelClick(Sender: TObject);
     procedure MenuItem_FieldMgr_EditClick(Sender: TObject);
     procedure MenuItem_FieldMgr_RenClick(Sender: TObject);
     procedure MenuItem_FieldMgr_DisplayOptionClick(Sender: TObject);
-    procedure MenuItem_KlassClick(Sender: TObject);
+    procedure MenuItem_EditKlassClick(Sender: TObject);
     procedure MenuItem_klass_AddKlassClick(Sender: TObject);
     procedure MenuItem_klass_checkClick(Sender: TObject);
     procedure MenuItem_klass_DelKlassClick(Sender: TObject);
@@ -875,6 +878,12 @@ begin
   SetFocus;
 end;
 
+procedure TFormDesktop.MenuItem_EditReferencesClick(Sender: TObject);
+begin
+  Form_CiteTrans.ShowModal;//Form_CiteTrans.Show;
+  SetFocus;
+end;
+
 procedure TFormDesktop.MenuItem_Tool_ProjectDirClick(Sender: TObject);
 begin
   if ProjectInvalid then exit;
@@ -925,12 +934,6 @@ end;
 procedure TFormDesktop.MenuItem_Attr_AddAttrsClick(Sender: TObject);
 begin
 
-end;
-
-procedure TFormDesktop.MenuItem_BasicReferencesClick(Sender: TObject);
-begin
-  Form_CiteTrans.ShowModal;//Form_CiteTrans.Show;
-  SetFocus;
 end;
 
 procedure TFormDesktop.MenuItem_CB_Cite_APAClick(Sender: TObject);
@@ -1208,6 +1211,12 @@ begin
   end;
 end;
 
+procedure TFormDesktop.MenuItem_EditSourceClick(Sender: TObject);
+begin
+  Form_FileSource.Call;
+  SetFocus;
+end;
+
 procedure TFormDesktop.MenuItem_ExportToolClick(Sender: TObject);
 begin
   if ProjectInvalid then exit;
@@ -1270,7 +1279,7 @@ begin
   else assert(false,'ACL_TreeNode中有unexpected的类型对象');
 end;
 
-procedure TFormDesktop.MenuItem_KlassClick(Sender: TObject);
+procedure TFormDesktop.MenuItem_EditKlassClick(Sender: TObject);
 begin
   ClassManagerForm.ShowModal;
   SetFocus;

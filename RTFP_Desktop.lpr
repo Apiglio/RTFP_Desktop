@@ -11,7 +11,7 @@ uses
   form_new_project, form_cite_trans, form_import, lazcontrols,
   tachartlazaruspkg, form_classmanager, form_appearance, form_options,
   form_report_tool, form_repeated_checker, form_project_profile,
-  form_field_display_option, form_formatedit_option;
+  form_field_display_option, form_formatedit_option, source_dialog;
 
 {$R *.res}
 
@@ -30,6 +30,7 @@ begin
   Application.CreateForm(TFormProjectProfile, FormProjectProfile);
   Application.CreateForm(TFormFieldDisplayOption, FormFieldDisplayOption);
   Application.CreateForm(TFormFormatEditOption, FormFormatEditOption);
+  Application.CreateForm(TForm_FileSource, Form_FileSource);
   Application.Run;
 end.
 

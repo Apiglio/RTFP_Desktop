@@ -1,7 +1,7 @@
 object FormDesktop: TFormDesktop
-  Left = 699
+  Left = 256
   Height = 622
-  Top = 287
+  Top = 276
   Width = 972
   AllowDropFiles = True
   Caption = 'RTFP Desktop'
@@ -1858,13 +1858,20 @@ object FormDesktop: TFormDesktop
     object MenuItem_pop_div01: TMenuItem
       Caption = '-'
     end
-    object MenuItem_BasicReferences: TMenuItem
-      Caption = '修改基础信息'
-      OnClick = MenuItem_BasicReferencesClick
-    end
-    object MenuItem_Klass: TMenuItem
-      Caption = '修改分类信息'
-      OnClick = MenuItem_KlassClick
+    object MenuItem_Edit: TMenuItem
+      Caption = '编辑'
+      object MenuItem_EditReferences: TMenuItem
+        Caption = '编辑基础信息'
+        OnClick = MenuItem_EditReferencesClick
+      end
+      object MenuItem_EditKlass: TMenuItem
+        Caption = '编辑分类信息'
+        OnClick = MenuItem_EditKlassClick
+      end
+      object MenuItem_EditSource: TMenuItem
+        Caption = '编辑文件源'
+        OnClick = MenuItem_EditSourceClick
+      end
     end
     object MenuItem_Mark: TMenuItem
       Caption = '标记'
