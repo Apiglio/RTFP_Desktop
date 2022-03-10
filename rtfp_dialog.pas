@@ -28,7 +28,7 @@ type
     procedure Disable;//结束记录，一切恢复正常，也不会有All选项
   public
     constructor Create;
-    destructor Destroy;
+    destructor Destroy;override;
   end;
 
 

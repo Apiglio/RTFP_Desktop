@@ -9,17 +9,17 @@ interface
 uses
   Classes, SysUtils, db, dbf, dbf_common, memds, sqldb, mssqlconn, FileUtil,
   Forms, Controls, Graphics, Dialogs, ComCtrls, Menus, ExtCtrls, DBGrids, Grids,
-  ValEdit, StdCtrls, DbCtrls, LazUTF8, LvlGraphCtrl, SynEdit,
+  ValEdit, StdCtrls, DbCtrls, LazUTF8, SynEdit,
   SynHighlighterDiff, SynHighlighterIni, SynHighlighterLFM, SynHighlighterPo,
   synhighlighterunixshellscript, SynHighlighterTeX, Clipbrd, LCLType, Buttons,
   Regexpr,
 
   Apiglio_Useful, AufScript_Frame, ACL_ListView, TreeListView, lNetComponents,
 
-  RTFP_definition, rtfp_constants, rtfp_dialog, source_dialog, simpleipc, Types;
+  RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.1-alpha.3';
+  C_VERSION_NUMBER  = '0.2.2-alpha.1';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -54,7 +54,6 @@ type
     Button_FormatEditRecover: TButton;
     Button_MainFilter: TButton;
     Button_temp: TButton;
-    Button_Project_NodeView_Fresh: TButton;
     Button_FmtCmt_Post: TButton;
     Button_FmtCmt_Recover: TButton;
     Combo_AddAttrs: TComboBox;
@@ -76,7 +75,6 @@ type
     Label_FmtCmtPID: TLabel;
     Label_MainFilter: TLabel;
     ListBox_FormatEditMgr: TListBox;
-    LvlGraphControl: TLvlGraphControl;
     MainMenu: TMainMenu;
     Memo_FmtCmt: TMemo;
     MenuItem_EditSource: TMenuItem;
@@ -327,6 +325,7 @@ type
     LastDBGridPos:TPoint;
 
   public
+    SyncTimer:TRTFP_SyncTimer;
     property ShowWaitForm:boolean read FShowWaitForm write FShowWaitForm;
 
   private
@@ -396,7 +395,7 @@ implementation
 uses form_new_project, form_cite_trans, form_classmanager, form_import,
      form_appearance, rtfp_field, rtfp_class, form_options, form_report_tool,
      form_repeated_checker, form_project_profile, form_field_display_option,
-     form_formatedit_option;
+     form_formatedit_option, rtfp_dialog;
 
 {$R *.lfm}
 
@@ -503,7 +502,7 @@ begin
     with MenuItem_project_recent do for index:=0 to Count-1 do
       begin
         stmp:=Items[index].Caption;
-        if stmp<>filename then str.Add(stmp);
+        if (stmp<>filename) and FileExists(stmp) then str.Add(stmp);
       end;
     str.SaveToFile(LocalPath+'recent_project.dat');
   finally
@@ -1603,6 +1602,8 @@ begin
     Caption:='主表正在重建中';//为啥不管用？？？？？
     Parent:=FWaitForm;
   end;
+
+  SyncTimer:=TRTFP_SyncTimer.Create(Self);
 
   LoadRecentProject;
 

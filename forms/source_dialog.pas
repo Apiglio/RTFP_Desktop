@@ -42,7 +42,7 @@ var
   Form_FileSource: TForm_FileSource;
 
 implementation
-uses RTFP_definition, rtfp_dialog, RTFP_main, rtfp_constants;
+uses RTFP_definition, rtfp_dialog, RTFP_main, rtfp_constants, rtfp_type;
 {$R *.lfm}
 
 { TForm_FileSource }

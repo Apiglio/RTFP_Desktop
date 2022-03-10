@@ -47,13 +47,13 @@ uses
 
   {$ifndef insert}
   Apiglio_Useful, auf_ram_var, rtfp_pdfobj, rtfp_files, rtfp_class, rtfp_field,
-  rtfp_constants, rtfp_tags, rtfp_format_component, rtfp_dialog, rtfp_misc,
+  rtfp_constants, rtfp_type, rtfp_tags, rtfp_format_component, rtfp_dialog, rtfp_misc,
   {$endif}
   db, dbf, dbf_common, dbf_fields, sqldb, memds;
 
 
 type
-
+  {
   RTFP_ID=string;//六位64进制数
   TPIDNotifyEvent = procedure(Sender:TObject;PID:RTFP_ID) of object;
 
@@ -71,7 +71,7 @@ type
                    scoDB,scoDS);                                       //匹配总体：PaperDB、PaperDS
 
   TSimChkOptions = set of TSimChkOption;
-
+  }
   TFieldSelectMode = (fsmMain,fsmVice,fsmBoth,fsmNone);
   PFieldSelectOption = ^TFieldSelectOption;
   TFieldSelectOption = record
@@ -79,7 +79,6 @@ type
     select_mode:TFieldSelectMode;
   end;
   TFieldSelectOptions = TList;
-
 
   AttrsError=class(Exception)
   end;

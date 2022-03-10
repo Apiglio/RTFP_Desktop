@@ -7,7 +7,7 @@ unit rtfp_files;
 interface
 
 uses
-  Classes, SysUtils,{$ifdef Test} Dialogs,{$endif} Apiglio_Useful;
+  {$ifdef Test} Dialogs,{$endif}Classes, SysUtils{, Apiglio_Useful};
 
 type
   TRTFP_FileItem = class(TCollectionItem)

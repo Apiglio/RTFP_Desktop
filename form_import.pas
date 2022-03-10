@@ -98,7 +98,7 @@ var
   Form_ImportFiles: TForm_ImportFiles;
 
 implementation
-uses RTFP_main, RTFP_definition, rtfp_class;
+uses RTFP_main, RTFP_definition, rtfp_type, rtfp_class;
 
 {$R *.lfm}
 

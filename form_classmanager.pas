@@ -41,7 +41,7 @@ var
   ClassManagerForm: TClassManagerForm;
 
 implementation
-uses RTFP_main, RTFP_definition, RTFP_constants, DBGrids, db, ACL_ListView, rtfp_class;
+uses RTFP_main, RTFP_definition, RTFP_constants, rtfp_type, DBGrids, db, ACL_ListView, rtfp_class;
 
 {$R *.lfm}
 
