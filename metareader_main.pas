@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, Windows,
-  rtfp_pdfium, rtfp_pdfobj, RTFP_definition, LazUTF8;
+  rtfp_pdfium, rtfp_pdfobj, LazUTF8;
 
 type
 
@@ -24,6 +24,7 @@ var
   Form_MetaReader: TForm_MetaReader;
 
 implementation
+uses {RTFP_definition, }rtfp_constants;
 
 {$R *.lfm}
 

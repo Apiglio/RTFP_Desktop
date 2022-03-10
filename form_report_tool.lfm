@@ -20,8 +20,8 @@ object FormReportTool: TFormReportTool
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 20
-    Height = 267
-    Top = 45
+    Height = 262
+    Top = 50
     Width = 150
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 20
@@ -49,8 +49,8 @@ object FormReportTool: TFormReportTool
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Button_Report
     Left = 180
-    Height = 221
-    Top = 45
+    Height = 216
+    Top = 50
     Width = 400
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Top = 10
@@ -64,7 +64,7 @@ object FormReportTool: TFormReportTool
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
     Left = 20
-    Height = 15
+    Height = 20
     Top = 20
     Width = 105
     BorderSpacing.Left = 20
