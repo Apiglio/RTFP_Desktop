@@ -56,7 +56,7 @@ var
   FormRepeatedChecker: TFormRepeatedChecker;
 
 implementation
-uses RTFP_main, RTFP_definition, rtfp_field, rtfp_constants,
+uses RTFP_main, RTFP_definition, rtfp_field, rtfp_constants, rtfp_type,
      dbf_common, rtfp_dialog;
 
 {$R *.lfm}

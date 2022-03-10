@@ -205,7 +205,7 @@ object FormRepeatedChecker: TFormRepeatedChecker
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
-    ClientHeight = 85
+    ClientHeight = 80
     ClientWidth = 120
     ItemIndex = 0
     Items.Strings = (
@@ -251,7 +251,7 @@ object FormRepeatedChecker: TFormRepeatedChecker
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
-    ClientHeight = 85
+    ClientHeight = 80
     ClientWidth = 120
     ItemIndex = 0
     Items.Strings = (
@@ -281,7 +281,7 @@ object FormRepeatedChecker: TFormRepeatedChecker
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 2
-    ClientHeight = 120
+    ClientHeight = 115
     ClientWidth = 250
     Columns = 2
     Items.Strings = (

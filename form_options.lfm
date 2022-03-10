@@ -1,9 +1,243 @@
 object FormOptions: TFormOptions
-  Left = 944
-  Height = 300
-  Top = 373
+  Left = 933
+  Height = 557
+  Top = 235
   Width = 400
   Caption = '选项'
+  ClientHeight = 557
+  ClientWidth = 400
+  Constraints.MinHeight = 240
+  Constraints.MinWidth = 400
   DesignTimePPI = 120
+  OnActivate = FormActivate
+  OnCreate = FormCreate
+  Position = poScreenCenter
   LCLVersion = '1.8.4.0'
+  object PageControl1: TPageControl
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 0
+    Height = 557
+    Top = 0
+    Width = 400
+    ActivePage = TabSheet_Sync
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    TabIndex = 1
+    TabOrder = 0
+    object TabSheet_Summary: TTabSheet
+      Caption = '总控制面板'
+    end
+    object TabSheet_Sync: TTabSheet
+      Caption = '文件同步'
+      ClientHeight = 524
+      ClientWidth = 392
+      object ScrollBox_Sync: TScrollBox
+        AnchorSideLeft.Control = TabSheet_Sync
+        AnchorSideTop.Control = TabSheet_Sync
+        AnchorSideRight.Control = TabSheet_Sync
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = TabSheet_Sync
+        AnchorSideBottom.Side = asrBottom
+        Left = 0
+        Height = 524
+        Top = 0
+        Width = 392
+        HorzScrollBar.Page = 278
+        VertScrollBar.Page = 433
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        ClientHeight = 520
+        ClientWidth = 388
+        TabOrder = 0
+        object RadioGroup_BackupMode: TRadioGroup
+          AnchorSideLeft.Control = ScrollBox_Sync
+          AnchorSideTop.Control = GroupBox_SyncPath
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = ScrollBox_Sync
+          AnchorSideRight.Side = asrBottom
+          Left = 0
+          Height = 56
+          Top = 131
+          Width = 378
+          Anchors = [akTop, akLeft, akRight]
+          AutoFill = True
+          BorderSpacing.Top = 10
+          BorderSpacing.Right = 10
+          Caption = '同步方式：'
+          ChildSizing.LeftRightSpacing = 6
+          ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+          ChildSizing.EnlargeVertical = crsHomogenousChildResize
+          ChildSizing.ShrinkHorizontal = crsScaleChilds
+          ChildSizing.ShrinkVertical = crsScaleChilds
+          ChildSizing.Layout = cclLeftToRightThenTopToBottom
+          ChildSizing.ControlsPerLine = 3
+          ClientHeight = 31
+          ClientWidth = 374
+          Columns = 3
+          Items.Strings = (
+            '移动入库'
+            '复制备份'
+            '文件链接'
+          )
+          OnClick = RadioGroup_BackupModeClick
+          TabOrder = 0
+        end
+        object GroupBox_SyncInterval: TGroupBox
+          AnchorSideLeft.Control = ScrollBox_Sync
+          AnchorSideTop.Control = RadioGroup_BackupMode
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = ScrollBox_Sync
+          AnchorSideRight.Side = asrBottom
+          Left = 0
+          Height = 62
+          Top = 197
+          Width = 378
+          Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Top = 10
+          BorderSpacing.Right = 10
+          Caption = '同步间隔'
+          ClientHeight = 37
+          ClientWidth = 374
+          TabOrder = 1
+          object TrackBar_SyncInterval: TTrackBar
+            AnchorSideLeft.Control = GroupBox_SyncInterval
+            AnchorSideRight.Control = GroupBox_SyncInterval
+            AnchorSideRight.Side = asrBottom
+            AnchorSideBottom.Control = GroupBox_SyncInterval
+            AnchorSideBottom.Side = asrBottom
+            Left = 0
+            Height = 26
+            Top = 6
+            Width = 299
+            Max = 20
+            OnChange = TrackBar_SyncIntervalChange
+            Position = 5
+            Anchors = [akLeft, akRight, akBottom]
+            BorderSpacing.Right = 75
+            BorderSpacing.Bottom = 5
+            TabOrder = 0
+          end
+          object Label_SyncInterval: TLabel
+            AnchorSideTop.Control = TrackBar_SyncInterval
+            AnchorSideTop.Side = asrCenter
+            AnchorSideRight.Control = GroupBox_SyncInterval
+            AnchorSideRight.Side = asrBottom
+            Left = 331
+            Height = 20
+            Top = 9
+            Width = 33
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 10
+            Caption = '60秒'
+            ParentColor = False
+          end
+        end
+        object GroupBox_SyncFilter: TGroupBox
+          AnchorSideLeft.Control = ScrollBox_Sync
+          AnchorSideTop.Control = GroupBox_SyncInterval
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = ScrollBox_Sync
+          AnchorSideRight.Side = asrBottom
+          Left = 0
+          Height = 164
+          Top = 269
+          Width = 378
+          Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Top = 10
+          BorderSpacing.Right = 10
+          Caption = '同步规则'
+          ClientHeight = 139
+          ClientWidth = 374
+          TabOrder = 2
+          object Memo_RegExpr: TMemo
+            AnchorSideLeft.Control = GroupBox_SyncFilter
+            AnchorSideTop.Control = GroupBox_SyncFilter
+            AnchorSideRight.Control = GroupBox_SyncFilter
+            AnchorSideRight.Side = asrBottom
+            AnchorSideBottom.Control = GroupBox_SyncFilter
+            AnchorSideBottom.Side = asrBottom
+            Left = 0
+            Height = 139
+            Top = 0
+            Width = 374
+            Anchors = [akTop, akLeft, akRight, akBottom]
+            OnChange = Memo_RegExprChange
+            ScrollBars = ssAutoVertical
+            TabOrder = 0
+          end
+        end
+        object GroupBox_SyncPath: TGroupBox
+          AnchorSideLeft.Control = ScrollBox_Sync
+          AnchorSideTop.Control = CheckBox_SyncEnabled
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = ScrollBox_Sync
+          AnchorSideRight.Side = asrBottom
+          Left = 0
+          Height = 72
+          Top = 49
+          Width = 378
+          Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Top = 10
+          BorderSpacing.Right = 10
+          Caption = '同步路径：'
+          ClientHeight = 47
+          ClientWidth = 374
+          TabOrder = 3
+          object Edit_SyncPath: TEdit
+            AnchorSideLeft.Control = GroupBox_SyncPath
+            AnchorSideTop.Control = GroupBox_SyncPath
+            AnchorSideRight.Control = Button_SyncPath
+            Left = 10
+            Height = 28
+            Top = 5
+            Width = 269
+            Anchors = [akTop, akLeft, akRight]
+            BorderSpacing.Left = 10
+            BorderSpacing.Top = 5
+            BorderSpacing.Right = 10
+            OnChange = Edit_SyncPathChange
+            TabOrder = 0
+          end
+          object Button_SyncPath: TButton
+            AnchorSideLeft.Control = Edit_SyncPath
+            AnchorSideLeft.Side = asrBottom
+            AnchorSideTop.Control = Edit_SyncPath
+            AnchorSideRight.Control = GroupBox_SyncPath
+            AnchorSideRight.Side = asrBottom
+            AnchorSideBottom.Control = Edit_SyncPath
+            AnchorSideBottom.Side = asrBottom
+            Left = 289
+            Height = 28
+            Top = 5
+            Width = 75
+            Anchors = [akTop, akRight, akBottom]
+            BorderSpacing.Right = 10
+            Caption = '浏览'
+            OnClick = Button_SyncPathClick
+            TabOrder = 1
+          end
+        end
+        object CheckBox_SyncEnabled: TCheckBox
+          AnchorSideLeft.Control = ScrollBox_Sync
+          AnchorSideTop.Control = ScrollBox_Sync
+          Left = 10
+          Height = 24
+          Top = 15
+          Width = 114
+          BorderSpacing.Left = 10
+          BorderSpacing.Top = 15
+          Caption = '启用文件同步'
+          OnChange = CheckBox_SyncEnabledChange
+          TabOrder = 4
+        end
+      end
+    end
+  end
+  object SelectDirectoryDialog: TSelectDirectoryDialog
+    left = 24
+    top = 496
+  end
 end

@@ -1000,7 +1000,7 @@ object Form_ImportFiles: TForm_ImportFiles
           ChildSizing.ShrinkVertical = crsScaleChilds
           ChildSizing.Layout = cclLeftToRightThenTopToBottom
           ChildSizing.ControlsPerLine = 2
-          ClientHeight = 45
+          ClientHeight = 40
           ClientWidth = 199
           Columns = 2
           ItemIndex = 0

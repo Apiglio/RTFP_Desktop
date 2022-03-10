@@ -33,7 +33,7 @@ var
   FormReportTool: TFormReportTool;
 
 implementation
-uses rtfp_main, rtfp_dialog, rtfp_field, rtfp_class, rtfp_constants,
+uses rtfp_main, rtfp_dialog, rtfp_field, rtfp_class, rtfp_constants, rtfp_type,
      RTFP_definition, rtfp_misc, db, dbf;
 
 {$R *.lfm}
