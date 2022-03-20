@@ -16,7 +16,7 @@ type
                      aeCreateIfNoField,aeForceEditIfTypeDismatch);
   TAttrExtend = set of TAttrExtendUnit;
   TablesUse = set of byte;
-  TAddPaperMethod = (apmFullBackup,apmCutBackup,apmAddress,apmWebsite,apmReference);
+  TAddPaperMethod = (apmFullBackup=1,apmCutBackup=2,apmAddress=3,apmWebsite=4,apmReference=5);
   //几种文档入库方式: 复制备份/本地链接/网址链接/数据入库
 
   TSimChkOption = (scoFileName,scoTitle,scoFileHash,scoWeblnk,scoDOI,

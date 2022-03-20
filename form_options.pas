@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  StdCtrls, ExtCtrls;
+  StdCtrls, ExtCtrls, Registry;
 
 type
 
@@ -39,7 +39,8 @@ type
   private
 
   public
-
+    procedure LoadOptionFromReg;
+    procedure SaveOptionToReg;
   end;
 
 var
@@ -84,7 +85,7 @@ begin
         apmAddress:RadioGroup_BackupMode.ItemIndex:=2;
       end;
       Memo_RegExpr.Text:=Rule;
-      tmpPos:=ln(interval/100)/ln(1.42547322);
+      tmpPos:=ln(interval/100)/ln(1.42547322)+1;
       if tmpPos<0 then tmpPos:=0;
       if tmpPos>20 then tmpPos:=20;
       TrackBar_SyncInterval.Position:=trunc(tmpPos);
@@ -119,6 +120,50 @@ begin
     0:FormDesktop.SyncTimer.BackupMode:=apmCutBackup;
     1:FormDesktop.SyncTimer.BackupMode:=apmFullBackup;
     2:FormDesktop.SyncTimer.BackupMode:=apmAddress;
+  end;
+end;
+
+procedure TFormOptions.LoadOptionFromReg;
+var Reg:TRegistry;
+begin
+  Reg:=TRegistry.Create;
+  try
+    Reg.RootKey:=HKEY_CURRENT_USER;
+    if Reg.OpenKey('Software\ApiglioToolBox\RTFP_Desktop\SyncTimer',false) then
+      begin
+        FormDesktop.SyncTimer.SyncPath:=Reg.ReadString('SyncPath');
+        FormDesktop.SyncTimer.BackupMode:=TAddPaperMethod(Reg.ReadInteger('BackupMode'));
+        FormDesktop.SyncTimer.Interval:=Reg.ReadInteger('Interval');
+        FormDesktop.SyncTimer.Rule:=Reg.ReadString('Rule');
+        FormDesktop.SyncTimer.Enabled:=Reg.ReadBool('Enabled');
+      end
+    else
+      begin
+        FormDesktop.SyncTimer.SyncPath:='F:\chrome_downloaded';
+        FormDesktop.SyncTimer.BackupMode:=apmFullBackup;
+        FormDesktop.SyncTimer.Interval:=2000;
+        FormDesktop.SyncTimer.Rule:='\.pdf|\.caj|\.docx*|\.xlsx*|\.sep|\.od[ts]';
+        FormDesktop.SyncTimer.Enabled:=false;
+      end;
+  finally
+    Reg.Free;
+  end;
+end;
+
+procedure TFormOptions.SaveOptionToReg;
+var Reg:TRegistry;
+begin
+  Reg:=TRegistry.Create;
+  try
+    Reg.RootKey:=HKEY_CURRENT_USER;
+    Reg.OpenKey('Software\ApiglioToolBox\RTFP_Desktop\SyncTimer',true);
+    Reg.WriteString('SyncPath',FormDesktop.SyncTimer.SyncPath);
+    Reg.WriteInteger('BackupMode',ord(FormDesktop.SyncTimer.BackupMode));
+    Reg.WriteInteger('Interval',FormDesktop.SyncTimer.Interval);
+    Reg.WriteString('Rule',FormDesktop.SyncTimer.Rule);
+    Reg.WriteBool('Enabled',FormDesktop.SyncTimer.Enabled);
+  finally
+    Reg.Free;
   end;
 end;
 
