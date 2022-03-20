@@ -19,7 +19,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.2-alpha.1';
+  C_VERSION_NUMBER  = '0.2.2-alpha.2';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -40,6 +40,8 @@ type
   TFormDesktop = class(TForm)
     AListView_Klass: TACL_ListView;
     AListView_Attrs: TACL_ListView;
+    Button_FormatEditLoad: TButton;
+    Button_FormatEditSave: TButton;
     Button_help: TButton;
     Button_FormatEdit_Ren: TButton;
     Button_FormatEdit_Del: TButton;
@@ -212,8 +214,10 @@ type
     procedure Button_FieldTypeClick(Sender: TObject);
     procedure Button_FmtCmt_PostClick(Sender: TObject);
     procedure Button_FmtCmt_RecoverClick(Sender: TObject);
+    procedure Button_FormatEditLoadClick(Sender: TObject);
     procedure Button_FormatEditPostClick(Sender: TObject);
     procedure Button_FormatEditRecoverClick(Sender: TObject);
+    procedure Button_FormatEditSaveClick(Sender: TObject);
     procedure Button_FormatEdit_AddClick(Sender: TObject);
     procedure Button_FormatEdit_DelClick(Sender: TObject);
     procedure Button_FormatEdit_RenClick(Sender: TObject);
@@ -1604,6 +1608,7 @@ begin
   end;
 
   SyncTimer:=TRTFP_SyncTimer.Create(Self);
+  FormOptions.LoadOptionFromReg;
 
   LoadRecentProject;
 
@@ -1951,6 +1956,23 @@ begin
   end;
 end;
 
+procedure TFormDesktop.Button_FormatEditLoadClick(Sender: TObject);
+var filename:string;
+    pi,pj:integer;
+begin
+  if ProjectInvalid then exit;
+  SynEdit_FEMgr.Clear;
+  with ListBox_FormatEditMgr do
+    filename:=Items[ItemIndex];
+  SynEdit_FEMgr.Lines.LoadFromFile(CurrentRTFP.CurrentPathFull+'format\'+filename);
+  with StringGrid_FormatEditLayout do
+    begin
+      for pi:=1 to ColCount-1 do
+        for pj:=1 to RowCount-1 do
+          Cells[pi,pj]:='';
+    end;
+end;
+
 procedure TFormDesktop.Button_FormatEditPostClick(Sender: TObject);
 begin
   if ProjectInvalid then exit;
@@ -1961,6 +1983,19 @@ procedure TFormDesktop.Button_FormatEditRecoverClick(Sender: TObject);
 begin
   if ProjectInvalid then exit;
   CurrentRTFP.FormatEditValidate(Selected_PID);
+end;
+
+procedure TFormDesktop.Button_FormatEditSaveClick(Sender: TObject);
+var filename:string;
+begin
+  if ProjectInvalid then exit;
+  with ListBox_FormatEditMgr do
+    filename:=Items[ItemIndex];
+  case ShowMsgYesNoAll('替换格式','是否替换'+filename+'中的样式内容？') of
+    'Yes':;
+    else ;
+  end;
+  SynEdit_FEMgr.Lines.SaveToFile(CurrentRTFP.CurrentPathFull+'format\'+filename);
 end;
 
 procedure TFormDesktop.Button_FormatEdit_AddClick(Sender: TObject);
@@ -2167,6 +2202,7 @@ end;
 procedure TFormDesktop.FormClose(Sender: TObject; var CloseAction: TCloseAction
   );
 begin
+  FormOptions.SaveOptionToReg;
   FWaitForm.Free;
 end;
 
