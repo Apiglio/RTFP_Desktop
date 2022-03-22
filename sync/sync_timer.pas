@@ -5,7 +5,7 @@ unit sync_timer;
 interface
 
 uses
-  Classes, SysUtils, ExtCtrls, RegExpr, rtfp_type;
+  Classes, SysUtils, ExtCtrls, RegExpr, rtfp_type, rtfp_class;
 
 type
   TRTFP_SyncTimer = class(TComponent)
@@ -106,26 +106,53 @@ end;
 
 procedure TRTFP_SyncTimer.SyncOnTimer(Sender:TObject);
 var filename,fullname,PID:string;
+    CL:TStringList;
+    KL:TKlass;
+    stmp:string;
+    has_new_pid:boolean;
 begin
   if ProjectInvalid then exit;
+  has_new_pid:=false;
   FTimer.Enabled:=false;
-  UpdateFileList;
-  //ShowMsgList(FSyncPath,FRule,FFileListNew);
-  for filename in FFileListNew do
-    begin
-      fullname:=FSyncPath+'\'+filename;
-      case ShowMsgYesNoAll('新建文件节点','是否为以下文件新建文献节点？'+#13#10+fullname+'（'+apm_str(FBackupMode)+'）') of
-        'No':continue;
-        else begin
-          PID:=CurrentRTFP.AddPaper(fullname,FBackupMode);
-          with FormDesktop do begin
-            Select_PID(PID);
-            NodeViewValidate;
+  CL:=TStringList.Create;
+  try
+    for KL in CurrentRTFP.KlassList do
+      if KL.FilterEnabled then
+        begin
+          CL.Add(KL.Name);
+          CL.Objects[CL.Count-1]:=KL;
+        end;
+    UpdateFileList;
+    CurrentRTFP.BeginUpdate;
+    for filename in FFileListNew do
+      begin
+        fullname:=FSyncPath+'\'+filename;
+        case ShowMsgYesNoAll('新建文件节点','是否为以下文件新建文献节点？'+#13#10+fullname+'（'+apm_str(FBackupMode)+'）') of
+          'No':continue;
+          else begin
+            PID:=CurrentRTFP.AddPaper(fullname,FBackupMode);
+            has_new_pid:=true;
+            if CL.Count>0 then
+              begin
+                if CL.Count=1 then CurrentRTFP.KlassInclude(CL[0],PID)
+                else begin
+                  stmp:=ShowMsgCombo('入库分类','选择文件入库分类',CL);
+                  if stmp<>'' then CurrentRTFP.KlassInclude(stmp,PID)
+                end;
+              end;
+            with FormDesktop do begin
+              Select_PID(PID);
+              NodeViewValidate;
+            end;
+            Form_CiteTrans.ShowModal;
           end;
-          Form_CiteTrans.ShowModal;
         end;
       end;
-    end;
+    CurrentRTFP.EndUpdate;
+    if has_new_pid then CurrentRTFP.RecordChange;
+  finally
+    CL.Free;
+  end;
   FTimer.Enabled:=true;
 end;
 procedure TRTFP_SyncTimer.SetInterval(value:integer);

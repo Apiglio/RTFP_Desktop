@@ -990,8 +990,6 @@ begin
 
 end;
 
-
-
 {$ifdef test}
 
 procedure aufunc_test(Sender:TObject);
@@ -1005,11 +1003,9 @@ begin
   if not AAuf.TryArgToString(1,check) then exit;
   if not AAuf.TryArgToString(2,target) then exit;
 
-  //if TRTFP.VersionCheck(check,target) then
-  //AufScpt.writeln('T') else AufScpt.writeln('F');
-  //
+  if TRTFP.VersionCheck(check,target) then
+    AufScpt.writeln('T') else AufScpt.writeln('F');
 
-  AufScpt.writeln(LongestCommonSubString(check,target));
 
 end;
 
@@ -1058,6 +1054,7 @@ begin
 
     Script.add_func('pid.first',@aufunc_PID_First,'@str','寻找第一个PID，并赋值给@str');
     Script.add_func('pid.next_jump',@aufunc_PID_NextJump,'@str,:addr','寻找第下一个PID，下一个存在则赋值给@str并跳转到:addr');
+
 
 
     Script.add_func('option.attrs.set',@aufunc_set_field_option,'attrs,field,key,value','字段显示设置');
@@ -2416,6 +2413,7 @@ begin
   try
     try
       str.LoadFromFile(GetCurrentPathFull+'\option.lay.auf');
+      //str.Add('option.attrs.rebuild_mg');
       AAuf.Script.command(str);
     except
       //
@@ -2595,14 +2593,15 @@ begin
 
   EndUpdate;
 
-  RebuildMainGrid;
-  ClassChange;
-  FieldAndRecordChange;
-
   if FOnNewDone <> nil then FOnNewDone(Self);
   Self.FIsOpen:=true;
   Self.FIsChanged:=false;
   if FOnOpenDone <> nil then FOnOpenDone(Self);
+
+  //以下更新显示需要PaperDS和ACLClassList的链接，所以放在onOpenDone之后
+  RebuildMainGrid;
+  ClassChange;
+  FieldAndRecordChange;
 end;
 
 Procedure TRTFP.Open(filename:ansistring);
@@ -2625,18 +2624,18 @@ begin
   LoadKlass;
 
   Update(Version);
-
   LoadProjectOption(FAuf);
 
   EndUpdate;
 
-  RebuildMainGrid;
-  ClassChange;
-  FieldAndRecordChange;
-
   Self.FIsOpen:=true;
   Self.FIsChanged:=false;
   if FOnOpenDone <> nil then FOnOpenDone(Self);
+
+  //以下更新显示需要PaperDS和ACLClassList的链接，所以放在onOpenDone之后
+  RebuildMainGrid;
+  ClassChange;
+  FieldAndRecordChange;
 end;
 
 procedure TRTFP.Save;
@@ -4589,7 +4588,6 @@ begin
       inc(pi);
       attr_range[pi].max:=-1;
       attr_range[pi].min:=fields_cnt;
-      //if not tmpAG.GroupShown then continue;//这里的GroupShown用来表示ACL_ListView的折叠了，取消这个判断
       for tmpAF in tmpAG.FieldList do
         begin
           if not tmpAF.Shown then continue;
@@ -4599,10 +4597,8 @@ begin
           dat_type:=tmpFieldDef.DataType;
           case dat_type of
             ftMemo,ftWideMemo,ftFmtMemo:
-              //FPaperDS.FieldDefs.Add(Usf.zeroplus(pi,2)+tmpFieldDef.Name,ftString,255);
               FPaperDS.FieldDefs.Add(tmpFieldDef.Name+'('+tmpAG.Name+')',ftString,255);
             else
-              //FPaperDS.FieldDefs.Add(Usf.zeroplus(pi,2)+tmpFieldDef.Name,dat_type,tmpFieldDef.Size);
               FPaperDS.FieldDefs.Add(tmpFieldDef.Name+'('+tmpAG.Name+')',dat_type,tmpFieldDef.Size);
           end;
           fields_ref[fields_cnt].AG:=tmpAG;

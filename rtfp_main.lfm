@@ -48,9 +48,9 @@ object FormDesktop: TFormDesktop
     Height = 366
     Top = 0
     Width = 766
-    ActivePage = TabSheet_Project_FormatEditMgr
+    ActivePage = TabSheet_Project_DataGrid
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 3
+    TabIndex = 1
     TabOrder = 1
     object TabSheet_Project_Properties: TTabSheet
       Caption = '工程信息'
