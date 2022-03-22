@@ -1,0 +1,117 @@
+object Form_FileSource: TForm_FileSource
+  Left = 1285
+  Height = 200
+  Top = 738
+  Width = 567
+  AllowDropFiles = True
+  Caption = '源替换'
+  ClientHeight = 200
+  ClientWidth = 567
+  Constraints.MinHeight = 200
+  Constraints.MinWidth = 500
+  DesignTimePPI = 120
+  OnDropFiles = FormDropFiles
+  Position = poScreenCenter
+  LCLVersion = '1.8.4.0'
+  object Memo_Path: TMemo
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = RadioGroup_mode
+    Left = 0
+    Height = 106
+    Top = 0
+    Width = 567
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Bottom = 10
+    TabOrder = 0
+  end
+  object Button_Commit: TButton
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 467
+    Height = 38
+    Top = 152
+    Width = 90
+    Anchors = [akRight, akBottom]
+    BorderSpacing.Right = 10
+    BorderSpacing.Bottom = 10
+    Caption = '应用修改'
+    OnClick = Button_CommitClick
+    TabOrder = 1
+  end
+  object Button_OpenDialog: TButton
+    AnchorSideRight.Control = Button_Commit
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 367
+    Height = 38
+    Hint = '可直接将文件拖拽至窗口内'
+    Top = 152
+    Width = 90
+    Anchors = [akRight, akBottom]
+    BorderSpacing.Right = 10
+    BorderSpacing.Bottom = 10
+    Caption = '选择替换'
+    OnClick = Button_OpenDialogClick
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 2
+  end
+  object RadioGroup_mode: TRadioGroup
+    AnchorSideLeft.Control = Owner
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 10
+    Height = 74
+    Top = 116
+    Width = 214
+    Anchors = [akLeft, akBottom]
+    AutoFill = True
+    BorderSpacing.Left = 10
+    BorderSpacing.Bottom = 10
+    Caption = '储存形式'
+    ChildSizing.LeftRightSpacing = 6
+    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+    ChildSizing.EnlargeVertical = crsHomogenousChildResize
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 2
+    ClientHeight = 49
+    ClientWidth = 210
+    Columns = 2
+    Items.Strings = (
+      '文件备份'
+      '文件路径'
+      '网络路径'
+      '无'
+    )
+    TabOrder = 3
+  end
+  object Button_RenameBackup: TButton
+    AnchorSideRight.Control = Button_OpenDialog
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 267
+    Height = 38
+    Hint = '可直接将文件拖拽至窗口内'
+    Top = 152
+    Width = 90
+    Anchors = [akRight, akBottom]
+    BorderSpacing.Right = 10
+    BorderSpacing.Bottom = 10
+    Caption = '重命名备份'
+    OnClick = Button_RenameBackupClick
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 4
+  end
+  object OpenDialog: TOpenDialog
+    left = 32
+    top = 16
+  end
+end

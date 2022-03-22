@@ -1,0 +1,127 @@
+object FormReportTool: TFormReportTool
+  Left = 646
+  Height = 332
+  Top = 392
+  Width = 600
+  Caption = '导出报表'
+  ClientHeight = 332
+  ClientWidth = 600
+  Constraints.MinHeight = 300
+  Constraints.MinWidth = 600
+  DesignTimePPI = 120
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '1.8.4.0'
+  object ListBox_List: TListBox
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Label_Choosing
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Memo_tip
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 20
+    Height = 262
+    Top = 50
+    Width = 150
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Left = 20
+    BorderSpacing.Top = 10
+    BorderSpacing.Right = 10
+    BorderSpacing.Bottom = 20
+    Items.Strings = (
+      '工程基础信息'
+      '导出字段数据'
+      '导出当前主表'
+      '字段数据统计'
+      '分类统计'
+      '属性统计'
+    )
+    ItemHeight = 20
+    OnDblClick = ListBox_ListDblClick
+    OnSelectionChange = ListBox_ListSelectionChange
+    TabOrder = 0
+  end
+  object Memo_tip: TMemo
+    AnchorSideLeft.Control = Button_ExportStyle
+    AnchorSideTop.Control = Label_Choosing
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Button_Report
+    Left = 180
+    Height = 216
+    Top = 50
+    Width = 400
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Top = 10
+    BorderSpacing.Right = 20
+    BorderSpacing.Bottom = 10
+    Enabled = False
+    ParentColor = True
+    TabOrder = 1
+  end
+  object Label_Choosing: TLabel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    Left = 20
+    Height = 20
+    Top = 20
+    Width = 105
+    BorderSpacing.Left = 20
+    BorderSpacing.Top = 20
+    Caption = '选择导出类型：'
+    ParentColor = False
+  end
+  object Button_Report: TButton
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 460
+    Height = 36
+    Top = 276
+    Width = 120
+    Anchors = [akRight, akBottom]
+    BorderSpacing.Right = 20
+    BorderSpacing.Bottom = 20
+    Caption = '导出'
+    OnClick = Button_ReportClick
+    TabOrder = 2
+  end
+  object Button_ImportStyle: TButton
+    AnchorSideRight.Control = Button_Report
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 320
+    Height = 36
+    Top = 276
+    Width = 120
+    Anchors = [akRight, akBottom]
+    BorderSpacing.Right = 20
+    BorderSpacing.Bottom = 20
+    Caption = '导入报表类型'
+    Enabled = False
+    TabOrder = 3
+  end
+  object Button_ExportStyle: TButton
+    AnchorSideRight.Control = Button_ImportStyle
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 180
+    Height = 36
+    Top = 276
+    Width = 120
+    Anchors = [akRight, akBottom]
+    BorderSpacing.Right = 20
+    BorderSpacing.Bottom = 20
+    Caption = '导出报表类型'
+    Enabled = False
+    TabOrder = 4
+  end
+  object SaveDialog_report: TSaveDialog
+    Filter = '文本文档(*.txt)|*.txt|全部文件(*.*)|*.*'
+    Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
+    left = 296
+    top = 15
+  end
+end

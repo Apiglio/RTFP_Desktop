@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="10"/>
+    <PathDelim Value="\"/>
+    <General>
+      <SessionStorage Value="InProjectDir"/>
+      <MainUnit Value="0"/>
+      <Title Value="RTFP_Desktop"/>
+      <ResourceType Value="res"/>
+      <UseXPManifest Value="True"/>
+      <Icon Value="0"/>
+    </General>
+    <BuildModes Count="1">
+      <Item1 Name="Default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+      </local>
+    </RunParams>
+    <RequiredPackages Count="11">
+      <Item1>
+        <PackageName Value="TAChartLazarusPkg"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="lnetvisual"/>
+      </Item2>
+      <Item3>
+        <PackageName Value="ACL_ListViewEx"/>
+      </Item3>
+      <Item4>
+        <PackageName Value="treelistviewpackage"/>
+      </Item4>
+      <Item5>
+        <PackageName Value="LazControls"/>
+      </Item5>
+      <Item6>
+        <PackageName Value="MemDSLaz"/>
+      </Item6>
+      <Item7>
+        <PackageName Value="pack_powerpdf"/>
+      </Item7>
+      <Item8>
+        <PackageName Value="SynEdit"/>
+      </Item8>
+      <Item9>
+        <PackageName Value="DBFLaz"/>
+      </Item9>
+      <Item10>
+        <PackageName Value="FCL"/>
+      </Item10>
+      <Item11>
+        <PackageName Value="LCL"/>
+      </Item11>
+    </RequiredPackages>
+    <Units Count="30">
+      <Unit0>
+        <Filename Value="RTFP_Desktop.lpr"/>
+        <IsPartOfProject Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="rtfp_main.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="FormDesktop"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="RTFP_main"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="rtfp_definition.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="RTFP_definition"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="form_new_project.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form_NewProject"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="form_cite_trans.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form_CiteTrans"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="rtfp_pdfium.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="rtfp_pdfobj.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="form_import.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form_ImportFiles"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="rtfp_field.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="rtfp_class.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="rtfp_files.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="rtfp_constants.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="form_classmanager.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="ClassManagerForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="rtfp_format_component.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="form_appearance.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="AppearanceForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit14>
+      <Unit15>
+        <Filename Value="rtfp_tags.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit15>
+      <Unit16>
+        <Filename Value="rtfp_misc.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit16>
+      <Unit17>
+        <Filename Value="rtfp_dialog.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="form_options.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="FormOptions"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="form_report_tool.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="FormReportTool"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit19>
+      <Unit20>
+        <Filename Value="form_repeated_checker.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="FormRepeatedChecker"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit20>
+      <Unit21>
+        <Filename Value="form_project_profile.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="FormProjectProfile"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit21>
+      <Unit22>
+        <Filename Value="form_field_display_option.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="FormFieldDisplayOption"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit22>
+      <Unit23>
+        <Filename Value="form_formatedit_option.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="FormFormatEditOption"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit23>
+      <Unit24>
+        <Filename Value="forms\source_dialog.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form_FileSource"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit24>
+      <Unit25>
+        <Filename Value="..\AufScript\aufscript_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Frame_AufScript"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit25>
+      <Unit26>
+        <Filename Value="..\AufScript\apiglio_useful.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Apiglio_Useful"/>
+      </Unit26>
+      <Unit27>
+        <Filename Value="..\AufScript\auf_ram_var.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit27>
+      <Unit28>
+        <Filename Value="sync\sync_timer.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit28>
+      <Unit29>
+        <Filename Value="rtfp_type.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit29>
+    </Units>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="11"/>
+    <PathDelim Value="\"/>
+    <Target>
+      <Filename Value="RTFP_Desktop"/>
+    </Target>
+    <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="forms;..\AufScript;sync"/>
+      <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+    </SearchPaths>
+    <Linking>
+      <Options>
+        <Win32>
+          <GraphicApplication Value="True"/>
+        </Win32>
+      </Options>
+    </Linking>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="12">
+      <Item1>
+        <Name Value="EAbort"/>
+      </Item1>
+      <Item2>
+        <Name Value="ECodetoolError"/>
+      </Item2>
+      <Item3>
+        <Name Value="EFOpenError"/>
+      </Item3>
+      <Item4>
+        <Name Value="AttrsNoFieldErr"/>
+      </Item4>
+      <Item5>
+        <Name Value="AttrsNoPIDErr"/>
+      </Item5>
+      <Item6>
+        <Name Value="Unknown"/>
+      </Item6>
+      <Item7>
+        <Name Value="EDatabaseError"/>
+        <Enabled Value="False"/>
+      </Item7>
+      <Item8>
+        <Name Value="EConvertError"/>
+      </Item8>
+      <Item9>
+        <Name Value="Exception"/>
+      </Item9>
+      <Item10>
+        <Name Value="RunError(219)"/>
+      </Item10>
+      <Item11>
+        <Name Value="EInvalidCast"/>
+      </Item11>
+      <Item12>
+        <Name Value="ERegExpr"/>
+      </Item12>
+    </Exceptions>
+  </Debugging>
+</CONFIG>
