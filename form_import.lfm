@@ -911,8 +911,8 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideBottom.Control = RadioGroup_AddPaperMethod
           AnchorSideBottom.Side = asrBottom
           Left = 581
-          Height = 55
-          Top = 394
+          Height = 63
+          Top = 386
           Width = 94
           Anchors = [akTop, akRight, akBottom]
           BorderSpacing.Top = 10
@@ -928,7 +928,7 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideRight.Side = asrBottom
           AnchorSideBottom.Control = Button_ImportFileNamesCheck
           Left = 0
-          Height = 354
+          Height = 346
           Top = 30
           Width = 685
           Anchors = [akTop, akLeft, akRight, akBottom]
@@ -954,10 +954,10 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideRight.Control = Button_ImportFileNamesCheck
           AnchorSideBottom.Control = RadioGroup_AddPaperMethod
           AnchorSideBottom.Side = asrBottom
-          Left = 218
+          Left = 234
           Height = 28
           Top = 421
-          Width = 348
+          Width = 332
           Anchors = [akLeft, akRight, akBottom]
           BorderSpacing.Left = 10
           BorderSpacing.Right = 15
@@ -969,7 +969,7 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = RadioGroup_AddPaperMethod
           AnchorSideBottom.Control = ComboBox_DefaultCl
-          Left = 218
+          Left = 234
           Height = 24
           Top = 392
           Width = 144
@@ -986,9 +986,9 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideBottom.Control = TabSheet_AddPaper
           AnchorSideBottom.Side = asrBottom
           Left = 5
-          Height = 65
-          Top = 384
-          Width = 203
+          Height = 73
+          Top = 376
+          Width = 219
           Anchors = [akLeft, akBottom]
           AutoFill = True
           BorderSpacing.Left = 5
@@ -1000,8 +1000,8 @@ object Form_ImportFiles: TForm_ImportFiles
           ChildSizing.ShrinkVertical = crsScaleChilds
           ChildSizing.Layout = cclLeftToRightThenTopToBottom
           ChildSizing.ControlsPerLine = 2
-          ClientHeight = 40
-          ClientWidth = 199
+          ClientHeight = 48
+          ClientWidth = 215
           Columns = 2
           ItemIndex = 0
           Items.Strings = (

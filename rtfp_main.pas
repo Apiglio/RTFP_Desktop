@@ -19,7 +19,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.2-alpha.2';
+  C_VERSION_NUMBER  = '0.2.2-alpha.3';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -648,6 +648,8 @@ begin
   Self.MenuItem_project_unzip.Enabled:=false;
   Self.MenuItem_project_check.Enabled:=true;
   Self.MenuItem_Tool_ProjectDir.Enabled:=true;
+
+  Application.ProcessMessages;
 
 end;
 
