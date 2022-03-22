@@ -48,7 +48,7 @@ type
 
 
 implementation
-uses rtfp_dialog, rtfp_main, form_cite_trans;
+uses Forms, rtfp_dialog, rtfp_main, form_cite_trans;
 
 function apm_str(apm:TAddPaperMethod):string;
 begin
@@ -106,53 +106,35 @@ end;
 
 procedure TRTFP_SyncTimer.SyncOnTimer(Sender:TObject);
 var filename,fullname,PID:string;
-    CL:TStringList;
-    KL:TKlass;
-    stmp:string;
-    has_new_pid:boolean;
 begin
   if ProjectInvalid then exit;
-  has_new_pid:=false;
   FTimer.Enabled:=false;
-  CL:=TStringList.Create;
-  try
-    for KL in CurrentRTFP.KlassList do
-      if KL.FilterEnabled then
-        begin
-          CL.Add(KL.Name);
-          CL.Objects[CL.Count-1]:=KL;
-        end;
-    UpdateFileList;
-    CurrentRTFP.BeginUpdate;
-    for filename in FFileListNew do
-      begin
-        fullname:=FSyncPath+'\'+filename;
-        case ShowMsgYesNoAll('新建文件节点','是否为以下文件新建文献节点？'+#13#10+fullname+'（'+apm_str(FBackupMode)+'）') of
-          'No':continue;
-          else begin
-            PID:=CurrentRTFP.AddPaper(fullname,FBackupMode);
-            has_new_pid:=true;
-            if CL.Count>0 then
-              begin
-                if CL.Count=1 then CurrentRTFP.KlassInclude(CL[0],PID)
-                else begin
-                  stmp:=ShowMsgCombo('入库分类','选择文件入库分类',CL);
-                  if stmp<>'' then CurrentRTFP.KlassInclude(stmp,PID)
-                end;
-              end;
-            with FormDesktop do begin
-              Select_PID(PID);
-              NodeViewValidate;
+  UpdateFileList;
+  for filename in FFileListNew do
+    begin
+      fullname:=FSyncPath+'\'+filename;
+      case ShowMsgYesNoAll('新建文件节点','是否为以下文件新建文献节点？'+#13#10+fullname+'（'+apm_str(FBackupMode)+'）') of
+        'No':continue;
+        else begin
+          with CurrentRTFP do begin
+            BeginUpdate;//这里不禁用会触发修改分组时的UpdateCurrentRec，应该重新考虑各个Change事件的时机
+            PID:=AddPaper(fullname,FBackupMode);
+            if PID='000000' then begin
+              ShowMsgOK('SyncTimer','文件导入失败。');
+              continue;
             end;
-            Form_CiteTrans.ShowModal;
+            KlassIncludeFromCombo(PID,true);
+            EndUpdate;//这里不禁用会触发修改分组时的UpdateCurrentRec，应该重新考虑各个Change事件的时机
+            RecordChange;
           end;
+          with FormDesktop do begin
+            Select_PID(PID);
+            NodeViewValidate;
+          end;
+          Form_CiteTrans.ShowModal;
         end;
       end;
-    CurrentRTFP.EndUpdate;
-    if has_new_pid then CurrentRTFP.RecordChange;
-  finally
-    CL.Free;
-  end;
+    end;
   FTimer.Enabled:=true;
 end;
 procedure TRTFP_SyncTimer.SetInterval(value:integer);
