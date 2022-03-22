@@ -227,7 +227,7 @@ type
   public
     function GetFieldType(attrNa,fieldNa:string):TFieldType;
 
-    function ReadBasicField(AAttrsName:string;PID:RTFP_ID):string;
+    function ReadBasicField(AAttrsName:string;PID:RTFP_ID):string;//和GetPaperAttrs重复
     procedure EditBasicField(AAttrsName:string;PID:RTFP_ID;value:string);
     function ReadBasicBool(AAttrsName:string;PID:RTFP_ID):boolean;
     procedure EditBasicBool(AAttrsName:string;PID:RTFP_ID;value:boolean);
@@ -292,7 +292,7 @@ type
     procedure GetPIDList(AList:TStrings);
     procedure GetPIDList_DS(AList:TStrings);
     procedure GetSimilarPIDList(AList:TStrings;ASimChkOption:TSimChkOptions;PB:TProgressBar=nil);
-    function GetPaperAttrs(AFieldName:string;PID:RTFP_ID):string;
+    function GetPaperAttrs(AFieldName:string;PID:RTFP_ID):string;deprecated;
     procedure GetPaperKlass(PID:RTFP_ID;str:TStrings);
 
     procedure OpenPaper(PID:RTFP_ID;exename:string='');
@@ -312,6 +312,7 @@ type
     //Klass
     function KlassInclude(klassname:string;PID:RTFP_ID):boolean;
     function KlassExclude(klassname:string;PID:RTFP_ID):boolean;
+    function KlassIncludeFromCombo(PID:RTFP_ID;active:boolean):boolean;//若显示不止一个分类，弹出选项由用户选择分类
 
     //References
   private
@@ -990,6 +991,28 @@ begin
 
 end;
 
+procedure aufunc_update_case(Sender:TObject);
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    stmp,ppid:string;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(2) then exit;
+  if not AAuf.TryArgToString(1,stmp) then exit;
+  if not AAuf.TryArgToString(2,ppid) then ppid:='000000';
+  case lowercase(stmp) of
+    'rebuild_mg':CurrentRTFP.RebuildMainGrid;
+    'update_cur':CurrentRTFP.UpdateCurrentRec(ppid);
+    'change':CurrentRTFP.Change;
+    'datachange':CurrentRTFP.DataChange(ppid);
+    'fieldchange':CurrentRTFP.FieldChange;
+    'recordchange':CurrentRTFP.RecordChange;
+    'classchange':CurrentRTFP.ClassChange;
+    else AufScpt.writeln('无效的更新测试');
+  end;
+end;
+
 {$ifdef test}
 
 procedure aufunc_test(Sender:TObject);
@@ -1046,6 +1069,9 @@ begin
 
     Script.add_func('update.begin',@aufunc_BeginUpdate,'filename','开始更新模式');
     Script.add_func('update.end',@aufunc_EndUpdate,'filename','结束更新模式');
+    Script.add_func('update.test',@aufunc_update_case,'mode','测试更新过程');
+
+
     Script.add_func('fmt.rebuild',@aufunc_RebuildFormatEdit,'filename','从filename中加载FormatEdit布局');
     //把FmtCmp改掉，取消泛型
 
@@ -2719,34 +2745,46 @@ end;
 
 procedure TRTFP.Change;
 begin
-  if (not Self.FIsChanged) and (@onFirstEdit<>nil) then Self.onFirstEdit(Self);
-  Self.FIsChanged:=true;
+  if (not FIsChanged) and (FOnFirstEdit<>nil) then Self.FOnFirstEdit(Self);
   if (not IsUpdating) and (FOnChange<>nil) then FOnChange(Self);
+  Self.FIsChanged:=true;
 end;
 
 procedure TRTFP.DataChange(PID:RTFP_ID);
 begin
-  if (not IsUpdating) and (FOnDataChange<>nil) then FOnDataChange(Self);
-  if (not IsUpdating) then UpdateCurrentRec(PID);
+  if not IsUpdating then
+    begin
+      if FOnDataChange<>nil then FOnDataChange(Self);
+      UpdateCurrentRec(PID);
+    end;
   Change;
 end;
 procedure TRTFP.FieldChange;
 begin
-  if (not IsUpdating) and (FOnFieldChange<>nil) then FOnFieldChange(Self);
-  if (not IsUpdating) then RebuildMainGrid;
+  if not IsUpdating then
+    begin
+      if FOnFieldChange<>nil then FOnFieldChange(Self);
+      RebuildMainGrid;
+    end;
   {Data}Change;
 end;
 procedure TRTFP.RecordChange;
 begin
-  if (not IsUpdating) and (FOnRecordChange<>nil) then FOnRecordChange(Self);
-  if (not IsUpdating) then RebuildMainGrid;
+  if not IsUpdating then
+    begin
+      if FOnRecordChange<>nil then FOnRecordChange(Self);
+      RebuildMainGrid;
+    end;
   {Data}Change;
 end;
 procedure TRTFP.FieldAndRecordChange;
 begin
-  if (not IsUpdating) and (FOnFieldChange<>nil) then FOnFieldChange(Self);
-  if (not IsUpdating) and (FOnRecordChange<>nil) then FOnRecordChange(Self);
-  if (not IsUpdating) then RebuildMainGrid;
+  if not IsUpdating then
+    begin
+      if FOnFieldChange<>nil then FOnFieldChange(Self);
+      if FOnRecordChange<>nil then FOnRecordChange(Self);
+      RebuildMainGrid;
+    end;
   {Data}Change;
 end;
 procedure TRTFP.ClassChange;
@@ -3690,6 +3728,33 @@ begin
   FormDesktop.debugline('PID['+PID+']<-'+klassname);
   //RebuildMainGrid;
   DataChange(PID);
+  result:=true;
+end;
+
+function TRTFP.KlassIncludeFromCombo(PID:RTFP_ID;active:boolean):boolean;
+var CL:TStringList;
+    KL:TKlass;
+    stmp:string;
+begin
+  CL:=TStringList.Create;
+  try
+    for KL in FKlassList do
+      if KL.FilterEnabled or not active then
+        begin
+          CL.Add(KL.Name);
+          CL.Objects[CL.Count-1]:=KL;
+        end;
+    if CL.Count>0 then
+      begin
+        if CL.Count=1 then KlassInclude(CL[0],PID)
+        else begin
+          stmp:=ShowMsgCombo('纳入分类','选择文件拟纳入的分类',CL);
+          if stmp<>'' then KlassInclude(stmp,PID);
+        end;
+      end;
+  finally
+    CL.Free;
+  end;
   result:=true;
 end;
 
@@ -4727,7 +4792,10 @@ begin
         if FieldByName(_Col_PID_).AsString=PID then break;
         Next;
       end;
-    if EOF then begin ShowMsgOK('错误','UpdateCurrentRec找不到PID');exit;end;
+    if EOF then begin
+      ShowMsgOK('错误','UpdateCurrentRec找不到PID['+PID+']');
+      EndUpdate;exit;
+    end;
   end;
 
   FPaperDS.Edit;

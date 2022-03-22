@@ -31,6 +31,7 @@ type
     procedure Button_SyncPathClick(Sender: TObject);
     procedure Edit_SyncPathChange(Sender: TObject);
     procedure FormActivate(Sender: TObject);
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure Memo_RegExprChange(Sender: TObject);
     procedure CheckBox_SyncEnabledChange(Sender: TObject);
@@ -74,6 +75,7 @@ end;
 
 procedure TFormOptions.FormActivate(Sender: TObject);
 var tmpPos:double;
+    posint:integer;
 begin
   with FormDesktop.SyncTimer do
     begin
@@ -86,10 +88,17 @@ begin
       end;
       Memo_RegExpr.Text:=Rule;
       tmpPos:=ln(interval/100)/ln(1.42547322)+1;
-      if tmpPos<0 then tmpPos:=0;
-      if tmpPos>20 then tmpPos:=20;
-      TrackBar_SyncInterval.Position:=trunc(tmpPos);
+      posint:=trunc(tmpPos);
+      if posint<0 then posint:=0;
+      if posint>20 then posint:=20;
+      TrackBar_SyncInterval.Position:=posint;
     end;
+end;
+
+procedure TFormOptions.FormClose(Sender: TObject; var CloseAction: TCloseAction
+  );
+begin
+
 end;
 
 procedure TFormOptions.FormCreate(Sender: TObject);
@@ -126,6 +135,7 @@ end;
 procedure TFormOptions.LoadOptionFromReg;
 var Reg:TRegistry;
 begin
+  FormDesktop.SyncTimer.Enabled:=false;
   Reg:=TRegistry.Create;
   try
     Reg.RootKey:=HKEY_CURRENT_USER;
@@ -139,9 +149,9 @@ begin
       end
     else
       begin
-        FormDesktop.SyncTimer.SyncPath:='F:\chrome_downloaded';
+        FormDesktop.SyncTimer.SyncPath:='E:\chrome_download';
         FormDesktop.SyncTimer.BackupMode:=apmFullBackup;
-        FormDesktop.SyncTimer.Interval:=2000;
+        FormDesktop.SyncTimer.Interval:=1195;
         FormDesktop.SyncTimer.Rule:='\.pdf|\.caj|\.docx*|\.xlsx*|\.sep|\.od[ts]';
         FormDesktop.SyncTimer.Enabled:=false;
       end;

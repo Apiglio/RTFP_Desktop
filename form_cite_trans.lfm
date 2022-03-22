@@ -250,8 +250,8 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideTop.Side = asrCenter
     AnchorSideRight.Control = ComboBox_DefaultCl
     Left = 813
-    Height = 15
-    Top = 424
+    Height = 20
+    Top = 421
     Width = 45
     Caption = '分类：'
     ParentColor = False

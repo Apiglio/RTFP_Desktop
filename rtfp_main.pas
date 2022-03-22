@@ -19,7 +19,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.2-alpha.3';
+  C_VERSION_NUMBER  = '0.2.2-alpha.4';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -815,16 +815,13 @@ var node_name:string;
     _pid:RTFP_ID;
 begin
   if ProjectInvalid then exit;
-  //node_name:=ShowMsgEdit('新建节点','新节点名称：','');
-  //if not (node_name='') then
-  //  begin
-      _pid:=CurrentRTFP.AddPaper('',apmReference);
-      //DBGrid_Main.DataSource.DataSet.Last;
-      Select_PID(_pid);
-      NodeViewValidate;
-      //CurrentRTFP.EditFieldAsString(_Col_Paper_FileName_,'',_pid,node_name,[aeCreateIfNoField,aeFailIfNoPID]);
-  //  end
-  //else ShowMsgOK('新建节点','未指定名称，创建失败。');
+  CurrentRTFP.BeginUpdate;//这里不禁用会触发修改分组时的UpdateCurrentRec，应该重新考虑各个Change事件的时机
+  _pid:=CurrentRTFP.AddPaper('',apmReference);
+  CurrentRTFP.KlassIncludeFromCombo(_pid,true);
+  CurrentRTFP.EndUpdate;//这里不禁用会触发修改分组时的UpdateCurrentRec，应该重新考虑各个Change事件的时机
+  CurrentRTFP.RecordChange;
+  Select_PID(_pid);
+  NodeViewValidate;
 end;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1214,6 +1211,7 @@ begin
     'Yes':CurrentRTFP.DeletePaper(Selected_PID);
     else exit;
   end;
+  //CurrentRTFP.RecordChange;
 end;
 
 procedure TFormDesktop.MenuItem_EditSourceClick(Sender: TObject);
@@ -2205,6 +2203,7 @@ procedure TFormDesktop.FormClose(Sender: TObject; var CloseAction: TCloseAction
   );
 begin
   FormOptions.SaveOptionToReg;
+  FormOptions.Free;
   FWaitForm.Free;
 end;
 
