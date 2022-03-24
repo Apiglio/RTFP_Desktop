@@ -19,7 +19,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.2-alpha.4';
+  C_VERSION_NUMBER  = '0.2.2-alpha.5';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -889,7 +889,7 @@ end;
 procedure TFormDesktop.MenuItem_Tool_ProjectDirClick(Sender: TObject);
 begin
   if ProjectInvalid then exit;
-  TRTFP.OpenDir(CurrentRTFP.CurrentFileFull);
+  TRTFP.OpenDir(UTF8ToWinCP(CurrentRTFP.CurrentFileFull));
 end;
 
 
@@ -1615,6 +1615,7 @@ begin
   if ParamCount<>0 then
     begin
       CurrentRTFP:=TRTFP.Create(FormDesktop);
+      CurrentRTFP.SetAuf(Frame_AufScript1.Auf);
       Self.EventLink(CurrentRTFP);
       CurrentRTFP.Open(UTF8ToWinCP(ParamStr(1)));
     end;
@@ -1638,6 +1639,7 @@ begin
       CurrentRTFP:=TRTFP.Create(FormDesktop);
       CurrentRTFP.SetAuf(Frame_AufScript1.Auf);
       Self.EventLink(CurrentRTFP);
+      Application.ProcessMessages;
 
       CurrentRTFP.Open(UTF8ToWinCP(FileNames[0]));
       SetFocus;
