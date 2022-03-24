@@ -458,8 +458,8 @@ type
     procedure DataChange(PID:RTFP_ID);//数据修改，也会触发Change事件
     procedure FieldChange;//字段修改，也会触发DataChange和Change事件
     procedure RecordChange;//记录修改，也会触发DataChange和Change事件
-    procedure FieldAndRecordChange;//记录和字段同时修改，也会触发DataChange和Change事件
-    procedure ClassChange;//分类修改，也会触发Change事件
+    procedure FieldAndRecordChange(not_change_at_the_beginning:boolean=false);//记录和字段同时修改，也会触发DataChange和Change事件
+    procedure ClassChange(not_change_at_the_beginning:boolean=false);//分类修改，也会触发Change事件
     procedure UsersChange;//用户列表修改，也会触发Change事件
     procedure FormatListChange;//编辑样式修改，也会触发Change事件
 
@@ -2626,8 +2626,8 @@ begin
 
   //以下更新显示需要PaperDS和ACLClassList的链接，所以放在onOpenDone之后
   RebuildMainGrid;
-  ClassChange;
-  FieldAndRecordChange;
+  ClassChange(true);
+  FieldAndRecordChange(true);
 end;
 
 Procedure TRTFP.Open(filename:ansistring);
@@ -2660,8 +2660,8 @@ begin
 
   //以下更新显示需要PaperDS和ACLClassList的链接，所以放在onOpenDone之后
   RebuildMainGrid;
-  ClassChange;
-  FieldAndRecordChange;
+  ClassChange(true);
+  FieldAndRecordChange(true);
 end;
 
 procedure TRTFP.Save;
@@ -2777,7 +2777,7 @@ begin
     end;
   {Data}Change;
 end;
-procedure TRTFP.FieldAndRecordChange;
+procedure TRTFP.FieldAndRecordChange(not_change_at_the_beginning:boolean=false);
 begin
   if not IsUpdating then
     begin
@@ -2785,12 +2785,12 @@ begin
       if FOnRecordChange<>nil then FOnRecordChange(Self);
       RebuildMainGrid;
     end;
-  {Data}Change;
+  if not not_change_at_the_beginning then {Data}Change;
 end;
-procedure TRTFP.ClassChange;
+procedure TRTFP.ClassChange(not_change_at_the_beginning:boolean=false);
 begin
   if (not IsUpdating) and (FOnClassChange<>nil) then FOnClassChange(Self);
-  Change;
+  if not not_change_at_the_beginning then Change;
 end;
 procedure TRTFP.UsersChange;
 begin
@@ -5121,7 +5121,7 @@ procedure TRTFP.FormatEditBuild(AScrollBox:TScrollBox;AFormat:TStrings);
 var SplitterObj:TSplitter;
     FormatPanel:TFormatEditPanel;
     index:integer;
-    stmp,is_editable:string;
+    stmp,is_editable,str_editable:string;
     tmp:integer;
 begin
   assert(FFormatEditComponentList.Count=0,'FormatEditBuild之前需要FormatEditClear！');
@@ -5157,14 +5157,21 @@ begin
 
       is_editable:='';
       if Auf.ArgsCount>8 then Auf.TryArgToString(8,is_editable);
-      if lowercase(is_editable)='editable' then FormatPanel.Editable:=true
-      else FormatPanel.Editable:=false;
+      if lowercase(is_editable)='editable' then begin
+        FormatPanel.Editable:=true;
+        str_editable:='';
+        //FormatPanel.BevelColor:=clGreen;//在formatEdit中重写Paint改颜色，目前临时用标题改好了
+      end else begin
+        FormatPanel.Editable:=false;
+        str_editable:='(只读)';
+        //FormatPanel.BevelColor:=clRed;//在formatEdit中重写Paint改颜色，目前临时用标题改好了
+      end;
 
       Add(FormatPanel);
       FormatPanel.AttrsName:=Auf.nargs[1].arg;
       FormatPanel.FieldName:=Auf.nargs[2].arg;
       FormatPanel.DisplayName:=Auf.nargs[3].arg;
-      FormatPanel.TitleLabel.Caption:=Auf.nargs[3].arg+': ';
+      FormatPanel.TitleLabel.Caption:=Auf.nargs[3].arg+str_editable+': ';
       with FormatPanel do begin
         Parent:=AScrollBox;
         BeginUpdateBounds;

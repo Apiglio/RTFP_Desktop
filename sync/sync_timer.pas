@@ -48,7 +48,7 @@ type
 
 
 implementation
-uses Forms, rtfp_dialog, rtfp_main, form_cite_trans;
+uses rtfp_dialog, rtfp_main, form_cite_trans;
 
 function apm_str(apm:TAddPaperMethod):string;
 begin
