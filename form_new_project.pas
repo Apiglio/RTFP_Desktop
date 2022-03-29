@@ -104,7 +104,7 @@ begin
   CurrentRTFP:=TRTFP.Create(FormDesktop);
   CurrentRTFP.SetAuf(FormDesktop.Frame_AufScript1.Auf);
   FormDesktop.EventLink(CurrentRTFP);
-  CurrentRTFP.New((Self.FileFullName),(Self.FileName),'Apiglio');
+  CurrentRTFP.New(UTF8ToWinCP(Self.FileFullName),(Self.FileName),'Apiglio');
 
   //Self.Hide;
   //ModalResult法
