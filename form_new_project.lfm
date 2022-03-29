@@ -11,6 +11,7 @@ object Form_NewProject: TForm_NewProject
   Constraints.MinWidth = 450
   DesignTimePPI = 120
   OnActivate = FormActivate
+  OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   Position = poScreenCenter
   LCLVersion = '1.8.4.0'
@@ -36,8 +37,8 @@ object Form_NewProject: TForm_NewProject
     AnchorSideTop.Control = Edit_ProjectName
     AnchorSideTop.Side = asrCenter
     Left = 15
-    Height = 15
-    Top = 22
+    Height = 20
+    Top = 19
     Width = 75
     BorderSpacing.Left = 15
     Caption = '工程名称：'
@@ -48,8 +49,8 @@ object Form_NewProject: TForm_NewProject
     AnchorSideTop.Control = Edit_ProjectPath
     AnchorSideTop.Side = asrCenter
     Left = 15
-    Height = 15
-    Top = 60
+    Height = 20
+    Top = 57
     Width = 75
     BorderSpacing.Left = 15
     Caption = '文件路径：'
@@ -141,7 +142,7 @@ object Form_NewProject: TForm_NewProject
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = CheckListBox_CanBuild
     Left = 15
-    Height = 15
+    Height = 20
     Top = 95
     Width = 75
     BorderSpacing.Left = 15

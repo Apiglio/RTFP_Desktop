@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  StdCtrls, ExtCtrls, Registry;
+  StdCtrls, ExtCtrls, Registry, LazUTF8;
 
 type
 
@@ -60,6 +60,7 @@ begin
   pos:=(Sender as TTrackBar).Position;
   pos:=exp(ln(1.42547322)*pos)/10;
   Label_SyncInterval.Caption:=FloatToStrF(pos,ffFixed,1,2)+'秒';
+  Application.ProcessMessages;//这里不加更新有时会卡死
   FormDesktop.SyncTimer.Interval:=trunc(pos*1000);
 end;
 
@@ -141,10 +142,10 @@ begin
     Reg.RootKey:=HKEY_CURRENT_USER;
     if Reg.OpenKey('Software\ApiglioToolBox\RTFP_Desktop\SyncTimer',false) then
       begin
-        FormDesktop.SyncTimer.SyncPath:=Reg.ReadString('SyncPath');
+        FormDesktop.SyncTimer.SyncPath:=WinCPtoUTF8(Reg.ReadString('SyncPath'));
         FormDesktop.SyncTimer.BackupMode:=TAddPaperMethod(Reg.ReadInteger('BackupMode'));
         FormDesktop.SyncTimer.Interval:=Reg.ReadInteger('Interval');
-        FormDesktop.SyncTimer.Rule:=Reg.ReadString('Rule');
+        FormDesktop.SyncTimer.Rule:=WinCPtoUTF8(Reg.ReadString('Rule'));
         FormDesktop.SyncTimer.Enabled:=Reg.ReadBool('Enabled');
       end
     else
@@ -167,10 +168,10 @@ begin
   try
     Reg.RootKey:=HKEY_CURRENT_USER;
     Reg.OpenKey('Software\ApiglioToolBox\RTFP_Desktop\SyncTimer',true);
-    Reg.WriteString('SyncPath',FormDesktop.SyncTimer.SyncPath);
+    Reg.WriteString('SyncPath',UTF8ToWinCP(FormDesktop.SyncTimer.SyncPath));
     Reg.WriteInteger('BackupMode',ord(FormDesktop.SyncTimer.BackupMode));
     Reg.WriteInteger('Interval',FormDesktop.SyncTimer.Interval);
-    Reg.WriteString('Rule',FormDesktop.SyncTimer.Rule);
+    Reg.WriteString('Rule',UTF8ToWinCP(FormDesktop.SyncTimer.Rule));
     Reg.WriteBool('Enabled',FormDesktop.SyncTimer.Enabled);
   finally
     Reg.Free;

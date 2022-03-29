@@ -16,7 +16,8 @@ type
   TLine = array[0..0] of TFColor;
   PLine = ^TLine;
 
-
+  TFmtEditState = (fesUnknown=0, fesReadOnly=1, fesSaved=2, fesModified=3, fesNodata=4, fesNoField=5);
+  //Unknown为意外情况，ReadOnly为只读模式，Saved为可编辑且未修改，Modifify为可编辑且未保存，Nodata为可编辑但无数据，NoField为没有字段
 
   TFmtImage = class(TScrollBox)
   private
@@ -49,6 +50,7 @@ type
 
     FDisplayName,FAttrsName,FFieldName:string;
     FEditable:boolean;
+    FState:TFmtEditState;
   public
     constructor Create(CmpClass:TClass);
     destructor Destroy;
@@ -81,6 +83,15 @@ type
     procedure SetLInt(value:int64);
     procedure SetFloat(value:double);
     procedure SetString(value:string);
+
+    procedure FmtPanelPaint(Sender:TObject);
+    procedure FmtPanelComponentChange(Sender:TObject);
+
+    procedure SetState(value:TFmtEditState);
+
+  public
+    procedure RestoreState;//Setter函数中包含了FState:=fesSaved，如果是还原字段数值则需要用这个方法
+    property State:TFmtEditState read FState write SetState;
 
   public
     property AsBoolean:boolean read GetBool write SetBool;
@@ -165,6 +176,7 @@ begin
     FImage.Picture.Bitmap.LoadFromClipboardFormat(PredefinedClipboardFormat(pcfDelphiBitmap));
   if Clipboard.HasFormat(PredefinedClipboardFormat(pcfBitmap)) then
     FImage.Picture.Bitmap.LoadFromClipboardFormat(PredefinedClipboardFormat(pcfBitmap));
+  TFormatEditPanel(Parent).FmtPanelComponentChange(Self);
 end;
 procedure TFmtImage.CopyPicture(Sender:TObject);
 begin
@@ -289,12 +301,37 @@ begin
     BorderSpacing.Top:=0;
   end;
   case FClass.ClassName of
-    'TEdit':FComponent:=TEdit.Create(Self);
-    'TMemo':begin FComponent:=TMemo.Create(Self);TMemo(FComponent).ScrollBars:=ssAutoVertical;end;
-    'TComboBox':FComponent:=TComboBox.Create(Self);
-    'TCheckBox':FComponent:=TCheckBox.Create(Self);
-    'TFmtImage':FComponent:=TFmtImage.Create(Self);
-    'TListBox':FComponent:=TListBox.Create(Self);
+    'TEdit':
+      begin
+        FComponent:=TEdit.Create(Self);
+        TEdit(FComponent).OnChange:=@FmtPanelComponentChange;
+      end;
+    'TMemo':
+      begin
+        FComponent:=TMemo.Create(Self);
+        TMemo(FComponent).ScrollBars:=ssAutoVertical;
+        TMemo(FComponent).OnChange:=@FmtPanelComponentChange;
+      end;
+    'TComboBox':
+      begin
+        FComponent:=TComboBox.Create(Self);
+        TComboBox(FComponent).OnChange:=@FmtPanelComponentChange;
+      end;
+    'TCheckBox':
+      begin
+        FComponent:=TCheckBox.Create(Self);
+        TCheckBox(FComponent).OnChange:=@FmtPanelComponentChange;
+      end;
+    'TFmtImage':
+      begin
+        FComponent:=TFmtImage.Create(Self);
+        //image的modified在右键菜单设置中
+      end;
+    'TListBox':
+      begin
+        FComponent:=TListBox.Create(Self);
+        //TListBox(FComponent).onOnChange:=@FmtPanelComponentChange;//这个目前似乎还没准备好
+      end;
     else raise Exception.Create('FormatEditPanel Type Error');
   end;
   with TControl(FComponent) do begin
@@ -316,12 +353,13 @@ begin
     BorderSpacing.Bottom:=10;
 
   end;
-  if TObject(FComponent) is TWinControl then
-    TWinControl(FComponent).Parent:=Self
-  else begin
+  if TObject(FComponent) is TWinControl then begin
+    TWinControl(FComponent).Parent:=Self;
+  end else begin
     TFmtImage(FComponent).Parent:=Self;
   end;
 
+  Self.OnPaint:=@FmtPanelPaint;
   Self.Resize;
 end;
 
@@ -351,6 +389,20 @@ begin
     'TListBox':TListBox(FComponent).Enabled:=inp;
     else raise Exception.Create('FormatEditPanel Type Error');
   end;
+  if inp then begin
+    case FState of
+      fesUnknown:FState:=fesSaved;
+      else;
+    end;
+    //Paint;
+  end else begin
+    case FState of
+      fesUnknown:FState:=fesReadOnly;
+      else;
+    end;
+    //Paint;
+  end;
+  FEditable:=inp;
 end;
 
 function TFormatEditPanel.GetBool:boolean;
@@ -421,26 +473,66 @@ begin
   case FClass.ClassName of
     'TCheckBox':TCheckBox(FComponent).Checked:=value;
   end;
+  FState:=fesSaved;
 end;
 procedure TFormatEditPanel.SetLInt(value:int64);
 begin
   case FClass.ClassName of
     'TEdit':TEdit(FComponent).Caption:=IntToStr(value);
   end;
+  FState:=fesSaved;
 end;
 procedure TFormatEditPanel.SetFloat(value:double);
 begin
   case FClass.ClassName of
     'TEdit':TEdit(FComponent).Caption:=FloatToStr(value);
   end;
+  FState:=fesSaved;
 end;
 procedure TFormatEditPanel.SetString(value:string);
 begin
   case FClass.ClassName of
     'TEdit':TEdit(FComponent).Caption:=value;
   end;
+  FState:=fesSaved;
 end;
 
+procedure TFormatEditPanel.RestoreState;
+begin
+  if Self.FEditable then Self.FState:=fesSaved
+  else Self.FState:=fesReadOnly;
+  Self.Paint;
+end;
+
+
+procedure TFormatEditPanel.FmtPanelPaint(Sender:TObject);
+var state_color:TColor;
+begin
+  //加入色条表示数据状态 //aBGR
+  case FState of
+    fesUnknown:state_color:=$7FFF7FFF;//Purple
+    fesReadOnly:state_color:=$7F7F7FFF;//Red
+    fesSaved:state_color:=$7F7FFF7F;//Green
+    fesModified:state_color:=$7F7FFFFF;//Yellow
+    fesNodata:state_color:=$7F7F7F7F;//Grey
+    fesNoField:state_color:=$7FFF7FFF;//Purple
+  end;
+  Canvas.Brush.Color:=state_color;
+  Canvas.Pen.Color:=state_color;
+  Canvas.Brush.Style:=bsSolid;
+  Canvas.Rectangle(0,26,Canvas.Width,28);
+
+end;
+procedure TFormatEditPanel.FmtPanelComponentChange(Sender:TObject);
+begin
+  Self.FState:=fesModified;
+  Self.Paint;
+end;
+procedure TFormatEditPanel.SetState(value:TFmtEditState);
+begin
+  FState:=value;
+  Paint;
+end;
 
 end.
 
