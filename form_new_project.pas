@@ -27,6 +27,7 @@ type
     procedure Edit_ProjectNameChange(Sender: TObject);
     procedure Edit_ProjectPathChange(Sender: TObject);
     procedure FormActivate(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
 
   private
@@ -104,7 +105,7 @@ begin
   CurrentRTFP:=TRTFP.Create(FormDesktop);
   CurrentRTFP.SetAuf(FormDesktop.Frame_AufScript1.Auf);
   FormDesktop.EventLink(CurrentRTFP);
-  CurrentRTFP.New(UTF8ToWinCP(Self.FileFullName),(Self.FileName),'Apiglio');
+  CurrentRTFP.New((Self.FileFullName),(Self.FileName),'Apiglio');
 
   //Self.Hide;
   //ModalResult法
@@ -126,6 +127,11 @@ begin
   Self.Renew;
 end;
 
+procedure TForm_NewProject.FormCreate(Sender: TObject);
+begin
+  ////////////////CheckListBox_CanBuild;    //那个禁止用户操作的是什么函数？？？
+end;
+
 procedure TForm_NewProject.FormDeactivate(Sender: TObject);
 begin
   //Self.Hide;
@@ -143,7 +149,7 @@ begin
     if TRTFP.CanBuildPLen(Self.FilePath+Self.FileName) then Checked[3]:=true else Checked[3]:=false;
     if TRTFP.CanBuildDisc(Self.FilePath[1]) then Checked[4]:=true else Checked[4]:=false;
 
-    if Checked[0] and Checked[1] and Checked[2] and Checked[3] then
+    if Checked[0] and Checked[1] and Checked[2] and Checked[3] and Checked[4] then
        Self.Button_Create.Enabled:=true
     else Self.Button_Create.Enabled:=false;
 

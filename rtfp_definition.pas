@@ -23,6 +23,7 @@
 //新建工程后的属性列表全部展开，而非打开工程后的全部折叠
 //我他妈服了，DBF的文件错误也太多了吧？？？？
 //异常关闭的恢复
+//formatEditComponent在图像字段数据有误时的解决方案需要明细
 
 
 //{$define insert}
@@ -496,7 +497,7 @@ type
     class function CanBuildPath(pathname:string):boolean;
     class function CanBuildPLen(pathname:string):boolean;
     class function CanBuildFile(fullname:string):boolean;
-    class function CanBuildDisc(discchar:char):boolean;unimplemented;
+    class function CanBuildDisc(discchar:char):boolean;
 
     class function FileHash(AFileStream:TStream):string;//返回一个239长度的文件Hash
     class function FileCopy(source,dest:string;bFailIfExist:boolean):boolean;//utf8的string版本
@@ -963,23 +964,35 @@ begin
       begin
         if not AAuf.TryArgToString(4,stmp) then exit;
         AG:=CurrentRTFP.FieldList.FindItemByName(NA);
-        if AG=nil then AufScpt.send_error('错误：无属性组“'+NA+'”。');
+        if AG=nil then begin
+          AufScpt.send_error('错误：无属性组“'+NA+'”。');
+          exit;
+        end;
         if lowercase(NO[1])='f' then
           begin
             AG.GroupShown:=getbo(stmp);
             exit;
           end;
         AF:=AG.FieldList.FindItemByName(NF);
-        if AF=nil then AufScpt.send_error('错误：无属性“'+NF+'”。');
+        if AF=nil then begin
+          AufScpt.send_error('错误：无属性“'+NF+'”。');
+          exit;
+        end;
         AF.Shown:=getbo(stmp);
       end;
     'width','w','display_width':
       begin
         if not AAuf.TryArgToLong(4,slon) then exit;
         AG:=CurrentRTFP.FieldList.FindItemByName(NA);
-        if AG=nil then AufScpt.send_error('错误：无属性组“'+NA+'”。');
+        if AG=nil then begin
+          AufScpt.send_error('错误：无属性组“'+NA+'”。');
+          exit;
+        end;
         AF:=AG.FieldList.FindItemByName(NF);
-        if AF=nil then AufScpt.send_error('错误：无属性“'+NF+'”。');
+        if AF=nil then begin
+          AufScpt.send_error('错误：无属性“'+NF+'”。');
+          exit;
+        end;
         AF.FFieldDisplayOption.display_width:=slon;
       end;
     else
@@ -5276,15 +5289,56 @@ var Item:Pointer;
 begin
   for Item in FFormatEditComponentList do begin
     if TObject(Item).ClassType=TSplitter then continue;
-    with TFormatEditPanel(Item) do
-      case ComponentClass.ClassName of
-        'TEdit':AsString:=ReadFieldAsString(FieldName,AttrsName,PID,[]);
-        'TMemo':ReadFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[]);
-        'TCheckBox':AsBoolean:=ReadFieldAsBoolean(FieldName,AttrsName,PID,[]);
-        'TComboBox':AsString:=ReadFieldAsString(FieldName,AttrsName,PID,[]);
-        'TFmtImage':ReadFieldAsBitmap(FieldName,AttrsName,PID,AsBitmap,[]);
-        'TListBox':ReadFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[]);
+    with TFormatEditPanel(Item) do begin
+      try
+        case ComponentClass.ClassName of
+          'TEdit':AsString:=ReadFieldAsString(FieldName,AttrsName,PID,[aeFailIfNoPID,aeFailIfNoField]);
+          'TMemo':ReadFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[aeFailIfNoPID,aeFailIfNoField]);
+          'TCheckBox':AsBoolean:=ReadFieldAsBoolean(FieldName,AttrsName,PID,[aeFailIfNoPID,aeFailIfNoField]);
+          'TComboBox':AsString:=ReadFieldAsString(FieldName,AttrsName,PID,[aeFailIfNoPID,aeFailIfNoField]);
+          'TFmtImage':ReadFieldAsBitmap(FieldName,AttrsName,PID,AsBitmap,[aeFailIfNoPID,aeFailIfNoField]);
+          'TListBox':ReadFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[aeFailIfNoPID,aeFailIfNoField]);
+        end;
+        RestoreState;
+      except
+        on E:AttrsNoFieldErr do case ComponentClass.ClassName of
+          'TEdit','TComboBox':begin
+            AsString:='';
+            State:=fesNoField;
+          end;
+          'TCheckBox':begin
+            AsBoolean:=false;
+            State:=fesNoField;
+          end;
+          'TMemo','TListBox':begin
+            AsMemo.Clear;
+            State:=fesNoField;
+          end;
+          'TFmtImage':begin
+            AsBitmap.Clear;
+            State:=fesNoField;
+          end;
+        end;
+        on E:AttrsNoPIDErr do case ComponentClass.ClassName of
+          'TEdit','TComboBox':begin
+            AsString:='';
+            State:=fesNodata;
+          end;
+          'TCheckBox':begin
+            AsBoolean:=false;
+            State:=fesNodata;
+          end;
+          'TMemo','TListBox':begin
+            AsMemo.Clear;
+            State:=fesNodata;
+          end;
+          'TFmtImage':begin
+            AsBitmap.Clear;
+            State:=fesNodata;
+          end;
+        end;
       end;
+    end;
   end;
 end;
 
@@ -5294,7 +5348,7 @@ begin
   BeginUpdate;
   for Item in FFormatEditComponentList do begin
     if TObject(Item).ClassType=TSplitter then continue;
-    with TFormatEditPanel(Item) do
+    with TFormatEditPanel(Item) do begin
       case ComponentClass.ClassName of
         'TEdit':EditFieldAsString(FieldName,AttrsName,PID,AsString,[aeForceEditIfTypeDismatch]);
         'TMemo':EditFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[]);
@@ -5303,6 +5357,8 @@ begin
         'TFmtImage':EditFieldAsBitmap(FieldName,AttrsName,PID,AsBitmap,[]);
         'TListBox':EditFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[]);
       end;
+      RestoreState;
+    end;
   end;
   EndUpdate;
   DataChange(PID);
@@ -5691,22 +5747,22 @@ begin
 end;
 
 class function TRTFP.CanBuildDisc(discchar:char):boolean;
-var d1,d2,d3,d4:dword;
+var d1,d2,d3:qword;
 begin
-  GetDiskFreeSpace(pchar(discchar+':\'),d1,d2,d3,d4);
+  GetDiskFreeSpaceEx(pchar(discchar+':\'),@d1,@d2,@d3);
   {
   ShowMsgOK('',
     'DISC '+discchar+':'+#13+#10+
-    '  扇区数/簇='+IntToStr(d1)+#13+#10+
-    '  字节/扇区='+IntToStr(d2)+#13+#10+
-    '  剩余簇数='+IntToStr(d3)+#13+#10+
-    '  总簇数='+IntToStr(d4)+#13+#10+
+    '  d1='+IntToStr(d1)+#13+#10+
+    '  d2='+IntToStr(d2)+#13+#10+
+    '  d3='+IntToStr(d3)+#13+#10+
     #13+#10+
-    '  剩余字节大小='+IntToStr(d1*d2*d3)+'('+FloatToStr(d1*d2*d3/1024/1024/1024)+'GB)'+#13+#10+
-    '  总字节大小='+IntToStr(d1*d2*d4)+'('+FloatToStr(d1*d2*d4/1024/1024/1024)+'GB)'+#13+#10
+    '  可用字节大小='+IntToStr(d1)+'('+FloatToStr(d1/1024/1024/1024)+'GB)'+#13+#10+
+    '  总字节大小='+IntToStr(d2)+'('+FloatToStr(d2/1024/1024/1024)+'GB)'+#13+#10+
+    '  剩余字节大小='+IntToStr(d3)+'('+FloatToStr(d3/1024/1024/1024)+'GB)'+#13+#10
   );
   }
-  if d1*d2*d3<$ffffffff then result:=false
+  if d1<$ffffffff then result:=false
   else result:=true;
 
 end;
@@ -5787,7 +5843,6 @@ end;
 class function TRTFP.MakeDir(filename:string):boolean;
 begin
   result:=false;
-  //ShowMessage(filename);
   result:=ForceDirectories(filename);
 end;
 

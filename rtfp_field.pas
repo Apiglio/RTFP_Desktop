@@ -411,6 +411,7 @@ procedure TAttrsGroupList.LoadFromPath(APath:string='\');
 var tmpFileList:TRTFP_FileList;
     stmp:TCollectionItem;
     pathname,groupname:string;
+    poss:integer;
 begin
   assert(APath<>'','TAttrsGroupList.LoadFromPath: APath=""');
   if APath='' then exit;
@@ -424,7 +425,8 @@ begin
         pathname:=(stmp as TRTFP_FileItem).Name;
         groupname:=ExtractFilename(pathname);
         if pos('.dbf',lowercase(pathname))<>length(pathname)-3 then continue;
-        if pos('_run.dbf',lowercase(pathname))=length(pathname)-7 then continue;
+        poss:=pos('_run.dbf',lowercase(pathname));
+        if (poss=length(pathname)-7) and (poss>0) then continue;
         if lowercase(ExtractFileExt(groupname))='.dbf' then groupname:=Copy(groupname,1,length(groupname)-4);
         {if lowercase(ExtractFileExt(pathname))='.dbf' then }pathname:=Copy(pathname,1,length(pathname)-4);
         //ShowMessage(groupname+#13#10+pathname);
