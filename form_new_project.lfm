@@ -11,6 +11,7 @@ object Form_NewProject: TForm_NewProject
   Constraints.MinWidth = 450
   DesignTimePPI = 120
   OnActivate = FormActivate
+  OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   Position = poScreenCenter
   LCLVersion = '1.8.4.0'

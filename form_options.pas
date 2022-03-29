@@ -60,6 +60,7 @@ begin
   pos:=(Sender as TTrackBar).Position;
   pos:=exp(ln(1.42547322)*pos)/10;
   Label_SyncInterval.Caption:=FloatToStrF(pos,ffFixed,1,2)+'秒';
+  Application.ProcessMessages;//这里不加更新有时会卡死
   FormDesktop.SyncTimer.Interval:=trunc(pos*1000);
 end;
 
@@ -77,16 +78,10 @@ procedure TFormOptions.FormActivate(Sender: TObject);
 var tmpPos:double;
     posint:integer;
 begin
-  //ShowMessage('aa');
   with FormDesktop.SyncTimer do
     begin
       CheckBox_SyncEnabled.Checked:=Enabled;
-      //ShowMessage(SyncPath);
       Edit_SyncPath.Caption:=SyncPath;
-      {
-      if SyncPath<>'' then
-        Edit_SyncPath.Caption:='E:\chrome_download';
-      }
       case BackupMode of
         apmCutBackup:RadioGroup_BackupMode.ItemIndex:=0;
         apmFullBackup:RadioGroup_BackupMode.ItemIndex:=1;
