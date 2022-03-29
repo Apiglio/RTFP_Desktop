@@ -2589,17 +2589,27 @@ begin
 end;
 
 procedure TRTFP.New(filename:ansistring;p_title:string;p_user:string);
+var md:boolean;
 begin
   if FOnNew <> nil then FOnNew(Self);
 
   Self.SetPaths(WinCPToUTF8(filename));
-  TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder);
-  TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\paper');
-  TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\class');
-  TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\note');
-  TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\image');
-  TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\format');
-  TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\attr');
+  repeat
+    md:=true;
+    md:=md and TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder);
+    md:=md and TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\paper');
+    md:=md and TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\class');
+    md:=md and TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\note');
+    md:=md and TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\image');
+    md:=md and TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\format');
+    md:=md and TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\attr');
+    if not md then begin
+      case ShowMsgRetryIgnore('新建工程','工程文件夹创建失败。') of
+        'Retry':;
+        else exit;
+      end;
+    end;
+  until md;
 
   NewProjectFile(WinCPToUTF8(p_title),WinCPToUTF8(p_user));
   NewUserList;
@@ -5777,6 +5787,7 @@ end;
 class function TRTFP.MakeDir(filename:string):boolean;
 begin
   result:=false;
+  //ShowMessage(filename);
   result:=ForceDirectories(filename);
 end;
 

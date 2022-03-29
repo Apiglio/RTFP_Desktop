@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  StdCtrls, ExtCtrls, Registry;
+  StdCtrls, ExtCtrls, Registry, LazUTF8;
 
 type
 
@@ -77,10 +77,16 @@ procedure TFormOptions.FormActivate(Sender: TObject);
 var tmpPos:double;
     posint:integer;
 begin
+  //ShowMessage('aa');
   with FormDesktop.SyncTimer do
     begin
       CheckBox_SyncEnabled.Checked:=Enabled;
+      //ShowMessage(SyncPath);
       Edit_SyncPath.Caption:=SyncPath;
+      {
+      if SyncPath<>'' then
+        Edit_SyncPath.Caption:='E:\chrome_download';
+      }
       case BackupMode of
         apmCutBackup:RadioGroup_BackupMode.ItemIndex:=0;
         apmFullBackup:RadioGroup_BackupMode.ItemIndex:=1;
@@ -141,10 +147,10 @@ begin
     Reg.RootKey:=HKEY_CURRENT_USER;
     if Reg.OpenKey('Software\ApiglioToolBox\RTFP_Desktop\SyncTimer',false) then
       begin
-        FormDesktop.SyncTimer.SyncPath:=Reg.ReadString('SyncPath');
+        FormDesktop.SyncTimer.SyncPath:=WinCPtoUTF8(Reg.ReadString('SyncPath'));
         FormDesktop.SyncTimer.BackupMode:=TAddPaperMethod(Reg.ReadInteger('BackupMode'));
         FormDesktop.SyncTimer.Interval:=Reg.ReadInteger('Interval');
-        FormDesktop.SyncTimer.Rule:=Reg.ReadString('Rule');
+        FormDesktop.SyncTimer.Rule:=WinCPtoUTF8(Reg.ReadString('Rule'));
         FormDesktop.SyncTimer.Enabled:=Reg.ReadBool('Enabled');
       end
     else
@@ -167,10 +173,10 @@ begin
   try
     Reg.RootKey:=HKEY_CURRENT_USER;
     Reg.OpenKey('Software\ApiglioToolBox\RTFP_Desktop\SyncTimer',true);
-    Reg.WriteString('SyncPath',FormDesktop.SyncTimer.SyncPath);
+    Reg.WriteString('SyncPath',UTF8ToWinCP(FormDesktop.SyncTimer.SyncPath));
     Reg.WriteInteger('BackupMode',ord(FormDesktop.SyncTimer.BackupMode));
     Reg.WriteInteger('Interval',FormDesktop.SyncTimer.Interval);
-    Reg.WriteString('Rule',FormDesktop.SyncTimer.Rule);
+    Reg.WriteString('Rule',UTF8ToWinCP(FormDesktop.SyncTimer.Rule));
     Reg.WriteBool('Enabled',FormDesktop.SyncTimer.Enabled);
   finally
     Reg.Free;
