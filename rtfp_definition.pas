@@ -27,6 +27,8 @@
 
 
 //{$define insert}
+{$define save_dbf}
+//{$define save_xml}
 {$define test}
 
 unit RTFP_definition;
@@ -48,6 +50,9 @@ uses
   {$ifndef insert}
   Apiglio_Useful, auf_ram_var, rtfp_pdfobj, rtfp_files, rtfp_class, rtfp_field,
   rtfp_constants, rtfp_type, rtfp_tags, rtfp_format_component, rtfp_dialog, rtfp_misc,
+  {$endif}
+  {$ifdef save_xml}
+  BufDataset, xmldatapacketreader,
   {$endif}
   db, dbf, dbf_common, dbf_fields, sqldb, memds;
 
@@ -1048,6 +1053,29 @@ end;
 {$endif}
 
 
+{$ifdef save_xml}
+procedure CopyDbfToBuf(ADbf:TDbf;ABuf:TBufDataset);
+var field_count,pi:integer;
+    dbname:string;
+begin
+  dbname:=ADbf.FilePath+ADbf.TableName;
+  delete(dbname,length(dbname)-3,4);
+  ABuf.FileName:=dbname;
+  ABuf.FieldDefs.Assign(ADbf.FieldDefs);
+  field_count:=ABuf.FieldDefs.Count;
+  ABuf.CreateDataset;
+  ABuf.Open;
+  ADbf.Open;
+  ADbf.First;
+  while not ADbf.EOF do
+    begin
+      ABuf.Append;
+      for pi:=0 to field_count-1 do ABuf.Fields[pi].Value:=ADbf.Fields[pi].Value;
+      Abuf.Post;
+      ADbf.Next;
+    end;
+end;
+{$endif}
 
 procedure AufScriptFuncDefineRTFP(Auf:TAuf);
 begin
@@ -1281,6 +1309,9 @@ end;
 
 function TRTFP.SaveDbf(dbf_name_no_ext:string;Dbf:TDbf):boolean;
 var dbfpath,datfile,runfile,run_dbt,dat_dbt,name_no_ext:string;
+    {$ifdef save_xml}
+    aBuf:TBufDataset;
+    {$endif}
 begin
   result:=false;
   dbfpath:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext;
@@ -1297,8 +1328,20 @@ begin
         Dbf.Close;
         Dbf.Open;
       end;
+
     TRTFP.FileCopy((dbfpath+runfile),(dbfpath+datfile),false);
     if FileExists(dbfpath+run_dbt) then TRTFP.FileCopy((dbfpath+run_dbt),(dbfpath+dat_dbt),false);
+
+    {$ifdef save_xml}
+    aBuf:=TBufDataset.Create(nil);
+    try
+      CopyDbfToBuf(Dbf,aBuf);
+      aBuf.SaveToFile(GetCurrentPathFull+dbf_name_no_ext+'.xml',dfXML);
+    finally
+      aBuf.Free;
+    end;
+    {$endif}
+
   except
     exit;
   end;
