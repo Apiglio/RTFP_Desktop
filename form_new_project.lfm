@@ -1,12 +1,12 @@
 object Form_NewProject: TForm_NewProject
-  Left = 1041
+  Left = 915
   Height = 240
-  Top = 664
-  Width = 450
+  Top = 622
+  Width = 501
   BorderIcons = [biSystemMenu]
   Caption = '新建工程'
   ClientHeight = 240
-  ClientWidth = 450
+  ClientWidth = 501
   Constraints.MinHeight = 240
   Constraints.MinWidth = 450
   DesignTimePPI = 120
@@ -23,7 +23,7 @@ object Form_NewProject: TForm_NewProject
     Left = 90
     Height = 28
     Top = 15
-    Width = 345
+    Width = 396
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Left = 90
     BorderSpacing.Top = 15
@@ -65,14 +65,14 @@ object Form_NewProject: TForm_NewProject
     Left = 90
     Height = 28
     Top = 53
-    Width = 345
+    Width = 396
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Left = 90
     BorderSpacing.Top = 10
     BorderSpacing.Right = 15
     OnChange = Edit_ProjectPathChange
     TabOrder = 1
-    Text = 'K:\LAB_Pascal\RTFP Desktop\DefaultDB'
+    Text = 'E:\Kaspal\pascal\RTFP_Desktop\DefaultDB'
   end
   object Button_Create: TButton
     AnchorSideLeft.Control = Owner
@@ -118,7 +118,7 @@ object Form_NewProject: TForm_NewProject
     Left = 90
     Height = 134
     Top = 91
-    Width = 345
+    Width = 396
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 90
     BorderSpacing.Top = 10

@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ComCtrls, CheckLst, Menus, ExtCtrls;
+  ComCtrls, CheckLst, Menus, ExtCtrls, dbf;
 
 type
 
@@ -202,7 +202,7 @@ begin
           continue;
         end;
       tmpAG:=tmpAF.AttrsGroup;
-      with tmpAG.Dbf do
+      with TDbf(tmpAG.Dbf) do
         begin
           if not Active then Open;
           IndexName:='id';
@@ -302,9 +302,11 @@ begin
         if (tmpAF.FieldName=_Col_PID_) or (tmpAF.FieldName=_Col_OID_) then continue;
         ListView_AttrsCompare.AddItem(tmpAG.Name+'.'+tmpAF.FieldName,tmpAF);
         index:=ListView_AttrsCompare.Items.Count-1;
-        tmpAG.Dbf.IndexName:='id';
-        b1:=tmpAG.Dbf.SearchKey(id1,stEqual);
-        b2:=tmpAG.Dbf.SearchKey(id2,stEqual);
+        with TDbf(tmpAG.Dbf) do begin
+          IndexName:='id';
+          b1:=SearchKey(id1,stEqual);
+          b2:=SearchKey(id2,stEqual);
+        end;
         if b1 then v1:=CurrentRTFP.ReadFieldAsString(tmpAF.FieldName,tmpAG.Name,id1,[aeFailIfNoPID]) else v1:='<未初始化>';
         if b2 then v2:=CurrentRTFP.ReadFieldAsString(tmpAF.FieldName,tmpAG.Name,id2,[aeFailIfNoPID]) else v2:='<未初始化>';
 

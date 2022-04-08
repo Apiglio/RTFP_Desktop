@@ -49,7 +49,7 @@ var
   Form_NewProject: TForm_NewProject;
 
 implementation
-uses RTFP_main;
+uses RTFP_main, rtfp_type;
 
 {$R *.lfm}
 
@@ -102,7 +102,7 @@ begin
     CurrentRTFP.Free;
   end;
 
-  CurrentRTFP:=TRTFP.Create(FormDesktop);
+  CurrentRTFP:=TRTFP.Create(FormDesktop,dstBUF);
   CurrentRTFP.SetAuf(FormDesktop.Frame_AufScript1.Auf);
   FormDesktop.EventLink(CurrentRTFP);
   CurrentRTFP.New((Self.FileFullName),(Self.FileName),'Apiglio');
