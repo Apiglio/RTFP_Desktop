@@ -12,7 +12,7 @@ unit rtfp_field;
 interface
 
 uses
-  Classes, SysUtils, db, dbf, rtfp_constants, Graphics;
+  Classes, SysUtils, db, dbf, rtfp_constants, Graphics, BufDataset;
 
 type
 
@@ -90,7 +90,7 @@ type
   TAttrsGroup = class(TCollectionItem)
   private
     FName,FFullPath:string;
-    FDbf:TDbf;
+    FDbf:{TDbf}TDataSet;
     FFieldList:TAttrsFieldList;
     FGroupShown:boolean;
   protected
@@ -99,7 +99,7 @@ type
     property Name:string read FName;
     property FullPath:string read FFullPath;
     property FieldList:TAttrsFieldList read FFieldList;
-    property Dbf:TDbf read FDbf;
+    property Dbf:{TDbf}TDataSet read FDbf;
     property GroupShown:boolean read FGroupShown write FGroupShown;//如果为true，FieldFilter会以此为筛选条件
     property IsEmpty:boolean read GetIsEmpty;
   public
@@ -133,7 +133,7 @@ type
     constructor Create(AOwner:TComponent);
   public
     function Add: TAttrsGroup;
-    function AddEx(AFullPath,AName:string): TAttrsGroup;
+    function AddEx(AFullPath,AName:string;data_set_type:string='dbf'): TAttrsGroup;
     procedure Clear;
     function GetEnumerator: TAttrsGroupEnumerator;
     function FindItemIndexByName(AName:string):integer;
@@ -141,12 +141,12 @@ type
     property Items[Index: integer]: TAttrsGroup read GetItems write SetItems; default;
     property Path:string read FFullPath write FFullPath;
   public
-    procedure LoadFromPath(APath:string='\');//相对地址
+    procedure LoadFromPath(APath:string='\';data_set_type:string='dbf');//相对地址
   end;
 
 
 implementation
-uses rtfp_files;
+uses rtfp_files, regexpr;
 
 { TAttrsField }
 
@@ -268,7 +268,10 @@ begin
   if Assigned(ACollection) then
     inherited Create(ACollection)
   else raise Exception.Create('TAttrsGroup.Create: unassigned');
-  FDbf:=TDbf.Create(nil);
+
+  //FDbf:=TDbf.Create(nil);
+  //数据库创建不要放在这里了，改到TAttrsGroup.AddEx中
+
   FFieldList:=TAttrsFieldList.Create(nil);
   FGroupShown:=true;
 end;
@@ -365,14 +368,18 @@ begin
   Result := inherited Add as TAttrsGroup;
 end;
 
-function TAttrsGroupList.AddEx(AFullPath,AName:string): TAttrsGroup;
+function TAttrsGroupList.AddEx(AFullPath,AName:string;data_set_type:string='dbf'): TAttrsGroup;
 begin
   Result := inherited Add as TAttrsGroup;
   AFullPath:=StringReplace(AFullPath,'\\','\',[rfReplaceAll]);//不会吧，不是这里的问题吧
   AFullPath:=StringReplace(AFullPath,'\\','\',[rfReplaceAll]);//斜杠要整理一下
   result.FFullPath:=AFullPath;
   result.FName:=AName;
-  result.FDbf:=TDbf.Create(Self.FOwner);
+  case data_set_type of
+    'dbf':result.FDbf:=TDbf.Create(Self.FOwner);
+    'buf':result.FDbf:=TBufDataset.Create(Self.FOwner);
+  end;
+
 end;
 
 procedure TAttrsGroupList.Clear;
@@ -407,34 +414,45 @@ begin
 end;
 
 
-procedure TAttrsGroupList.LoadFromPath(APath:string='\');
+procedure TAttrsGroupList.LoadFromPath(APath:string='\';data_set_type:string='dbf');
 var tmpFileList:TRTFP_FileList;
     stmp:TCollectionItem;
     pathname,groupname:string;
-    poss:integer;
+    regexp:TRegExpr;
 begin
   assert(APath<>'','TAttrsGroupList.LoadFromPath: APath=""');
   if APath='' then exit;
   Clear;
   tmpFileList:=TRTFP_FileList.Create(nil,FFullPath+'\'+APath);
+  regexp:=TRegExpr.Create(filter);
+  case data_set_type of
+    'dbf':regexp.Expression:='[^_run]\.dbf';
+    'buf':regexp.Expression:='\S\.buf';
+  end;
   try
     //tmpFileList.BaseDir:=FFullPath+'\'+APath;
     tmpFileList.RunDir;
     for stmp in tmpFileList do
       begin
         pathname:=(stmp as TRTFP_FileItem).Name;
-        groupname:=ExtractFilename(pathname);
+        if not regexp.Exec(pathname) then continue;
+        groupname:=ExtractFileName(pathname);
+        System.delete(groupname,length(groupname)-3,4);
+        System.delete(pathname,length(pathname)-3,4);
+        {
         if pos('.dbf',lowercase(pathname))<>length(pathname)-3 then continue;
         poss:=pos('_run.dbf',lowercase(pathname));
         if (poss=length(pathname)-7) and (poss>0) then continue;
         if lowercase(ExtractFileExt(groupname))='.dbf' then groupname:=Copy(groupname,1,length(groupname)-4);
         {if lowercase(ExtractFileExt(pathname))='.dbf' then }pathname:=Copy(pathname,1,length(pathname)-4);
         //ShowMessage(groupname+#13#10+pathname);
-        Self.AddEx(APath+'\'+pathname,groupname);
+        }
+        Self.AddEx(APath+'\'+pathname,groupname,data_set_type);
       end;
 
   finally
     tmpFileList.Free;
+    regexp.Free;
   end;
 
 end;

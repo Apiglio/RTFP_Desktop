@@ -25,6 +25,8 @@ type
                    scoDB,scoDS);                                       //匹配总体：PaperDB、PaperDS
 
   TSimChkOptions = set of TSimChkOption;
+  TRTFP_DataSetType = (dstDBF,dstBUF);
+
 
 implementation
 

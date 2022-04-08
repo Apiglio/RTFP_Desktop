@@ -5,7 +5,7 @@ unit rtfp_class;
 interface
 
 uses
-  Classes, SysUtils, dbf, rtfp_constants;
+  Classes, SysUtils, dbf, rtfp_constants, db;
 
 type
 
@@ -14,12 +14,12 @@ type
   TKlass = class(TCollectionItem)
   private
     FName,FFullPath:string;
-    FDbf:TDbf;
+    FDbf:{TDbf}TDataSet;
     FFilterEnabled:boolean;
   public
     property Name:string read FName;
     property FullPath:string read FFullPath;
-    property Dbf:Tdbf read FDbf;
+    property Dbf:{Tdbf}TDataSet read FDbf;
     property FilterEnabled:boolean read FFilterEnabled write FFilterEnabled;//如果为true，RecordFilter会以此为筛选条件
   public
     constructor Create(ACollection:TCollection);override;
