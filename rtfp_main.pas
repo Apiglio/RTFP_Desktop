@@ -2144,6 +2144,9 @@ begin
         68:CurrentRTFP.OpenPaperDir(Selected_PID);//D
         //76:CurrentRTFP.OpenPaperLink(Selected_PID);//L
 
+        83:if not ProjectInvalid then CurrentRTFP.Save;//S
+
+
       end;
     end;
   NodeViewValidate;
