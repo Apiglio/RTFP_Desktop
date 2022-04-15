@@ -424,7 +424,7 @@ begin
   if APath='' then exit;
   Clear;
   tmpFileList:=TRTFP_FileList.Create(nil,FFullPath+'\'+APath);
-  regexp:=TRegExpr.Create(filter);
+  regexp:=TRegExpr.Create;
   case data_set_type of
     'dbf':regexp.Expression:='[^_run]\.dbf';
     'buf':regexp.Expression:='\S\.buf';

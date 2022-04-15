@@ -1565,9 +1565,105 @@ begin
   FieldChange;
 end;
 
+function AddFieldInBuf(buf:TBufDataset;FieldName:string;ADataType:TFieldType;ASize:word=0):TFieldDef;
+var tmpBuf:TBufDataset;
+    pi,max_col:integer;
+    res:TFieldDef;
+begin
+  result:=nil;
+  if buf.FieldDefs.IndexOf(FieldName)>=0 then exit;//存在同名即退出
+  tmpBuf:=TBufDataset.Create(nil);
+  try
+    if not buf.Active then buf.Open;
+    tmpBuf.CopyFromDataset(buf,true);
+    buf.Close;
+    if not TRTFP.FileRename(buf.FileName,buf.FileName+'.bak') then
+      raise Exception.Create('重命名失败，新增字段会导致不安全操作。');
+    buf.Clear;
+    //buf.Close;
+    buf.CopyFromDataset(tmpBuf,false);
+    max_col:=buf.FieldDefs.Count;
+    if Asize=0 then buf.FieldDefs.Add(FieldName,ADataType) else buf.FieldDefs.Add(FieldName,ADataType,ASize);
+    res:=buf.FieldDefs[max_col];
+    //buf.CreateDataset;
+    //buf.Open;
+    buf.First;
+    tmpBuf.Open;
+    tmpBuf.First;
+    while not tmpBuf.EOF do
+      begin
+        buf.Append;
+        for pi:=0 to max_col do buf.Fields[pi].Assign(tmpBuf.Fields[pi]);
+        buf.Post;
+        tmpBuf.Next;
+      end;
+    buf.Close;
+    TRTFP.FileDelete(buf.FileName+'.bak');//我不管删除与否，备份着也无所谓吧应该
+    tmpBuf.Clear;
+    tmpBuf.Close;
+  finally
+    tmpBuf.Free;
+  end;
+  result:=res;
+end;
+
+function DeleteFieldInBuf(buf:TBufDataset;FieldName:string):boolean;
+var tmpBuf:TBufDataset;
+    pi,del_id,max_col:integer;
+begin
+  result:=false;
+  if buf.FieldDefs.IndexOf(FieldName)<0 then exit;//不存在同名则退出
+  tmpBuf:=TBufDataset.Create(nil);
+  try
+    if not buf.Active then buf.Open;
+    tmpBuf.CopyFromDataset(buf,true);
+    buf.Close;
+    if not TRTFP.FileRename(buf.FileName,buf.FileName+'.bak') then
+      raise Exception.Create('重命名失败，新增字段会导致不安全操作。');
+    buf.Clear;
+    //buf.Close;
+    buf.CopyFromDataset(tmpBuf,false);
+    max_col:=buf.FieldDefs.Count;
+    del_id:=buf.FieldDefs.Find(FieldName).FieldNo;
+    buf.FieldDefs.Delete(del_id);
+    //buf.CreateDataset;
+    //buf.Open;
+    buf.First;
+    tmpBuf.Open;
+    tmpBuf.First;
+    while not tmpBuf.EOF do
+      begin
+        buf.Append;
+        for pi:=0 to del_id-1 do buf.Fields[pi].Assign(tmpBuf.Fields[pi]);
+        for pi:=del_id+1 to max_col-2 do buf.Fields[pi].Assign(tmpBuf.Fields[pi+1]);
+        buf.Post;
+        tmpBuf.Next;
+      end;
+    buf.Close;
+    TRTFP.FileDelete(buf.FileName+'.bak');//我不管删除与否，备份着也无所谓吧应该
+    tmpBuf.Clear;
+    tmpBuf.Close;
+  finally
+    tmpBuf.Free;
+  end;
+  result:=true;
+end;
+
+function RenameFieldInBuf(buf:TBufDataset;OldFieldName,NewFieldName:string):boolean;
+begin
+
+end;
+
+function ChangeTypeInBuf(buf:TBufDataset;FieldName:string;OldDataType,NewDataType:TFieldType):boolean;//这个还要考虑一些额外选项
+begin
+
+end;
+
+
 function TRTFP.AddField(AName:string;AAttrsName:string;AType:TFieldType{;ASize:word}):TAttrsField;
 var tmpAG:TAttrsGroup;
     tmpAF:TAttrsField;
+    tmpDefs:TFieldDef;
 begin
   result:=nil;
   if not TRTFP.IsAttrsName(AAttrsName) then exit;
@@ -1596,20 +1692,14 @@ begin
     end;
     dstBUF:
     begin
-      with TBufDataset(tmpAG.Dbf) do begin
-        if not Active then Open;
-        case AType of
-          ftString:DbfFieldDefs.Add(AName,AType,16);
-          ftFloat:DbfFieldDefs.Add(AName,AType,8);
-          else DbfFieldDefs.Add(AName,AType{,ASize});
-        end;
-        PackTable;
-        Close;
-        Open;
-        RegenerateIndexes;
-        tmpAG.AddField(FieldDefs.Find(AName));//LoadFieldListFromDbf;
-        FieldChange;
+      case AType of
+        ftString:tmpDefs:=AddFieldInBuf(TBufDataSet(tmpAG.Dbf),AName,Atype,16);
+        ftFloat:tmpDefs:=AddFieldInBuf(TBufDataSet(tmpAG.Dbf),AName,Atype,8);
+        else tmpDefs:=AddFieldInBuf(TBufDataSet(tmpAG.Dbf),AName,Atype);
       end;
+      if tmpDefs=nil then exit;
+      tmpAG.AddField(tmpDefs);//LoadFieldListFromDbf;
+      FieldChange;
     end;
   end;
   result:=tmpAG.FieldList.FindItemByName(AName);
@@ -1632,31 +1722,37 @@ begin
   tmpAG:=FindAttrs(AAttrsName);
   if tmpAG=nil then exit;
   tmpAF:=tmpAG.FieldList.FindItemByName(AName);
-  if tmpAF<>nil then
-    with TDbf(tmpAG.Dbf) do begin
-      if not Active then Open;
-      TryExclusive;
-      pi:=0;
-      while pi<DbfFieldDefs.Count do
-        begin
-          if DbfFieldDefs.Items[pi].FieldName=AName then break;
-          inc(pi);
-        end;
-      if pi<DbfFieldDefs.Count then
-        begin
-          DbfFieldDefs.Delete(pi);
-          PackTable;
-        end
-      else ;
-      Close;
-      Open;
-      EndExclusive;
-      RegenerateIndexes;
-      tmpAG.DelField(AName);//LoadFieldListFromDbf;
-      //FieldChange;//为什么会在这个
+  if tmpAF<>nil then case FDataSetType of
+    dstDBF:begin
+      with TDbf(tmpAG.Dbf) do begin
+        if not Active then Open;
+        TryExclusive;
+        pi:=0;
+        while pi<DbfFieldDefs.Count do
+          begin
+            if DbfFieldDefs.Items[pi].FieldName=AName then break;
+            inc(pi);
+          end;
+        if pi<DbfFieldDefs.Count then
+          begin
+            DbfFieldDefs.Delete(pi);
+            PackTable;
+          end
+        else ;
+        Close;
+        Open;
+        EndExclusive;
+        RegenerateIndexes;
+        tmpAG.DelField(AName);//LoadFieldListFromDbf;
+      end;
     end;
+    dstBUF:begin
+       if not DeleteFieldInBuf(TBufDataset(tmpAG.Dbf),AName) then exit;
+       tmpAG.DelField(AName);//LoadFieldListFromDbf;
+    end;
+  end;
   if tmpAG.IsEmpty then DeleteAttrs(tmpAG.Name);
-  FieldChange;//应该在这
+  FieldChange;
 end;
 
 function TRTFP.CheckField(AName:string;AAttrsName:string;AType:TFieldType):boolean;

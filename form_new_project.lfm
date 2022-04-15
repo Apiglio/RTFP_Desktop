@@ -1,12 +1,12 @@
 object Form_NewProject: TForm_NewProject
-  Left = 915
+  Left = 892
   Height = 240
-  Top = 622
-  Width = 501
+  Top = 498
+  Width = 450
   BorderIcons = [biSystemMenu]
   Caption = '新建工程'
   ClientHeight = 240
-  ClientWidth = 501
+  ClientWidth = 450
   Constraints.MinHeight = 240
   Constraints.MinWidth = 450
   DesignTimePPI = 120
@@ -23,7 +23,7 @@ object Form_NewProject: TForm_NewProject
     Left = 90
     Height = 28
     Top = 15
-    Width = 396
+    Width = 345
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Left = 90
     BorderSpacing.Top = 15
@@ -37,8 +37,8 @@ object Form_NewProject: TForm_NewProject
     AnchorSideTop.Control = Edit_ProjectName
     AnchorSideTop.Side = asrCenter
     Left = 15
-    Height = 20
-    Top = 19
+    Height = 15
+    Top = 22
     Width = 75
     BorderSpacing.Left = 15
     Caption = '工程名称：'
@@ -49,8 +49,8 @@ object Form_NewProject: TForm_NewProject
     AnchorSideTop.Control = Edit_ProjectPath
     AnchorSideTop.Side = asrCenter
     Left = 15
-    Height = 20
-    Top = 57
+    Height = 15
+    Top = 60
     Width = 75
     BorderSpacing.Left = 15
     Caption = '文件路径：'
@@ -65,7 +65,7 @@ object Form_NewProject: TForm_NewProject
     Left = 90
     Height = 28
     Top = 53
-    Width = 396
+    Width = 345
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Left = 90
     BorderSpacing.Top = 10
@@ -118,11 +118,11 @@ object Form_NewProject: TForm_NewProject
     Left = 90
     Height = 134
     Top = 91
-    Width = 396
+    Width = 235
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 90
     BorderSpacing.Top = 10
-    BorderSpacing.Right = 15
+    BorderSpacing.Right = 125
     BorderSpacing.Bottom = 15
     Enabled = False
     Items.Strings = (
@@ -142,13 +142,43 @@ object Form_NewProject: TForm_NewProject
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = CheckListBox_CanBuild
     Left = 15
-    Height = 20
+    Height = 15
     Top = 95
     Width = 75
     BorderSpacing.Left = 15
     BorderSpacing.Top = 4
     Caption = '创建要求：'
     ParentColor = False
+  end
+  object RadioGroup_dbFormat: TRadioGroup
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = CheckListBox_CanBuild
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 336
+    Height = 69
+    Top = 91
+    Width = 99
+    Anchors = [akTop, akRight]
+    AutoFill = True
+    BorderSpacing.Left = 30
+    BorderSpacing.Right = 15
+    Caption = '数据库格式'
+    ChildSizing.LeftRightSpacing = 6
+    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+    ChildSizing.EnlargeVertical = crsHomogenousChildResize
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 1
+    ClientHeight = 49
+    ClientWidth = 95
+    ItemIndex = 0
+    Items.Strings = (
+      'DBF'
+      'BUF'
+    )
+    TabOrder = 5
   end
   object SelectDirectoryDialog_NewProject: TSelectDirectoryDialog
     Title = '选择目录'

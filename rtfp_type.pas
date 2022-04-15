@@ -27,7 +27,6 @@ type
   TSimChkOptions = set of TSimChkOption;
   TRTFP_DataSetType = (dstDBF,dstBUF);
 
-
 implementation
 
 end.
