@@ -20,8 +20,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="RTFP_main"/>
-        <TopLine Value="2136"/>
-        <CursorPos X="19" Y="2147"/>
+        <CursorPos X="37" Y="22"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -32,8 +31,8 @@
         <UnitName Value="RTFP_definition"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="3"/>
-        <TopLine Value="1623"/>
-        <CursorPos X="7" Y="1630"/>
+        <TopLine Value="4336"/>
+        <CursorPos X="40" Y="4354"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
       </Unit2>
@@ -272,7 +271,7 @@
         <EditorIndex Value="2"/>
         <TopLine Value="32"/>
         <CursorPos X="61" Y="35"/>
-        <UsageCount Value="168"/>
+        <UsageCount Value="170"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit24>
@@ -286,7 +285,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="132"/>
+        <UsageCount Value="134"/>
       </Unit25>
       <Unit26>
         <Filename Value="..\AufScript\apiglio_useful.pas"/>
@@ -295,7 +294,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="3079"/>
         <CursorPos X="49" Y="3090"/>
-        <UsageCount Value="132"/>
+        <UsageCount Value="134"/>
       </Unit26>
       <Unit27>
         <Filename Value="..\AufScript\auf_ram_var.pas"/>
@@ -304,7 +303,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="132"/>
+        <UsageCount Value="134"/>
       </Unit27>
       <Unit28>
         <Filename Value="sync\sync_timer.pas"/>
@@ -312,7 +311,7 @@
         <EditorIndex Value="11"/>
         <TopLine Value="139"/>
         <CursorPos X="76" Y="147"/>
-        <UsageCount Value="131"/>
+        <UsageCount Value="133"/>
         <Loaded Value="True"/>
       </Unit28>
       <Unit29>
@@ -321,7 +320,7 @@
         <EditorIndex Value="5"/>
         <TopLine Value="6"/>
         <CursorPos X="39" Y="28"/>
-        <UsageCount Value="129"/>
+        <UsageCount Value="131"/>
         <Loaded Value="True"/>
       </Unit29>
       <Unit30>
@@ -353,26 +352,26 @@
         <Filename Value="DefaultDB\Untitled23.rtfp"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="98" Y="8"/>
-        <UsageCount Value="0"/>
+        <UsageCount Value="10"/>
         <DefaultSyntaxHighlighter Value="None"/>
       </Unit33>
       <Unit34>
         <Filename Value="D:\Lazarus\fpc\3.0.4\source\packages\fcl-process\src\simpleipc.pp"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="0"/>
+        <UsageCount Value="10"/>
       </Unit34>
       <Unit35>
         <Filename Value="D:\Lazarus\lcl\lazcanvas.pas"/>
         <UnitName Value="LazCanvas"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="0"/>
+        <UsageCount Value="10"/>
       </Unit35>
       <Unit36>
         <Filename Value="D:\Lazarus\fpc\3.0.4\source\rtl\inc\systemh.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="429"/>
         <CursorPos X="3" Y="443"/>
-        <UsageCount Value="0"/>
+        <UsageCount Value="10"/>
       </Unit36>
       <Unit37>
         <Filename Value="D:\Lazarus\lcl\dbgrids.pas"/>
@@ -707,123 +706,123 @@
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1574" TopLine="1568"/>
+        <Caret Line="4322" TopLine="4303"/>
       </Position1>
       <Position2>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1607" TopLine="1566"/>
+        <Caret Line="4323" TopLine="4316"/>
       </Position2>
       <Position3>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1581" Column="30" TopLine="1566"/>
+        <Caret Line="4324" TopLine="4316"/>
       </Position3>
       <Position4>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1574" TopLine="1566"/>
+        <Caret Line="4325" TopLine="4316"/>
       </Position4>
       <Position5>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1575" TopLine="1566"/>
+        <Caret Line="4324" TopLine="4316"/>
       </Position5>
       <Position6>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1576" TopLine="1566"/>
+        <Caret Line="4374" TopLine="4361"/>
       </Position6>
       <Position7>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1577" TopLine="1566"/>
+        <Caret Line="4376" TopLine="4361"/>
       </Position7>
       <Position8>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1578" TopLine="1566"/>
+        <Caret Line="4374" TopLine="4361"/>
       </Position8>
       <Position9>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1579" TopLine="1566"/>
+        <Caret Line="4378" TopLine="4361"/>
       </Position9>
       <Position10>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1580" TopLine="1566"/>
+        <Caret Line="4314" TopLine="4300"/>
       </Position10>
       <Position11>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1582" TopLine="1566"/>
+        <Caret Line="4315" TopLine="4300"/>
       </Position11>
       <Position12>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1583" TopLine="1566"/>
+        <Caret Line="4316" TopLine="4300"/>
       </Position12>
       <Position13>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1584" TopLine="1566"/>
+        <Caret Line="4317" TopLine="4300"/>
       </Position13>
       <Position14>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1585" TopLine="1566"/>
+        <Caret Line="4318" TopLine="4300"/>
       </Position14>
       <Position15>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1586" TopLine="1566"/>
+        <Caret Line="4319" TopLine="4300"/>
       </Position15>
       <Position16>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1624" Column="17" TopLine="1608"/>
+        <Caret Line="4320" TopLine="4300"/>
       </Position16>
       <Position17>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1573" TopLine="1559"/>
+        <Caret Line="4321" TopLine="4300"/>
       </Position17>
       <Position18>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1571" Column="33" TopLine="1559"/>
+        <Caret Line="4323" TopLine="4300"/>
       </Position18>
       <Position19>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1575" TopLine="1559"/>
+        <Caret Line="4324" TopLine="4301"/>
       </Position19>
       <Position20>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1576" TopLine="1559"/>
+        <Caret Line="4364" Column="33" TopLine="4308"/>
       </Position20>
       <Position21>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1577" TopLine="1565"/>
+        <Caret Line="4322" TopLine="4308"/>
       </Position21>
       <Position22>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1578" TopLine="1565"/>
+        <Caret Line="4315" TopLine="4308"/>
       </Position22>
       <Position23>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1579" TopLine="1565"/>
+        <Caret Line="4316" TopLine="4308"/>
       </Position23>
       <Position24>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1580" TopLine="1565"/>
+        <Caret Line="4369" Column="16" TopLine="4323"/>
       </Position24>
       <Position25>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1582" TopLine="1568"/>
+        <Caret Line="4315" TopLine="4302"/>
       </Position25>
       <Position26>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1583" TopLine="1568"/>
+        <Caret Line="4316" TopLine="4302"/>
       </Position26>
       <Position27>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1584" TopLine="1568"/>
+        <Caret Line="4315" TopLine="4302"/>
       </Position27>
       <Position28>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1585" TopLine="1575"/>
+        <Caret Line="4316" TopLine="4302"/>
       </Position28>
       <Position29>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1586" TopLine="1575"/>
+        <Caret Line="4320" TopLine="4302"/>
       </Position29>
       <Position30>
         <Filename Value="rtfp_definition.pas"/>
-        <Caret Line="1587" TopLine="1575"/>
+        <Caret Line="4321" TopLine="4302"/>
       </Position30>
     </JumpHistory>
   </ProjectSession>

@@ -4305,11 +4305,19 @@ procedure TRTFP.LoadFromEStudy(PID:RTFP_ID;str:TStrings);
 var stmp,header,attr:string;
     poss:integer;
     tmpDate:TDate;
-    error_str:string;
+    error_str,sum_temp:string;
+    is_last_summary:boolean;
 begin
   error_str:=#13#10;
+  is_last_summary:=false;
   with InitBasic(PID) do begin
     for stmp in str do begin
+      if stmp='' then continue;
+      //这里用制表符判断多行摘要格式是否有足够的适应性？
+      if (stmp[1]=#9) and is_last_summary then begin
+        sum_temp:=FieldByName(_Col_basic_Summary_).AsString;
+        FieldByName(_Col_basic_Summary_).AsString:=sum_temp+#13#10+stmp;
+      end;
       poss:=pos(': ',stmp);
       if poss<=0 then continue;
       header:=stmp;
@@ -4344,7 +4352,10 @@ begin
               end;
               FieldByName(_Col_basic_PubTime_).AsDateTime:=tmpDate;
             end;
-          'Period-期':FieldByName(_Col_basic_Issue_).AsString:=attr;
+          'Period-期':begin
+            attr:=StringReplace(attr,'E','-',[rfReplaceAll,rfIgnoreCase]);
+            FieldByName(_Col_basic_Issue_).AsString:=attr;
+          end;
           'Roll-卷':FieldByName(_Col_basic_Volume_).AsString:=attr;
           'Keyword-关键词':FieldByName(_Col_basic_Keyword_).AsString:=attr;
           'Summary-摘要','Summary-快照':FieldByName(_Col_basic_Summary_).AsString:=attr;
@@ -4363,6 +4374,10 @@ begin
         end;
       except
         error_str:=error_str+'    '+header+#13#10;
+      end;
+      case header of
+        'Summary-摘要','Summary-快照':is_last_summary:=true;
+        else is_last_summary:=false;
       end;
       ReEditBasic;
       //PostBasic;
@@ -5189,7 +5204,7 @@ var colname,method,value:string;
 begin
   //= eql         相等
   //!= <> neq     不相等
-  //has           包含有
+  //has,contains  包含有
   //in            在其内
   //true          是否为真
   //false         是否为假
@@ -5244,7 +5259,9 @@ begin
               'eql':if Fields[Col_num].AsString<>value then Delete else Next;
               'neq':if Fields[Col_num].AsString=value then Delete else Next;
               'in':if pos(Fields[Col_num].AsString,value)<=0 then Delete else Next;
-              'has':if pos(value,Fields[Col_num].AsString)<=0 then Delete else Next;
+              'has','contains':if pos(value,Fields[Col_num].AsString)<=0 then Delete else Next;
+              '!in':if pos(Fields[Col_num].AsString,value)>0 then Delete else Next;
+              '!has','!contains':if pos(value,Fields[Col_num].AsString)>0 then Delete else Next;
               'true':if not Fields[Col_num].AsBoolean then Delete else Next;
               'false':if Fields[Col_num].AsBoolean then Delete else Next;
               'gtr':if Fields[Col_num].AsLargeInt<=Usf.to_f(value) then Delete else Next;
