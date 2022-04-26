@@ -24,9 +24,11 @@
 //我他妈服了，DBF的文件错误也太多了吧？？？？
 //异常关闭的恢复
 //formatEditComponent在图像字段数据有误时的解决方案需要明细
+//每一个dbf保存前判断是否modified
 
 
 //{$define insert}
+{$define save_xml}
 {$define test}
 
 unit RTFP_definition;
@@ -39,7 +41,7 @@ interface
 
 uses
   Classes, SysUtils, Dialogs, ValEdit, LazUTF8, StdCtrls, ComCtrls, ExtCtrls, Forms,
-  ACL_ListView, Controls, Graphics,
+  ACL_ListView, Controls, Graphics, RegExpr,
 
   {$ifdef Windows}
   Windows,
@@ -49,6 +51,7 @@ uses
   Apiglio_Useful, auf_ram_var, rtfp_pdfobj, rtfp_files, rtfp_class, rtfp_field,
   rtfp_constants, rtfp_type, rtfp_tags, rtfp_format_component, rtfp_dialog, rtfp_misc,
   {$endif}
+  BufDataset, xmldatapacketreader,
   db, dbf, dbf_common, dbf_fields, sqldb, memds;
 
 
@@ -96,8 +99,11 @@ type
 
   TRTFP = class(TComponent)
   private
+
+    FDataSetType:TRTFP_DataSetType;
+
     FProjectTags:TTags;
-    FPaperDB,FImageDB,FNotesDB:TDbf;
+    FPaperDB,FImageDB,FNotesDB:{TDbf}TDataSet;
     FUserList,FFormatList:TStringList;
 
     FKlassList:TKlassList;
@@ -169,23 +175,23 @@ type
     function SaveUserList:boolean;inline;
     function CloseUserList:boolean;inline;
 
-    procedure GenPaperAttribute(Dbf:TDbf);inline;
-    procedure GenImageAttribute(Dbf:TDbf);inline;
-    procedure GenNoteAttribute(Dbf:TDbf);inline;
+    procedure GenPaperAttribute(Dbf:{TDbf}TDataSet);inline;
+    procedure GenImageAttribute(Dbf:{TDbf}TDataSet);inline;
+    procedure GenNoteAttribute(Dbf:{TDbf}TDataSet);inline;
 
-    procedure GenAttrMetasAttribute(Dbf:TDbf);inline;
-    procedure GenAttrBasicAttribute(Dbf:TDbf);inline;
-    procedure GenAttrClassAttribute(Dbf:TDbf);inline;
-    procedure GenAttrNotesAttribute(Dbf:TDbf);inline;
-    procedure GenAttrDefaultAttribute(Dbf:TDbf);inline;
-    procedure GenAttrRelatAttribute(Dbf:TDbf);inline;
+    procedure GenAttrMetasAttribute(Dbf:{TDbf}TDataSet);inline;
+    procedure GenAttrBasicAttribute(Dbf:{TDbf}TDataSet);inline;
+    procedure GenAttrClassAttribute(Dbf:{TDbf}TDataSet);inline;
+    procedure GenAttrNotesAttribute(Dbf:{TDbf}TDataSet);inline;
+    procedure GenAttrDefaultAttribute(Dbf:{TDbf}TDataSet);inline;
+    procedure GenAttrRelatAttribute(Dbf:{TDbf}TDataSet);inline;
 
-    function OpenDbf(dbf_name_no_ext:string;Dbf:TDbf):boolean;
-    function NewDbf(dbf_name_no_ext:string;Dbf:TDbf):boolean;
-    function SaveDbf(dbf_name_no_ext:string;Dbf:TDbf):boolean;
-    function CloseDbf(dbf_name_no_ext:string;Dbf:TDbf):boolean;
-    function DeleteDbf(dbf_name_no_ext:string;Dbf:TDbf):boolean;
-    function PackDbf(Dbf:TDbf):boolean;
+    function OpenDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet):boolean;
+    function NewDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet):boolean;
+    function SaveDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet):boolean;
+    function CloseDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet):boolean;
+    function DeleteDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet):boolean;
+    function PackDbf(Dbf:{TDbf}TDataSet):boolean;
 
 
   public //工程状态选项记录
@@ -490,8 +496,8 @@ type
     class function FieldOptWidth(AFieldDef:TFieldDef):integer;
 
 
-    //class function BackupDbf(ADBF:TDbf):boolean;
-    //class function RecoverDbf(ADBF:TDbf):boolean;
+    //class function BackupDbf(ADBF:{TDbf}TDataSet):boolean;
+    //class function RecoverDbf(ADBF:{TDbf}TDataSet):boolean;
 
     class function CanBuildName(projname:string):boolean;
     class function CanBuildPath(pathname:string):boolean;
@@ -513,7 +519,7 @@ type
 
   {构造与析构}
   public
-    constructor Create(AOwner:TComponent);virtual;
+    constructor Create(AOwner:TComponent;ADatasetType:TRTFP_DataSetType=dstDBF);virtual;
     destructor Destroy;override;
 
   end;
@@ -1048,6 +1054,29 @@ end;
 {$endif}
 
 
+{$ifdef save_xml}
+procedure CopyDbfToBuf(ADbf:TDbf;ABuf:TBufDataset);
+var field_count,pi:integer;
+    dbname:string;
+begin
+  dbname:=ADbf.FilePath+ADbf.TableName;
+  delete(dbname,length(dbname)-3,4);
+  ABuf.FileName:=dbname;
+  ABuf.FieldDefs.Assign(ADbf.FieldDefs);
+  field_count:=ABuf.FieldDefs.Count;
+  ABuf.CreateDataset;
+  ABuf.Open;
+  ADbf.Open;
+  ADbf.First;
+  while not ADbf.EOF do
+    begin
+      ABuf.Append;
+      for pi:=0 to field_count-1 do ABuf.Fields[pi].Value:=ADbf.Fields[pi].Value;
+      Abuf.Post;
+      ADbf.Next;
+    end;
+end;
+{$endif}
 
 procedure AufScriptFuncDefineRTFP(Auf:TAuf);
 begin
@@ -1114,9 +1143,10 @@ end;
 
 
 
-constructor TRTFP.Create(AOwner:TComponent);
+constructor TRTFP.Create(AOwner:TComponent;ADatasetType:TRTFP_DataSetType=dstDBF);
 begin
   inherited Create(AOwner);
+  FDataSetType:=ADatasetType;
 
   FPaperDS:=TMemDataset.Create(Self);
   PaperDSFieldDefs:=TList.Create;
@@ -1127,11 +1157,19 @@ begin
   //ProjectFileValue.Hide;
   FProjectTags:=TTags.Create;
 
-  FPaperDB:=TDbf.Create(Self);
-  FImageDB:=TDbf.Create(Self);
-  FNotesDB:=TDbf.Create(Self);
-
-
+  case FDataSetType of
+    dstDBF:begin
+      FPaperDB:=TDbf.Create(Self);
+      FImageDB:=TDbf.Create(Self);
+      FNotesDB:=TDbf.Create(Self);
+    end;
+    dstBUF:begin
+      FPaperDB:=TBufDataset.Create(Self);
+      FImageDB:=TBufDataset.Create(Self);
+      FNotesDB:=TBufDataset.Create(Self);
+    end;
+    else raise Exception.Create('无效DataSetType。');
+  end;
 
   FKlassList:=TKlassList.Create(Self);
   FFileList:=TRTFP_FileList.Create(Self,'');
@@ -1223,156 +1261,263 @@ begin
 
 end;
 
-function TRTFP.OpenDbf(dbf_name_no_ext:string;Dbf:TDbf):boolean;
+function TRTFP.OpenDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet):boolean;
 var dbfpath,datfile,runfile,run_dbt,dat_dbt,name_no_ext:string;
 begin
   result:=false;
-  dbfpath:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext;
-  name_no_ext:=ExtractFileName(dbfpath);
-  dbfpath:=ExtractFilePath(dbfpath);
-  datfile:=name_no_ext+'.dbf';
-  runfile:=name_no_ext+'_run.dbf';
-  dat_dbt:=name_no_ext+'.dbt';
-  run_dbt:=name_no_ext+'_run.dbt';
+  case FDataSetType of
+    dstDBF:begin
+      dbfpath:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext;
+      name_no_ext:=ExtractFileName(dbfpath);
+      dbfpath:=ExtractFilePath(dbfpath);
+      datfile:=name_no_ext+'.dbf';
+      runfile:=name_no_ext+'_run.dbf';
+      dat_dbt:=name_no_ext+'.dbt';
+      run_dbt:=name_no_ext+'_run.dbt';
 
-  if not FileExists(dbfpath+datfile) then exit;
-  TRTFP.FileCopy((dbfpath+datfile),(dbfpath+runfile),false);
-  if FileExists(dbfpath+dat_dbt) then TRTFP.FileCopy((dbfpath+dat_dbt),(dbfpath+run_dbt),false);
+      if not FileExists(dbfpath+datfile) then exit;
+      TRTFP.FileCopy((dbfpath+datfile),(dbfpath+runfile),false);
+      if FileExists(dbfpath+dat_dbt) then TRTFP.FileCopy((dbfpath+dat_dbt),(dbfpath+run_dbt),false);
 
-  Dbf.FilePathFull:=dbfpath;
-  Dbf.TableName:=runfile;
-  Dbf.Exclusive:=true;
-  try
-    Dbf.Open;
-    Dbf.AddIndex('Id',Dbf.DbfFieldDefs.Items[1].FieldName,[ixPrimary, ixUnique]);
-  except
-    exit;
-  end;
-  result:=true;
-end;
-
-function TRTFP.NewDbf(dbf_name_no_ext:string;Dbf:TDbf):boolean;
-var dbfpath,datfile,runfile,run_dbt,dat_dbt,name_no_ext:string;
-begin
-  result:=false;
-  dbfpath:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext;
-  name_no_ext:=ExtractFileName(dbfpath);
-  dbfpath:=ExtractFilePath(dbfpath);
-  datfile:=name_no_ext+'.dbf';
-  runfile:=name_no_ext+'_run.dbf';
-  dat_dbt:=name_no_ext+'.dbt';
-  run_dbt:=name_no_ext+'_run.dbt';
-
-  Dbf.FilePathFull:=dbfpath;
-  Dbf.TableName:=runfile;
-  try
-    Dbf.TableLevel:=7;
-    Dbf.Exclusive:=true;
-    Dbf.CreateTable;
-    Dbf.Open;
-    Dbf.AddIndex('Id',Dbf.DbfFieldDefs.Items[1].FieldName,[ixPrimary, ixUnique]);
-  except
-    exit;
-  end;
-  TRTFP.FileCopy((dbfpath+runfile),(dbfpath+datfile),false);
-  if FileExists(dbfpath+run_dbt) then TRTFP.FileCopy((dbfpath+run_dbt),(dbfpath+dat_dbt),false);
-  result:=true;
-end;
-
-function TRTFP.SaveDbf(dbf_name_no_ext:string;Dbf:TDbf):boolean;
-var dbfpath,datfile,runfile,run_dbt,dat_dbt,name_no_ext:string;
-begin
-  result:=false;
-  dbfpath:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext;
-  name_no_ext:=ExtractFileName(dbfpath);
-  dbfpath:=ExtractFilePath(dbfpath);
-  datfile:=name_no_ext+'.dbf';
-  runfile:=name_no_ext+'_run.dbf';
-  dat_dbt:=name_no_ext+'.dbt';
-  run_dbt:=name_no_ext+'_run.dbt';
-
-  try
-    if Dbf.Active then
-      begin
-        Dbf.Close;
-        Dbf.Open;
+      with TDbf(Dbf) do begin
+        FilePathFull:=dbfpath;
+        TableName:=runfile;
+        Exclusive:=true;
+        try
+          Open;
+          AddIndex('Id',DbfFieldDefs.Items[1].FieldName,[ixPrimary, ixUnique]);
+        except
+          exit;
+        end;
       end;
-    TRTFP.FileCopy((dbfpath+runfile),(dbfpath+datfile),false);
-    if FileExists(dbfpath+run_dbt) then TRTFP.FileCopy((dbfpath+run_dbt),(dbfpath+dat_dbt),false);
-  except
-    exit;
+    end;
+    dstBUF:begin
+      with TBufDataset(Dbf) do begin
+        FileName:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext+'.buf';
+        try
+          //MaxIndexesCount:=10;
+          //AddIndex('Id',FieldDefs.Items[1].Name,[ixPrimary, ixUnique]);
+          Open;
+        except
+          exit;
+        end;
+      end;
+    end;
+    else raise Exception.Create('无效DataSetType。');
   end;
   result:=true;
 end;
 
-function TRTFP.CloseDbf(dbf_name_no_ext:string;Dbf:TDbf):boolean;
+function TRTFP.NewDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet):boolean;
+var dbfpath,datfile,runfile,run_dbt,dat_dbt,name_no_ext:string;
+begin
+  result:=false;
+  case FDataSetType of
+    dstDBF:begin
+      dbfpath:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext;
+      name_no_ext:=ExtractFileName(dbfpath);
+      dbfpath:=ExtractFilePath(dbfpath);
+      datfile:=name_no_ext+'.dbf';
+      runfile:=name_no_ext+'_run.dbf';
+      dat_dbt:=name_no_ext+'.dbt';
+      run_dbt:=name_no_ext+'_run.dbt';
+      with TDbf(Dbf) do begin
+        FilePathFull:=dbfpath;
+        TableName:=runfile;
+        try
+          TableLevel:=7;
+          Exclusive:=true;
+          CreateTable;
+          Open;
+          AddIndex('Id',DbfFieldDefs.Items[1].FieldName,[ixPrimary, ixUnique]);
+        except
+          exit;
+        end;
+      end;
+      TRTFP.FileCopy((dbfpath+runfile),(dbfpath+datfile),false);
+      if FileExists(dbfpath+run_dbt) then TRTFP.FileCopy((dbfpath+run_dbt),(dbfpath+dat_dbt),false);
+    end;
+    dstBUF:begin
+      //Buf模式不要蹩脚的run备份了
+      with TBufDataset(Dbf) do begin
+        FileName:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext+'.buf';
+        try
+          //MaxIndexesCount:=10;
+          //AddIndex('Id',FieldDefs.Items[1].Name,[ixPrimary, ixUnique]);
+          CreateDataset;
+          Open;
+        except
+          exit;
+        end;
+      end;
+    end;
+    else raise Exception.Create('无效DataSetType。');
+  end;
+  result:=true;
+end;
+
+function TRTFP.SaveDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet):boolean;
+var dbfpath,datfile,runfile,run_dbt,dat_dbt,name_no_ext:string;
+    {$ifdef save_xml}
+    aBuf:TBufDataset;
+    {$endif}
+begin
+  result:=false;
+  case FDataSetType of
+    dstDBF:begin
+      dbfpath:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext;
+      name_no_ext:=ExtractFileName(dbfpath);
+      dbfpath:=ExtractFilePath(dbfpath);
+      datfile:=name_no_ext+'.dbf';
+      runfile:=name_no_ext+'_run.dbf';
+      dat_dbt:=name_no_ext+'.dbt';
+      run_dbt:=name_no_ext+'_run.dbt';
+      try
+        if Dbf.Active then
+          begin
+            Dbf.Close;
+            Dbf.Open;
+          end;
+        TRTFP.FileCopy((dbfpath+runfile),(dbfpath+datfile),false);
+        if FileExists(dbfpath+run_dbt) then TRTFP.FileCopy((dbfpath+run_dbt),(dbfpath+dat_dbt),false);
+        {$ifdef save_xml}
+        aBuf:=TBufDataset.Create(nil);
+        try
+          CopyDbfToBuf(TDbf(Dbf),aBuf);
+          aBuf.SaveToFile(GetCurrentPathFull+dbf_name_no_ext+'.xml',dfXML);
+        finally
+          aBuf.Free;
+        end;
+        {$endif}
+      except
+        exit;
+      end;
+    end;
+    dstBUF:begin
+      if Dbf.Active then
+        begin
+          Dbf.Close;
+          Dbf.Open;
+        end;
+      {$ifdef save_xml}
+      TBufDataset(Dbf).SaveToFile(GetCurrentPathFull+dbf_name_no_ext+'.xml',dfXML);
+      {$endif}
+    end;
+    else raise Exception.Create('无效DataSetType。');
+  end;
+
+  result:=true;
+end;
+
+function TRTFP.CloseDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet):boolean;
 var dbfpath,{datfile,}runfile,run_dbt,{dat_dbt,}name_no_ext:string;
 begin
   result:=false;
-  dbfpath:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext;
-  name_no_ext:=ExtractFileName(dbfpath);
-  dbfpath:=ExtractFilePath(dbfpath);
-  //datfile:=name_no_ext+'.dbf';
-  runfile:=name_no_ext+'_run.dbf';
-  //dat_dbt:=name_no_ext+'.dbt';
-  run_dbt:=name_no_ext+'_run.dbt';
-
-  try
-    if not Dbf.Active then Dbf.Open;
-    Dbf.CloseIndexFile('id');
-    Dbf.DeleteIndex('id');
-    Dbf.Close;
-
-    if not TRTFP.FileDelete((dbfpath+runfile)) then exit;
-    if FileExists(dbfpath+run_dbt) then begin
-      if not TRTFP.FileDelete((dbfpath+run_dbt)) then exit;
+  case FDataSetType of
+    dstDBF:begin
+      dbfpath:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext;
+      name_no_ext:=ExtractFileName(dbfpath);
+      dbfpath:=ExtractFilePath(dbfpath);
+      //datfile:=name_no_ext+'.dbf';
+      runfile:=name_no_ext+'_run.dbf';
+      //dat_dbt:=name_no_ext+'.dbt';
+      run_dbt:=name_no_ext+'_run.dbt';
+      with TDbf(Dbf) do begin
+        try
+          if not Active then Open;
+          CloseIndexFile('id');
+          DeleteIndex('id');
+          Close;
+          if not TRTFP.FileDelete((dbfpath+runfile)) then exit;
+          if FileExists(dbfpath+run_dbt) then begin
+            if not TRTFP.FileDelete((dbfpath+run_dbt)) then exit;
+          end;
+        except
+          exit;
+        end;
+      end;
     end;
-  except
-    exit;
+    dstBUF:begin
+      with TBufDataset(Dbf) do begin
+        try
+          if not Active then Open;
+          Close;
+          ClearIndexes;
+        except
+          exit;
+        end;
+      end;
+    end;
+    else raise Exception.Create('无效DataSetType。');
   end;
   result:=true;
 end;
 
-function TRTFP.DeleteDbf(dbf_name_no_ext:string;Dbf:TDbf):boolean;
+function TRTFP.DeleteDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet):boolean;
 var dbfpath,datfile,runfile,run_dbt,dat_dbt,name_no_ext:string;
 begin
 
   result:=false;
-  dbfpath:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext;
-  name_no_ext:=ExtractFileName(dbfpath);
-  dbfpath:=ExtractFilePath(dbfpath);
-  datfile:=name_no_ext+'.dbf';
-  runfile:=name_no_ext+'_run.dbf';
-  dat_dbt:=name_no_ext+'.dbt';
-  run_dbt:=name_no_ext+'_run.dbt';
-
-  try
-    if Dbf.Active then begin
-      Dbf.CloseIndexFile('id');
-      Dbf.DeleteIndex('id');
-      Dbf.Close;
+  case FDataSetType of
+    dstDBF:begin
+      dbfpath:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext;
+      name_no_ext:=ExtractFileName(dbfpath);
+      dbfpath:=ExtractFilePath(dbfpath);
+      datfile:=name_no_ext+'.dbf';
+      runfile:=name_no_ext+'_run.dbf';
+      dat_dbt:=name_no_ext+'.dbt';
+      run_dbt:=name_no_ext+'_run.dbt';
+      with TDbf(Dbf) do begin
+        try
+          if Active then begin
+            CloseIndexFile('id');
+            DeleteIndex('id');
+            Close;
+          end;
+          TRTFP.FileDelete((dbfpath+runfile));
+          TRTFP.FileDelete((dbfpath+datfile));
+          TRTFP.FileDelete((dbfpath+run_dbt));
+          TRTFP.FileDelete((dbfpath+dat_dbt));
+        except
+          exit;
+        end;
+      end;
     end;
-    TRTFP.FileDelete((dbfpath+runfile));
-    TRTFP.FileDelete((dbfpath+datfile));
-    TRTFP.FileDelete((dbfpath+run_dbt));
-    TRTFP.FileDelete((dbfpath+dat_dbt));
-  except
-    exit;
+    dstBUF:begin
+      with TBufDataset(Dbf) do begin
+        try
+          if Active then begin
+            Close;
+          end;
+          ClearIndexes;
+          TRTFP.FileDelete(FileName);
+        except
+          exit;
+        end;
+      end;
+    end;
+    else raise Exception.Create('无效DataSetType。');
   end;
+
   result:=true;
 
 end;
 
-function TRTFP.PackDbf(Dbf:TDbf):boolean;
+function TRTFP.PackDbf(Dbf:{TDbf}TDataSet):boolean;
 begin
-  //Dbf.Exclusive := True;
-  if not Dbf.Active then Dbf.Open;
-  Dbf.PackTable;
-  // let's also rebuild all the indexes
-  Dbf.RegenerateIndexes;
-  Dbf.Close;
-  //Dbf.Exclusive := False;
-  Dbf.Open;
+  case FDataSetType of
+    dstDBF:begin
+      with TDbf(Dbf) do begin
+        if not Active then Open;
+        PackTable;
+        RegenerateIndexes;
+        Close;
+        Open;
+      end;
+    end;
+    dstBUF:;
+    else raise Exception.Create('无效DataSetType。');
+  end;
 end;
 
 function TRTFP.AddAttrs(AName:string):TAttrsGroup;
@@ -1381,7 +1526,12 @@ begin
   result:=nil;
   if not TRTFP.IsAttrsName(AName) then exit;
   if FFieldList.FindItemIndexByName(AName)>=0 then exit;
-  tmp:=FFieldList.AddEx('attr\'+AName,AName);
+  case FDataSetType of
+    dstDBF:tmp:=FFieldList.AddEx('attr\'+AName,AName,'dbf');
+    dstBUF:tmp:=FFieldList.AddEx('attr\'+AName,AName,'buf');
+    else raise Exception.Create('无效DataSetType。');
+  end;
+
   if not OpenDbf(tmp.FullPath,tmp.Dbf) then begin
     case AName of
       _Attrs_Basic_:GenAttrBasicAttribute(tmp.Dbf);
@@ -1394,6 +1544,7 @@ begin
     NewDbf(tmp.FullPath,tmp.Dbf);
     tmp.LoadFieldListFromDbf;
   end;
+  tmp.Modified:=true;
   FieldChange;
   result:=tmp;
 end;
@@ -1413,12 +1564,109 @@ begin
   CloseDbf(tmp.FullPath,tmp.Dbf);
   DeleteDbf(tmp.FullPath,tmp.Dbf);
   FFieldList.Delete(index);
+  tmp.Modified:=true;
   FieldChange;
 end;
+
+function AddFieldInBuf(buf:TBufDataset;FieldName:string;ADataType:TFieldType;ASize:word=0):TFieldDef;
+var tmpBuf:TBufDataset;
+    pi,max_col:integer;
+    res:TFieldDef;
+begin
+  result:=nil;
+  if buf.FieldDefs.IndexOf(FieldName)>=0 then exit;//存在同名即退出
+  tmpBuf:=TBufDataset.Create(nil);
+  try
+    if not buf.Active then buf.Open;
+    tmpBuf.CopyFromDataset(buf,true);
+    buf.Close;
+    if not TRTFP.FileRename(buf.FileName,buf.FileName+'.bak') then
+      raise Exception.Create('重命名失败，新增字段会导致不安全操作。');
+    buf.Clear;
+    //buf.Close;
+    buf.CopyFromDataset(tmpBuf,false);
+    max_col:=buf.FieldDefs.Count;
+    if Asize=0 then buf.FieldDefs.Add(FieldName,ADataType) else buf.FieldDefs.Add(FieldName,ADataType,ASize);
+    res:=buf.FieldDefs[max_col];
+    //buf.CreateDataset;
+    //buf.Open;
+    buf.First;
+    tmpBuf.Open;
+    tmpBuf.First;
+    while not tmpBuf.EOF do
+      begin
+        buf.Append;
+        for pi:=0 to max_col do buf.Fields[pi].Assign(tmpBuf.Fields[pi]);
+        buf.Post;
+        tmpBuf.Next;
+      end;
+    buf.Close;
+    TRTFP.FileDelete(buf.FileName+'.bak');//我不管删除与否，备份着也无所谓吧应该
+    tmpBuf.Clear;
+    tmpBuf.Close;
+  finally
+    tmpBuf.Free;
+  end;
+  result:=res;
+end;
+
+function DeleteFieldInBuf(buf:TBufDataset;FieldName:string):boolean;
+var tmpBuf:TBufDataset;
+    pi,del_id,max_col:integer;
+begin
+  result:=false;
+  if buf.FieldDefs.IndexOf(FieldName)<0 then exit;//不存在同名则退出
+  tmpBuf:=TBufDataset.Create(nil);
+  try
+    if not buf.Active then buf.Open;
+    tmpBuf.CopyFromDataset(buf,true);
+    buf.Close;
+    if not TRTFP.FileRename(buf.FileName,buf.FileName+'.bak') then
+      raise Exception.Create('重命名失败，新增字段会导致不安全操作。');
+    buf.Clear;
+    //buf.Close;
+    buf.CopyFromDataset(tmpBuf,false);
+    max_col:=buf.FieldDefs.Count;
+    del_id:=buf.FieldDefs.Find(FieldName).FieldNo;
+    buf.FieldDefs.Delete(del_id);
+    //buf.CreateDataset;
+    //buf.Open;
+    buf.First;
+    tmpBuf.Open;
+    tmpBuf.First;
+    while not tmpBuf.EOF do
+      begin
+        buf.Append;
+        for pi:=0 to del_id-1 do buf.Fields[pi].Assign(tmpBuf.Fields[pi]);
+        for pi:=del_id+1 to max_col-2 do buf.Fields[pi].Assign(tmpBuf.Fields[pi+1]);
+        buf.Post;
+        tmpBuf.Next;
+      end;
+    buf.Close;
+    TRTFP.FileDelete(buf.FileName+'.bak');//我不管删除与否，备份着也无所谓吧应该
+    tmpBuf.Clear;
+    tmpBuf.Close;
+  finally
+    tmpBuf.Free;
+  end;
+  result:=true;
+end;
+
+function RenameFieldInBuf(buf:TBufDataset;OldFieldName,NewFieldName:string):boolean;
+begin
+
+end;
+
+function ChangeTypeInBuf(buf:TBufDataset;FieldName:string;OldDataType,NewDataType:TFieldType):boolean;//这个还要考虑一些额外选项
+begin
+
+end;
+
 
 function TRTFP.AddField(AName:string;AAttrsName:string;AType:TFieldType{;ASize:word}):TAttrsField;
 var tmpAG:TAttrsGroup;
     tmpAF:TAttrsField;
+    tmpDefs:TFieldDef;
 begin
   result:=nil;
   if not TRTFP.IsAttrsName(AAttrsName) then exit;
@@ -1426,22 +1674,39 @@ begin
   tmpAG:=FindAttrs(AAttrsName);
   if tmpAG=nil then tmpAG:=AddAttrs(AAttrsName);
   tmpAF:=tmpAG.FieldList.FindItemByName(AName);
-  if tmpAF=nil then
-    with tmpAG do begin
-      if not Dbf.Active then Dbf.Open;
-      Dbf.TryExclusive;
-      case AType of
-        ftString:Dbf.DbfFieldDefs.Add(AName,AType,16);
-        ftFloat:Dbf.DbfFieldDefs.Add(AName,AType,8);
-        else Dbf.DbfFieldDefs.Add(AName,AType{,ASize});
+  if tmpAF=nil then case FDataSetType of
+    dstDBF:
+    begin
+      with TDbf(tmpAG.Dbf) do begin
+        if not Active then Open;
+        TryExclusive;
+        case AType of
+          ftString:DbfFieldDefs.Add(AName,AType,16);
+          ftFloat:DbfFieldDefs.Add(AName,AType,8);
+          else DbfFieldDefs.Add(AName,AType{,ASize});
+        end;
+        PackTable;
+        Close;
+        Open;
+        RegenerateIndexes;
+        tmpAG.AddField(FieldDefs.Find(AName));//LoadFieldListFromDbf;
+        tmpAG.Modified:=true;
+        FieldChange;
       end;
-      Dbf.PackTable;
-      Dbf.Close;
-      Dbf.Open;
-      Dbf.RegenerateIndexes;
-      tmpAG.AddField(Dbf.FieldDefs.Find(AName));//LoadFieldListFromDbf;
+    end;
+    dstBUF:
+    begin
+      case AType of
+        ftString:tmpDefs:=AddFieldInBuf(TBufDataSet(tmpAG.Dbf),AName,Atype,16);
+        ftFloat:tmpDefs:=AddFieldInBuf(TBufDataSet(tmpAG.Dbf),AName,Atype,8);
+        else tmpDefs:=AddFieldInBuf(TBufDataSet(tmpAG.Dbf),AName,Atype);
+      end;
+      if tmpDefs=nil then exit;
+      tmpAG.AddField(tmpDefs);//LoadFieldListFromDbf;
+      tmpAG.Modified:=true;
       FieldChange;
     end;
+  end;
   result:=tmpAG.FieldList.FindItemByName(AName);
 end;
 
@@ -1462,31 +1727,38 @@ begin
   tmpAG:=FindAttrs(AAttrsName);
   if tmpAG=nil then exit;
   tmpAF:=tmpAG.FieldList.FindItemByName(AName);
-  if tmpAF<>nil then
-    with tmpAG do begin
-      if not Dbf.Active then Dbf.Open;
-      Dbf.TryExclusive;
-      pi:=0;
-      while pi<Dbf.DbfFieldDefs.Count do
-        begin
-          if Dbf.DbfFieldDefs.Items[pi].FieldName=AName then break;
-          inc(pi);
-        end;
-      if pi<Dbf.DbfFieldDefs.Count then
-        begin
-          Dbf.DbfFieldDefs.Delete(pi);
-          Dbf.PackTable;
-        end
-      else ;
-      Dbf.Close;
-      Dbf.Open;
-      Dbf.EndExclusive;
-      Dbf.RegenerateIndexes;
-      tmpAG.DelField(AName);//LoadFieldListFromDbf;
-      //FieldChange;//为什么会在这个
+  if tmpAF<>nil then case FDataSetType of
+    dstDBF:begin
+      with TDbf(tmpAG.Dbf) do begin
+        if not Active then Open;
+        TryExclusive;
+        pi:=0;
+        while pi<DbfFieldDefs.Count do
+          begin
+            if DbfFieldDefs.Items[pi].FieldName=AName then break;
+            inc(pi);
+          end;
+        if pi<DbfFieldDefs.Count then
+          begin
+            DbfFieldDefs.Delete(pi);
+            PackTable;
+          end
+        else ;
+        Close;
+        Open;
+        EndExclusive;
+        RegenerateIndexes;
+        tmpAG.DelField(AName);//LoadFieldListFromDbf;
+      end;
     end;
+    dstBUF:begin
+       if not DeleteFieldInBuf(TBufDataset(tmpAG.Dbf),AName) then exit;
+       tmpAG.DelField(AName);//LoadFieldListFromDbf;
+    end;
+  end;
+  tmpAG.Modified:=true;
   if tmpAG.IsEmpty then DeleteAttrs(tmpAG.Name);
-  FieldChange;//应该在这
+  FieldChange;
 end;
 
 function TRTFP.CheckField(AName:string;AAttrsName:string;AType:TFieldType):boolean;
@@ -1512,19 +1784,41 @@ begin
   if tmpAF=nil then exit;//所以没有的字段读取就会报错 nil.AsString之类的错误
   tmpAG:=FindAttrs(AAttrsName);
 
-  with tmpAG.Dbf do
-    begin
-      if not Active then Open;
-      IndexName:='id';
-      if not SearchKey(PID,stEqual) then begin
-        if not NewPidIfNotExists then exit;
-        Append;
-        Edit;
-        FieldByName(_Col_PID_).AsString:=PID;
-        Post;
-      end;
-      result:=FieldByName(AName);
+  case FDataSetType of
+    dstDBF:begin
+      with TDbf(tmpAG.Dbf) do
+        begin
+          if not Active then Open;
+          IndexName:='id';
+          if not SearchKey(PID,stEqual) then begin
+            if not NewPidIfNotExists then exit;
+            Append;
+            Edit;
+            FieldByName(_Col_PID_).AsString:=PID;
+            Post;
+          end;
+          result:=FieldByName(AName);
+        end;
     end;
+    dstBUF:begin
+      with TBufDataset(tmpAG.Dbf) do
+        begin
+          if not Active then Open;
+          //IndexName:='id';
+          if not Locate(_Col_PID_,PID,[]) then begin
+            if not NewPidIfNotExists then exit;
+            Append;
+            Edit;
+            FieldByName(_Col_PID_).AsString:=PID;
+            Post;
+          end;
+          result:=FieldByName(AName);
+        end;
+    end;
+    else raise Exception.Create('无效DataSetType。');
+  end;
+
+
 
 end;
 
@@ -1542,7 +1836,7 @@ end;
 
 function TRTFP.ReadBasicField(AAttrsName:string;PID:RTFP_ID):string;
 begin
-  with FPaperDB do begin
+  with TDbf(FPaperDB) do begin
     if not Active then Open;
     IndexName:='id';
     if not SearchKey(PID,stEqual) then
@@ -1556,7 +1850,7 @@ end;
 
 procedure TRTFP.EditBasicField(AAttrsName:string;PID:RTFP_ID;value:string);
 begin
-  with FPaperDB do begin
+  with TDbf(FPaperDB) do begin
     if not Active then Open;
     IndexName:='id';
     if not SearchKey(PID,stEqual) then
@@ -1573,7 +1867,7 @@ end;
 
 function TRTFP.ReadBasicBool(AAttrsName:string;PID:RTFP_ID):boolean;
 begin
-  with FPaperDB do begin
+  with TDbf(FPaperDB) do begin
     if not Active then Open;
     IndexName:='id';
     if not SearchKey(PID,stEqual) then
@@ -1587,7 +1881,7 @@ end;
 
 procedure TRTFP.EditBasicBool(AAttrsName:string;PID:RTFP_ID;value:boolean);
 begin
-  with FPaperDB do begin
+  with TDbf(FPaperDB) do begin
     if not Active then Open;
     IndexName:='id';
     if not SearchKey(PID,stEqual) then
@@ -1721,6 +2015,7 @@ begin
       tmpAG.Dbf.Edit;
       tmpField.AsString:=value;
       tmpAG.Dbf.Post;
+      tmpAG.Modified:=true;
       DataChange(PID);
     end
   else begin
@@ -1761,6 +2056,7 @@ begin
       tmpAG.Dbf.Edit;
       tmpField.AsInteger:=value;
       tmpAG.Dbf.Post;
+      tmpAG.Modified:=true;
       DataChange(PID);
     end
   else begin
@@ -1801,6 +2097,7 @@ begin
       tmpAG.Dbf.Edit;
       tmpField.AsBoolean:=value;
       tmpAG.Dbf.Post;
+      tmpAG.Modified:=true;
       DataChange(PID);
     end
   else begin
@@ -1841,6 +2138,7 @@ begin
       tmpAG.Dbf.Edit;
       tmpField.AsDateTime:=value;
       tmpAG.Dbf.Post;
+      tmpAG.Modified:=true;
       DataChange(PID);
     end
   else begin
@@ -1881,6 +2179,7 @@ begin
       tmpAG.Dbf.Edit;
       tmpField.AsFloat:=value;
       tmpAG.Dbf.Post;
+      tmpAG.Modified:=true;
       DataChange(PID);
     end
   else begin
@@ -1940,6 +2239,7 @@ begin
       tmpAG.Dbf.Edit;
       tmpField.AsString:=buf.Text;
       tmpAG.Dbf.Post;
+      tmpAG.Modified:=true;
       DataChange(PID);
     end
   else begin
@@ -2019,6 +2319,7 @@ begin
         str.Free;
       end;
       tmpAG.Dbf.Post;
+      tmpAG.Modified:=true;
       DataChange(PID);
     end
   else begin
@@ -2030,12 +2331,19 @@ procedure TRTFP.LoadAttrs;
 var tmpAttrs:TAttrsGroup;
 begin
   //BeginUpdate;
-  FFieldList.LoadFromPath('attr\');
+  case FDataSetType of
+    dstDBF:FFieldList.LoadFromPath('attr\','dbf');
+    dstBUF:FFieldList.LoadFromPath('attr\','buf');
+    else raise Exception.Create('无效DataSetType。');
+  end;
+
   for tmpAttrs in FFieldList do
     begin
       if not OpenDbf(tmpAttrs.FullPath,tmpAttrs.Dbf) then
         NewDbf(tmpAttrs.FullPath,tmpAttrs.Dbf);
-      tmpAttrs.Dbf.Exclusive:=true;
+      case FDataSetType of
+        dstDBF:TDbf(tmpAttrs.Dbf).Exclusive:=true;
+      end;
       tmpAttrs.Dbf.Open;
       tmpAttrs.GroupShown:=false;
     end;
@@ -2055,11 +2363,16 @@ var tmpAttrs:TAttrsGroup;
 begin
   for tmpAttrs in FFieldList do
     begin
+      if not tmpAttrs.Modified then begin
+        //ShowMsgOK('无需保存提示（临时）',tmpAttrs.Name);
+        continue;
+      end;
       while not SaveDbf(tmpAttrs.FullPath,tmpAttrs.Dbf) do
         case ShowMsgRetryIgnore('错误','属性组保存失败！') of
           'Retry':;
           'Ignore':break;
         end;
+      tmpAttrs.Modified:=false;
     end;
 end;
 
@@ -2187,51 +2500,52 @@ begin
     end;
 end;
 
-procedure TRTFP.GenPaperAttribute(Dbf:TDbf);
+procedure TRTFP.GenPaperAttribute(Dbf:{TDbf}TDataSet);
 begin
-  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0, True);
-  Dbf.FieldDefs.Add(_Col_PID_, ftString, 8, True);
+  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0{, True});
+  Dbf.FieldDefs.Add(_Col_PID_, ftString, 8{, True});
 
-  Dbf.FieldDefs.Add(_Col_Paper_Is_Backup_, ftBoolean, 0, True);//是否为文档记录   否0 是1
+  Dbf.FieldDefs.Add(_Col_Paper_Is_Backup_, ftBoolean, 0{, True});//是否为文档记录   否0 是1
 
   //文件位置
-  Dbf.FieldDefs.Add(_Col_Paper_Folder_, ftString, 8, True);
-  Dbf.FieldDefs.Add(_Col_Paper_FileName_, ftString, 240, True);
+  Dbf.FieldDefs.Add(_Col_Paper_Folder_, ftString, 8{, True});
+  Dbf.FieldDefs.Add(_Col_Paper_FileName_, ftString, 240{, True});
   //重复检验
-  Dbf.FieldDefs.Add(_Col_Paper_FileSize_, ftLargeInt, 8, True);
-  Dbf.FieldDefs.Add(_Col_Paper_FileHash_, ftString, 255, True);
+  Dbf.FieldDefs.Add(_Col_Paper_FileSize_, ftLargeInt, 8{, True});
+  Dbf.FieldDefs.Add(_Col_Paper_FileHash_, ftString, 255{, True});
 
 end;
 
-procedure TRTFP.GenImageAttribute(Dbf:TDbf);
+procedure TRTFP.GenImageAttribute(Dbf:{TDbf}TDataSet);
 begin
-  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0, True);
-  Dbf.FieldDefs.Add(_Col_IID_, ftString, 8, True);
+  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0{, True});
+  Dbf.FieldDefs.Add(_Col_IID_, ftString, 8{, True});
   //重复检验
-  Dbf.FieldDefs.Add(_Col_Image_FileSize_, ftLargeInt, 8, True);
-  Dbf.FieldDefs.Add(_Col_Image_FileHash_, ftString, 255, True);
+  Dbf.FieldDefs.Add(_Col_Image_FileSize_, ftLargeInt, 8{, True});
+  Dbf.FieldDefs.Add(_Col_Image_FileHash_, ftString, 255{, True});
   //文件位置
-  Dbf.FieldDefs.Add(_Col_Image_Folder_, ftString, 8, True);
-  Dbf.FieldDefs.Add(_Col_Image_FileName_, ftString, 240, True);
+  Dbf.FieldDefs.Add(_Col_Image_Folder_, ftString, 8{, True});
+  Dbf.FieldDefs.Add(_Col_Image_FileName_, ftString, 240{, True});
   //基础信息
-  Dbf.FieldDefs.Add(_Col_Image_Width_, ftInteger, 4, True);
-  Dbf.FieldDefs.Add(_Col_Image_Height_, ftInteger, 4, True);
+  Dbf.FieldDefs.Add(_Col_Image_Width_, ftInteger, 4{, True});
+  Dbf.FieldDefs.Add(_Col_Image_Height_, ftInteger, 4{, True});
 
 end;
 
-procedure TRTFP.GenNoteAttribute(Dbf:TDbf);
+procedure TRTFP.GenNoteAttribute(Dbf:{TDbf}TDataSet);
 begin
-  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0, True);
-  Dbf.FieldDefs.Add(_Col_NID_, ftString, 8, True);
+  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0{, True});
+  Dbf.FieldDefs.Add(_Col_NID_, ftString, 8{, True});
   //文件位置
-  Dbf.FieldDefs.Add(_Col_Note_Folder_, ftString, 8, True);
-  Dbf.FieldDefs.Add(_Col_Note_FileName_, ftString, 240, True);
+  Dbf.FieldDefs.Add(_Col_Note_Folder_, ftString, 8{, True});
+  Dbf.FieldDefs.Add(_Col_Note_FileName_, ftString, 240{, True});
+
 end;
 
-procedure TRTFP.GenAttrBasicAttribute(Dbf:TDbf);
+procedure TRTFP.GenAttrBasicAttribute(Dbf:{TDbf}TDataSet);
 begin
-  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0, True);
-  Dbf.FieldDefs.Add(_Col_PID_, ftString, 8, True);
+  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0{, True});
+  Dbf.FieldDefs.Add(_Col_PID_, ftString, 8{, True});
 
   //0 Unknown                                         未知
   //1 Journal Article / JournalArticle                期刊论文
@@ -2281,70 +2595,69 @@ begin
   //同时增加转换字段类型的函数工具
 
 end;
-procedure TRTFP.GenAttrMetasAttribute(Dbf:TDbf);
+procedure TRTFP.GenAttrMetasAttribute(Dbf:{TDbf}TDataSet);
 begin
-  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0, True);
-  Dbf.FieldDefs.Add(_Col_PID_, ftString, 8, True);
+  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0{, True});
+  Dbf.FieldDefs.Add(_Col_PID_, ftString, 8{, True});
   //pdf默认meta
-  Dbf.FieldDefs.Add(_Col_metas_Title_, ftMemo, 0, True);
-  Dbf.FieldDefs.Add(_Col_metas_Authors_, ftMemo, 0, True);
-  Dbf.FieldDefs.Add(_Col_metas_Subject_, ftMemo, 8, True);
-  Dbf.FieldDefs.Add(_Col_metas_KeyWord_, ftMemo, 8, True);
-  Dbf.FieldDefs.Add(_Col_metas_Creator_, ftMemo, 8, True);
-  Dbf.FieldDefs.Add(_Col_metas_Produce_, ftMemo, 8, True);
-  Dbf.FieldDefs.Add(_Col_metas_CreDate_, ftString, 64, True);
-  Dbf.FieldDefs.Add(_Col_metas_ModDate_, ftString, 64, True);
-  Dbf.FieldDefs.Add(_Col_metas_Trapped_, ftMemo, 0, True);
+  Dbf.FieldDefs.Add(_Col_metas_Title_, ftMemo, 0{, True});
+  Dbf.FieldDefs.Add(_Col_metas_Authors_, ftMemo, 0{, True});
+  Dbf.FieldDefs.Add(_Col_metas_Subject_, ftMemo, 8{, True});
+  Dbf.FieldDefs.Add(_Col_metas_KeyWord_, ftMemo, 8{, True});
+  Dbf.FieldDefs.Add(_Col_metas_Creator_, ftMemo, 8{, True});
+  Dbf.FieldDefs.Add(_Col_metas_Produce_, ftMemo, 8{, True});
+  Dbf.FieldDefs.Add(_Col_metas_CreDate_, ftString, 64{, True});
+  Dbf.FieldDefs.Add(_Col_metas_ModDate_, ftString, 64{, True});
+  Dbf.FieldDefs.Add(_Col_metas_Trapped_, ftMemo, 0{, True});
 
 end;
 
-procedure TRTFP.GenAttrClassAttribute(Dbf:TDbf);
+procedure TRTFP.GenAttrClassAttribute(Dbf:{TDbf}TDataSet);
 begin
-  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0, True);
-  Dbf.FieldDefs.Add(_Col_PID_, ftString, 8, True);
+  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0{, True});
+  Dbf.FieldDefs.Add(_Col_PID_, ftString, 8{, True});
 
-  Dbf.FieldDefs.Add(_Col_class_Is_Read_, {ftSmallint}ftBoolean, 0, True);//是否已读         否0 是1
+  Dbf.FieldDefs.Add(_Col_class_Is_Read_, {ftSmallint}ftBoolean, 0{, True});//是否已读         否0 是1
 
-  Dbf.FieldDefs.Add(_Col_class_DefaultCl_, ftMemo, 8, True);//默认类型（半角逗号隔开）
+  Dbf.FieldDefs.Add(_Col_class_DefaultCl_, ftMemo, 8{, True});//默认类型（半角逗号隔开）
 
 end;
 
-procedure TRTFP.GenAttrNotesAttribute(Dbf:TDbf);
+procedure TRTFP.GenAttrNotesAttribute(Dbf:{TDbf}TDataSet);
 begin
-  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0, True);
-  Dbf.FieldDefs.Add(_Col_PID_, ftString, 8, True);
+  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0{, True});
+  Dbf.FieldDefs.Add(_Col_PID_, ftString, 8{, True});
 
-  Dbf.FieldDefs.Add(_Col_notes_Usage_, ftString, 50, True);//主标记（例如综述、例证、消遣、反例）
-  Dbf.FieldDefs.Add(_Col_notes_Rank_, ftSmallint, 0, True);//评级1-100分，0表示未赋值
-  Dbf.FieldDefs.Add(_Col_notes_Comment_, ftMemo, 0, True);//入库评价
-  Dbf.FieldDefs.Add(_Col_notes_User_, ftSmallint, 0, True);//入库用户（UserID）
-  Dbf.FieldDefs.Add(_Col_notes_CreateTime_, ftDateTime, 0, True);//入库日期
-  Dbf.FieldDefs.Add(_Col_notes_ModifyTime_, ftDateTime, 0, True);//修改日期
-  Dbf.FieldDefs.Add(_Col_notes_CheckTime_, ftDateTime, 0, True);//查看日期
-  Dbf.FieldDefs.Add(_Col_notes_FurtherCmt_, ftMemo, 8, True);//更多评价（结构化文本格式，例如rubyHash）
-  Dbf.FieldDefs.Add(_Col_notes_Format_, ftSmallint, 0, True);//预览显示格式（FormatID）
-
+  Dbf.FieldDefs.Add(_Col_notes_Usage_, ftString, 50{, True});//主标记（例如综述、例证、消遣、反例）
+  Dbf.FieldDefs.Add(_Col_notes_Rank_, ftSmallint, 0{, True});//评级1-100分，0表示未赋值
+  Dbf.FieldDefs.Add(_Col_notes_Comment_, ftMemo, 0{, True});//入库评价
+  Dbf.FieldDefs.Add(_Col_notes_User_, ftSmallint, 0{, True});//入库用户（UserID）
+  Dbf.FieldDefs.Add(_Col_notes_CreateTime_, ftDateTime, 0{, True});//入库日期
+  Dbf.FieldDefs.Add(_Col_notes_ModifyTime_, ftDateTime, 0{, True});//修改日期
+  Dbf.FieldDefs.Add(_Col_notes_CheckTime_, ftDateTime, 0{, True});//查看日期
+  Dbf.FieldDefs.Add(_Col_notes_FurtherCmt_, ftMemo, 8{, True});//更多评价（结构化文本格式，例如rubyHash）
+  Dbf.FieldDefs.Add(_Col_notes_Format_, ftSmallint, 0{, True});//预览显示格式（FormatID）
 
 end;
 
-procedure TRTFP.GenAttrRelatAttribute(Dbf:TDbf);
+procedure TRTFP.GenAttrRelatAttribute(Dbf:{TDbf}TDataSet);
 begin
-  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0, True);
-  Dbf.FieldDefs.Add(_Col_PID_, ftString, 8, True);
+  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0{, True});
+  Dbf.FieldDefs.Add(_Col_PID_, ftString, 8{, True});
 
-  Dbf.FieldDefs.Add(_Col_relat_Parent_, ftMemo, 8, True);//父节点
-  Dbf.FieldDefs.Add(_Col_relat_Children_, ftMemo, 8, True);//子节点
+  Dbf.FieldDefs.Add(_Col_relat_Parent_, ftMemo, 8{, True});//父节点
+  Dbf.FieldDefs.Add(_Col_relat_Children_, ftMemo, 8{, True});//子节点
 
-  Dbf.FieldDefs.Add(_Col_relat_Cited_, ftMemo, 8, True);//引证文献
-  Dbf.FieldDefs.Add(_Col_relat_References_, ftMemo, 8, True);//参考文献
+  Dbf.FieldDefs.Add(_Col_relat_Cited_, ftMemo, 8{, True});//引证文献
+  Dbf.FieldDefs.Add(_Col_relat_References_, ftMemo, 8{, True});//参考文献
 
 end;
 
 
-procedure TRTFP.GenAttrDefaultAttribute(Dbf:TDbf);
+procedure TRTFP.GenAttrDefaultAttribute(Dbf:{TDbf}TDataSet);
 begin
-  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0, True);
-  Dbf.FieldDefs.Add(_Col_PID_, ftString, 8, True);
+  Dbf.FieldDefs.Add(_Col_OID_, ftAutoInc, 0{, True});
+  Dbf.FieldDefs.Add(_Col_PID_, ftString, 8{, True});
 
 end;
 
@@ -2654,10 +2967,49 @@ begin
 end;
 
 Procedure TRTFP.Open(filename:ansistring);
+var has_dbf,has_buf:boolean;
+    function change_datasetType:boolean;
+    begin
+      result:=false;
+      if has_dbf then begin
+        FDataSetType:=dstDBF;
+        FPaperDB.Free;
+        FImageDB.Free;
+        FNotesDB.Free;
+        FPaperDB:=TDbf.Create(Self);
+        FImageDB:=TDbf.Create(Self);
+        FNotesDB:=TDbf.Create(Self);
+      end else if has_buf then begin
+        FDataSetType:=dstBUF;
+        FPaperDB.Free;
+        FImageDB.Free;
+        FNotesDB.Free;
+        FPaperDB:=TBufDataset.Create(Self);
+        FImageDB:=TBufDataset.Create(Self);
+        FNotesDB:=TBufDataset.Create(Self);
+      end else exit;
+      result:=true;
+    end;
+
 begin
   if FOnOpen <> nil then FOnOpen(Self);
 
   Self.SetPaths(WinCPToUTF8(filename));
+
+  has_dbf:=FileExists(GetCurrentPathFull+'paper.dbf');
+  has_buf:=FileExists(GetCurrentPathFull+'paper.buf');
+  case FDataSetType of
+    dstDBF:if not has_dbf then case ShowMsgYesNoAll('打开工程','存档格式有误，是否尝试使用其它格式打开？') of
+      'Yes':if not change_datasetType then case ShowMsgOK('打开工程','找不到合适的文件格式，无法打开工程。') of 'OK':exit;end;
+      else exit;
+    end;
+    dstBUF:if not has_buf then case ShowMsgYesNoAll('打开工程','存档格式有误，是否尝试使用其它格式打开？') of
+      'Yes':if not change_datasetType then case ShowMsgOK('打开工程','找不到合适的文件格式，无法打开工程。') of 'OK':exit;end;
+      else exit;
+    end;
+
+  end;
+
   OpenProjectFile;
   if Version='' then Version:='0.1.1-alpha.17及以前';
   if not OpenUserList then NewUserList;
@@ -3026,7 +3378,7 @@ begin
     PID:=NewPaperID;
     //FPaperDB.Last;//此时游标已经在Last位置
     with FPaperDB do begin
-      Insert;
+      Append;//Insert;
       FieldByName(_Col_PID_).AsString:=PID;
       FieldByName(_Col_Paper_Is_Backup_).AsBoolean:=(AddPaperMethod in [apmFullBackup,apmCutBackup]);
       FieldByName(_Col_Paper_Folder_).AsString:=DateDir;
@@ -3044,7 +3396,7 @@ begin
 
     //2-注解
     //这里之后要考虑不是pdf或者pdf读取错误的情况
-    //这不是一个好做法，会大量浪费算力，但是现在先让他爬起来吧，再优化
+    //这不是一个好做法，会大量浪费算力，但是现在先让他爬起来吧，再优化，现在再优化需要考虑TAttrsGroup.Modified
     EditFieldAsInteger(_Col_notes_User_,_Attrs_Notes_,PID,0,[]);
     EditFieldAsDateTime(_Col_notes_CreateTime_,_Attrs_Notes_,PID,Now,[]);
     EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now,[]);
@@ -3052,7 +3404,7 @@ begin
 
     //3-元数据
     //这里之后要考虑不是pdf或者pdf读取错误的情况
-    //这不是一个好做法，会大量浪费算力，但是现在先让他爬起来吧，再优化
+    //这不是一个好做法，会大量浪费算力，但是现在先让他爬起来吧，再优化，现在再优化需要考虑TAttrsGroup.Modified
     EditFieldAsString(_Col_metas_Title_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Title']^,[aeForceEditIfTypeDismatch]);
     EditFieldAsString(_Col_metas_Authors_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Author']^,[aeForceEditIfTypeDismatch]);
     EditFieldAsString(_Col_metas_Subject_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Subject']^,[aeForceEditIfTypeDismatch]);
@@ -3146,7 +3498,7 @@ var AG:TAttrsGroup;
 begin
   result:=false;
   if not TRTFP.IsRTFPID(PID) then exit;
-  with FPaperDB do begin
+  with TDbf(FPaperDB) do begin
     if not Active then Open;
     IndexName:='id';
     if SearchKey(PID,stEqual) then
@@ -3168,11 +3520,12 @@ begin
   finally
     klass_list.Free;
   end;
-  for AG in FFieldList do with AG.Dbf do
+  for AG in FFieldList do with TDbf(AG.Dbf) do
     begin
       if not Active then Open;
       IndexName:='id';
       if SearchKey(PID,stEqual) then Delete;
+      AG.Modified:=true;
     end;
   RecordChange;
   result:=true;
@@ -3188,7 +3541,7 @@ begin
   if not TRTFP.IsRTFPID(PID) then exit;
   assert(AddPaperMethod in [apmFullBackup,apmCutBackup,apmAddress],'不接受apmFullBackup、apmCutBackup和apmAddress以外的方式');
 
-  with FPaperDB do begin
+  with TDbf(FPaperDB) do begin
     if not Active then Open;
     IndexName:='id';
     if not SearchKey(PID,stEqual) then begin
@@ -3315,7 +3668,7 @@ begin
   result:=false;
   s1:=0;s2:=0;
   if TRTFP.IsRTFPID(PID_Main) and TRTFP.IsRTFPID(PID_Vice) then ELSE exit;
-  with FPaperDB do
+  with TDbf(FPaperDB) do
     begin
       if not Active then Open;
       IndexName:='id';
@@ -3508,21 +3861,21 @@ begin
             if id1=id2 then break;
             lst1.Clear;
             lst2.Clear;
-            if scoFileName in ASimChkOption then
+            if scoFileName in ASimChkOption then with TDbf(FPaperDB) do
               begin
-                FPaperDB.IndexName:='id';
-                if not FPaperDB.SearchKey(id1,stEqual) then continue;
-                lst1.Add(FPaperDB.FieldByName(_Col_Paper_FileName_).AsString);
-                if not FPaperDB.SearchKey(id2,stEqual) then continue;
-                lst2.Add(FPaperDB.FieldByName(_Col_Paper_FileName_).AsString);
+                IndexName:='id';
+                if not SearchKey(id1,stEqual) then continue;
+                lst1.Add(FieldByName(_Col_Paper_FileName_).AsString);
+                if not SearchKey(id2,stEqual) then continue;
+                lst2.Add(FieldByName(_Col_Paper_FileName_).AsString);
               end;
-            if scoFileHash in ASimChkOption then
+            if scoFileHash in ASimChkOption then with TDbf(FPaperDB) do
               begin
-                FPaperDB.IndexName:='id';
-                if not FPaperDB.SearchKey(id1,stEqual) then continue;
-                lst1.Add(FPaperDB.FieldByName(_Col_Paper_FileHash_).AsString);
-                if not FPaperDB.SearchKey(id2,stEqual) then continue;
-                lst2.Add(FPaperDB.FieldByName(_Col_Paper_FileHash_).AsString);
+                IndexName:='id';
+                if not SearchKey(id1,stEqual) then continue;
+                lst1.Add(FieldByName(_Col_Paper_FileHash_).AsString);
+                if not SearchKey(id2,stEqual) then continue;
+                lst2.Add(FieldByName(_Col_Paper_FileHash_).AsString);
               end;
             if scoTitle in ASimChkOption then
               begin
@@ -3594,7 +3947,7 @@ end;
 
 function TRTFP.GetPaperAttrs(AFieldName:string;PID:RTFP_ID):string;
 begin
-  with FPaperDB do
+  with TDbf(FPaperDB) do
     begin
       if not Active then Open;
       IndexName:='id';
@@ -3608,7 +3961,7 @@ end;
 
 procedure TRTFP.GetPaperKlass(PID:RTFP_ID;str:TStrings);
 begin
-  with FieldList.FindItemByName(_Attrs_Class_).Dbf do
+  with TDbf(FieldList.FindItemByName(_Attrs_Class_).Dbf) do
     begin
       if not Active then Open;
       IndexName:='id';
@@ -3620,7 +3973,7 @@ end;
 procedure TRTFP.OpenPaper(PID:RTFP_ID;exename:string='');
 var filename:string;
 begin
-  with FPaperDB do begin
+  with TDbf(FPaperDB) do begin
     if not Active then Open;
     IndexName:='id';
     if not SearchKey(PID,stEqual) then
@@ -3660,7 +4013,7 @@ end;
 procedure TRTFP.OpenPaperDir(PID:RTFP_ID);
 var filename:string;
 begin
-  with FPaperDB do begin
+  with TDbf(FPaperDB) do begin
     if not Active then Open;
     IndexName:='id';
     if not SearchKey(PID,stEqual) then
@@ -3697,7 +4050,7 @@ begin
   //索引文件更新
   index:=FKlassList.FindItemIndexByName(klassname);
   if index<0 then exit;
-  with FKlassList[index].Dbf do begin
+  with TDbf(FKlassList[index].Dbf) do begin
     if not Active then Open;
     IndexName:='id';
     if not SearchKey(PID,stEqual) then begin
@@ -3732,7 +4085,7 @@ begin
   //索引文件更新
   index:=FKlassList.FindItemIndexByName(klassname);
   if index<0 then exit;
-  with FKlassList[index].Dbf do begin
+  with TDbf(FKlassList[index].Dbf) do begin
     if not Active then Open;
     IndexName:='id';
     if SearchKey(PID,stEqual) then Delete;
@@ -3854,7 +4207,7 @@ begin
   AG:=FindAttrs(_Attrs_Basic_);
   if AG=nil then AG:=AddAttrs(_Attrs_Basic_);
   //CheckBasicFields;
-  with AG.Dbf do begin
+  with TDbf(AG.Dbf) do begin
     if not Active then Open;
     IndexName:='id';
     if not SearchKey(PID,stEqual) then
@@ -3874,6 +4227,7 @@ var AG:TAttrsGroup;
 begin
   AG:=FindAttrs(_Attrs_Basic_);
   AG.Dbf.Post;
+  AG.Modified:=true;
 end;
 
 procedure TRTFP.EditBasic;
@@ -3971,11 +4325,19 @@ procedure TRTFP.LoadFromEStudy(PID:RTFP_ID;str:TStrings);
 var stmp,header,attr:string;
     poss:integer;
     tmpDate:TDate;
-    error_str:string;
+    error_str,sum_temp:string;
+    is_last_summary:boolean;
 begin
   error_str:=#13#10;
+  is_last_summary:=false;
   with InitBasic(PID) do begin
     for stmp in str do begin
+      if stmp='' then continue;
+      //这里用制表符判断多行摘要格式是否有足够的适应性？
+      if (stmp[1]=#9) and is_last_summary then begin
+        sum_temp:=FieldByName(_Col_basic_Summary_).AsString;
+        FieldByName(_Col_basic_Summary_).AsString:=sum_temp+#13#10+stmp;
+      end;
       poss:=pos(': ',stmp);
       if poss<=0 then continue;
       header:=stmp;
@@ -4010,7 +4372,10 @@ begin
               end;
               FieldByName(_Col_basic_PubTime_).AsDateTime:=tmpDate;
             end;
-          'Period-期':FieldByName(_Col_basic_Issue_).AsString:=attr;
+          'Period-期':begin
+            attr:=StringReplace(attr,'S','-',[rfReplaceAll,rfIgnoreCase]);
+            FieldByName(_Col_basic_Issue_).AsString:=attr;
+          end;
           'Roll-卷':FieldByName(_Col_basic_Volume_).AsString:=attr;
           'Keyword-关键词':FieldByName(_Col_basic_Keyword_).AsString:=attr;
           'Summary-摘要','Summary-快照':FieldByName(_Col_basic_Summary_).AsString:=attr;
@@ -4029,6 +4394,10 @@ begin
         end;
       except
         error_str:=error_str+'    '+header+#13#10;
+      end;
+      case header of
+        'Summary-摘要','Summary-快照':is_last_summary:=true;
+        else is_last_summary:=false;
       end;
       ReEditBasic;
       //PostBasic;
@@ -4584,7 +4953,7 @@ begin
 end;
 
 procedure TRTFP.RebuildMainGrid;
-var tmpDbf:TDbf;
+var tmpDbf:{TDbf}TDataSet;
     tmpFieldDef:TFieldDef;
     PID:RTFP_ID;
     pi,pj,pcol,max_attr:integer;
@@ -4735,9 +5104,9 @@ begin
         end;
       FPaperDS.First;
       if not FPaperDS.Active then FPaperDB.Open;
-      FPaperDB.IndexName:='id';
+      TDbf(FPaperDB).IndexName:='id';
       while not FPaperDS.EOF do begin
-        if FPaperDB.SearchKey(FPaperDS.FieldByName(_Col_PID_).AsString,stEqual) then
+        if TDbf(FPaperDB).SearchKey(FPaperDS.FieldByName(_Col_PID_).AsString,stEqual) then
           begin
             FPaperDS.Edit;
             for pi:=0 to paperDB_cnt-1 do
@@ -4767,8 +5136,8 @@ begin
           FPaperDS.First;
           if not FPaperDS.EOF then repeat
             PID:=FPaperDS.FieldByName(_Col_PID_).AsString;
-            tmpDbf.IndexName:='id';
-            if tmpDbf.SearchKey(PID,stEqual) then begin
+            TDbf(tmpDbf).IndexName:='id';
+            if TDbf(tmpDbf).SearchKey(PID,stEqual) then begin
               FPaperDS.Edit;
               for pi:=attr_range[pj].min to attr_range[pj].max do begin
                 case FPaperDS.Fields[pi].DataType of
@@ -4834,7 +5203,19 @@ begin
         delete(fieldname,poss,len);
         delete(attrsname,1,poss);
         delete(attrsname,length(attrsname),1);
-        FPaperDS.Fields[field_index].AsString:=ReadFieldAsString(fieldname,attrsname,PID,[]);
+        //FPaperDS.Fields[field_index].AsString:=ReadFieldAsString(fieldname,attrsname,PID,[]);
+        case FPaperDS.Fields[field_index].DataType of
+          ftInteger,ftLargeint,ftSmallint:
+            FPaperDS.Fields[field_index].AsInteger:=ReadFieldAsInteger(fieldname,attrsname,PID,[]);
+          ftFloat:
+            FPaperDS.Fields[field_index].AsFloat:=ReadFieldAsDouble(fieldname,attrsname,PID,[]);
+          ftBoolean:
+            FPaperDS.Fields[field_index].AsBoolean:=ReadFieldAsBoolean(fieldname,attrsname,PID,[]);
+          ftDate,ftDateTime,ftTime:
+            FPaperDS.Fields[field_index].AsDateTime:=ReadFieldAsDateTime(fieldname,attrsname,PID,[]);
+          else
+            FPaperDS.Fields[field_index].AsString:=ReadFieldAsString(fieldname,attrsname,PID,[]);
+        end;
       end else begin
         FPaperDS.Fields[field_index].AsString:=GetPaperAttrs(fieldname,PID);
       end;
@@ -4852,10 +5233,11 @@ end;
 procedure TRTFP.TableFilter(cmd:string);
 var colname,method,value:string;
     col_num:integer;
+    regg:TRegExpr;
 begin
   //= eql         相等
   //!= <> neq     不相等
-  //has           包含有
+  //has,contains  包含有
   //in            在其内
   //true          是否为真
   //false         是否为假
@@ -4863,8 +5245,10 @@ begin
   //>=   gtq      大等
   //<    les      小于
   //<=   leq      小等
+  //reg           正则表达式
 
   if (not IsUpdating) and (FOnMainGridRebuilding<>nil) then FOnMainGridRebuilding(Self);
+  regg:=TRegExpr.Create;
   BeginUpdate;
   try
 
@@ -4875,6 +5259,7 @@ begin
     StringReplace(cmd,'>=',' gtq ',[rfReplaceAll]);
     StringReplace(cmd,'<',' les ',[rfReplaceAll]);
     StringReplace(cmd,'<=',' leq ',[rfReplaceAll]);
+    StringReplace(cmd,'=~',' reg ',[rfReplaceAll]);
 
     FAuf.Script.IO_fptr.error:=nil;
     FAuf.Script.IO_fptr.print:=nil;
@@ -4885,6 +5270,8 @@ begin
     colname:=FAuf.nargs[0].arg;
     method:=FAuf.nargs[1].arg;
     value:=FAuf.nargs[2].arg;
+    if value<>'' then regg.Expression:=value
+    else regg.Expression:='.';
 
     case method of
       'true','false':;
@@ -4910,13 +5297,16 @@ begin
               'eql':if Fields[Col_num].AsString<>value then Delete else Next;
               'neq':if Fields[Col_num].AsString=value then Delete else Next;
               'in':if pos(Fields[Col_num].AsString,value)<=0 then Delete else Next;
-              'has':if pos(value,Fields[Col_num].AsString)<=0 then Delete else Next;
+              'has','contains':if pos(value,Fields[Col_num].AsString)<=0 then Delete else Next;
+              '!in':if pos(Fields[Col_num].AsString,value)>0 then Delete else Next;
+              '!has','!contains':if pos(value,Fields[Col_num].AsString)>0 then Delete else Next;
               'true':if not Fields[Col_num].AsBoolean then Delete else Next;
               'false':if Fields[Col_num].AsBoolean then Delete else Next;
               'gtr':if Fields[Col_num].AsLargeInt<=Usf.to_f(value) then Delete else Next;
               'gtq':if Fields[Col_num].AsLargeInt<Usf.to_f(value) then Delete else Next;
               'les':if Fields[Col_num].AsLargeInt>=Usf.to_f(value) then Delete else Next;
               'leq':if Fields[Col_num].AsLargeInt>Usf.to_f(value) then Delete else Next;
+              'reg':if not regg.Exec(Fields[Col_num].AsString) then Delete else Next;
               else exit;
             end;
           end;
@@ -4924,6 +5314,7 @@ begin
       end;
   finally
     EndUpdate;
+    regg.Free;
     if (not IsUpdating) and (FOnMainGridRebuildDone<>nil) then FOnMainGridRebuildDone(Self);
   end;
 end;
@@ -5349,14 +5740,15 @@ begin
   for Item in FFormatEditComponentList do begin
     if TObject(Item).ClassType=TSplitter then continue;
     with TFormatEditPanel(Item) do begin
-      case ComponentClass.ClassName of
-        'TEdit':EditFieldAsString(FieldName,AttrsName,PID,AsString,[aeForceEditIfTypeDismatch]);
-        'TMemo':EditFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[]);
-        'TCheckBox':EditFieldAsBoolean(FieldName,AttrsName,PID,AsBoolean,[]);
-        'TComboBox':EditFieldAsString(FieldName,AttrsName,PID,AsString,[]);
-        'TFmtImage':EditFieldAsBitmap(FieldName,AttrsName,PID,AsBitmap,[]);
-        'TListBox':EditFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[]);
-      end;
+      if State=fesModified then
+        case ComponentClass.ClassName of
+          'TEdit':EditFieldAsString(FieldName,AttrsName,PID,AsString,[aeForceEditIfTypeDismatch]);
+          'TMemo':EditFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[]);
+          'TCheckBox':EditFieldAsBoolean(FieldName,AttrsName,PID,AsBoolean,[]);
+          'TComboBox':EditFieldAsString(FieldName,AttrsName,PID,AsString,[]);
+          'TFmtImage':EditFieldAsBitmap(FieldName,AttrsName,PID,AsBitmap,[]);
+          'TListBox':EditFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[]);
+        end;
       RestoreState;
     end;
   end;
@@ -5661,8 +6053,8 @@ begin
 end;
 
 {
-class function TRTFP.BackupDbf(ADBF:TDbf):boolean;
-var tmpDbf:TDbf;
+class function TRTFP.BackupDbf(ADBF:{TDbf}TDataSet):boolean;
+var tmpDbf:{TDbf}TDataSet;
     tmpDbfFieldDef:TDbfFieldDef;
     tmpField:TField;
     col,row:integer;
@@ -5704,7 +6096,7 @@ begin
   result:=true;
 end;
 
-class function TRTFP.RecoverDbf(ADBF:TDbf):boolean;
+class function TRTFP.RecoverDbf(ADBF:{TDbf}TDataSet):boolean;
 var dbfpath,runfile,run_dbt,name_no_ext:string;
 begin
   result:=false;

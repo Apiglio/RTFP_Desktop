@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  CheckLst, RTFP_definition, LazUTF8;
+  CheckLst, ExtCtrls, RTFP_definition, LazUTF8;
 
 type
 
@@ -21,6 +21,7 @@ type
     Label_ProjectName: TLabel;
     Label_ProjectPath: TLabel;
     Label_ProjectCanBuild: TLabel;
+    RadioGroup_dbFormat: TRadioGroup;
     SelectDirectoryDialog_NewProject: TSelectDirectoryDialog;
     procedure Button_BrowseClick(Sender: TObject);
     procedure Button_CreateClick(Sender: TObject);
@@ -49,7 +50,7 @@ var
   Form_NewProject: TForm_NewProject;
 
 implementation
-uses RTFP_main;
+uses RTFP_main, rtfp_type;
 
 {$R *.lfm}
 
@@ -102,7 +103,11 @@ begin
     CurrentRTFP.Free;
   end;
 
-  CurrentRTFP:=TRTFP.Create(FormDesktop);
+  case RadioGroup_dbFormat.ItemIndex of
+    1:CurrentRTFP:=TRTFP.Create(FormDesktop,dstBUF);
+    else CurrentRTFP:=TRTFP.Create(FormDesktop,dstDBF);
+  end;
+
   CurrentRTFP.SetAuf(FormDesktop.Frame_AufScript1.Auf);
   FormDesktop.EventLink(CurrentRTFP);
   CurrentRTFP.New((Self.FileFullName),(Self.FileName),'Apiglio');

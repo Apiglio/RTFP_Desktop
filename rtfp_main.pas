@@ -19,7 +19,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.2-alpha.6';
+  C_VERSION_NUMBER  = '0.2.2-alpha.8';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -2143,6 +2143,9 @@ begin
         79:CurrentRTFP.OpenPaper(Selected_PID);//O
         68:CurrentRTFP.OpenPaperDir(Selected_PID);//D
         //76:CurrentRTFP.OpenPaperLink(Selected_PID);//L
+
+        83:if not ProjectInvalid then CurrentRTFP.Save;//S
+
 
       end;
     end;
