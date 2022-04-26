@@ -1,9 +1,6 @@
 // 计划要做单独字段管理
-//
-//
-//
-//
-//
+// 开始给每一个attrs一个单独的modified属性，需要在definition.pas里实现
+
 
 unit rtfp_field;
 
@@ -93,6 +90,7 @@ type
     FDbf:{TDbf}TDataSet;
     FFieldList:TAttrsFieldList;
     FGroupShown:boolean;
+    FModified:boolean;
   protected
     function GetIsEmpty:boolean;
   public
@@ -102,6 +100,7 @@ type
     property Dbf:{TDbf}TDataSet read FDbf;
     property GroupShown:boolean read FGroupShown write FGroupShown;//如果为true，FieldFilter会以此为筛选条件
     property IsEmpty:boolean read GetIsEmpty;
+    property Modified:boolean read FModified write FModified;
   public
     constructor Create(ACollection:TCollection);override;
     destructor Destroy;override;
@@ -274,6 +273,8 @@ begin
 
   FFieldList:=TAttrsFieldList.Create(nil);
   FGroupShown:=true;
+  FModified:=false
+
 end;
 
 destructor TAttrsGroup.Destroy;

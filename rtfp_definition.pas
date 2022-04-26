@@ -24,6 +24,7 @@
 //我他妈服了，DBF的文件错误也太多了吧？？？？
 //异常关闭的恢复
 //formatEditComponent在图像字段数据有误时的解决方案需要明细
+//每一个dbf保存前判断是否modified
 
 
 //{$define insert}
@@ -40,7 +41,7 @@ interface
 
 uses
   Classes, SysUtils, Dialogs, ValEdit, LazUTF8, StdCtrls, ComCtrls, ExtCtrls, Forms,
-  ACL_ListView, Controls, Graphics,
+  ACL_ListView, Controls, Graphics, RegExpr,
 
   {$ifdef Windows}
   Windows,
@@ -1543,6 +1544,7 @@ begin
     NewDbf(tmp.FullPath,tmp.Dbf);
     tmp.LoadFieldListFromDbf;
   end;
+  tmp.Modified:=true;
   FieldChange;
   result:=tmp;
 end;
@@ -1562,6 +1564,7 @@ begin
   CloseDbf(tmp.FullPath,tmp.Dbf);
   DeleteDbf(tmp.FullPath,tmp.Dbf);
   FFieldList.Delete(index);
+  tmp.Modified:=true;
   FieldChange;
 end;
 
@@ -1687,6 +1690,7 @@ begin
         Open;
         RegenerateIndexes;
         tmpAG.AddField(FieldDefs.Find(AName));//LoadFieldListFromDbf;
+        tmpAG.Modified:=true;
         FieldChange;
       end;
     end;
@@ -1699,6 +1703,7 @@ begin
       end;
       if tmpDefs=nil then exit;
       tmpAG.AddField(tmpDefs);//LoadFieldListFromDbf;
+      tmpAG.Modified:=true;
       FieldChange;
     end;
   end;
@@ -1751,6 +1756,7 @@ begin
        tmpAG.DelField(AName);//LoadFieldListFromDbf;
     end;
   end;
+  tmpAG.Modified:=true;
   if tmpAG.IsEmpty then DeleteAttrs(tmpAG.Name);
   FieldChange;
 end;
@@ -2009,6 +2015,7 @@ begin
       tmpAG.Dbf.Edit;
       tmpField.AsString:=value;
       tmpAG.Dbf.Post;
+      tmpAG.Modified:=true;
       DataChange(PID);
     end
   else begin
@@ -2049,6 +2056,7 @@ begin
       tmpAG.Dbf.Edit;
       tmpField.AsInteger:=value;
       tmpAG.Dbf.Post;
+      tmpAG.Modified:=true;
       DataChange(PID);
     end
   else begin
@@ -2089,6 +2097,7 @@ begin
       tmpAG.Dbf.Edit;
       tmpField.AsBoolean:=value;
       tmpAG.Dbf.Post;
+      tmpAG.Modified:=true;
       DataChange(PID);
     end
   else begin
@@ -2129,6 +2138,7 @@ begin
       tmpAG.Dbf.Edit;
       tmpField.AsDateTime:=value;
       tmpAG.Dbf.Post;
+      tmpAG.Modified:=true;
       DataChange(PID);
     end
   else begin
@@ -2169,6 +2179,7 @@ begin
       tmpAG.Dbf.Edit;
       tmpField.AsFloat:=value;
       tmpAG.Dbf.Post;
+      tmpAG.Modified:=true;
       DataChange(PID);
     end
   else begin
@@ -2228,6 +2239,7 @@ begin
       tmpAG.Dbf.Edit;
       tmpField.AsString:=buf.Text;
       tmpAG.Dbf.Post;
+      tmpAG.Modified:=true;
       DataChange(PID);
     end
   else begin
@@ -2307,6 +2319,7 @@ begin
         str.Free;
       end;
       tmpAG.Dbf.Post;
+      tmpAG.Modified:=true;
       DataChange(PID);
     end
   else begin
@@ -2350,11 +2363,16 @@ var tmpAttrs:TAttrsGroup;
 begin
   for tmpAttrs in FFieldList do
     begin
+      if not tmpAttrs.Modified then begin
+        //ShowMsgOK('无需保存提示（临时）',tmpAttrs.Name);
+        continue;
+      end;
       while not SaveDbf(tmpAttrs.FullPath,tmpAttrs.Dbf) do
         case ShowMsgRetryIgnore('错误','属性组保存失败！') of
           'Retry':;
           'Ignore':break;
         end;
+      tmpAttrs.Modified:=false;
     end;
 end;
 
@@ -3378,7 +3396,7 @@ begin
 
     //2-注解
     //这里之后要考虑不是pdf或者pdf读取错误的情况
-    //这不是一个好做法，会大量浪费算力，但是现在先让他爬起来吧，再优化
+    //这不是一个好做法，会大量浪费算力，但是现在先让他爬起来吧，再优化，现在再优化需要考虑TAttrsGroup.Modified
     EditFieldAsInteger(_Col_notes_User_,_Attrs_Notes_,PID,0,[]);
     EditFieldAsDateTime(_Col_notes_CreateTime_,_Attrs_Notes_,PID,Now,[]);
     EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now,[]);
@@ -3386,7 +3404,7 @@ begin
 
     //3-元数据
     //这里之后要考虑不是pdf或者pdf读取错误的情况
-    //这不是一个好做法，会大量浪费算力，但是现在先让他爬起来吧，再优化
+    //这不是一个好做法，会大量浪费算力，但是现在先让他爬起来吧，再优化，现在再优化需要考虑TAttrsGroup.Modified
     EditFieldAsString(_Col_metas_Title_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Title']^,[aeForceEditIfTypeDismatch]);
     EditFieldAsString(_Col_metas_Authors_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Author']^,[aeForceEditIfTypeDismatch]);
     EditFieldAsString(_Col_metas_Subject_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Subject']^,[aeForceEditIfTypeDismatch]);
@@ -3507,6 +3525,7 @@ begin
       if not Active then Open;
       IndexName:='id';
       if SearchKey(PID,stEqual) then Delete;
+      AG.Modified:=true;
     end;
   RecordChange;
   result:=true;
@@ -4208,6 +4227,7 @@ var AG:TAttrsGroup;
 begin
   AG:=FindAttrs(_Attrs_Basic_);
   AG.Dbf.Post;
+  AG.Modified:=true;
 end;
 
 procedure TRTFP.EditBasic;
@@ -4353,7 +4373,7 @@ begin
               FieldByName(_Col_basic_PubTime_).AsDateTime:=tmpDate;
             end;
           'Period-期':begin
-            attr:=StringReplace(attr,'E','-',[rfReplaceAll,rfIgnoreCase]);
+            attr:=StringReplace(attr,'S','-',[rfReplaceAll,rfIgnoreCase]);
             FieldByName(_Col_basic_Issue_).AsString:=attr;
           end;
           'Roll-卷':FieldByName(_Col_basic_Volume_).AsString:=attr;
@@ -5183,7 +5203,19 @@ begin
         delete(fieldname,poss,len);
         delete(attrsname,1,poss);
         delete(attrsname,length(attrsname),1);
-        FPaperDS.Fields[field_index].AsString:=ReadFieldAsString(fieldname,attrsname,PID,[]);
+        //FPaperDS.Fields[field_index].AsString:=ReadFieldAsString(fieldname,attrsname,PID,[]);
+        case FPaperDS.Fields[field_index].DataType of
+          ftInteger,ftLargeint,ftSmallint:
+            FPaperDS.Fields[field_index].AsInteger:=ReadFieldAsInteger(fieldname,attrsname,PID,[]);
+          ftFloat:
+            FPaperDS.Fields[field_index].AsFloat:=ReadFieldAsDouble(fieldname,attrsname,PID,[]);
+          ftBoolean:
+            FPaperDS.Fields[field_index].AsBoolean:=ReadFieldAsBoolean(fieldname,attrsname,PID,[]);
+          ftDate,ftDateTime,ftTime:
+            FPaperDS.Fields[field_index].AsDateTime:=ReadFieldAsDateTime(fieldname,attrsname,PID,[]);
+          else
+            FPaperDS.Fields[field_index].AsString:=ReadFieldAsString(fieldname,attrsname,PID,[]);
+        end;
       end else begin
         FPaperDS.Fields[field_index].AsString:=GetPaperAttrs(fieldname,PID);
       end;
@@ -5201,6 +5233,7 @@ end;
 procedure TRTFP.TableFilter(cmd:string);
 var colname,method,value:string;
     col_num:integer;
+    regg:TRegExpr;
 begin
   //= eql         相等
   //!= <> neq     不相等
@@ -5212,8 +5245,10 @@ begin
   //>=   gtq      大等
   //<    les      小于
   //<=   leq      小等
+  //reg           正则表达式
 
   if (not IsUpdating) and (FOnMainGridRebuilding<>nil) then FOnMainGridRebuilding(Self);
+  regg:=TRegExpr.Create;
   BeginUpdate;
   try
 
@@ -5224,6 +5259,7 @@ begin
     StringReplace(cmd,'>=',' gtq ',[rfReplaceAll]);
     StringReplace(cmd,'<',' les ',[rfReplaceAll]);
     StringReplace(cmd,'<=',' leq ',[rfReplaceAll]);
+    StringReplace(cmd,'=~',' reg ',[rfReplaceAll]);
 
     FAuf.Script.IO_fptr.error:=nil;
     FAuf.Script.IO_fptr.print:=nil;
@@ -5234,6 +5270,8 @@ begin
     colname:=FAuf.nargs[0].arg;
     method:=FAuf.nargs[1].arg;
     value:=FAuf.nargs[2].arg;
+    if value<>'' then regg.Expression:=value
+    else regg.Expression:='.';
 
     case method of
       'true','false':;
@@ -5268,6 +5306,7 @@ begin
               'gtq':if Fields[Col_num].AsLargeInt<Usf.to_f(value) then Delete else Next;
               'les':if Fields[Col_num].AsLargeInt>=Usf.to_f(value) then Delete else Next;
               'leq':if Fields[Col_num].AsLargeInt>Usf.to_f(value) then Delete else Next;
+              'reg':if not regg.Exec(Fields[Col_num].AsString) then Delete else Next;
               else exit;
             end;
           end;
@@ -5275,6 +5314,7 @@ begin
       end;
   finally
     EndUpdate;
+    regg.Free;
     if (not IsUpdating) and (FOnMainGridRebuildDone<>nil) then FOnMainGridRebuildDone(Self);
   end;
 end;
@@ -5700,14 +5740,15 @@ begin
   for Item in FFormatEditComponentList do begin
     if TObject(Item).ClassType=TSplitter then continue;
     with TFormatEditPanel(Item) do begin
-      case ComponentClass.ClassName of
-        'TEdit':EditFieldAsString(FieldName,AttrsName,PID,AsString,[aeForceEditIfTypeDismatch]);
-        'TMemo':EditFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[]);
-        'TCheckBox':EditFieldAsBoolean(FieldName,AttrsName,PID,AsBoolean,[]);
-        'TComboBox':EditFieldAsString(FieldName,AttrsName,PID,AsString,[]);
-        'TFmtImage':EditFieldAsBitmap(FieldName,AttrsName,PID,AsBitmap,[]);
-        'TListBox':EditFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[]);
-      end;
+      if State=fesModified then
+        case ComponentClass.ClassName of
+          'TEdit':EditFieldAsString(FieldName,AttrsName,PID,AsString,[aeForceEditIfTypeDismatch]);
+          'TMemo':EditFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[]);
+          'TCheckBox':EditFieldAsBoolean(FieldName,AttrsName,PID,AsBoolean,[]);
+          'TComboBox':EditFieldAsString(FieldName,AttrsName,PID,AsString,[]);
+          'TFmtImage':EditFieldAsBitmap(FieldName,AttrsName,PID,AsBitmap,[]);
+          'TListBox':EditFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[]);
+        end;
       RestoreState;
     end;
   end;
