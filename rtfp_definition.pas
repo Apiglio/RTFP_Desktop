@@ -24,7 +24,6 @@
 //我他妈服了，DBF的文件错误也太多了吧？？？？
 //异常关闭的恢复
 //formatEditComponent在图像字段数据有误时的解决方案需要明细
-//每一个dbf保存前判断是否modified
 
 
 //{$define insert}
