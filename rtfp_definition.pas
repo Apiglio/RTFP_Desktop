@@ -24,7 +24,6 @@
 //我他妈服了，DBF的文件错误也太多了吧？？？？
 //异常关闭的恢复
 //formatEditComponent在图像字段数据有误时的解决方案需要明细
-//每一个dbf保存前判断是否modified
 
 
 //{$define insert}
@@ -162,9 +161,9 @@ type
 
   public
     procedure SetAuf(AAuf:TAuf);
+    function LocatePID(buf:TDataset;PID:RTFP_ID):boolean;
   private
     procedure SetPaths(filename:string);
-    function LocatePID(buf:TDataset;PID:RTFP_ID):boolean;
 
     function NewProjectFile(p_title,p_user:string):boolean;inline;
     function OpenProjectFile:boolean;inline;
@@ -196,9 +195,6 @@ type
 
 
   public //工程状态选项记录
-
-
-
     procedure LoadProjectOption(AAuf:TAuf);
     procedure SaveProjectOption(filename:string='');
 
@@ -259,7 +255,7 @@ type
 
     //Klass
   public
-    function AddKlass(klassname:string;pathname:string='\'):TKlass;
+    function AddKlass(klassname:string;pathname:string=''):TKlass;
     function FindKlass(klassname:string):TKlass;
     procedure DeleteKlass(klassname:string);
   private
@@ -1316,8 +1312,6 @@ begin
       with TBufDataset(Dbf) do begin
         FileName:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext+'.buf';
         try
-          //MaxIndexesCount:=10;
-          //AddIndex('Id',FieldDefs.Items[1].Name,[ixPrimary, ixUnique]);
           Open;
         except
           exit;
@@ -2551,13 +2545,17 @@ end;
 
 
 
-function TRTFP.AddKlass(klassname:string;pathname:string='\'):TKlass;
+function TRTFP.AddKlass(klassname:string;pathname:string=''):TKlass;
 var tmp:TKlass;
 begin
   result:=nil;
   if not TRTFP.IsKlassName(klassname) then exit;
   if FKlassList.FindItemIndexByName(klassname)>=0 then exit;
-  tmp:=FKlassList.AddEx('class\'+pathname+'\'+klassname,klassname);
+  if pathname<>'' then pathname:=pathname+'\';
+  case FDataSetType of
+    dstDBF:tmp:=FKlassList.AddEx('class\'+pathname+klassname,klassname,'dbf');
+    dstBUF:tmp:=FKlassList.AddEx('class\'+pathname+klassname,klassname,'buf');
+  end;
   ForceDirectories(FFilePath+FRootFolder+'\class\'+pathname);
   if not OpenDbf(tmp.FullPath,tmp.Dbf) then begin
     GenAttrDefaultAttribute(tmp.Dbf);
@@ -3151,16 +3149,14 @@ begin
 
   has_dbf:=FileExists(GetCurrentPathFull+'paper.dbf');
   has_buf:=FileExists(GetCurrentPathFull+'paper.buf');
-  case FDataSetType of
-    dstDBF:if not has_dbf then case ShowMsgYesNoAll('打开工程','存档格式有误，是否尝试使用其它格式打开？') of
-      'Yes':if not change_datasetType then case ShowMsgOK('打开工程','找不到合适的文件格式，无法打开工程。') of 'OK':exit;end;
-      else exit;
-    end;
-    dstBUF:if not has_buf then case ShowMsgYesNoAll('打开工程','存档格式有误，是否尝试使用其它格式打开？') of
-      'Yes':if not change_datasetType then case ShowMsgOK('打开工程','找不到合适的文件格式，无法打开工程。') of 'OK':exit;end;
-      else exit;
-    end;
 
+  if (FDataSetType=dstDBF) and (not has_dbf)
+  or (FDataSetType=dstBUF) and (not has_buf)
+  then begin
+    if not change_datasetType then begin
+      ShowMsgOK('打开工程','找不到合适的文件格式，无法打开工程。');
+      exit
+    end;
   end;
 
   OpenProjectFile;

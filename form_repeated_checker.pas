@@ -202,12 +202,11 @@ begin
           continue;
         end;
       tmpAG:=tmpAF.AttrsGroup;
-      with TDbf(tmpAG.Dbf) do
+      with tmpAG.Dbf do
         begin
           if not Active then Open;
-          IndexName:='id';
-          bo1:=SearchKey(id1,stEqual);
-          bo2:=SearchKey(id2,stEqual);
+          bo1:=CurrentRTFP.LocatePID(tmpAG.Dbf,id1);
+          bo2:=CurrentRTFP.LocatePID(tmpAG.Dbf,id2);
           if bo1 then begin
             if bo2 then begin
               if (ListView_AttrsCompare.Items[index].SubItems[0]='')
@@ -302,11 +301,8 @@ begin
         if (tmpAF.FieldName=_Col_PID_) or (tmpAF.FieldName=_Col_OID_) then continue;
         ListView_AttrsCompare.AddItem(tmpAG.Name+'.'+tmpAF.FieldName,tmpAF);
         index:=ListView_AttrsCompare.Items.Count-1;
-        with TDbf(tmpAG.Dbf) do begin
-          IndexName:='id';
-          b1:=SearchKey(id1,stEqual);
-          b2:=SearchKey(id2,stEqual);
-        end;
+        b1:=CurrentRTFP.LocatePID(tmpAG.Dbf,id1);
+        b2:=CurrentRTFP.LocatePID(tmpAG.Dbf,id2);
         if b1 then v1:=CurrentRTFP.ReadFieldAsString(tmpAF.FieldName,tmpAG.Name,id1,[aeFailIfNoPID]) else v1:='<未初始化>';
         if b2 then v2:=CurrentRTFP.ReadFieldAsString(tmpAF.FieldName,tmpAG.Name,id2,[aeFailIfNoPID]) else v2:='<未初始化>';
 
