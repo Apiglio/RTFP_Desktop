@@ -164,6 +164,7 @@ type
     procedure SetAuf(AAuf:TAuf);
   private
     procedure SetPaths(filename:string);
+    function LocatePID(buf:TDataset;PID:RTFP_ID):boolean;
 
     function NewProjectFile(p_title,p_user:string):boolean;inline;
     function OpenProjectFile:boolean;inline;
@@ -976,7 +977,7 @@ begin
         end;
         if lowercase(NO[1])='f' then
           begin
-            AG.GroupShown:=getbo(stmp);
+            AG.GroupShown:=not getbo(stmp);
             exit;
           end;
         AF:=AG.FieldList.FindItemByName(NF);
@@ -1254,11 +1255,31 @@ begin
     delete(stmp,1,len-5);
     if stmp='.rtfp' then delete(Self.FRootFolder,len-4,5);
   end;
-
   FKlassList.Path:=FFilePath+FRootFolder;
   FFieldList.Path:=FFilePath+FRootFolder;
+end;
 
-
+function TRTFP.LocatePID(buf:TDataset;PID:RTFP_ID):boolean;
+begin
+  result:=false;
+  case FDataSetType of
+    dstDBF:begin
+      if not (buf is TDbf) then raise Exception.Create('数据库文件非DBF格式');
+      if not buf.Active then buf.Open;
+      with TDbf(buf) do begin
+        IndexName:='Id';
+        result:=SearchKey(PID,stEqual);
+      end;
+    end;
+    dstBUF:begin
+      if not (buf is TBufDataset) then raise Exception.Create('数据库文件非DBF格式');
+      if not buf.Active then buf.Open;
+      with TBufDataset(buf) do begin
+        result:=Locate(_Col_PID_,PID,[]);
+      end;
+    end;
+  end;
+  assert(result,'PID未找到。');
 end;
 
 function TRTFP.OpenDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet):boolean;
@@ -1515,7 +1536,7 @@ begin
         Open;
       end;
     end;
-    dstBUF:;
+    dstBUF:;//BufDataset需要pack吗？
     else raise Exception.Create('无效DataSetType。');
   end;
 end;
@@ -1568,6 +1589,7 @@ begin
   FieldChange;
 end;
 
+{
 function AddFieldInBuf(buf:TBufDataset;FieldName:string;ADataType:TFieldType;ASize:word=0):TFieldDef;
 var tmpBuf:TBufDataset;
     pi,max_col:integer;
@@ -1661,6 +1683,167 @@ function ChangeTypeInBuf(buf:TBufDataset;FieldName:string;OldDataType,NewDataTyp
 begin
 
 end;
+}
+
+function AddFieldInBuf(buf:TBufDataset;FieldName:string;ADataType:TFieldType;ASize:word=0):TFieldDef;
+var tmpBuf:TBufDataset;
+    pi,max_col:integer;
+    res:TFieldDef;
+begin
+  result:=nil;
+  if buf.FieldDefs.IndexOf(FieldName)>=0 then exit;//存在同名即退出
+  tmpBuf:=TBufDataset.Create(nil);
+  tmpBuf.FileName:=buf.FileName+'_bak';
+  try
+    tmpBuf.FieldDefs.Assign(buf.FieldDefs);
+    tmpBuf.CreateDataset;
+    max_col:=buf.FieldDefs.Count;
+    buf.First;
+    while not buf.EOF do
+      begin
+        tmpBuf.Append;
+        for pi:=0 to max_col-1 do tmpBuf.Fields[pi].Assign(buf.Fields[pi]);
+        tmpBuf.Post;
+        buf.Next;
+      end;
+    tmpBuf.Close;
+    tmpBuf.Open;
+    buf.Close;
+    buf.Clear;
+    for pi:=0 to max_col-1 do
+      begin
+        {zan}res:=tmpBuf.FieldDefs[pi];
+        buf.FieldDefs.Add({zan}res.Name,{zan}res.DataType,{zan}res.Size);
+      end;
+    buf.FieldDefs.Add(FieldName,ADataType,ASize);
+    buf.CreateDataset;
+    buf.Open;
+    tmpBuf.First;
+    while not tmpBuf.EOF do
+      begin
+        buf.Append;
+        for pi:=0 to max_col-1 do buf.Fields[pi].Assign(tmpBuf.Fields[pi]);
+        buf.Post;
+        tmpBuf.Next;
+      end;
+  finally
+    tmpBuf.Close;
+    TRTFP.FileDelete(tmpBuf.FileName);
+    tmpBuf.Free;
+  end;
+  result:=buf.FieldDefs[max_col];
+end;
+
+function DeleteFieldInBuf(buf:TBufDataset;FieldName:string):boolean;
+var tmpBuf:TBufDataset;
+    pi,del_id,max_col:integer;
+    res:TFieldDef;
+begin
+  result:=false;
+  del_id:=buf.FieldDefs.IndexOf(FieldName);
+  if del_id<0 then exit;//不存在同名则退出
+  tmpBuf:=TBufDataset.Create(nil);
+  tmpBuf.FileName:=buf.FileName+'_bak';
+  try
+    if not buf.Active then buf.Open;
+    tmpBuf.FieldDefs.Assign(buf.FieldDefs);
+    tmpBuf.CreateDataset;
+    tmpBuf.Open;
+    max_col:=buf.FieldDefs.Count;
+    buf.First;
+    while not buf.EOF do
+      begin
+        tmpBuf.Append;
+        for pi:=0 to max_col-1 do tmpBuf.Fields[pi].Assign(buf.Fields[pi]);
+        tmpBuf.Post;
+        buf.Next;
+      end;
+    tmpBuf.Close;
+    tmpBuf.Open;
+    buf.Close;
+    buf.Clear;
+    for pi:=0 to max_col-1 do
+      begin
+        if pi=del_id then continue;
+        {zan}res:=tmpBuf.FieldDefs[pi];
+        buf.FieldDefs.Add({zan}res.Name,{zan}res.DataType,{zan}res.Size);
+      end;
+    buf.CreateDataset;
+    buf.Open;
+    tmpBuf.First;
+    while not tmpBuf.EOF do
+      begin
+        buf.Append;
+        for pi:=0 to del_id-1 do buf.Fields[pi].Assign(tmpBuf.Fields[pi]);
+        for pi:=del_id+1 to max_col-1 do buf.Fields[pi-1].Assign(tmpBuf.Fields[pi]);
+        buf.Post;
+        tmpBuf.Next;
+      end;
+  finally
+    tmpBuf.Close;
+    TRTFP.FileDelete(tmpBuf.FileName);
+    tmpBuf.Free;
+  end;
+  result:=true;
+end;
+
+function RenameFieldInBuf(buf:TBufDataset;OldFieldName,NewFieldName:string):boolean;
+var tmpBuf:TBufDataset;
+    pi,ren_id,max_col:integer;
+    res:TFieldDef;
+begin
+  result:=false;
+  ren_id:=buf.FieldDefs.IndexOf(OldFieldName);
+  if ren_id<0 then exit;//不存在同名则退出
+  tmpBuf:=TBufDataset.Create(nil);
+  tmpBuf.FileName:=buf.FileName+'_bak';
+  try
+    tmpBuf.FieldDefs.Assign(buf.FieldDefs);
+    tmpBuf.CreateDataset;
+    max_col:=buf.FieldDefs.Count;
+    buf.First;
+    while not buf.EOF do
+      begin
+        tmpBuf.Append;
+        for pi:=0 to max_col-1 do tmpBuf.Fields[pi].Assign(buf.Fields[pi]);
+        tmpBuf.Post;
+        buf.Next;
+      end;
+    tmpBuf.Close;
+    tmpBuf.Open;
+    buf.Close;
+    buf.Clear;
+    for pi:=0 to max_col-1 do
+      begin
+        {zan}res:=tmpBuf.FieldDefs[pi];
+        if pi=ren_id then
+          buf.FieldDefs.Add(NewFieldName,{zan}res.DataType,{zan}res.Size)
+        else
+          buf.FieldDefs.Add({zan}res.Name,{zan}res.DataType,{zan}res.Size);
+      end;
+    buf.CreateDataset;
+    buf.Open;
+    tmpBuf.First;
+    while not tmpBuf.EOF do
+      begin
+        buf.Append;
+        for pi:=0 to max_col-1 do buf.Fields[pi].Assign(tmpBuf.Fields[pi]);
+        buf.Post;
+        tmpBuf.Next;
+      end;
+  finally
+    tmpBuf.Close;
+    TRTFP.FileDelete(tmpBuf.FileName);
+    tmpBuf.Free;
+  end;
+  result:=true;
+end;
+
+function ChangeTypeInBuf(buf:TBufDataset;FieldName:string;OldDataType,NewDataType:TFieldType):boolean;//这个还要考虑一些额外选项
+begin
+
+end;
+
 
 
 function TRTFP.AddField(AName:string;AAttrsName:string;AType:TFieldType{;ASize:word}):TAttrsField;
@@ -1675,8 +1858,7 @@ begin
   if tmpAG=nil then tmpAG:=AddAttrs(AAttrsName);
   tmpAF:=tmpAG.FieldList.FindItemByName(AName);
   if tmpAF=nil then case FDataSetType of
-    dstDBF:
-    begin
+    dstDBF:begin
       with TDbf(tmpAG.Dbf) do begin
         if not Active then Open;
         TryExclusive;
@@ -1694,8 +1876,7 @@ begin
         FieldChange;
       end;
     end;
-    dstBUF:
-    begin
+    dstBUF:begin
       case AType of
         ftString:tmpDefs:=AddFieldInBuf(TBufDataSet(tmpAG.Dbf),AName,Atype,16);
         ftFloat:tmpDefs:=AddFieldInBuf(TBufDataSet(tmpAG.Dbf),AName,Atype,8);
@@ -1836,64 +2017,36 @@ end;
 
 function TRTFP.ReadBasicField(AAttrsName:string;PID:RTFP_ID):string;
 begin
-  with TDbf(FPaperDB) do begin
-    if not Active then Open;
-    IndexName:='id';
-    if not SearchKey(PID,stEqual) then
-      begin
-        assert(false,'未找到PID');
-        exit;
-      end;
-    result:=FieldByName(AAttrsName).AsString;
-  end;
+  if not FPaperDB.Active then FPaperDB.Open;
+  if not LocatePID(FPaperDB,PID) then exit;
+  result:=FPaperDB.FieldByName(AAttrsName).AsString;
 end;
 
 procedure TRTFP.EditBasicField(AAttrsName:string;PID:RTFP_ID;value:string);
 begin
-  with TDbf(FPaperDB) do begin
-    if not Active then Open;
-    IndexName:='id';
-    if not SearchKey(PID,stEqual) then
-      begin
-        assert(false,'未找到PID');
-        exit;
-      end;
-    Edit;
-    FieldByName(AAttrsName).AsString:=value;
-    Post;
-    DataChange(PID);
-  end;
+  if not FPaperDB.Active then FPaperDB.Open;
+  if not LocatePID(FPaperDB,PID) then exit;
+  FPaperDB.Edit;
+  FPaperDB.FieldByName(AAttrsName).AsString:=value;
+  FPaperDB.Post;
+  DataChange(PID);
 end;
 
 function TRTFP.ReadBasicBool(AAttrsName:string;PID:RTFP_ID):boolean;
 begin
-  with TDbf(FPaperDB) do begin
-    if not Active then Open;
-    IndexName:='id';
-    if not SearchKey(PID,stEqual) then
-      begin
-        assert(false,'未找到PID');
-        exit;
-      end;
-    result:=FieldByName(AAttrsName).AsBoolean;
-  end;
+  if not FPaperDB.Active then FPaperDB.Open;
+  if not LocatePID(FPaperDB,PID) then exit;
+  result:=FPaperDB.FieldByName(AAttrsName).AsBoolean;
 end;
 
 procedure TRTFP.EditBasicBool(AAttrsName:string;PID:RTFP_ID;value:boolean);
 begin
-  with TDbf(FPaperDB) do begin
-    if not Active then Open;
-    IndexName:='id';
-    if not SearchKey(PID,stEqual) then
-      begin
-        assert(false,'未找到PID');
-        exit;
-      end;
-    Edit;
-    FieldByName(AAttrsName).AsBoolean:=value;
-    Post;
-    DataChange(PID);
-  end;
+  if not FPaperDB.Active then FPaperDB.Open;
+  if not LocatePID(FPaperDB,PID) then exit;
+  FPaperDB.Edit;
+  FPaperDB.FieldByName(AAttrsName).AsBoolean:=value;
+  FPaperDB.Post;
+  DataChange(PID);
 end;
 
 function TRTFP.ReadFieldAsString(AName,AAttrsName:string;PID:RTFP_ID;AE:TAttrExtend):string;
@@ -3195,7 +3348,7 @@ begin
     DbfList.Add(FNotesDB);
     for klass in FKlassList do DbfList.Add(klass.Dbf);
     for attrs in FFieldList do DbfList.Add(attrs.Dbf);
-    for ptr in DbfList do with TDbf(ptr) do
+    for ptr in DbfList do with TDataSet(ptr) do
       begin
         if not Active then Open;
         First;
@@ -3498,20 +3651,16 @@ var AG:TAttrsGroup;
 begin
   result:=false;
   if not TRTFP.IsRTFPID(PID) then exit;
-  with TDbf(FPaperDB) do begin
-    if not Active then Open;
-    IndexName:='id';
-    if SearchKey(PID,stEqual) then
-      begin
-        if FieldByName(_Col_Paper_Is_Backup_).AsBoolean then
-          if not PreserveFileNoAsk then
-            case ShowMsgYesNoAll('删除确认','删除文献节点对应的文件可能会导致其他共用此文件的节点失去文件连接，并且操作后无法恢复，是否继续？',true) of
-              'Yes':TRTFP.FileDelete(FFilePath+FRootFolder+'\paper\'+FieldByName(_Col_Paper_Folder_).AsString+'\'+FieldByName(_Col_Paper_FileName_).AsString);
-              else ;
-            end
-          else ;//PreserveFileNoAsk=true时直接不删除
-        Delete;
-      end;
+  if not FPaperDB.Active then FPaperDB.Open;
+  if LocatePID(FPaperDB,PID) then with FPaperDB do begin
+    if FieldByName(_Col_Paper_Is_Backup_).AsBoolean then
+      if not PreserveFileNoAsk then
+        case ShowMsgYesNoAll('删除确认','删除文献节点对应的文件可能会导致其他共用此文件的节点失去文件连接，并且操作后无法恢复，是否继续？',true) of
+          'Yes':TRTFP.FileDelete(FFilePath+FRootFolder+'\paper\'+FieldByName(_Col_Paper_Folder_).AsString+'\'+FieldByName(_Col_Paper_FileName_).AsString);
+          else ;
+        end
+      else ;//PreserveFileNoAsk=true时直接不删除
+    Delete;
   end;
   klass_list:=TStringList.Create;
   try
@@ -3520,11 +3669,10 @@ begin
   finally
     klass_list.Free;
   end;
-  for AG in FFieldList do with TDbf(AG.Dbf) do
+  for AG in FFieldList do
     begin
-      if not Active then Open;
-      IndexName:='id';
-      if SearchKey(PID,stEqual) then Delete;
+      if not AG.Dbf.Active then AG.Dbf.Open;
+      if LocatePID(AG.Dbf,PID) then AG.Dbf.Delete;
       AG.Modified:=true;
     end;
   RecordChange;
@@ -3539,15 +3687,18 @@ var old_dir,old_file:string;
 begin
   result:=false;
   if not TRTFP.IsRTFPID(PID) then exit;
-  assert(AddPaperMethod in [apmFullBackup,apmCutBackup,apmAddress],'不接受apmFullBackup、apmCutBackup和apmAddress以外的方式');
-
-  with TDbf(FPaperDB) do begin
-    if not Active then Open;
-    IndexName:='id';
-    if not SearchKey(PID,stEqual) then begin
-      ShowMsgOK('未找到记录','没有找到PID为'+PID+'的文献节点');
-      exit;
+  case AddPaperMethod of
+    apmFullBackup,apmCutBackup,apmAddress:;
+    else begin
+      assert(false,'不接受apmFullBackup、apmCutBackup和apmAddress以外的方式');
+      exit
     end;
+  end;
+  if not LocatePID(FPaperDB,PID) then begin
+    ShowMsgOK('未找到记录','没有找到PID为'+PID+'的文献节点');
+    exit;
+  end;
+  with FPaperDB do begin
     old_backup:=FieldByName(_Col_Paper_Is_Backup_).AsBoolean;
     if old_backup then begin
       old_file:=FieldByName(_Col_Paper_FileName_).AsString;
@@ -3668,17 +3819,16 @@ begin
   result:=false;
   s1:=0;s2:=0;
   if TRTFP.IsRTFPID(PID_Main) and TRTFP.IsRTFPID(PID_Vice) then ELSE exit;
-  with TDbf(FPaperDB) do
+  with FPaperDB do
     begin
       if not Active then Open;
-      IndexName:='id';
-      if not SearchKey(PID_Vice,stEqual) then exit;
+      if not LocatePID(FPaperDB,PID_Vice) then exit;
       b2:=FieldByName(_Col_Paper_Is_Backup_).AsBoolean;
       f2:=FieldByName(_Col_Paper_Folder_).AsString;
       n2:=FieldByName(_Col_Paper_FileName_).AsString;
       h2:=FieldByName(_Col_Paper_FileHash_).AsString;
       s2:=FieldByName(_Col_Paper_FileSize_).AsLargeInt;
-      if not SearchKey(PID_Main,stEqual) then exit;
+      if not LocatePID(FPaperDB,PID_Main) then exit;
       b1:=FieldByName(_Col_Paper_Is_Backup_).AsBoolean;
       f1:=FieldByName(_Col_Paper_Folder_).AsString;
       n1:=FieldByName(_Col_Paper_FileName_).AsString;
@@ -3696,16 +3846,15 @@ begin
           end
         else UseVicePaperAttr:=false;
       end;
-      if UseVicePaperAttr then
-        begin
-          Edit;
-          FieldByName(_Col_Paper_Is_Backup_).AsBoolean:=b2;
-          FieldByName(_Col_Paper_Folder_).AsString:=f2;
-          FieldByName(_Col_Paper_FileName_).AsString:=n2;
-          FieldByName(_Col_Paper_FileHash_).AsString:=h2;
-          FieldByName(_Col_Paper_FileSize_).AsLargeInt:=s2;
-          Post;
-        end;
+      if UseVicePaperAttr then begin
+        Edit;
+        FieldByName(_Col_Paper_Is_Backup_).AsBoolean:=b2;
+        FieldByName(_Col_Paper_Folder_).AsString:=f2;
+        FieldByName(_Col_Paper_FileName_).AsString:=n2;
+        FieldByName(_Col_Paper_FileHash_).AsString:=h2;
+        FieldByName(_Col_Paper_FileSize_).AsLargeInt:=s2;
+        Post;
+      end;
     end;
   for tmpAG in FieldList do
     begin
@@ -3861,20 +4010,18 @@ begin
             if id1=id2 then break;
             lst1.Clear;
             lst2.Clear;
-            if scoFileName in ASimChkOption then with TDbf(FPaperDB) do
+            if scoFileName in ASimChkOption then with (FPaperDB) do
               begin
-                IndexName:='id';
-                if not SearchKey(id1,stEqual) then continue;
+                if not LocatePID(FPaperDB,id1) then continue;
                 lst1.Add(FieldByName(_Col_Paper_FileName_).AsString);
-                if not SearchKey(id2,stEqual) then continue;
+                if not LocatePID(FPaperDB,id2) then continue;
                 lst2.Add(FieldByName(_Col_Paper_FileName_).AsString);
               end;
-            if scoFileHash in ASimChkOption then with TDbf(FPaperDB) do
+            if scoFileHash in ASimChkOption then with (FPaperDB) do
               begin
-                IndexName:='id';
-                if not SearchKey(id1,stEqual) then continue;
+                if not LocatePID(FPaperDB,id1) then continue;
                 lst1.Add(FieldByName(_Col_Paper_FileHash_).AsString);
-                if not SearchKey(id2,stEqual) then continue;
+                if not LocatePID(FPaperDB,id2) then continue;
                 lst2.Add(FieldByName(_Col_Paper_FileHash_).AsString);
               end;
             if scoTitle in ASimChkOption then
@@ -3947,25 +4094,21 @@ end;
 
 function TRTFP.GetPaperAttrs(AFieldName:string;PID:RTFP_ID):string;
 begin
-  with TDbf(FPaperDB) do
+  with FPaperDB do
     begin
       if not Active then Open;
-      IndexName:='id';
-      if SearchKey(PID,stEqual) then
-        begin
-          result:=FieldByName(AFieldName).AsString;
-        end
-      else result:='';
+      if LocatePID(FPaperDB,PID) then result:=FieldByName(AFieldName).AsString else result:='';
     end;
 end;
 
 procedure TRTFP.GetPaperKlass(PID:RTFP_ID;str:TStrings);
+var tmpDbf:TDataset;
 begin
-  with TDbf(FieldList.FindItemByName(_Attrs_Class_).Dbf) do
+  tmpDbf:=FieldList.FindItemByName(_Attrs_Class_).Dbf;
+  with tmpDbf do
     begin
       if not Active then Open;
-      IndexName:='id';
-      if not SearchKey(PID,stEqual) then exit;
+      if not LocatePID(tmpDbf,PID) then exit;
       str.Text:=FieldByName(_Col_class_DefaultCl_).AsString;
     end;
 end;
@@ -3973,14 +4116,10 @@ end;
 procedure TRTFP.OpenPaper(PID:RTFP_ID;exename:string='');
 var filename:string;
 begin
-  with TDbf(FPaperDB) do begin
+  //这里没有性能要求，可以直接改成ReadBasicField
+  with FPaperDB do begin
     if not Active then Open;
-    IndexName:='id';
-    if not SearchKey(PID,stEqual) then
-      begin
-        assert(false,'未找到PID');
-        exit;
-      end;
+    if not LocatePID(FPaperDB,PID) then exit;
     if FieldByName(_Col_Paper_Is_Backup_).AsBoolean then
       filename:=Utf8ToWinCP(FFilePath+FRootFolder+'\paper\'
         +FieldByName(_Col_Paper_Folder_).AsString+'\'
@@ -4013,14 +4152,9 @@ end;
 procedure TRTFP.OpenPaperDir(PID:RTFP_ID);
 var filename:string;
 begin
-  with TDbf(FPaperDB) do begin
+  with FPaperDB do begin
     if not Active then Open;
-    IndexName:='id';
-    if not SearchKey(PID,stEqual) then
-      begin
-        assert(false,'未找到PID');
-        exit;
-      end;
+    if not LocatePID(FPaperDB,PID) then exit;
     if FieldByName(_Col_Paper_Is_Backup_).AsBoolean then
       filename:=Utf8ToWinCP(FFilePath+FRootFolder+'\paper\'
         +FieldByName(_Col_Paper_Folder_).AsString+'\'
@@ -4045,17 +4179,17 @@ end;
 function TRTFP.KlassInclude(klassname:string;PID:RTFP_ID):boolean;
 var index:integer;
     stmp:TStringList;
+    tmpDbf:TDataSet;
 begin
   result:=false;
   //索引文件更新
   index:=FKlassList.FindItemIndexByName(klassname);
   if index<0 then exit;
-  with TDbf(FKlassList[index].Dbf) do begin
+  tmpDbf:=FKlassList[index].Dbf;
+  with tmpDbf do begin
     if not Active then Open;
-    IndexName:='id';
-    if not SearchKey(PID,stEqual) then begin
-      Last;//有必要吗？
-      Insert;
+    if not LocatePID(tmpDbf,PID) then begin
+      Append;
       FieldByName(_Col_PID_).AsString:=PID;
       Post;
     end;
@@ -4071,7 +4205,7 @@ begin
     stmp.Free;
   end;
 
-  FormDesktop.debugline('PID['+PID+']->'+klassname);
+  //FormDesktop.debugline('PID['+PID+']->'+klassname);
   //RebuildMainGrid;
   DataChange(PID);
   result:=true;
@@ -4080,15 +4214,16 @@ end;
 function TRTFP.KlassExclude(klassname:string;PID:RTFP_ID):boolean;
 var index:integer;
     stmp:TStringList;
+    tmpDbf:TDataSet;
 begin
   result:=false;
   //索引文件更新
   index:=FKlassList.FindItemIndexByName(klassname);
   if index<0 then exit;
-  with TDbf(FKlassList[index].Dbf) do begin
+  tmpDbf:=FKlassList[index].Dbf;
+  with tmpDbf do begin
     if not Active then Open;
-    IndexName:='id';
-    if SearchKey(PID,stEqual) then Delete;
+    if LocatePID(tmpDbf,PID) then Delete;
   end;
   //修改字段
   stmp:=TStringList.Create;
@@ -4101,7 +4236,7 @@ begin
     stmp.Free;
   end;
 
-  FormDesktop.debugline('PID['+PID+']<-'+klassname);
+  //FormDesktop.debugline('PID['+PID+']<-'+klassname);
   //RebuildMainGrid;
   DataChange(PID);
   result:=true;
@@ -4207,10 +4342,9 @@ begin
   AG:=FindAttrs(_Attrs_Basic_);
   if AG=nil then AG:=AddAttrs(_Attrs_Basic_);
   //CheckBasicFields;
-  with TDbf(AG.Dbf) do begin
+  with AG.Dbf do begin
     if not Active then Open;
-    IndexName:='id';
-    if not SearchKey(PID,stEqual) then
+    if not LocatePID(AG.Dbf,PID) then
       begin
         assert(false,'不应该找不到才对');
         Append;
@@ -4511,7 +4645,7 @@ begin
             has_keyword:=true;
           end;
         'ER':{do nothing};
-        'T1':FieldByName(_Col_basic_Title_).AsString:=attr;
+        'T1','TI':FieldByName(_Col_basic_Title_).AsString:=attr;
         'JO','JF':FieldByName(_Col_basic_Source_).AsString:=attr;
         'PY':FieldByName(_Col_basic_Year_).AsString:=attr;
         'VL':FieldByName(_Col_basic_Volume_).AsString:=attr;
@@ -5104,9 +5238,10 @@ begin
         end;
       FPaperDS.First;
       if not FPaperDS.Active then FPaperDB.Open;
-      TDbf(FPaperDB).IndexName:='id';
+      //TDbf(FPaperDB).IndexName:='id';
       while not FPaperDS.EOF do begin
-        if TDbf(FPaperDB).SearchKey(FPaperDS.FieldByName(_Col_PID_).AsString,stEqual) then
+        //if TDbf(FPaperDB).SearchKey(FPaperDS.FieldByName(_Col_PID_).AsString,stEqual) then
+        if LocatePID(FPaperDB,FPaperDS.FieldByName(_Col_PID_).AsString) then
           begin
             FPaperDS.Edit;
             for pi:=0 to paperDB_cnt-1 do
@@ -5136,8 +5271,9 @@ begin
           FPaperDS.First;
           if not FPaperDS.EOF then repeat
             PID:=FPaperDS.FieldByName(_Col_PID_).AsString;
-            TDbf(tmpDbf).IndexName:='id';
-            if TDbf(tmpDbf).SearchKey(PID,stEqual) then begin
+            //TDbf(tmpDbf).IndexName:='id';
+            //if TDbf(tmpDbf).SearchKey(PID,stEqual) then begin
+            if LocatePID(tmpDbf,PID) then begin
               FPaperDS.Edit;
               for pi:=attr_range[pj].min to attr_range[pj].max do begin
                 case FPaperDS.Fields[pi].DataType of
@@ -5741,13 +5877,17 @@ begin
     if TObject(Item).ClassType=TSplitter then continue;
     with TFormatEditPanel(Item) do begin
       if State=fesModified then
-        case ComponentClass.ClassName of
-          'TEdit':EditFieldAsString(FieldName,AttrsName,PID,AsString,[aeForceEditIfTypeDismatch]);
-          'TMemo':EditFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[]);
-          'TCheckBox':EditFieldAsBoolean(FieldName,AttrsName,PID,AsBoolean,[]);
-          'TComboBox':EditFieldAsString(FieldName,AttrsName,PID,AsString,[]);
-          'TFmtImage':EditFieldAsBitmap(FieldName,AttrsName,PID,AsBitmap,[]);
-          'TListBox':EditFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[]);
+        try
+          case ComponentClass.ClassName of
+            'TEdit':EditFieldAsString(FieldName,AttrsName,PID,AsString,[aeForceEditIfTypeDismatch]);
+            'TMemo':EditFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[]);
+            'TCheckBox':EditFieldAsBoolean(FieldName,AttrsName,PID,AsBoolean,[]);
+            'TComboBox':EditFieldAsString(FieldName,AttrsName,PID,AsString,[]);
+            'TFmtImage':EditFieldAsBitmap(FieldName,AttrsName,PID,AsBitmap,[]);
+            'TListBox':EditFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[]);
+          end;
+        except
+          ShowMsgOK('FormatEdit','字段'+AttrsName+'.'+FieldName+'保存失败。');
         end;
       RestoreState;
     end;
@@ -6052,72 +6192,6 @@ begin
   if result<NameSize then result:=NameSize;
 end;
 
-{
-class function TRTFP.BackupDbf(ADBF:{TDbf}TDataSet):boolean;
-var tmpDbf:{TDbf}TDataSet;
-    tmpDbfFieldDef:TDbfFieldDef;
-    tmpField:TField;
-    col,row:integer;
-begin
-  result:=false;
-  if not assigned(ADBF) then exit;
-  tmpDbf:=TDbf.Create(nil);
-
-  ADBF.Open;
-  tmpDbf.FilePathFull:=ADBF.FilePathFull;
-  tmpDbf.TableName:=ADBF.TableName+'.bak';
-  tmpDbf.TableLevel:=ADBF.TableLevel;
-  col:=0;
-  while col<ADBF.DbfFieldDefs.Count do
-    begin
-      tmpDbfFieldDef:=ADBF.DbfFieldDefs.Items[col];
-      tmpDbf.DbfFieldDefs.Add(tmpDbfFieldDef.FieldName,tmpDbfFieldDef.FieldType,tmpDbfFieldDef.Size);
-      inc(col);
-    end;
-  tmpDbf.CreateTable;
-  tmpDbf.Open;
-  ADBF.First;
-  tmpDbf.First;
-  while not ADBF.EOF do
-    begin
-      tmpDbf.Insert;
-      row:=0;
-      while row<tmpDbf.Fields.Count do
-        begin
-          tmpField:=ADBF.Fields[row];            //此处在新加字段时不能正常工作
-          tmpDbf.Fields[row].Assign(tmpField);
-          inc(row);
-        end;
-      tmpDbf.Post;
-      ADBF.Next;
-    end;
-  tmpDbf.Close;
-  tmpDbf.Free;
-  result:=true;
-end;
-
-class function TRTFP.RecoverDbf(ADBF:{TDbf}TDataSet):boolean;
-var dbfpath,runfile,run_dbt,name_no_ext:string;
-begin
-  result:=false;
-
-  ADBF.Close;
-
-  dbfpath:=ADbf.FilePathFull;
-  runfile:=ADbf.TableName;
-  name_no_ext:=runfile;
-  delete(name_no_ext,length(name_no_ext)-7,8);
-  run_dbt:=name_no_ext+'_run.dbt';
-
-  //此处没有存在检验
-  TRTFP.FileCopy((dbfpath+runfile+'.bak'),(dbfpath+runfile),false);
-  TRTFP.FileCopy((dbfpath+runfile+'.dbt'),(dbfpath+run_dbt),false);
-
-  ADBF.Open;
-
-  result:=true;
-end;
-}
 class function TRTFP.CanBuildPath(pathname:ansistring):boolean;
 begin
   result:=false;

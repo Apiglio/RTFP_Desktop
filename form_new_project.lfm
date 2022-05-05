@@ -72,7 +72,7 @@ object Form_NewProject: TForm_NewProject
     BorderSpacing.Right = 15
     OnChange = Edit_ProjectPathChange
     TabOrder = 1
-    Text = 'E:\Kaspal\pascal\RTFP_Desktop\DefaultDB'
+    Text = 'K:\LAB_Pascal\RTFP Desktop\DefaultDB'
   end
   object Button_Create: TButton
     AnchorSideLeft.Control = Owner
