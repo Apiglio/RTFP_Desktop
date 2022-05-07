@@ -19,7 +19,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.3-alpha.1';
+  C_VERSION_NUMBER  = '0.2.3-alpha.2';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -2032,7 +2032,10 @@ var index:integer;
 begin
   if ProjectInvalid then exit;
   index:=ListBox_FormatEditMgr.ItemIndex;
-  if index<0 then ShowMsgOK('重命名样式','请先选择一个样式文件！');
+  if index<0 then begin
+    ShowMsgOK('重命名样式','请先选择一个样式文件！');
+    exit
+  end;
   format_name:=ListBox_FormatEditMgr.Items[index];
   newname:=ShowMsgEdit('重命名样式','将样式“'+format_name+'”重命名为：',format_name);
   if (newname<>'') and (newname<>format_name) then
