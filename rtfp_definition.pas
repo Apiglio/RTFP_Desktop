@@ -35,6 +35,7 @@ unit RTFP_definition;
 {$inline on}
 
 
+
 interface
 
 uses

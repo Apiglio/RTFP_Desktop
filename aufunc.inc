@@ -1,5 +1,6 @@
 //对接AufScript的部分
 
+
 procedure TRTFP.SetAuf(AAuf:TAuf);
 begin
   FAuf:=AAuf;
