@@ -1,4 +1,4 @@
-//ÓëÒı×¢¸ñÊ½ÓĞ¹ØµÄ×ª»»´úÂë
+//ä¸å¼•æ³¨æ ¼å¼æœ‰å…³çš„è½¬æ¢ä»£ç 
 
 
 function TRTFP.InitBasic(PID:RTFP_ID):TFields;
@@ -12,7 +12,7 @@ begin
     if not Active then Open;
     if not LocatePID(AG.Dbf,PID) then
       begin
-        assert(false,'²»Ó¦¸ÃÕÒ²»µ½²Å¶Ô');
+        assert(false,'ä¸åº”è¯¥æ‰¾ä¸åˆ°æ‰å¯¹');
         Append;
         FieldByName(_Col_PID_).AsString:=PID;
         Post;
@@ -48,31 +48,31 @@ end;
 function decodeEStudyRefType(str:string):string;
 begin
   case str of
-    '1':result:='ÆÚ¿¯ÂÛÎÄ';
-    '2':result:='Ñ§Î»ÂÛÎÄ';
-    '3':result:='»áÒéÂÛÎÄ';
-    '4':result:='±¨Ö½';
-    '5':result:='×¨Öø';
-    '6':result:='Äê¼ø';
-    '60':result:='×¨Àû';
-    '61':result:='ÆäËûÎÄÏ×';
-    '62':result:='±ê×¼¹æ·¶';
-    else result:='Î´Öª';
+    '1':result:='æœŸåˆŠè®ºæ–‡';
+    '2':result:='å­¦ä½è®ºæ–‡';
+    '3':result:='ä¼šè®®è®ºæ–‡';
+    '4':result:='æŠ¥çº¸';
+    '5':result:='ä¸“è‘—';
+    '6':result:='å¹´é‰´';
+    '60':result:='ä¸“åˆ©';
+    '61':result:='å…¶ä»–æ–‡çŒ®';
+    '62':result:='æ ‡å‡†è§„èŒƒ';
+    else result:='æœªçŸ¥';
   end;
 end;
 
 function encodeEStudyRefType(str:string):string;
 begin
   case str of
-    'ÆÚ¿¯ÂÛÎÄ':result:='1';
-    'Ñ§Î»ÂÛÎÄ':result:='2';
-    '»áÒéÂÛÎÄ':result:='3';
-    '±¨Ö½':result:='4';
-    '×¨Öø':result:='5';
-    'Äê¼ø':result:='6';
-    '×¨Àû':result:='60';
-    'ÆäËûÎÄÏ×':result:='61';
-    '±ê×¼¹æ·¶':result:='62';
+    'æœŸåˆŠè®ºæ–‡':result:='1';
+    'å­¦ä½è®ºæ–‡':result:='2';
+    'ä¼šè®®è®ºæ–‡':result:='3';
+    'æŠ¥çº¸':result:='4';
+    'ä¸“è‘—':result:='5';
+    'å¹´é‰´':result:='6';
+    'ä¸“åˆ©':result:='60';
+    'å…¶ä»–æ–‡çŒ®':result:='61';
+    'æ ‡å‡†è§„èŒƒ':result:='62';
     else result:='0';
   end;
 end;
@@ -80,31 +80,31 @@ end;
 function decodeEndNoteRefType(str:string):string;
 begin
   case str of
-    'Journal Article':result:='ÆÚ¿¯ÂÛÎÄ';
-    'Thesis':result:='Ñ§Î»ÂÛÎÄ';
-    'Conference Proceedings':result:='»áÒéÂÛÎÄ';
-    'Newspaper Article':result:='±¨Ö½';
-    'Book':result:='×¨Öø';
-    //'Legal Rule or Regulation':result:='Äê¼ø';
-    'Patent':result:='×¨Àû';
-    'Other Article':result:='ÆäËûÎÄÏ×';
-    'Legal Rule or Regulation':result:='±ê×¼¹æ·¶';
-    else result:='Î´Öª';
+    'Journal Article':result:='æœŸåˆŠè®ºæ–‡';
+    'Thesis':result:='å­¦ä½è®ºæ–‡';
+    'Conference Proceedings':result:='ä¼šè®®è®ºæ–‡';
+    'Newspaper Article':result:='æŠ¥çº¸';
+    'Book':result:='ä¸“è‘—';
+    //'Legal Rule or Regulation':result:='å¹´é‰´';
+    'Patent':result:='ä¸“åˆ©';
+    'Other Article':result:='å…¶ä»–æ–‡çŒ®';
+    'Legal Rule or Regulation':result:='æ ‡å‡†è§„èŒƒ';
+    else result:='æœªçŸ¥';
   end;
 end;
 
 function encodeEndNoteRefType(str:string):string;
 begin
   case str of
-    'ÆÚ¿¯ÂÛÎÄ':result:='Journal Article';
-    'Ñ§Î»ÂÛÎÄ':result:='Thesis';
-    '»áÒéÂÛÎÄ':result:='Conference Proceedings';
-    '±¨Ö½':result:='Newspaper Article';
-    '×¨Öø':result:='Book';
-    'Äê¼ø':result:='Legal Rule or Regulation';
-    '×¨Àû':result:='Patent';
-    'ÆäËûÎÄÏ×':result:='Other Article';
-    '±ê×¼¹æ·¶':result:='Legal Rule or Regulation';
+    'æœŸåˆŠè®ºæ–‡':result:='Journal Article';
+    'å­¦ä½è®ºæ–‡':result:='Thesis';
+    'ä¼šè®®è®ºæ–‡':result:='Conference Proceedings';
+    'æŠ¥çº¸':result:='Newspaper Article';
+    'ä¸“è‘—':result:='Book';
+    'å¹´é‰´':result:='Legal Rule or Regulation';
+    'ä¸“åˆ©':result:='Patent';
+    'å…¶ä»–æ–‡çŒ®':result:='Other Article';
+    'æ ‡å‡†è§„èŒƒ':result:='Legal Rule or Regulation';
     else result:='Unknown';
   end;
 end;
@@ -131,7 +131,7 @@ begin
   with InitBasic(PID) do begin
     for stmp in str do begin
       if stmp='' then continue;
-      //ÕâÀïÓÃÖÆ±í·ûÅĞ¶Ï¶àĞĞÕªÒª¸ñÊ½ÊÇ·ñÓĞ×ã¹»µÄÊÊÓ¦ĞÔ£¿
+      //è¿™é‡Œç”¨åˆ¶è¡¨ç¬¦åˆ¤æ–­å¤šè¡Œæ‘˜è¦æ ¼å¼æ˜¯å¦æœ‰è¶³å¤Ÿçš„é€‚åº”æ€§ï¼Ÿ
       if (stmp[1]=#9) and is_last_summary then begin
         sum_temp:=FieldByName(_Col_basic_Summary_).AsString;
         FieldByName(_Col_basic_Summary_).AsString:=sum_temp+#13#10+stmp;
@@ -147,7 +147,7 @@ begin
       try
         case header of
           'DataType':FieldByName(_Col_basic_RefType_).AsString:=decodeEStudyRefType(attr);
-          'Author-×÷Õß','Author-·¢Ã÷ÈË','Source-Æğ²İµ¥Î»':
+          'Author-ä½œè€…','Author-å‘æ˜äºº','Source-èµ·è‰å•ä½':
             begin
               while attr[length(attr)]=';' do
                 begin
@@ -156,11 +156,11 @@ begin
                 end;
               FieldByName(_Col_basic_Author_).AsString:=attr;
             end;
-          'Title-ÌâÃû','Title-Õı±êÌâ','Title-ÊéÃû','Title-×¨ÀûÃû³Æ','Title-ÖĞÎÄ±ê×¼Ãû³Æ':FieldByName(_Col_basic_Title_).AsString:=attr;
-          'Source-¿¯Ãû','Source-Ñ§Î»ÊÚÓèµ¥Î»','Source-±¨Ö½ÖĞÎÄÃû','Author-·¢²¼µ¥Î»Ãû³Æ','Source-ÎÄÏ×À´Ô´':
+          'Title-é¢˜å','Title-æ­£æ ‡é¢˜','Title-ä¹¦å','Title-ä¸“åˆ©åç§°','Title-ä¸­æ–‡æ ‡å‡†åç§°':FieldByName(_Col_basic_Title_).AsString:=attr;
+          'Source-åˆŠå','Source-å­¦ä½æˆäºˆå•ä½','Source-æŠ¥çº¸ä¸­æ–‡å','Author-å‘å¸ƒå•ä½åç§°','Source-æ–‡çŒ®æ¥æº':
             FieldByName(_Col_basic_Source_).AsString:=attr;
-          'Year-Äê','Year-Äê¼øÄê·İ':FieldByName(_Col_basic_Year_).AsString:=attr;
-          'PubTime-³ö°æÊ±¼ä','PubTime-·¢±íÊ±¼ä':
+          'Year-å¹´','Year-å¹´é‰´å¹´ä»½':FieldByName(_Col_basic_Year_).AsString:=attr;
+          'PubTime-å‡ºç‰ˆæ—¶é—´','PubTime-å‘è¡¨æ—¶é—´':
             begin
               {zan}poss:=pos(' ',attr);
               if poss>0 then delete(attr,poss,length(attr));
@@ -170,31 +170,31 @@ begin
               end;
               FieldByName(_Col_basic_PubTime_).AsDateTime:=tmpDate;
             end;
-          'Period-ÆÚ':begin
+          'Period-æœŸ':begin
             attr:=StringReplace(attr,'S','-',[rfReplaceAll,rfIgnoreCase]);
             FieldByName(_Col_basic_Issue_).AsString:=attr;
           end;
-          'Roll-¾í':FieldByName(_Col_basic_Volume_).AsString:=attr;
-          'Keyword-¹Ø¼ü´Ê':FieldByName(_Col_basic_Keyword_).AsString:=attr;
-          'Summary-ÕªÒª','Summary-¿ìÕÕ':FieldByName(_Col_basic_Summary_).AsString:=attr;
-          'PageCount-Ò³Êı':FieldByName(_Col_basic_PageCount_).AsString:=attr;
-          'Page-Ò³Âë':FieldByName(_Col_basic_Page_).AsString:=attr;
-          //'SrcDatabase-À´Ô´¿â':FieldByName(_Col_basic_À´Ô´¿â_).AsString:=attr;
-          'Organ-»ú¹¹','Organ-´óÑ§','Organ-³ö°æÉç','ÎÄÏ×À´Ô´'{×¨Àû},'Organ-³ö°æÕß'{Äê¼ø}:
+          'Roll-å·':FieldByName(_Col_basic_Volume_).AsString:=attr;
+          'Keyword-å…³é”®è¯':FieldByName(_Col_basic_Keyword_).AsString:=attr;
+          'Summary-æ‘˜è¦','Summary-å¿«ç…§':FieldByName(_Col_basic_Summary_).AsString:=attr;
+          'PageCount-é¡µæ•°':FieldByName(_Col_basic_PageCount_).AsString:=attr;
+          'Page-é¡µç ':FieldByName(_Col_basic_Page_).AsString:=attr;
+          //'SrcDatabase-æ¥æºåº“':FieldByName(_Col_basic_æ¥æºåº“_).AsString:=attr;
+          'Organ-æœºæ„','Organ-å¤§å­¦','Organ-å‡ºç‰ˆç¤¾','æ–‡çŒ®æ¥æº'{ä¸“åˆ©},'Organ-å‡ºç‰ˆè€…'{å¹´é‰´}:
             FieldByName(_Col_basic_Organ_).AsString:=attr;
-          'Link-Á´½Ó':FieldByName(_Col_basic_Link_).AsString:=StringReplace(attr,'&amp;','&',[rfReplaceAll]);
-          'Degree-Ñ§Î»':FieldByName(_Col_basic_Degree_).AsString:=attr;
-          'Teacher-µ¼Ê¦','Teacher-ÉêÇëÈË':FieldByName(_Col_basic_Teacher_).AsString:=attr;
-          'City-»áÒéµØµã','City-µØÖ·':FieldByName(_Col_basic_City_).AsString:=attr;
-          'Meeting-»áÒéÃû³Æ':FieldByName(_Col_basic_Meeting_).AsString:=attr;
-          'Notes-±ê×¼ºÅ':FieldByName(_Col_basic_ISBN_ISSN_).AsString:=attr;
+          'Link-é“¾æ¥':FieldByName(_Col_basic_Link_).AsString:=StringReplace(attr,'&amp;','&',[rfReplaceAll]);
+          'Degree-å­¦ä½':FieldByName(_Col_basic_Degree_).AsString:=attr;
+          'Teacher-å¯¼å¸ˆ','Teacher-ç”³è¯·äºº':FieldByName(_Col_basic_Teacher_).AsString:=attr;
+          'City-ä¼šè®®åœ°ç‚¹','City-åœ°å€':FieldByName(_Col_basic_City_).AsString:=attr;
+          'Meeting-ä¼šè®®åç§°':FieldByName(_Col_basic_Meeting_).AsString:=attr;
+          'Notes-æ ‡å‡†å·':FieldByName(_Col_basic_ISBN_ISSN_).AsString:=attr;
 
         end;
       except
         error_str:=error_str+'    '+header+#13#10;
       end;
       case header of
-        'Summary-ÕªÒª','Summary-¿ìÕÕ':is_last_summary:=true;
+        'Summary-æ‘˜è¦','Summary-å¿«ç…§':is_last_summary:=true;
         else is_last_summary:=false;
       end;
       ReEditBasic;
@@ -202,13 +202,13 @@ begin
       //EditBasic;
     end;
   end;
-  if error_str<>#13#10 then ShowMsgOKAll('µ¼Èë´íÎó','ÒÔÏÂ×Ö¶Îµ¼ÈëÊ±·¢Éú´íÎó£º'+error_str);//ÕâÀï×îºÃ¼ÓÒ»¸ö±¾´Î²»ÔÙÌáÊ¾
+  if error_str<>#13#10 then ShowMsgOKAll('å¯¼å…¥é”™è¯¯','ä»¥ä¸‹å­—æ®µå¯¼å…¥æ—¶å‘ç”Ÿé”™è¯¯ï¼š'+error_str);//è¿™é‡Œæœ€å¥½åŠ ä¸€ä¸ªæœ¬æ¬¡ä¸å†æç¤º
   PostBasic;
   FieldAndRecordChange;//DataChange;
 end;
 procedure TRTFP.LoadFromRefWork(PID:RTFP_ID;str:TStrings);
 begin
-  ShowMsgOK('¾¯¸æ','Ôİ²»Ö§³Öµ¼ÈëRefWork');
+  ShowMsgOK('è­¦å‘Š','æš‚ä¸æ”¯æŒå¯¼å…¥RefWork');
 end;
 procedure TRTFP.LoadFromEndNote(PID:RTFP_ID;str:TStrings);
 var stmp,attr:string;
@@ -241,7 +241,7 @@ begin
         'J','I':FieldByName(_Col_basic_Source_).AsString:=attr;
         'D':FieldByName(_Col_basic_Year_).AsString:=attr;
         'V':case reftype of
-              '±ê×¼¹æ·¶':FieldByName(_Col_basic_ISBN_ISSN_).AsString:=attr;
+              'æ ‡å‡†è§„èŒƒ':FieldByName(_Col_basic_ISBN_ISSN_).AsString:=attr;
               else FieldByName(_Col_basic_Issue_).AsString:=attr;
             end;
         'N':FieldByName(_Col_basic_Volume_).AsString:=attr;
@@ -252,11 +252,11 @@ begin
         'L':FieldByName(_Col_basic_CN_).AsString:=attr;
         //'W':FieldByName(_Col_basic_DataProv_).AsString:=attr;
         'Y':FieldByName(_Col_basic_Teacher_).AsString:=attr;
-        '9':FieldByName(_Col_basic_Degree_).AsString:=attr;//Ò²Ö¸×¨ÀûÀàĞÍ
+        '9':FieldByName(_Col_basic_Degree_).AsString:=attr;//ä¹ŸæŒ‡ä¸“åˆ©ç±»å‹
         'C':FieldByName(_Col_basic_City_).AsString:=attr;
         'B':FieldByName(_Col_basic_Meeting_).AsString:=attr;
         '?':FieldByName(_Col_basic_Sponsor_).AsString:=attr;
-        '8':FieldByName(_Col_basic_PubTime_).AsString:=attr;//×¨ÀûµÄ·¢±íÊ±¼ä
+        '8':FieldByName(_Col_basic_PubTime_).AsString:=attr;//ä¸“åˆ©çš„å‘è¡¨æ—¶é—´
 
       end;
       ReEditBasic;
@@ -267,11 +267,11 @@ begin
 end;
 procedure TRTFP.LoadFromNoteExpress(PID:RTFP_ID;str:TStrings);
 begin
-  ShowMsgOK('¾¯¸æ','Ôİ²»Ö§³Öµ¼ÈëNoteExpress');
+  ShowMsgOK('è­¦å‘Š','æš‚ä¸æ”¯æŒå¯¼å…¥NoteExpress');
 end;
 procedure TRTFP.LoadFromNoteFirst(PID:RTFP_ID;str:TStrings);
 begin
-  ShowMsgOK('¾¯¸æ','Ôİ²»Ö§³Öµ¼ÈëNoteFirst');
+  ShowMsgOK('è­¦å‘Š','æš‚ä¸æ”¯æŒå¯¼å…¥NoteFirst');
 end;
 procedure TRTFP.LoadFromRIS(PID:RTFP_ID;str:TStrings);
 var stmp,attr:string;
@@ -336,11 +336,11 @@ end;
 
 procedure TRTFP.SaveToEStudy(PID:RTFP_ID;str:TStrings);
 begin
-  ShowMsgOK('¾¯¸æ','Ôİ²»Ö§³Öµ¼³öEStudy');
+  ShowMsgOK('è­¦å‘Š','æš‚ä¸æ”¯æŒå¯¼å‡ºEStudy');
 end;
 procedure TRTFP.SaveToRefWork(PID:RTFP_ID;str:TStrings);
 begin
-  ShowMsgOK('¾¯¸æ','Ôİ²»Ö§³Öµ¼³öRefWork');
+  ShowMsgOK('è­¦å‘Š','æš‚ä¸æ”¯æŒå¯¼å‡ºRefWork');
 end;
 procedure TRTFP.SaveToEndNote(PID:RTFP_ID;str:TStrings);
 var stmp,reftype:string;
@@ -359,7 +359,7 @@ begin
     if stmp<>'' then str.Add('%T '+stmp);
 
     stmp:=FieldByName(_Col_basic_Source_).AsString;
-    if reftype = 'Ñ§Î»ÂÛÎÄ' then begin
+    if reftype = 'å­¦ä½è®ºæ–‡' then begin
       if stmp<>'' then str.Add('%I '+stmp);
     end else begin
       if stmp<>'' then str.Add('%J '+stmp);
@@ -399,48 +399,48 @@ begin
 end;
 procedure TRTFP.SaveToNoteExpress(PID:RTFP_ID;str:TStrings);
 begin
-  ShowMsgOK('¾¯¸æ','Ôİ²»Ö§³Öµ¼³öNoteExpress');
+  ShowMsgOK('è­¦å‘Š','æš‚ä¸æ”¯æŒå¯¼å‡ºNoteExpress');
 end;
 procedure TRTFP.SaveToNoteFirst(PID:RTFP_ID;str:TStrings);
 begin
-  ShowMsgOK('¾¯¸æ','Ôİ²»Ö§³Öµ¼³öNoteFirst');
+  ShowMsgOK('è­¦å‘Š','æš‚ä¸æ”¯æŒå¯¼å‡ºNoteFirst');
 end;
 procedure TRTFP.SaveToRIS(PID:RTFP_ID;str:TStrings);
 begin
-  ShowMsgOK('¾¯¸æ','Ôİ²»Ö§³Öµ¼³öRIS');
+  ShowMsgOK('è­¦å‘Š','æš‚ä¸æ”¯æŒå¯¼å‡ºRIS');
 end;
 
 procedure TRTFP.SetGBT7714(PID:RTFP_ID;str:string);
 begin
-  ShowMsgOK('¾¯¸æ','Ôİ²»Ö§³Öµ¼ÈëGB/T 7714');
+  ShowMsgOK('è­¦å‘Š','æš‚ä¸æ”¯æŒå¯¼å…¥GB/T 7714');
 end;
 procedure TRTFP.SetCAJCD(PID:RTFP_ID;str:string);
 begin
-  ShowMsgOK('¾¯¸æ','Ôİ²»Ö§³Öµ¼ÈëCAJ/CD');
+  ShowMsgOK('è­¦å‘Š','æš‚ä¸æ”¯æŒå¯¼å…¥CAJ/CD');
 end;
 procedure TRTFP.SetMLA(PID:RTFP_ID;str:string);
 begin
-  ShowMsgOK('¾¯¸æ','Ôİ²»Ö§³Öµ¼ÈëMLA');
+  ShowMsgOK('è­¦å‘Š','æš‚ä¸æ”¯æŒå¯¼å…¥MLA');
 end;
 procedure TRTFP.SetAPA(PID:RTFP_ID;str:string);
 begin
-  ShowMsgOK('¾¯¸æ','Ôİ²»Ö§³Öµ¼ÈëAPA');
+  ShowMsgOK('è­¦å‘Š','æš‚ä¸æ”¯æŒå¯¼å…¥APA');
 end;
 procedure TRTFP.SetChaXin(PID:RTFP_ID;str:string);
 begin
-  ShowMsgOK('¾¯¸æ','Ôİ²»Ö§³Öµ¼Èë²éĞÂ');
+  ShowMsgOK('è­¦å‘Š','æš‚ä¸æ”¯æŒå¯¼å…¥æŸ¥æ–°');
 end;
 
 function TRTFP.GetGBT7714(PID:RTFP_ID):string;
 var stmp:string;
     tmpDateTime:TDateTime;
 begin
-  //ShowMsgOK('¾¯¸æ','unimplemented');
+  //ShowMsgOK('è­¦å‘Š','unimplemented');
   result:='';
   with InitBasic(PID) do
     begin
       case FieldByName(_Col_basic_RefType_).AsString of
-        'ÆÚ¿¯ÂÛÎÄ':
+        'æœŸåˆŠè®ºæ–‡':
           begin
             result:='[PID='+PID+']';
             result:=result+StringReplace(FieldByName(_Col_basic_Author_).AsString,';',',',[rfReplaceAll]);
@@ -453,12 +453,12 @@ begin
             result:=result+',';
             result:=result+FieldByName(_Col_basic_Volume_).AsString;
             result:=result+'(';
-            result:=result+FieldByName(_Col_basic_Issue_).AsString;
+            result:=result+StringReplace(FieldByName(_Col_basic_Issue_).AsString,'-','S',[rfReplaceAll]);
             result:=result+'):';
             result:=result+FieldByName(_Col_basic_Page_).AsString;
             result:=result+'.';
           end;
-        'Ñ§Î»ÂÛÎÄ':
+        'å­¦ä½è®ºæ–‡':
           begin
             result:='[PID='+PID+']';
             result:=result+FieldByName(_Col_basic_Author_).AsString;
@@ -470,7 +470,7 @@ begin
             result:=result+FieldByName(_Col_basic_Year_).AsString;
             result:=result+'.';
           end;
-        '»áÒéÂÛÎÄ':
+        'ä¼šè®®è®ºæ–‡':
           begin
             result:='[PID='+PID+']';
             result:=result+StringReplace(FieldByName(_Col_basic_Author_).AsString,';',',',[rfReplaceAll]);
@@ -490,7 +490,7 @@ begin
             result:=result+FieldByName(_Col_basic_PageCount_).AsString;
             result:=result+'.';
           end;
-        '±¨Ö½':
+        'æŠ¥çº¸':
           begin
             result:='[PID='+PID+']';
             result:=result+StringReplace(FieldByName(_Col_basic_Author_).AsString,';',',',[rfReplaceAll]);
@@ -504,14 +504,14 @@ begin
             result:=result+FieldByName(_Col_basic_PageCount_).AsString;
             result:=result+').';
           end;
-        '×¨Öø':
+        'ä¸“è‘—':
           begin
             result:='[PID='+PID+']';
             result:=result+StringReplace(FieldByName(_Col_basic_Author_).AsString,';',',',[rfReplaceAll]);
             result:=result+'.';
             result:=result+FieldByName(_Col_basic_Title_).AsString;
             result:=result+'[M].';
-            //result:=result+FieldByName(_Col_basic_³ö°æÉç³ÇÊĞ_).AsString;
+            //result:=result+FieldByName(_Col_basic_å‡ºç‰ˆç¤¾åŸå¸‚_).AsString;
             //result:=result+':';
             result:=result+FieldByName(_Col_basic_Organ_).AsString;
             result:=result+',';
@@ -537,11 +537,11 @@ begin
 
             result:=result+'.';
           end;
-        'Äê¼ø':
+        'å¹´é‰´':
           begin
-            result:='Ôİ²»Ö§³Ö´ËÀàĞÍ';
+            result:='æš‚ä¸æ”¯æŒæ­¤ç±»å‹';
           end;
-        '×¨Àû':
+        'ä¸“åˆ©':
           begin
             result:='[PID='+PID+']';
             result:=result+StringReplace(FieldByName(_Col_basic_Author_).AsString,';',',',[rfReplaceAll]);
@@ -554,11 +554,11 @@ begin
             stmp:=FieldByName(_Col_basic_PubTime_).AsString;
             if stmp<>'' then result:=' '+result+stmp+'.';
           end;
-        'ÆäËüÎÄÏ×':
+        'å…¶å®ƒæ–‡çŒ®':
           begin
-            result:='Ôİ²»Ö§³Ö´ËÀàĞÍ';
+            result:='æš‚ä¸æ”¯æŒæ­¤ç±»å‹';
           end;
-        '±ê×¼¹æ·¶':
+        'æ ‡å‡†è§„èŒƒ':
           begin
             result:='[PID='+PID+']';
             result:=result+StringReplace(FieldByName(_Col_basic_Author_).AsString,';',',',[rfReplaceAll]);
@@ -578,25 +578,25 @@ begin
                 if length(stmp)=7 then result:=result+stmp+'.';
               end;
           end;
-        else result:='Ôİ²»Ö§³Ö´ËÀàĞÍ';
+        else result:='æš‚ä¸æ”¯æŒæ­¤ç±»å‹';
       end;
     end;
 end;
 function TRTFP.GetCAJCD(PID:RTFP_ID):string;
 begin
-  ShowMsgOK('¾¯¸æ','Ôİ²»Ö§³Öµ¼³öCAJ/CD');
+  ShowMsgOK('è­¦å‘Š','æš‚ä¸æ”¯æŒå¯¼å‡ºCAJ/CD');
 end;
 function TRTFP.GetMLA(PID:RTFP_ID):string;
 begin
-  ShowMsgOK('¾¯¸æ','Ôİ²»Ö§³Öµ¼³öMLA');
+  ShowMsgOK('è­¦å‘Š','æš‚ä¸æ”¯æŒå¯¼å‡ºMLA');
 end;
 function TRTFP.GetAPA(PID:RTFP_ID):string;
 begin
-  ShowMsgOK('¾¯¸æ','Ôİ²»Ö§³Öµ¼³öAPA');
+  ShowMsgOK('è­¦å‘Š','æš‚ä¸æ”¯æŒå¯¼å‡ºAPA');
 end;
 function TRTFP.GetChaXin(PID:RTFP_ID):string;
 begin
-  ShowMsgOK('¾¯¸æ','Ôİ²»Ö§³Öµ¼³ö²éĞÂ');
+  ShowMsgOK('è­¦å‘Š','æš‚ä¸æ”¯æŒå¯¼å‡ºæŸ¥æ–°');
 end;
 function TRTFP.GetRef_InOrder(PID:RTFP_ID):string;
 begin
@@ -633,7 +633,7 @@ begin
         result:=result+str[0];
         if str.Count>1 then begin
           if IsAscii(str[0]) then result:=result+' et al.'
-          else result:=result+' µÈ';
+          else result:=result+' ç­‰';
         end;
       finally
         str.Free;
@@ -659,7 +659,7 @@ begin
         if poss>0 then delete(header,poss,length(header));
         stmp.Add(line);
         case header of
-          'Link-Á´½Ó','Link','Á´½Ó':
+          'Link-é“¾æ¥','Link','é“¾æ¥':
             begin
               PID:=AddPaper('',apmReference);
               if DefaultCl<>nil then KlassInclude(DefaultCl.Name,PID);
@@ -677,19 +677,19 @@ begin
 end;
 procedure TRTFP.ImportPapersFromRefWork(str:TStrings;DefaultCl:TKlass);
 begin
-  ShowMsgOK('¾¯¸æ','Ôİ²»Ö§³ÖÅúÁ¿µ¼ÈëRefWork');
+  ShowMsgOK('è­¦å‘Š','æš‚ä¸æ”¯æŒæ‰¹é‡å¯¼å…¥RefWork');
 end;
 procedure TRTFP.ImportPapersFromEndNote(str:TStrings;DefaultCl:TKlass);
 begin
-  ShowMsgOK('¾¯¸æ','Ôİ²»Ö§³ÖÅúÁ¿µ¼ÈëEndNote');
+  ShowMsgOK('è­¦å‘Š','æš‚ä¸æ”¯æŒæ‰¹é‡å¯¼å…¥EndNote');
 end;
 procedure TRTFP.ImportPapersFromNoteExpress(str:TStrings;DefaultCl:TKlass);
 begin
-  ShowMsgOK('¾¯¸æ','Ôİ²»Ö§³ÖÅúÁ¿µ¼ÈëNoteExpress');
+  ShowMsgOK('è­¦å‘Š','æš‚ä¸æ”¯æŒæ‰¹é‡å¯¼å…¥NoteExpress');
 end;
 procedure TRTFP.ImportPapersFromNoteFirst(str:TStrings;DefaultCl:TKlass);
 begin
-  ShowMsgOK('¾¯¸æ','Ôİ²»Ö§³ÖÅúÁ¿µ¼ÈëNoteFirst');
+  ShowMsgOK('è­¦å‘Š','æš‚ä¸æ”¯æŒæ‰¹é‡å¯¼å…¥NoteFirst');
 end;
 procedure TRTFP.ImportPapersFromRIS(str:TStrings;DefaultCl:TKlass);
 var stmp:TStringList;
