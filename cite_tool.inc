@@ -1,4 +1,5 @@
 //与引注格式有关的转换代码
+//文献类型需要一个树结构了，尽可能兼容不同引文格式
 
 
 function TRTFP.InitBasic(PID:RTFP_ID):TFields;
@@ -111,7 +112,66 @@ end;
 
 function decodeRISRefType(str:string):string;
 begin
-  result:=str;
+  case uppercase(str) of
+    //'ABST'result:='';     //Abstract
+    //'ADVS'result:='';     //Audiovisual material
+    //'AGGR'result:='';     //Aggregated Database
+    //'ANCIENT'result:='';  //Ancient Text
+    //'ART'result:='';      //Art Work
+    //'BILL'result:='';     //Bill
+    //'BLOG'result:='';     //Blog
+    //'BOOK'result:='专著'; //Whole book
+    //'CASE'result:='';     //Case
+    //'CHAP'result:='专著';     //Book chapter
+    //'CHART'result:='';    //Chart
+    //'CLSWK'result:='';    //Classical Work
+    //'COMP'result:='';     //Computer program
+    //'CONF'result:='';     //Conference proceeding
+    //'CPAPER'result:='会议论文';   //Conference paper
+    //'CTLG'result:='';     //Catalog
+    //'DATA'result:='';     //Data file
+    //'DBASE'result:='';    //Online Database
+    //'DICT'result:='';     //Dictionary
+    //'EBOOK'result:='专著';    //Electronic Book
+    //'ECHAP'result:='';    //Electronic Book Section
+    //'EDBOOK'result:='';   //Edited Book
+    //'EJOUR'result:='期刊论文';    //Electronic Article
+    //'WEB'result:='';      //Web Page
+    //'ENCYC'result:='';    //Encyclopedia
+    //'EQUA'result:='';     //Equation
+    //'FIGURE'result:='';   //Figure
+    //'GEN'result:='';      //Generic
+    //'GOVDOC'result:='';   //Government Document
+    //'GRANT'result:='';    //Grant
+    //'HEAR'result:='';     //Hearing
+    //'ICOMM'result:='';    //Internet Communication
+    //'INPR'result:='';     //In Press
+    //'JFULL'result:='期刊论文';  //Journal (full)
+    //'JOUR'result:='期刊论文';   //Journal
+    //'LEGAL'result:='标准规范';  //Legal Rule or Regulation
+    //'MANSCPT'result:='';  //Manuscript
+    //'MAP'result:='舆图';      //Map
+    //'MGZN'result:='';     //Magazine article
+    //'MPCT'result:='';     //Motion picture
+    //'MULTI'result:='';    //Online Multimedia
+    //'MUSIC'result:='';    //Music score
+    //'NEWS'result:='报纸';     //Newspaper
+    //'PAMP'result:='';     //Pamphlet
+    //'PAT'result:='专利';      //Patent
+    //'PCOMM'result:='';    //Personal communication
+    //'RPRT'result:='';     //Report
+    //'SER'result:='';      //Serial publication
+    //'SLIDE'result:='';    //Slide
+    //'SOUND'result:='';    //Sound recording
+    //'STAND'result:='标准规范';    //Standard
+    //'STAT'result:='';     //Statute
+    //'THES'result:='学位论文';     //Thesis/Dissertation
+    //'UNBILL'result:='';   //Unenacted Bill
+    //'UNPB'result:='';     //Unpublished work
+    //'VIDEO'result:='';    //Video recording
+    '...............................':;
+    else result:=str;
+  end;
 end;
 
 function encodeRISRefType(str:string):string;
@@ -131,24 +191,28 @@ begin
   with InitBasic(PID) do begin
     for stmp in str do begin
       if stmp='' then continue;
-      //这里用制表符判断多行摘要格式是否有足够的适应性？
-      if (stmp[1]=#9) and is_last_summary then begin
-        sum_temp:=FieldByName(_Col_basic_Summary_).AsString;
-        FieldByName(_Col_basic_Summary_).AsString:=sum_temp+#13#10+stmp;
-      end;
       poss:=pos(': ',stmp);
-      if poss<=0 then continue;
-      header:=stmp;
-      attr:=stmp;
-      delete(header,poss,length(stmp));
-      delete(attr,1,poss+1);
-      if attr='' then continue;
-
+      if poss<=0 then begin
+        header:='';
+        attr:=stmp;
+      end else begin
+        header:=stmp;
+        attr:=stmp;
+        delete(header,poss,length(stmp));
+        delete(attr,1,poss+1);
+        //if attr='' then continue;
+        //这里的本意是为了避免空值覆盖有意义的内容，但是现在考虑到有可能出现摘要开头换行的问题暂时禁用
+      end;
       try
         case header of
-          'DataType':FieldByName(_Col_basic_RefType_).AsString:=decodeEStudyRefType(attr);
+          'DataType':
+            begin
+              is_last_summary:=false;
+              FieldByName(_Col_basic_RefType_).AsString:=decodeEStudyRefType(attr);
+            end;
           'Author-作者','Author-发明人','Source-起草单位':
             begin
+              is_last_summary:=false;
               while attr[length(attr)]=';' do
                 begin
                   delete(attr,length(attr),1);
@@ -156,12 +220,24 @@ begin
                 end;
               FieldByName(_Col_basic_Author_).AsString:=attr;
             end;
-          'Title-题名','Title-正标题','Title-书名','Title-专利名称','Title-中文标准名称':FieldByName(_Col_basic_Title_).AsString:=attr;
+          'Title-题名','Title-正标题','Title-书名','Title-专利名称','Title-中文标准名称':
+            begin
+              is_last_summary:=false;
+              FieldByName(_Col_basic_Title_).AsString:=attr;
+            end;
           'Source-刊名','Source-学位授予单位','Source-报纸中文名','Author-发布单位名称','Source-文献来源':
-            FieldByName(_Col_basic_Source_).AsString:=attr;
-          'Year-年','Year-年鉴年份':FieldByName(_Col_basic_Year_).AsString:=attr;
+            begin
+              is_last_summary:=false;
+              FieldByName(_Col_basic_Source_).AsString:=attr;
+            end;
+          'Year-年','Year-年鉴年份':
+            begin
+              is_last_summary:=false;
+              FieldByName(_Col_basic_Year_).AsString:=attr;
+            end;
           'PubTime-出版时间','PubTime-发表时间':
             begin
+              is_last_summary:=false;
               {zan}poss:=pos(' ',attr);
               if poss>0 then delete(attr,poss,length(attr));
               try
@@ -170,39 +246,87 @@ begin
               end;
               FieldByName(_Col_basic_PubTime_).AsDateTime:=tmpDate;
             end;
-          'Period-期':begin
-            attr:=StringReplace(attr,'S','-',[rfReplaceAll,rfIgnoreCase]);
-            FieldByName(_Col_basic_Issue_).AsString:=attr;
-          end;
-          'Roll-卷':FieldByName(_Col_basic_Volume_).AsString:=attr;
-          'Keyword-关键词':FieldByName(_Col_basic_Keyword_).AsString:=attr;
-          'Summary-摘要','Summary-快照':FieldByName(_Col_basic_Summary_).AsString:=attr;
-          'PageCount-页数':FieldByName(_Col_basic_PageCount_).AsString:=attr;
-          'Page-页码':FieldByName(_Col_basic_Page_).AsString:=attr;
+          'Period-期':
+            begin
+              is_last_summary:=false;
+              attr:=StringReplace(attr,'S','-',[rfReplaceAll,rfIgnoreCase]);
+              FieldByName(_Col_basic_Issue_).AsString:=attr;
+            end;
+          'Roll-卷':
+            begin
+              is_last_summary:=false;
+              FieldByName(_Col_basic_Volume_).AsString:=attr;
+            end;
+          'Keyword-关键词':
+            begin
+              is_last_summary:=false;
+              FieldByName(_Col_basic_Keyword_).AsString:=attr;
+            end;
+          'Summary-摘要','Summary-快照':
+            begin
+              is_last_summary:=true;
+              FieldByName(_Col_basic_Summary_).AsString:=attr;
+            end;
+          'PageCount-页数':
+            begin
+              is_last_summary:=false;
+              FieldByName(_Col_basic_PageCount_).AsString:=attr;
+            end;
+          'Page-页码':
+            begin
+              is_last_summary:=false;
+              FieldByName(_Col_basic_Page_).AsString:=attr;
+            end;
           //'SrcDatabase-来源库':FieldByName(_Col_basic_来源库_).AsString:=attr;
           'Organ-机构','Organ-大学','Organ-出版社','文献来源'{专利},'Organ-出版者'{年鉴}:
-            FieldByName(_Col_basic_Organ_).AsString:=attr;
-          'Link-链接':FieldByName(_Col_basic_Link_).AsString:=StringReplace(attr,'&amp;','&',[rfReplaceAll]);
-          'Degree-学位':FieldByName(_Col_basic_Degree_).AsString:=attr;
-          'Teacher-导师','Teacher-申请人':FieldByName(_Col_basic_Teacher_).AsString:=attr;
-          'City-会议地点','City-地址':FieldByName(_Col_basic_City_).AsString:=attr;
-          'Meeting-会议名称':FieldByName(_Col_basic_Meeting_).AsString:=attr;
-          'Notes-标准号':FieldByName(_Col_basic_ISBN_ISSN_).AsString:=attr;
-
+            begin
+              is_last_summary:=false;
+              FieldByName(_Col_basic_Organ_).AsString:=attr;
+            end;
+          'Link-链接':
+            begin
+              is_last_summary:=false;
+              FieldByName(_Col_basic_Link_).AsString:=StringReplace(attr,'&amp;','&',[rfReplaceAll]);
+            end;
+          'Degree-学位':
+            begin
+              is_last_summary:=false;
+              FieldByName(_Col_basic_Degree_).AsString:=attr;
+            end;
+          'Teacher-导师','Teacher-申请人':
+            begin
+              is_last_summary:=false;
+              FieldByName(_Col_basic_Teacher_).AsString:=attr;
+            end;
+          'City-会议地点','City-地址':
+            begin
+              is_last_summary:=false;
+              FieldByName(_Col_basic_City_).AsString:=attr;
+            end;
+          'Meeting-会议名称':
+            begin
+              is_last_summary:=false;
+              FieldByName(_Col_basic_Meeting_).AsString:=attr;
+            end;
+          'Notes-标准号':
+            begin
+              is_last_summary:=false;
+              FieldByName(_Col_basic_ISBN_ISSN_).AsString:=attr;
+            end
+          else if is_last_summary then
+            begin
+              sum_temp:=FieldByName(_Col_basic_Summary_).AsString;
+              FieldByName(_Col_basic_Summary_).AsString:=sum_temp+#13#10+stmp;
+            end;
         end;
       except
         error_str:=error_str+'    '+header+#13#10;
       end;
-      case header of
-        'Summary-摘要','Summary-快照':is_last_summary:=true;
-        else is_last_summary:=false;
-      end;
       ReEditBasic;
-      //PostBasic;
-      //EditBasic;
     end;
   end;
-  if error_str<>#13#10 then ShowMsgOKAll('导入错误','以下字段导入时发生错误：'+error_str);//这里最好加一个本次不再提示
+  if error_str<>#13#10 then ShowMsgOKAll('导入错误','以下字段导入时发生错误：'+error_str);
+  //这里最好加一个本次不再提示
   PostBasic;
   FieldAndRecordChange;//DataChange;
 end;
@@ -591,8 +715,98 @@ begin
   ShowMsgOK('警告','暂不支持导出MLA');
 end;
 function TRTFP.GetAPA(PID:RTFP_ID):string;
+var stmp:string;
+    tmpDateTime:TDateTime;
 begin
-  ShowMsgOK('警告','暂不支持导出APA');
+  //ShowMsgOK('警告','unimplemented');
+  result:='';
+  with InitBasic(PID) do
+    begin
+      case FieldByName(_Col_basic_RefType_).AsString of
+        '期刊论文':
+          begin
+            result:=StringReplace(FieldByName(_Col_basic_Author_).AsString,';',',',[rfReplaceAll]);
+            result:=result+'.(';
+            result:=result+FieldByName(_Col_basic_Year_).AsString;
+            result:=result+').';
+            result:=result+FieldByName(_Col_basic_Title_).AsString;
+            result:=result+'.';
+            result:=result+FieldByName(_Col_basic_Source_).AsString;
+            result:=result+',';
+            result:=result+FieldByName(_Col_basic_Volume_).AsString;
+            result:=result+'(';
+            result:=result+StringReplace(FieldByName(_Col_basic_Issue_).AsString,'-','S',[rfReplaceAll]);
+            result:=result+'):';
+            result:=result+FieldByName(_Col_basic_Page_).AsString;
+            result:=result+'.';
+          end;
+        '学位论文':
+          begin
+            result:=FieldByName(_Col_basic_Author_).AsString;
+            result:=result+'.(';
+            result:=result+FieldByName(_Col_basic_Year_).AsString;
+            result:=result+').';
+            result:=result+FieldByName(_Col_basic_Title_).AsString;
+            result:=result+'[';
+            case FieldByName(_Col_basic_Degree_).AsString of
+              '硕士':result:=result+'Master';
+              '博士':result:=result+'Doctoral';
+              else result:=result+'Unknown';
+            end;
+            result:=result+' dissertation,';
+            result:=result+FieldByName(_Col_basic_Source_).AsString;
+            result:=result+'].';
+          end;
+        '会议论文':
+          begin
+            result:=FieldByName(_Col_basic_Author_).AsString;
+            result:=result+'.(';
+            result:=result+FieldByName(_Col_basic_Year_).AsString;
+            result:=result+').[Conference].';
+            result:=result+FieldByName(_Col_basic_Meeting_).AsString;
+            result:=result+',';
+            result:=result+FieldByName(_Col_basic_City_).AsString;
+            result:=result+'.';
+          end;
+        '报纸':
+          begin
+            result:=StringReplace(FieldByName(_Col_basic_Author_).AsString,';',',',[rfReplaceAll]);
+            result:=result+'.';
+            stmp:='';
+            tmpDateTime:=FieldByName(_Col_basic_PubTime_).AsDateTime;
+            if tmpDateTime<>0 then DateTimeToString(stmp,'yyyy,mm,dd',tmpDateTime,[]);
+            if stmp='' then stmp:=FieldByName(_Col_basic_Year_).AsString;
+            result:=result+'('+stmp+').';
+            result:=result+FieldByName(_Col_basic_Title_).AsString;
+            result:=result+'.';
+            result:=result+FieldByName(_Col_basic_Source_).AsString;
+            result:=result+'.';
+          end;
+        '专著':
+          begin
+            result:=StringReplace(FieldByName(_Col_basic_Author_).AsString,';',',',[rfReplaceAll]);
+            result:=result+'.';
+            stmp:=FieldByName(_Col_basic_Year_).AsString;
+            if stmp='' then
+              begin
+                tmpDateTime:=FieldByName(_Col_basic_PubTime_).AsDateTime;
+                if tmpDateTime<>0 then
+                  begin
+                    DateTimeToString(stmp,'yyyy',tmpDateTime,[]);
+                    result:=result+'('+stmp+').';
+                  end;
+              end
+            else result:=result+'('+stmp+').';
+            result:=result+FieldByName(_Col_basic_Title_).AsString;
+            result:=result+'.';
+            //result:=result+FieldByName(_Col_basic_出版社城市_).AsString;
+            //result:=result+':';
+            result:=result+FieldByName(_Col_basic_Organ_).AsString;
+            result:=result+'.';
+          end;
+        else result:='暂不支持此类型';
+      end;
+    end;
 end;
 function TRTFP.GetChaXin(PID:RTFP_ID):string;
 begin
