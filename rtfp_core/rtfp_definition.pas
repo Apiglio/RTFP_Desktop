@@ -287,6 +287,7 @@ type
   //FORMATEDIT_LIST.INC 样式列表
   public
     function AddFormatDefault:boolean;
+    function AddFormatDefault_All:boolean;
     function AddFormatEditNull(filename:string):boolean;
     function RenFormatEdit(filename,newname:string):boolean;
     function DelFormatEdit(filename:string):boolean;
