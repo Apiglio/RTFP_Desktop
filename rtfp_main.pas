@@ -9,17 +9,15 @@ interface
 uses
   Classes, SysUtils, db, dbf, dbf_common, memds, sqldb, mssqlconn, FileUtil,
   Forms, Controls, Graphics, Dialogs, ComCtrls, Menus, ExtCtrls, DBGrids, Grids,
-  ValEdit, StdCtrls, DbCtrls, LazUTF8, SynEdit,
-  SynHighlighterDiff, SynHighlighterIni, SynHighlighterLFM, SynHighlighterPo,
-  synhighlighterunixshellscript, SynHighlighterTeX, Clipbrd, LCLType, Buttons,
-  Regexpr,
+  ValEdit, StdCtrls, DbCtrls, LazUTF8, SynEdit, Clipbrd, LCLType, Buttons,
+  Regexpr, SynHighlighterAuf,
 
   Apiglio_Useful, AufScript_Frame, ACL_ListView, TreeListView, lNetComponents,
 
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.2-alpha.8';
+  C_VERSION_NUMBER  = '0.2.3-alpha.2';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -194,7 +192,6 @@ type
     StatusBar: TStatusBar;
     StringGrid_FormatEditLayout: TStringGrid;
     SynEdit_FEMgr: TSynEdit;
-    SynUNIXShellScriptSyn: TSynUNIXShellScriptSyn;
     TabSheet_Project_FormatEditMgr: TTabSheet;
     TabSheet_Node_FormatEdit: TTabSheet;
     TabSheet_Filter_Klass: TTabSheet;
@@ -325,6 +322,7 @@ type
     FWaitLabel:TLabel;
     FShowWaitForm:boolean;
     FMainForm_ShiftState:TShiftState;
+    FFormatEdit_Highlighter:TSynAufSyn;
 
     LastDBGridPos:TPoint;
 
@@ -1622,6 +1620,17 @@ begin
 
   FMainForm_ShiftState:=[];
 
+  FFormatEdit_Highlighter:=TSynAufSyn.Create(Self);
+  with FFormatEdit_Highlighter do
+    begin
+      InternalFunc:=InternalFunc+'memo,';
+      InternalFunc:=InternalFunc+'edit,';
+      InternalFunc:=InternalFunc+'combo,';
+      InternalFunc:=InternalFunc+'check,';
+      InternalFunc:=InternalFunc+'image,';
+      InternalFunc:=InternalFunc+'list,';
+    end;
+  SynEdit_FEMgr.Highlighter:=FFormatEdit_Highlighter;
 end;
 
 procedure TFormDesktop.FormDropFiles(Sender: TObject;
@@ -2032,7 +2041,10 @@ var index:integer;
 begin
   if ProjectInvalid then exit;
   index:=ListBox_FormatEditMgr.ItemIndex;
-  if index<0 then ShowMsgOK('重命名样式','请先选择一个样式文件！');
+  if index<0 then begin
+    ShowMsgOK('重命名样式','请先选择一个样式文件！');
+    exit
+  end;
   format_name:=ListBox_FormatEditMgr.Items[index];
   newname:=ShowMsgEdit('重命名样式','将样式“'+format_name+'”重命名为：',format_name);
   if (newname<>'') and (newname<>format_name) then
@@ -2136,20 +2148,20 @@ end;
 procedure TFormDesktop.DBGrid_MainKeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
+  //主表会和FormatEdit的Panel抢事件
   if ssCtrl in Shift then
     begin
       case Key of
         76:CurrentRTFP.OpenPaperLink(Selected_PID);//L
         79:CurrentRTFP.OpenPaper(Selected_PID);//O
         68:CurrentRTFP.OpenPaperDir(Selected_PID);//D
-        //76:CurrentRTFP.OpenPaperLink(Selected_PID);//L
-
         83:if not ProjectInvalid then CurrentRTFP.Save;//S
-
-
       end;
     end;
-  NodeViewValidate;
+  //方向键时刷新主表
+  case Key of
+    37,38,39,40:NodeViewValidate;
+  end;
 end;
 
 procedure TFormDesktop.DBGrid_MainMouseUp(Sender: TObject;
@@ -2210,6 +2222,7 @@ begin
   FormOptions.SaveOptionToReg;
   FormOptions.Free;
   FWaitForm.Free;
+  FFormatEdit_Highlighter.Free;
 end;
 
 

@@ -5,7 +5,7 @@ unit rtfp_class;
 interface
 
 uses
-  Classes, SysUtils, dbf, rtfp_constants, db;
+  Classes, SysUtils, dbf, rtfp_constants, db, BufDataset;
 
 type
 
@@ -44,19 +44,19 @@ type
     FFullPath:string;
     FFiltersEnabled:boolean;
   private
-    function GetItems(Index: integer): TKlass;
-    procedure SetItems(Index: integer; AValue: TKlass);
+    function GetItems(Index: integer):TKlass;
+    procedure SetItems(Index: integer;AValue: TKlass);
   public
     constructor Create(AOwner:TComponent);
   public
-    function Add: TKlass;
-    function AddEx(AFullPath,AName:string): TKlass;
+    function Add:TKlass;
+    function AddEx(AFullPath,AName:string;data_set_type:string='dbf'):TKlass;
     procedure Clear;
-    function GetEnumerator: TKlassEnumerator;
+    function GetEnumerator:TKlassEnumerator;
     function FindItemIndexByName(AName:string):integer;
     function FindItemByName(AName:string):TKlass;
     function AllUnChecked:boolean;
-    property Items[Index: integer]: TKlass read GetItems write SetItems; default;
+    property Items[Index:integer]:TKlass read GetItems write SetItems; default;
     property Path:string read FFullPath write FFullPath;
   public
     procedure LoadFromPath(APath:string='\');//相对地址
@@ -79,7 +79,7 @@ begin
   if Assigned(ACollection) then
     inherited Create(ACollection)
   else raise Exception.Create('TKlass.Create: unassigned');
-  FDbf:=TDbf.Create(nil);
+  //FDbf:=TDbf.Create(nil);//同样不在此处创建，改到addEx中
 end;
 
 destructor TKlass.Destroy;
@@ -129,12 +129,15 @@ begin
   Result := inherited Add as TKlass;
 end;
 
-function TKlassList.AddEx(AFullPath,AName:string): TKlass;
+function TKlassList.AddEx(AFullPath,AName:string;data_set_type:string='dbf'): TKlass;
 begin
   Result := inherited Add as TKlass;
   result.FFullPath:=AFullPath;
   result.FName:=AName;
-  result.FDbf:=TDbf.Create(Self.FOwner);
+  case data_set_type of
+    'dbf':result.FDbf:=TDbf.Create(Self.FOwner);
+    'buf':result.FDbf:=TBufDataset.Create(Self.FOwner);
+  end;
 end;
 
 procedure TKlassList.Clear;
