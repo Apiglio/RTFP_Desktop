@@ -4,16 +4,13 @@
     <PathDelim Value="\"/>
     <Version Value="10"/>
     <BuildModes Active="Default"/>
-    <Units Count="108">
+    <Units Count="111">
       <Unit0>
         <Filename Value="RTFP_Desktop.lpr"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="1"/>
-        <TopLine Value="10"/>
-        <CursorPos X="39" Y="23"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="15" Y="24"/>
         <UsageCount Value="201"/>
-        <Loaded Value="True"/>
       </Unit0>
       <Unit1>
         <Filename Value="rtfp_main.pas"/>
@@ -22,8 +19,8 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="RTFP_main"/>
-        <TopLine Value="173"/>
-        <CursorPos X="36" Y="360"/>
+        <TopLine Value="47"/>
+        <CursorPos X="52" Y="63"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -58,7 +55,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="28"/>
       </Unit4>
       <Unit5>
         <Filename Value="forms\form_cite_trans.pas"/>
@@ -68,7 +65,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="28"/>
       </Unit5>
       <Unit6>
         <Filename Value="forms\form_classmanager.pas"/>
@@ -78,7 +75,7 @@
         <ResourceBaseClass Value="Form"/>
         <EditorIndex Value="6"/>
         <CursorPos X="73" Y="11"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="28"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit6>
@@ -90,7 +87,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="28"/>
       </Unit7>
       <Unit8>
         <Filename Value="forms\form_formatedit_option.pas"/>
@@ -100,17 +97,16 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="28"/>
       </Unit8>
       <Unit9>
         <Filename Value="forms\form_import.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form_ImportFiles"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
         <EditorIndex Value="-1"/>
-        <WindowIndex Value="-1"/>
-        <TopLine Value="-1"/>
-        <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="28"/>
       </Unit9>
       <Unit10>
         <Filename Value="forms\form_new_project.pas"/>
@@ -120,7 +116,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="28"/>
       </Unit10>
       <Unit11>
         <Filename Value="forms\form_options.pas"/>
@@ -130,7 +126,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="28"/>
       </Unit11>
       <Unit12>
         <Filename Value="forms\form_project_profile.pas"/>
@@ -140,7 +136,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="28"/>
       </Unit12>
       <Unit13>
         <Filename Value="forms\form_repeated_checker.pas"/>
@@ -150,7 +146,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="28"/>
       </Unit13>
       <Unit14>
         <Filename Value="forms\form_report_tool.pas"/>
@@ -160,7 +156,7 @@
         <ResourceBaseClass Value="Form"/>
         <EditorIndex Value="5"/>
         <CursorPos X="46"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="28"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit14>
@@ -171,7 +167,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="28"/>
       </Unit15>
       <Unit16>
         <Filename Value="rtfp_core\rtfp_constants.pas"/>
@@ -180,16 +176,15 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="28"/>
       </Unit16>
       <Unit17>
         <Filename Value="rtfp_core\rtfp_definition.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="RTFP_definition"/>
-        <EditorIndex Value="2"/>
-        <TopLine Value="282"/>
-        <CursorPos X="26" Y="289"/>
-        <UsageCount Value="24"/>
+        <EditorIndex Value="1"/>
+        <CursorPos X="3" Y="13"/>
+        <UsageCount Value="28"/>
         <Loaded Value="True"/>
       </Unit17>
       <Unit18>
@@ -199,7 +194,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="28"/>
       </Unit18>
       <Unit19>
         <Filename Value="rtfp_core\rtfp_field.pas"/>
@@ -208,7 +203,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="28"/>
       </Unit19>
       <Unit20>
         <Filename Value="rtfp_core\rtfp_files.pas"/>
@@ -217,15 +212,16 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="28"/>
       </Unit20>
       <Unit21>
         <Filename Value="rtfp_core\rtfp_format_component.pas"/>
         <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="4"/>
-        <TopLine Value="322"/>
-        <CursorPos X="35" Y="132"/>
-        <UsageCount Value="24"/>
+        <TopLine Value="525"/>
+        <CursorPos X="40" Y="541"/>
+        <UsageCount Value="28"/>
         <Loaded Value="True"/>
       </Unit21>
       <Unit22>
@@ -235,7 +231,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="28"/>
       </Unit22>
       <Unit23>
         <Filename Value="rtfp_core\rtfp_tags.pas"/>
@@ -244,7 +240,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="28"/>
       </Unit23>
       <Unit24>
         <Filename Value="rtfp_core\rtfp_type.pas"/>
@@ -253,7 +249,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="28"/>
       </Unit24>
       <Unit25>
         <Filename Value="rtfp_pdf\rtfp_pdfium.pas"/>
@@ -262,7 +258,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="23"/>
+        <UsageCount Value="27"/>
       </Unit25>
       <Unit26>
         <Filename Value="rtfp_pdf\rtfp_pdfobj.pas"/>
@@ -271,7 +267,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="23"/>
+        <UsageCount Value="27"/>
       </Unit26>
       <Unit27>
         <Filename Value="rtfp_pdfium.pas"/>
@@ -496,18 +492,17 @@
         <Filename Value="..\FPC_Unit\Auf\apiglio_useful.pas"/>
         <UnitName Value="Apiglio_Useful"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="4042"/>
-        <CursorPos X="3" Y="4045"/>
         <UsageCount Value="186"/>
       </Unit53>
       <Unit54>
         <Filename Value="..\FPC_Unit\Auf\aufscript_frame.pas"/>
+        <IsPartOfProject Value="True"/>
         <ComponentName Value="Frame_AufScript"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
         <EditorIndex Value="-1"/>
-        <CursorPos X="15" Y="81"/>
-        <UsageCount Value="186"/>
+        <CursorPos X="82" Y="9"/>
+        <UsageCount Value="188"/>
       </Unit54>
       <Unit55>
         <Filename Value="..\FPC_Unit\ACL\ListViewEx\acl_listview.pas"/>
@@ -578,9 +573,9 @@
         <Filename Value="D:\Lazarus\lcl\controls.pp"/>
         <UnitName Value="Controls"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="2293"/>
-        <CursorPos X="3" Y="2307"/>
-        <UsageCount Value="7"/>
+        <TopLine Value="352"/>
+        <CursorPos X="76" Y="367"/>
+        <UsageCount Value="10"/>
       </Unit64>
       <Unit65>
         <Filename Value="D:\Lazarus\lcl\include\control.inc"/>
@@ -876,113 +871,156 @@
       </Unit106>
       <Unit107>
         <Filename Value="rtfp_core\formatedit_list.inc"/>
+        <IsPartOfProject Value="True"/>
         <EditorIndex Value="3"/>
-        <TopLine Value="65"/>
-        <CursorPos X="95" Y="84"/>
-        <UsageCount Value="11"/>
+        <CursorPos X="36" Y="17"/>
+        <UsageCount Value="22"/>
         <Loaded Value="True"/>
       </Unit107>
+      <Unit108>
+        <Filename Value="D:\Lazarus\components\synedit\synhighlighterunixshellscript.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="70"/>
+        <CursorPos X="25" Y="73"/>
+        <UsageCount Value="10"/>
+      </Unit108>
+      <Unit109>
+        <Filename Value="..\FPC_Unit\Auf\synhighlighterauf.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="SynHighlighterAuf"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="22"/>
+      </Unit109>
+      <Unit110>
+        <Filename Value="rtfp_core\formatedit_component.inc"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="222"/>
+        <CursorPos Y="239"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit110>
     </Units>
-    <JumpHistory Count="25" HistoryIndex="24">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="rtfp_main.pas"/>
-        <Caret Line="950" Column="17" TopLine="947"/>
+        <Filename Value="rtfp_core\rtfp_format_component.pas"/>
+        <Caret Line="534" Column="40" TopLine="518"/>
       </Position1>
       <Position2>
-        <Filename Value="rtfp_main.pas"/>
-        <Caret Line="944" Column="37" TopLine="941"/>
+        <Filename Value="rtfp_core\rtfp_format_component.pas"/>
+        <Caret Line="539" Column="33" TopLine="386"/>
       </Position2>
       <Position3>
-        <Filename Value="rtfp_main.pas"/>
-        <Caret Line="949" Column="44" TopLine="905"/>
+        <Filename Value="rtfp_core\formatedit_component.inc"/>
+        <Caret Line="219" Column="40" TopLine="157"/>
       </Position3>
       <Position4>
-        <Filename Value="rtfp_main.pas"/>
-        <Caret Line="1121" Column="24" TopLine="1110"/>
+        <Filename Value="rtfp_core\formatedit_component.inc"/>
+        <Caret Line="191" Column="22" TopLine="182"/>
       </Position4>
       <Position5>
-        <Filename Value="rtfp_main.pas"/>
-        <Caret Line="1124" Column="16" TopLine="1110"/>
+        <Filename Value="rtfp_core\formatedit_component.inc"/>
+        <Caret Line="187" TopLine="182"/>
       </Position5>
       <Position6>
-        <Filename Value="forms\form_classmanager.pas"/>
-        <Caret Line="31" Column="22" TopLine="28"/>
+        <Filename Value="rtfp_core\formatedit_component.inc"/>
+        <Caret Line="188" TopLine="182"/>
       </Position6>
       <Position7>
-        <Filename Value="rtfp_main.pas"/>
-        <Caret Line="1127" Column="43" TopLine="1110"/>
+        <Filename Value="rtfp_core\formatedit_component.inc"/>
+        <Caret Line="190" TopLine="182"/>
       </Position7>
       <Position8>
-        <Filename Value="rtfp_main.pas"/>
-        <Caret Line="1123" TopLine="1110"/>
+        <Filename Value="rtfp_core\formatedit_component.inc"/>
+        <Caret Line="239" TopLine="222"/>
       </Position8>
       <Position9>
         <Filename Value="rtfp_main.pas"/>
-        <Caret Line="1124" TopLine="1110"/>
+        <Caret Line="782" Column="33" TopLine="772"/>
       </Position9>
       <Position10>
-        <Filename Value="forms\form_classmanager.pas"/>
-        <Caret Line="7" Column="41"/>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="806" TopLine="781"/>
       </Position10>
       <Position11>
         <Filename Value="rtfp_main.pas"/>
-        <Caret Line="1123" TopLine="1110"/>
+        <Caret Line="2152" Column="12" TopLine="2145"/>
       </Position11>
       <Position12>
         <Filename Value="rtfp_main.pas"/>
-        <Caret Line="10" Column="100" TopLine="10"/>
+        <Caret Line="2167" Column="35" TopLine="2145"/>
       </Position12>
       <Position13>
         <Filename Value="rtfp_main.pas"/>
-        <Caret Line="1124" Column="14" TopLine="1107"/>
+        <Caret Line="2196" Column="35" TopLine="2173"/>
       </Position13>
       <Position14>
-        <Filename Value="RTFP_Desktop.lpr"/>
-        <Caret Line="4" Column="27"/>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="66" Column="16" TopLine="53"/>
       </Position14>
       <Position15>
         <Filename Value="rtfp_main.pas"/>
-        <Caret Line="1123" TopLine="1107"/>
+        <Caret Line="232" Column="26" TopLine="210"/>
       </Position15>
       <Position16>
         <Filename Value="rtfp_main.pas"/>
-        <Caret Line="1124" TopLine="1107"/>
+        <Caret Line="233" Column="26" TopLine="211"/>
       </Position16>
       <Position17>
         <Filename Value="rtfp_main.pas"/>
-        <Caret Line="1123" TopLine="1107"/>
+        <Caret Line="234" Column="26" TopLine="212"/>
       </Position17>
       <Position18>
         <Filename Value="rtfp_main.pas"/>
-        <Caret Line="4" Column="30"/>
+        <Caret Line="247" Column="82" TopLine="232"/>
       </Position18>
       <Position19>
         <Filename Value="rtfp_main.pas"/>
-        <Caret Line="1123" TopLine="1109"/>
+        <Caret Line="345" Column="48" TopLine="329"/>
       </Position19>
       <Position20>
-        <Filename Value="rtfp_core\formatedit_list.inc"/>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="378" Column="42" TopLine="359"/>
       </Position20>
       <Position21>
-        <Filename Value="rtfp_core\formatedit_list.inc"/>
-        <Caret Line="35" Column="60" TopLine="41"/>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="569" Column="31" TopLine="544"/>
       </Position21>
       <Position22>
-        <Filename Value="rtfp_core\formatedit_list.inc"/>
-        <Caret Line="95" Column="66" TopLine="74"/>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="716" Column="11" TopLine="690"/>
       </Position22>
       <Position23>
-        <Filename Value="rtfp_core\rtfp_definition.pas"/>
-        <Caret Line="289" Column="26" TopLine="282"/>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="731" Column="21" TopLine="714"/>
       </Position23>
       <Position24>
-        <Filename Value="rtfp_core\formatedit_list.inc"/>
-        <Caret Line="40" Column="67" TopLine="23"/>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="750" Column="28" TopLine="735"/>
       </Position24>
       <Position25>
-        <Filename Value="rtfp_core\formatedit_list.inc"/>
-        <Caret Line="84" Column="97" TopLine="65"/>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="759" Column="26" TopLine="744"/>
       </Position25>
+      <Position26>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="772" Column="22" TopLine="753"/>
+      </Position26>
+      <Position27>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="1162" Column="52" TopLine="1141"/>
+      </Position27>
+      <Position28>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="1199" Column="31" TopLine="1180"/>
+      </Position28>
+      <Position29>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="2172" Column="34" TopLine="2156"/>
+      </Position29>
+      <Position30>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="2200" Column="24" TopLine="2188"/>
+      </Position30>
     </JumpHistory>
   </ProjectSession>
   <Debugging>

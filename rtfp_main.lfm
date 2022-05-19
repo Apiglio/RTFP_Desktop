@@ -1,7 +1,7 @@
 object FormDesktop: TFormDesktop
-  Left = 562
+  Left = 441
   Height = 622
-  Top = 240
+  Top = 254
   Width = 972
   AllowDropFiles = True
   Caption = 'RTFP Desktop'
@@ -352,7 +352,6 @@ object FormDesktop: TFormDesktop
         Gutter.MouseActions = <>
         RightGutter.Width = 0
         RightGutter.MouseActions = <>
-        Highlighter = SynUNIXShellScriptSyn
         Keystrokes = <        
           item
             Command = ecUp
@@ -1983,11 +1982,5 @@ object FormDesktop: TFormDesktop
       Caption = '单元格设色'
       OnClick = MenuItem_DBGC_DisplayOptClick
     end
-  end
-  object SynUNIXShellScriptSyn: TSynUNIXShellScriptSyn
-    DefaultFilter = 'UNIX Shell Scripts (*.sh)|*.sh'
-    Enabled = False
-    left = 552
-    top = 280
   end
 end

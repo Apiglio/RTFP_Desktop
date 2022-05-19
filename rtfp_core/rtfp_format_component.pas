@@ -17,7 +17,8 @@ type
   PLine = ^TLine;
 
   TFmtEditState = (fesUnknown=0, fesReadOnly=1, fesSaved=2, fesModified=3, fesNodata=4, fesNoField=5);
-  //Unknown为意外情况，ReadOnly为只读模式，Saved为可编辑且未修改，Modifify为可编辑且未保存，Nodata为可编辑但无数据，NoField为没有字段
+  //Unknown为意外情况，ReadOnly为只读模式，Saved为可编辑且未修改
+  //Modifify为可编辑且未保存，Nodata为可编辑但无数据，NoField为没有字段
 
   TFmtImage = class(TScrollBox)
   private
@@ -86,6 +87,8 @@ type
 
     procedure FmtPanelPaint(Sender:TObject);
     procedure FmtPanelComponentChange(Sender:TObject);
+    procedure FmtPanelKeyUp(Sender:TObject;var Key:Word;Shift:TShiftState);
+
 
     procedure SetState(value:TFmtEditState);
 
@@ -360,6 +363,7 @@ begin
   end;
 
   Self.OnPaint:=@FmtPanelPaint;
+  Self.OnKeyUp:=@FmtPanelKeyUp;
   Self.Resize;
 end;
 
@@ -527,6 +531,16 @@ procedure TFormatEditPanel.FmtPanelComponentChange(Sender:TObject);
 begin
   Self.FState:=fesModified;
   Self.Paint;
+end;
+procedure TFormatEditPanel.FmtPanelKeyUp(Sender:TObject;var Key:Word;Shift:TShiftState);
+begin
+  //消息部分有问题，TEdit之类的会吞消息，TFmtImage又抢不过DBGrid_Main
+  {
+  if (Shift=[ssCtrl]) and (Key=83) then
+    begin
+      ShowMsgOK('Save','Save');
+    end;
+  }
 end;
 procedure TFormatEditPanel.SetState(value:TFmtEditState);
 begin
