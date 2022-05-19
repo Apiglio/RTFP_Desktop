@@ -46,22 +46,20 @@
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
-        <Filename Value="metareader_main.pas"/>
+        <Filename Value="rtfp_pdf\metareader_main.pas"/>
         <IsPartOfProject Value="True"/>
-        <ComponentName Value="Form_MetaReader"/>
         <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
       </Unit1>
       <Unit2>
-        <Filename Value="rtfp_pdfium.pas"/>
+        <Filename Value="rtfp_pdf\rtfp_pdfium.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit2>
       <Unit3>
-        <Filename Value="rtfp_pdfobj.pas"/>
+        <Filename Value="rtfp_pdf\rtfp_pdfobj.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit3>
       <Unit4>
-        <Filename Value="rtfp_dialog.pas"/>
+        <Filename Value="rtfp_core\rtfp_dialog.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit4>
     </Units>
@@ -74,6 +72,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="rtfp_pdf;rtfp_core"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>
