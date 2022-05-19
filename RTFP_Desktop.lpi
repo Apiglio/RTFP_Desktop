@@ -57,7 +57,7 @@
         <PackageName Value="LCL"/>
       </Item11>
     </RequiredPackages>
-    <Units Count="27">
+    <Units Count="30">
       <Unit0>
         <Filename Value="RTFP_Desktop.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -111,7 +111,9 @@
       <Unit9>
         <Filename Value="forms\form_import.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form_ImportFiles"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
       </Unit9>
       <Unit10>
         <Filename Value="forms\form_new_project.pas"/>
@@ -189,6 +191,22 @@
         <Filename Value="rtfp_pdf\rtfp_pdfobj.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit26>
+      <Unit27>
+        <Filename Value="..\FPC_Unit\Auf\aufscript_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Frame_AufScript"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit27>
+      <Unit28>
+        <Filename Value="rtfp_core\formatedit_list.inc"/>
+        <IsPartOfProject Value="True"/>
+      </Unit28>
+      <Unit29>
+        <Filename Value="..\FPC_Unit\Auf\synhighlighterauf.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="SynHighlighterAuf"/>
+      </Unit29>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -198,8 +216,8 @@
       <Filename Value="RTFP_Desktop"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="forms;sync;rtfp_core;rtfp_pdf"/>
+      <IncludeFiles Value="$(ProjOutDir);rtfp_core"/>
+      <OtherUnitFiles Value="forms;sync;rtfp_core;rtfp_pdf;..\FPC_Unit\Auf"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>
