@@ -13,6 +13,35 @@ uses
   ListFilterEdit, CheckLst;
 
 type
+
+  RTFP_ModalResult=(
+    rtmr_None=0,
+    rtmr_OK=1,
+    rtmr_Cancel=2,
+    rtmr_Abort=3,
+    rtmr_Retry=4,
+    rtmr_Ignore=5,
+    rtmr_Yes=6,
+    rtmr_No=7,
+    rtmr_All=8,
+    rtmr_NoToAll=9,
+    rtmr_YesToAll=10
+  );
+
+  TRTFP_Button=(
+    rtmb_OK=1,
+    rtmb_Cancel=2,
+    rtmb_Abort=3,
+    rtmb_Retry=4,
+    rtmb_Ignore=5,
+    rtmb_Yes=6,
+    rtmb_No=7,
+    rtmb_All=8,
+    rtmb_NoToAll=9,
+    rtmb_YesToAll=10
+  );
+  TRTFP_Button_Set=set of TRTFP_Button;
+
   TAllState = class
   private
     FEnabled:boolean;//为真时触发All选项
@@ -36,6 +65,7 @@ var
   AllState,ConfirmState:TAllState;
 
 
+function ShowMsgButtons(const ACaption,APrompt:string;AButtons:TRTFP_Button_Set):String;
 function ShowMsgCombo(const ACaption,APrompt:string;const AList:TStrings;
   AllowInput:Boolean;Out ASelected:Integer):string;
 function ShowMsgCombo(const ACaption,APrompt:string;const AList:TStrings):string;
@@ -94,8 +124,57 @@ begin
   inherited Destroy;
 end;
 
+//控件布局有些麻烦，先不写了。写完就可以把ShowMsgOK之类中的MessageDlg都替换了。
+function ShowMsgButtons(const ACaption,APrompt:string;AButtons:TRTFP_Button_Set):String;
+var
+  W,I,Sep,Margin: Integer;
+  Frm: TForm;
+  LPrompt: TLabel;
+  BP: TButtonPanel;
+begin
+  Margin:=24;
+  Sep:=8;
+  Result:='';
+  Frm:=TForm.Create(FormDesktop);
+  try
+    W:=Max(frm.Canvas.TextWidth(APrompt),frm.Canvas.TextWidth(ACaption));
+    W:=Max(W,360);
+    W:=Min(W,540);
 
+    with frm do begin
+      BorderStyle:=bsDialog;
+      Caption:=ACaption;
+      ClientWidth:=W+2*Margin;
+      Position:=poOwnerFormCenter;
+      KeyPreview:=true;
+    end;
 
+    LPrompt:=TLabel.Create(frm);
+    with LPrompt do begin
+      Parent:=frm;
+      Caption:=APrompt;
+      SetBounds(Margin,Margin,Frm.ClientWidth-2*Margin,frm.Canvas.TextHeight(APrompt));
+      WordWrap:=True;
+      AutoSize:=False;
+    end;
+
+    BP:=TButtonPanel.Create(Frm);
+    with BP do begin
+      Parent:=Frm;
+      ShowButtons:=[pbOK,pbCancel];
+      ShowGlyphs:=[];
+      OKButton.Caption:='&确认';
+      CancelButton.Caption:='&取消';
+    end;
+
+    if (Frm.ShowModal=mrOk) then begin
+      Result:='OK';
+    end;
+
+  finally
+    FreeAndNil(Frm);
+  end;
+end;
 
 function ShowMsgCombo(const ACaption,APrompt:string;const AList:TStrings;AllowInput:Boolean;Out ASelected:Integer):String;
 const

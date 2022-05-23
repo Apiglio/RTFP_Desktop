@@ -41,7 +41,8 @@ var
   ClassManagerForm: TClassManagerForm;
 
 implementation
-uses RTFP_main, RTFP_definition, RTFP_constants, rtfp_type, DBGrids, db, ACL_ListView, rtfp_class;
+uses RTFP_main, RTFP_definition, RTFP_constants, rtfp_type, rtfp_class, rtfp_dialog,
+  DBGrids, db, ACL_ListView;
 
 {$R *.lfm}
 
@@ -70,7 +71,7 @@ begin
   if ProjectInvalid then exit;
   tmpKL:=TKlass(TACL_TreeNode(FormDesktop.AListView_Klass.Selected.Data).Data);
   if tmpKL=nil then begin
-    ShowMessage('无效的分类。');
+    ShowMsgOK('纳入分组','无效的分类，无法执行操作。');
     exit;
   end;
   FormDesktop.DBGrid_Main.Visible:=false;
@@ -105,7 +106,7 @@ begin
   if ProjectInvalid then exit;
   tmpKL:=TKlass(TACL_TreeNode(FormDesktop.AListView_Klass.Selected.Data).Data);
   if tmpKL=nil then begin
-    ShowMessage('无效的分类。');
+    ShowMsgOK('纳入分组','无效的分类，无法执行操作。');
     exit;
   end;
   FormDesktop.DBGrid_Main.Visible:=false;
