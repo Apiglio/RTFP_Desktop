@@ -89,6 +89,14 @@ begin
   end;
   result:=true;
 end;
+//以下是默认属性的呈现，但是我还是把它禁用掉吧，或者至少加一个全局开关
+{
+edit "","文件大小","size",0,70,"L","LM",uneditable
+edit "","目录","dir",0,70,"LM","ML",uneditable
+check "","是否备份","backup?",0,70,"ML","M",uneditable
+edit "","文件名","filename",0,70,"M","R",uneditable
+edit "","文件哈希","hash",70,70,"L","R",uneditable
+}
 function TRTFP.AddFormatEditNull(filename:string):boolean;
 var str:TStringList;
     index:integer;

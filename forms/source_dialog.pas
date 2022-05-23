@@ -50,8 +50,8 @@ uses RTFP_definition, rtfp_dialog, RTFP_main, rtfp_constants, rtfp_type;
 function TForm_FileSource.DelOldBackup:boolean;
 var pathn,filen,fulln:string;
 begin
-  pathn:=CurrentRTFP.ReadBasicField(_Col_Paper_Folder_,Current_PID);
-  filen:=CurrentRTFP.ReadBasicField(_Col_Paper_FileName_,Current_PID);
+  pathn:=CurrentRTFP.ReadBasicString(_Col_Paper_Folder_,Current_PID);
+  filen:=CurrentRTFP.ReadBasicString(_Col_Paper_FileName_,Current_PID);
   fulln:=pathn+'\'+filen;
   result:=true;
   case ShowMsgYesNoCancel('删除旧备份','是否删除旧有备份文件：'+#13#10+'  '+fulln) of
@@ -73,29 +73,29 @@ begin
       else TRTFP.FileCopy(backup,CurrentRTFP.CurrentPathFull+'paper\'+pathn+'\'+filen,false);
     end;
   //这里没有文件路径长度检验
-  CurrentRTFP.EditBasicField(_Col_Paper_Folder_,Current_PID,pathn);
-  CurrentRTFP.EditBasicField(_Col_Paper_FileName_,Current_PID,filen);
+  CurrentRTFP.EditBasicString(_Col_Paper_Folder_,Current_PID,pathn);
+  CurrentRTFP.EditBasicString(_Col_Paper_FileName_,Current_PID,filen);
   CurrentRTFP.EditBasicBool(_Col_Paper_Is_Backup_,Current_PID,true);
   result:=true;
 end;
 procedure TForm_FileSource.SetWeblink(weblink:string);
 begin
   CurrentRTFP.EditFieldAsString(_Col_basic_Link_,_Attrs_Basic_,Current_PID,weblink,[aeForceEditIfTypeDismatch]);
-  CurrentRTFP.EditBasicField(_Col_Paper_Folder_,Current_PID,'weblnk');
-  CurrentRTFP.EditBasicField(_Col_Paper_FileName_,Current_PID,'');
+  CurrentRTFP.EditBasicString(_Col_Paper_Folder_,Current_PID,'weblnk');
+  CurrentRTFP.EditBasicString(_Col_Paper_FileName_,Current_PID,'');
   CurrentRTFP.EditBasicBool(_Col_Paper_Is_Backup_,Current_PID,false);
   //ShowMessage(CurrentRTFP.ReadFieldAsString(_Col_basic_Link_,_Attrs_Basic_,Current_PID,[]));
 end;
 procedure TForm_FileSource.SetExternPath(path:string);
 begin
-  CurrentRTFP.EditBasicField(_Col_Paper_FileName_,Current_PID,path);
-  CurrentRTFP.EditBasicField(_Col_Paper_Folder_,Current_PID,'extern');
+  CurrentRTFP.EditBasicString(_Col_Paper_FileName_,Current_PID,path);
+  CurrentRTFP.EditBasicString(_Col_Paper_Folder_,Current_PID,'extern');
   CurrentRTFP.EditBasicBool(_Col_Paper_Is_Backup_,Current_PID,false);
 end;
 procedure TForm_FileSource.SetDefault;
 begin
-  CurrentRTFP.EditBasicField(_Col_Paper_FileName_,Current_PID,'');
-  CurrentRTFP.EditBasicField(_Col_Paper_Folder_,Current_PID,'');
+  CurrentRTFP.EditBasicString(_Col_Paper_FileName_,Current_PID,'');
+  CurrentRTFP.EditBasicString(_Col_Paper_Folder_,Current_PID,'');
   CurrentRTFP.EditBasicBool(_Col_Paper_Is_Backup_,Current_PID,false);
 end;
 
@@ -106,8 +106,8 @@ begin
   Current_PID:=FormDesktop.Selected_PID;
   Memo_Path.Clear;
   OriPath:='';
-  pathn:=CurrentRTFP.ReadBasicField(_Col_Paper_Folder_,Current_PID);
-  filen:=CurrentRTFP.ReadBasicField(_Col_Paper_FileName_,Current_PID);
+  pathn:=CurrentRTFP.ReadBasicString(_Col_Paper_Folder_,Current_PID);
+  filen:=CurrentRTFP.ReadBasicString(_Col_Paper_FileName_,Current_PID);
   Button_RenameBackup.Enabled:=false;
   case lowercase(pathn) of
     'extern':
@@ -154,15 +154,15 @@ var pathn,filen,filenew:string;
 begin
   with CurrentRTFP do
     begin
-      filen:=ReadBasicField(_Col_Paper_FileName_,Current_PID);
-      pathn:=CurrentPathFull+'paper\'+ReadBasicField(_Col_Paper_Folder_,Current_PID);
+      filen:=ReadBasicString(_Col_Paper_FileName_,Current_PID);
+      pathn:=CurrentPathFull+'paper\'+ReadBasicString(_Col_Paper_Folder_,Current_PID);
     end;
   filenew:=ShowMsgEdit('重命名备份','备份文件名修改为：',filen);
   if TRTFP.FileRename(pathn+'\'+filen,pathn+'\'+filenew) then
-    CurrentRTFP.EditBasicField(_Col_Paper_FileName_,Current_PID,filenew)
+    CurrentRTFP.EditBasicString(_Col_Paper_FileName_,Current_PID,filenew)
   else ShowMsgOK('重命名失败','备份文件重命名失败。');
-  pathn:=CurrentRTFP.ReadBasicField(_Col_Paper_Folder_,Current_PID);
-  filen:=CurrentRTFP.ReadBasicField(_Col_Paper_FileName_,Current_PID);
+  pathn:=CurrentRTFP.ReadBasicString(_Col_Paper_Folder_,Current_PID);
+  filen:=CurrentRTFP.ReadBasicString(_Col_Paper_FileName_,Current_PID);
   Memo_Path.Clear;
   Memo_Path.Lines.Add(pathn+'\'+filen);
 end;

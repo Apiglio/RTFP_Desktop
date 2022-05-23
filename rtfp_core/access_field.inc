@@ -175,10 +175,11 @@ class function TRTFP.FieldOptWidth(AFieldDef:TFieldDef):integer;
 var NameSize:integer;
 begin
   case AFieldDef.DisplayName of
-    _Col_Paper_Folder_:begin result:=2;exit end;
-    _Col_Paper_FileHash_:begin result:=2;exit end;
-    _Col_Paper_FileSize_:begin result:=2;exit end;
-    _Col_OID_:begin result:=2;exit end;
+    _Col_Paper_Folder_:begin result:=3;exit end;
+    _Col_Paper_FileHash_:begin result:=3;exit end;
+    _Col_Paper_FileSize_:begin result:=3;exit end;
+    _Col_Paper_Is_Backup_:begin result:=40;exit end;
+    _Col_OID_:begin result:=3;exit end;
     else ;
   end;
   result:=40;
