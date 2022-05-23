@@ -8,9 +8,7 @@
 //TKlass准备增加一个TKlassGroup类，和Attrs一样格式，这样才能保证ACL_ListView可以不重新折叠
 //增加替换URL的加载模式用以适用不同的webvpn
 //每一个formatEditComponent增加Modified属性用来判断是否修改，在editable和uneditable之间加一个freeze
-//uneditable改为提交数据时提示不能修改
 //FWaitForm加进度条
-//FormatEdit没有的字段要有专门的表示
 //“待注脚知识元”
 //FormatEdit快捷键提交
 //截图转文字想想办法，试试内嵌python
