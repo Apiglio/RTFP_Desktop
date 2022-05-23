@@ -13,14 +13,20 @@ end;
 function TRTFP.ReadBasicString(AName:string;PID:RTFP_ID;fail_if_no_pid:boolean=false):string;
 begin
   if not FPaperDB.Active then FPaperDB.Open;
-  if not LocatePID(FPaperDB,PID) then exit;
+  if not LocatePID(FPaperDB,PID) then begin
+    if fail_if_no_pid then raise AttrsNoPIDErr('找不到PID['+PID+']！');
+    exit;
+  end;
   result:=FPaperDB.FieldByName(AName).AsString;
 end;
 
 procedure TRTFP.EditBasicString(AName:string;PID:RTFP_ID;value:string;fail_if_no_pid:boolean=false);
 begin
   if not FPaperDB.Active then FPaperDB.Open;
-  if not LocatePID(FPaperDB,PID) then exit;
+  if not LocatePID(FPaperDB,PID) then begin
+    if fail_if_no_pid then raise AttrsNoPIDErr('找不到PID['+PID+']！');
+    exit;
+  end;
   FPaperDB.Edit;
   FPaperDB.FieldByName(AName).AsString:=value;
   FPaperDB.Post;
@@ -30,14 +36,20 @@ end;
 function TRTFP.ReadBasicBool(AName:string;PID:RTFP_ID;fail_if_no_pid:boolean=false):boolean;
 begin
   if not FPaperDB.Active then FPaperDB.Open;
-  if not LocatePID(FPaperDB,PID) then exit;
+  if not LocatePID(FPaperDB,PID) then begin
+    if fail_if_no_pid then raise AttrsNoPIDErr('找不到PID['+PID+']！');
+    exit;
+  end;
   result:=FPaperDB.FieldByName(AName).AsBoolean;
 end;
 
 procedure TRTFP.EditBasicBool(AName:string;PID:RTFP_ID;value:boolean;fail_if_no_pid:boolean=false);
 begin
   if not FPaperDB.Active then FPaperDB.Open;
-  if not LocatePID(FPaperDB,PID) then exit;
+  if not LocatePID(FPaperDB,PID) then begin
+    if fail_if_no_pid then raise AttrsNoPIDErr('找不到PID['+PID+']！');
+    exit;
+  end;
   FPaperDB.Edit;
   FPaperDB.FieldByName(AName).AsBoolean:=value;
   FPaperDB.Post;
@@ -47,14 +59,20 @@ end;
 function TRTFP.ReadBasicInteger(AName:string;PID:RTFP_ID;fail_if_no_pid:boolean=false):int64;
 begin
   if not FPaperDB.Active then FPaperDB.Open;
-  if not LocatePID(FPaperDB,PID) then exit;
+  if not LocatePID(FPaperDB,PID) then begin
+    if fail_if_no_pid then raise AttrsNoPIDErr('找不到PID['+PID+']！');
+    exit;
+  end;
   result:=FPaperDB.FieldByName(AName).AsInteger;
 end;
 
 procedure TRTFP.EditBasicInteger(AName:string;PID:RTFP_ID;value:int64;fail_if_no_pid:boolean=false);
 begin
   if not FPaperDB.Active then FPaperDB.Open;
-  if not LocatePID(FPaperDB,PID) then exit;
+  if not LocatePID(FPaperDB,PID) then begin
+    if fail_if_no_pid then raise AttrsNoPIDErr('找不到PID['+PID+']！');
+    exit;
+  end;
   FPaperDB.Edit;
   FPaperDB.FieldByName(AName).AsInteger:=value;
   FPaperDB.Post;
