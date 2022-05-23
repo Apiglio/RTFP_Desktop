@@ -75,7 +75,7 @@ object FormOptions: TFormOptions
           ChildSizing.ShrinkVertical = crsScaleChilds
           ChildSizing.Layout = cclLeftToRightThenTopToBottom
           ChildSizing.ControlsPerLine = 3
-          ClientHeight = 31
+          ClientHeight = 36
           ClientWidth = 374
           Columns = 3
           Items.Strings = (
@@ -100,7 +100,7 @@ object FormOptions: TFormOptions
           BorderSpacing.Top = 10
           BorderSpacing.Right = 10
           Caption = '同步间隔'
-          ClientHeight = 37
+          ClientHeight = 42
           ClientWidth = 374
           TabOrder = 1
           object TrackBar_SyncInterval: TTrackBar
@@ -111,7 +111,7 @@ object FormOptions: TFormOptions
             AnchorSideBottom.Side = asrBottom
             Left = 0
             Height = 26
-            Top = 6
+            Top = 11
             Width = 299
             Max = 20
             OnChange = TrackBar_SyncIntervalChange
@@ -126,10 +126,10 @@ object FormOptions: TFormOptions
             AnchorSideTop.Side = asrCenter
             AnchorSideRight.Control = GroupBox_SyncInterval
             AnchorSideRight.Side = asrBottom
-            Left = 331
-            Height = 20
-            Top = 9
-            Width = 33
+            Left = 333
+            Height = 15
+            Top = 17
+            Width = 31
             Anchors = [akTop, akRight]
             BorderSpacing.Right = 10
             Caption = '60秒'
@@ -150,7 +150,7 @@ object FormOptions: TFormOptions
           BorderSpacing.Top = 10
           BorderSpacing.Right = 10
           Caption = '同步规则'
-          ClientHeight = 139
+          ClientHeight = 144
           ClientWidth = 374
           TabOrder = 2
           object Memo_RegExpr: TMemo
@@ -161,7 +161,7 @@ object FormOptions: TFormOptions
             AnchorSideBottom.Control = GroupBox_SyncFilter
             AnchorSideBottom.Side = asrBottom
             Left = 0
-            Height = 139
+            Height = 144
             Top = 0
             Width = 374
             Anchors = [akTop, akLeft, akRight, akBottom]
@@ -184,7 +184,7 @@ object FormOptions: TFormOptions
           BorderSpacing.Top = 10
           BorderSpacing.Right = 10
           Caption = '同步路径：'
-          ClientHeight = 47
+          ClientHeight = 52
           ClientWidth = 374
           TabOrder = 3
           object Edit_SyncPath: TEdit
