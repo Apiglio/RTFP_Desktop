@@ -153,10 +153,12 @@ type
   public
     function GetFieldType(attrNa,fieldNa:string):TFieldType;
 
-    function ReadBasicField(AAttrsName:string;PID:RTFP_ID):string;//和GetPaperAttrs重复
-    procedure EditBasicField(AAttrsName:string;PID:RTFP_ID;value:string);
-    function ReadBasicBool(AAttrsName:string;PID:RTFP_ID):boolean;
-    procedure EditBasicBool(AAttrsName:string;PID:RTFP_ID;value:boolean);
+    function ReadBasicString(AName:string;PID:RTFP_ID;fail_if_no_pid:boolean=false):string;//和GetPaperAttrs重复
+    procedure EditBasicString(AName:string;PID:RTFP_ID;value:string;fail_if_no_pid:boolean=false);
+    function ReadBasicBool(AName:string;PID:RTFP_ID;fail_if_no_pid:boolean=false):boolean;
+    procedure EditBasicBool(AName:string;PID:RTFP_ID;value:boolean;fail_if_no_pid:boolean=false);
+    function ReadBasicInteger(AName:string;PID:RTFP_ID;fail_if_no_pid:boolean=false):int64;
+    procedure EditBasicInteger(AName:string;PID:RTFP_ID;value:int64;fail_if_no_pid:boolean=false);
 
     function ReadFieldAsString(AName,AAttrsName:string;PID:RTFP_ID;AE:TAttrExtend):string;
     function ReadFieldAsInteger(AName,AAttrsName:string;PID:RTFP_ID;AE:TAttrExtend):int64;
