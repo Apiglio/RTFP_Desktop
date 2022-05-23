@@ -3,20 +3,16 @@
 //网页下载要研究一下JS
 //字段更新日志(有必要吗)
 //Memo字段的搜索
-//统一NodeEdit部分的编辑保存询问，下方的几个Tab共用一套Modified
 //尽快将所有弹窗统一样式（在做了，有点小问题，按键中文或者自动布局还没有处理好）
 //TKlass准备增加一个TKlassGroup类，和Attrs一样格式，这样才能保证ACL_ListView可以不重新折叠
 //增加替换URL的加载模式用以适用不同的webvpn
-//每一个formatEditComponent增加Modified属性用来判断是否修改，在editable和uneditable之间加一个freeze
 //FWaitForm加进度条
 //“待注脚知识元”
 //FormatEdit快捷键提交
 //截图转文字想想办法，试试内嵌python
 //单元格设色属性、分类与属性组折叠等界面属性需要储存
 //FormatEdit中的Image通道化不能立刻更新！！！              //procedure TFmtImage.BandSolo(band:byte);
-//纳入分类要两次以上，不知道啥原因
 //分类字段清除后字段数据还在dbf中，没有pack
-//新建工程后的属性列表全部展开，而非打开工程后的全部折叠
 //我他妈服了，DBF的文件错误也太多了吧？？？？
 //异常关闭的恢复
 //formatEditComponent在图像字段数据有误时的解决方案需要明细

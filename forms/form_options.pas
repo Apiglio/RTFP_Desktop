@@ -14,17 +14,21 @@ type
 
   TFormOptions = class(TForm)
     Button_SyncPath: TButton;
+    CheckBox_FormatEditOpt_AllowBasicFormatEdit: TCheckBox;
+    CheckBox_FormatEditOpt_F9_To_Save: TCheckBox;
     Edit_SyncPath: TEdit;
+    GroupBox_FormatEdit: TGroupBox;
     GroupBox_SyncPath: TGroupBox;
     GroupBox_SyncFilter: TGroupBox;
     GroupBox_SyncInterval: TGroupBox;
     Label_SyncInterval: TLabel;
     Memo_RegExpr: TMemo;
-    PageControl1: TPageControl;
+    PageControl_Option: TPageControl;
     CheckBox_SyncEnabled: TCheckBox;
     RadioGroup_BackupMode: TRadioGroup;
     ScrollBox_Sync: TScrollBox;
     SelectDirectoryDialog: TSelectDirectoryDialog;
+    TabSheet_Format: TTabSheet;
     TabSheet_Summary: TTabSheet;
     TabSheet_Sync: TTabSheet;
     TrackBar_SyncInterval: TTrackBar;
