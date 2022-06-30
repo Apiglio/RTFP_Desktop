@@ -22,42 +22,33 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="11">
+    <RequiredPackages Count="8">
       <Item1>
         <PackageName Value="TAChartLazarusPkg"/>
       </Item1>
       <Item2>
-        <PackageName Value="lnetvisual"/>
+        <PackageName Value="ACL_ListViewEx"/>
       </Item2>
       <Item3>
-        <PackageName Value="ACL_ListViewEx"/>
+        <PackageName Value="LazControls"/>
       </Item3>
       <Item4>
-        <PackageName Value="treelistviewpackage"/>
+        <PackageName Value="MemDSLaz"/>
       </Item4>
       <Item5>
-        <PackageName Value="LazControls"/>
+        <PackageName Value="SynEdit"/>
       </Item5>
       <Item6>
-        <PackageName Value="MemDSLaz"/>
+        <PackageName Value="DBFLaz"/>
       </Item6>
       <Item7>
-        <PackageName Value="pack_powerpdf"/>
+        <PackageName Value="FCL"/>
       </Item7>
       <Item8>
-        <PackageName Value="SynEdit"/>
-      </Item8>
-      <Item9>
-        <PackageName Value="DBFLaz"/>
-      </Item9>
-      <Item10>
-        <PackageName Value="FCL"/>
-      </Item10>
-      <Item11>
         <PackageName Value="LCL"/>
-      </Item11>
+      </Item8>
     </RequiredPackages>
-    <Units Count="30">
+    <Units Count="28">
       <Unit0>
         <Filename Value="RTFP_Desktop.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -89,7 +80,9 @@
       <Unit5>
         <Filename Value="forms\form_cite_trans.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form_CiteTrans"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
       </Unit5>
       <Unit6>
         <Filename Value="forms\form_classmanager.pas"/>
@@ -118,12 +111,16 @@
       <Unit10>
         <Filename Value="forms\form_new_project.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form_NewProject"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
       </Unit10>
       <Unit11>
         <Filename Value="forms\form_options.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="FormOptions"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
       </Unit11>
       <Unit12>
         <Filename Value="forms\form_project_profile.pas"/>
@@ -192,21 +189,9 @@
         <IsPartOfProject Value="True"/>
       </Unit26>
       <Unit27>
-        <Filename Value="..\FPC_Unit\Auf\aufscript_frame.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="Frame_AufScript"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Frame"/>
-      </Unit27>
-      <Unit28>
         <Filename Value="rtfp_core\formatedit_list.inc"/>
         <IsPartOfProject Value="True"/>
-      </Unit28>
-      <Unit29>
-        <Filename Value="..\FPC_Unit\Auf\synhighlighterauf.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="SynHighlighterAuf"/>
-      </Unit29>
+      </Unit27>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -217,7 +202,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir);rtfp_core"/>
-      <OtherUnitFiles Value="forms;sync;rtfp_core;rtfp_pdf;..\FPC_Unit\Auf"/>
+      <OtherUnitFiles Value="forms;sync;rtfp_core;rtfp_pdf"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>
