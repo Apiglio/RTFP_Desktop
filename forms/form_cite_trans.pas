@@ -147,8 +147,17 @@ end;
 
 procedure TForm_CiteTrans.FormDropFiles(Sender: TObject;
   const FileNames: array of String);
+var bom_temp,bom:string;
 begin
   Memo_Cite.Lines.LoadFromFile(FileNames[0]);
+  //检验BOM码  EF BB BF
+  bom_temp:=Memo_Cite.Lines[0];
+  bom:=bom_temp;
+  delete(bom,4,length(bom));
+  if bom=#$EF#$BB#$BF then begin
+    delete(bom_temp,1,3);
+    Memo_Cite.Lines[0]:=bom_temp;
+  end;
 end;
 
 procedure TForm_CiteTrans.FormHide(Sender: TObject);

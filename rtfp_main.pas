@@ -12,7 +12,7 @@ uses
   ValEdit, StdCtrls, DbCtrls, LazUTF8, SynEdit, Clipbrd, LCLType, Buttons,
   Regexpr, SynHighlighterAuf,
 
-  Apiglio_Useful, AufScript_Frame, ACL_ListView, TreeListView, lNetComponents,
+  Apiglio_Useful, AufScript_Frame, ACL_ListView, TreeListView,
 
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, simpleipc, Types;
 

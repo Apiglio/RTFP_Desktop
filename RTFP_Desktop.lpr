@@ -7,12 +7,12 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, lnetvisual, {pack_powerpdf, }RTFP_main,{ dbflaz, memdslaz,}
+  Forms, {pack_powerpdf, }RTFP_main,{ dbflaz, memdslaz,}
   form_new_project, form_cite_trans, form_import, lazcontrols,
   tachartlazaruspkg, form_classmanager, form_appearance, form_options,
   form_report_tool, form_repeated_checker, form_project_profile,
-  form_field_display_option, form_formatedit_option, aufscript_frame,
-  SynHighlighterAuf, source_dialog, sync_timer, rtfp_type;
+  form_field_display_option, form_formatedit_option,
+  source_dialog, sync_timer, rtfp_type;
 
 {$R *.res}
 
