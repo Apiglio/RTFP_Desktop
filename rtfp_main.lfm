@@ -348,7 +348,7 @@ object FormDesktop: TFormDesktop
         ParentFont = False
         TabOrder = 6
         OnClick = SynEdit_FEMgrClick
-        Gutter.Width = 63
+        Gutter.Width = 59
         Gutter.MouseActions = <>
         RightGutter.Width = 0
         RightGutter.MouseActions = <>
@@ -803,7 +803,7 @@ object FormDesktop: TFormDesktop
             MouseActions = <>
           end
           object SynGutterLineNumber1: TSynGutterLineNumber
-            Width = 21
+            Width = 17
             MouseActions = <>
             MarkupInfo.Background = clBtnFace
             MarkupInfo.Foreground = clNone

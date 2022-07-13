@@ -37,6 +37,8 @@ type
     procedure FormActivate(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
+    procedure FormHide(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure Memo_RegExprChange(Sender: TObject);
     procedure CheckBox_SyncEnabledChange(Sender: TObject);
     procedure RadioGroup_BackupModeClick(Sender: TObject);
@@ -64,7 +66,6 @@ begin
   pos:=(Sender as TTrackBar).Position;
   pos:=exp(ln(1.42547322)*pos)/10;
   Label_SyncInterval.Caption:=FloatToStrF(pos,ffFixed,1,2)+'秒';
-  Application.ProcessMessages;//这里不加更新有时会卡死
   FormDesktop.SyncTimer.Interval:=trunc(pos*1000);
 end;
 
@@ -109,6 +110,16 @@ end;
 procedure TFormOptions.FormCreate(Sender: TObject);
 begin
 
+end;
+
+procedure TFormOptions.FormHide(Sender: TObject);
+begin
+  FormDesktop.SyncTimer.Enabled:=true;
+end;
+
+procedure TFormOptions.FormShow(Sender: TObject);
+begin
+  FormDesktop.SyncTimer.Enabled:=false;
 end;
 
 procedure TFormOptions.Memo_RegExprChange(Sender: TObject);

@@ -1601,7 +1601,7 @@ begin
     //AutoSize:=true;
     Top:=0;
     Left:=0;
-    Caption:='主表正在重建中';//为啥不管用？？？？？
+    Caption:='主表正在重建中';//为啥不管用？？？？？有见到它创建，但是就闪了一下，怎么回事
     Parent:=FWaitForm;
   end;
 
@@ -2223,6 +2223,7 @@ begin
   FormOptions.Free;
   FWaitForm.Free;
   FFormatEdit_Highlighter.Free;
+
 end;
 
 
