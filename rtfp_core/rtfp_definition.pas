@@ -401,7 +401,10 @@ type
     procedure UsersChange;//用户列表修改，也会触发Change事件
     procedure FormatListChange;//编辑样式修改，也会触发Change事件
 
-
+  //PACKED_FORMAT.INC 用于压缩与转换的单文件格式
+  public
+    procedure ZTFP_Importer(fullfilename:string);unimplemented;//重复性检验之类的问题比较麻烦
+    procedure ZTFP_Exporter(fullfilename:string);//PID筛选、备份选项未定
 
   //未分类
   protected
@@ -518,7 +521,7 @@ procedure AufScriptFuncDefineRTFP(Auf:TAuf);
 
 
 implementation
-uses RTFP_main;
+uses RTFP_main, Zipper;
 
 {$I aufunc.inc}
 {$I events.inc}
@@ -534,6 +537,8 @@ uses RTFP_main;
 {$I paper.inc}
 {$I image.inc}
 {$I notes.inc}
+
+{$I packed_format.inc}
 
 {$I cite_tool.inc}
 {$I formatedit_component.inc}

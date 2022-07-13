@@ -54,7 +54,7 @@ begin
     str.Add('edit "'+_Attrs_Basic_+'","'+_Col_basic_Keyword_+'","关键词",280,70,"LM","ML","uneditable"');
     str.Add('edit "'+_Attrs_Basic_+'","'+_Col_basic_Summary_+'","摘要",280,140,"M","R","uneditable"');
     str.Add('edit "'+_Attrs_Basic_+'","'+_Col_basic_Organ_+'","单位",280,70,"ML","M","uneditable"');
-    str.Add('edit "'+_Attrs_Basic_+'","'+_Col_basic_Organ_+'","年份",350,70,"L","LM","uneditable"');
+    str.Add('edit "'+_Attrs_Basic_+'","'+_Col_basic_Year_+'","年份",350,70,"L","LM","uneditable"');
     str.Add('edit "'+_Attrs_Basic_+'","'+_Col_basic_Volume_+'","卷",350,70,"LM","ML","uneditable"');
     str.Add('edit "'+_Attrs_Basic_+'","'+_Col_basic_Issue_+'","期",350,70,"ML","M","uneditable"');
     str.Add('edit "'+_Attrs_Basic_+'","'+_Col_basic_PageCount_+'","页数",350,70,"M","MR","uneditable"');
