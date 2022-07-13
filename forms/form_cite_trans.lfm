@@ -9,7 +9,7 @@ object Form_CiteTrans: TForm_CiteTrans
   ClientWidth = 993
   Constraints.MinHeight = 320
   Constraints.MinWidth = 640
-  DesignTimePPI = 120
+  DesignTimePPI = 144
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   OnDropFiles = FormDropFiles
@@ -232,13 +232,13 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideRight.Control = Button_ImportPapers
     AnchorSideRight.Side = asrBottom
     Left = 853
-    Height = 28
+    Height = 32
     Hint = '新创建节点默认纳入此分类'
-    Top = 417
+    Top = 415
     Width = 125
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Left = 40
-    ItemHeight = 20
+    ItemHeight = 24
     ParentShowHint = False
     ShowHint = True
     Style = csDropDownList
@@ -250,9 +250,9 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideTop.Side = asrCenter
     AnchorSideRight.Control = ComboBox_DefaultCl
     Left = 813
-    Height = 20
-    Top = 421
-    Width = 45
+    Height = 24
+    Top = 419
+    Width = 54
     Caption = '分类：'
     ParentColor = False
   end

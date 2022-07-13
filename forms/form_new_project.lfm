@@ -173,7 +173,7 @@ object Form_NewProject: TForm_NewProject
     ChildSizing.ControlsPerLine = 1
     ClientHeight = 49
     ClientWidth = 95
-    ItemIndex = 0
+    ItemIndex = 1
     Items.Strings = (
       'DBF'
       'BUF'

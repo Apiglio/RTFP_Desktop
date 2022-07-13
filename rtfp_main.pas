@@ -12,12 +12,12 @@ uses
   ValEdit, StdCtrls, DbCtrls, LazUTF8, SynEdit, Clipbrd, LCLType, Buttons,
   Regexpr, SynHighlighterAuf,
 
-  Apiglio_Useful, AufScript_Frame, ACL_ListView, TreeListView, lNetComponents,
+  Apiglio_Useful, AufScript_Frame, ACL_ListView, TreeListView,
 
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.3-alpha.2';
+  C_VERSION_NUMBER  = '0.2.3-alpha.3';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -1601,7 +1601,7 @@ begin
     //AutoSize:=true;
     Top:=0;
     Left:=0;
-    Caption:='主表正在重建中';//为啥不管用？？？？？
+    Caption:='主表正在重建中';//为啥不管用？？？？？有见到它创建，但是就闪了一下，怎么回事
     Parent:=FWaitForm;
   end;
 
@@ -2223,6 +2223,7 @@ begin
   FormOptions.Free;
   FWaitForm.Free;
   FFormatEdit_Highlighter.Free;
+
 end;
 
 

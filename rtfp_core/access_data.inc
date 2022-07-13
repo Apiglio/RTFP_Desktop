@@ -10,36 +10,71 @@ begin
   result:=tmpAF.FieldDef.DataType;
 end;
 
-function TRTFP.ReadBasicField(AAttrsName:string;PID:RTFP_ID):string;
+function TRTFP.ReadBasicString(AName:string;PID:RTFP_ID;fail_if_no_pid:boolean=false):string;
 begin
   if not FPaperDB.Active then FPaperDB.Open;
-  if not LocatePID(FPaperDB,PID) then exit;
-  result:=FPaperDB.FieldByName(AAttrsName).AsString;
+  if not LocatePID(FPaperDB,PID) then begin
+    if fail_if_no_pid then raise AttrsNoPIDErr('找不到PID['+PID+']！');
+    exit;
+  end;
+  result:=FPaperDB.FieldByName(AName).AsString;
 end;
 
-procedure TRTFP.EditBasicField(AAttrsName:string;PID:RTFP_ID;value:string);
+procedure TRTFP.EditBasicString(AName:string;PID:RTFP_ID;value:string;fail_if_no_pid:boolean=false);
 begin
   if not FPaperDB.Active then FPaperDB.Open;
-  if not LocatePID(FPaperDB,PID) then exit;
+  if not LocatePID(FPaperDB,PID) then begin
+    if fail_if_no_pid then raise AttrsNoPIDErr('找不到PID['+PID+']！');
+    exit;
+  end;
   FPaperDB.Edit;
-  FPaperDB.FieldByName(AAttrsName).AsString:=value;
+  FPaperDB.FieldByName(AName).AsString:=value;
   FPaperDB.Post;
   DataChange(PID);
 end;
 
-function TRTFP.ReadBasicBool(AAttrsName:string;PID:RTFP_ID):boolean;
+function TRTFP.ReadBasicBool(AName:string;PID:RTFP_ID;fail_if_no_pid:boolean=false):boolean;
 begin
   if not FPaperDB.Active then FPaperDB.Open;
-  if not LocatePID(FPaperDB,PID) then exit;
-  result:=FPaperDB.FieldByName(AAttrsName).AsBoolean;
+  if not LocatePID(FPaperDB,PID) then begin
+    if fail_if_no_pid then raise AttrsNoPIDErr('找不到PID['+PID+']！');
+    exit;
+  end;
+  result:=FPaperDB.FieldByName(AName).AsBoolean;
 end;
 
-procedure TRTFP.EditBasicBool(AAttrsName:string;PID:RTFP_ID;value:boolean);
+procedure TRTFP.EditBasicBool(AName:string;PID:RTFP_ID;value:boolean;fail_if_no_pid:boolean=false);
 begin
   if not FPaperDB.Active then FPaperDB.Open;
-  if not LocatePID(FPaperDB,PID) then exit;
+  if not LocatePID(FPaperDB,PID) then begin
+    if fail_if_no_pid then raise AttrsNoPIDErr('找不到PID['+PID+']！');
+    exit;
+  end;
   FPaperDB.Edit;
-  FPaperDB.FieldByName(AAttrsName).AsBoolean:=value;
+  FPaperDB.FieldByName(AName).AsBoolean:=value;
+  FPaperDB.Post;
+  DataChange(PID);
+end;
+
+function TRTFP.ReadBasicInteger(AName:string;PID:RTFP_ID;fail_if_no_pid:boolean=false):int64;
+begin
+  if not FPaperDB.Active then FPaperDB.Open;
+  if not LocatePID(FPaperDB,PID) then begin
+    if fail_if_no_pid then raise AttrsNoPIDErr('找不到PID['+PID+']！');
+    exit;
+  end;
+  result:=FPaperDB.FieldByName(AName).AsInteger;
+end;
+
+procedure TRTFP.EditBasicInteger(AName:string;PID:RTFP_ID;value:int64;fail_if_no_pid:boolean=false);
+begin
+  if not FPaperDB.Active then FPaperDB.Open;
+  if not LocatePID(FPaperDB,PID) then begin
+    if fail_if_no_pid then raise AttrsNoPIDErr('找不到PID['+PID+']！');
+    exit;
+  end;
+  FPaperDB.Edit;
+  FPaperDB.FieldByName(AName).AsInteger:=value;
   FPaperDB.Post;
   DataChange(PID);
 end;
@@ -48,6 +83,11 @@ function TRTFP.ReadFieldAsString(AName,AAttrsName:string;PID:RTFP_ID;AE:TAttrExt
 var tmpField:TField;
 begin
   result:='';
+  if AAttrsName='' then begin
+    if FPaperDB.FieldDefs.Find(AName)=nil then exit;
+    result:=ReadBasicString(AName,PID);
+    exit;
+  end;
   if GetFieldType(AAttrsName,AName)=ftUnknown then
     begin
       if aeFailIfNoField in AE then
@@ -66,6 +106,14 @@ function TRTFP.ReadFieldAsInteger(AName,AAttrsName:string;PID:RTFP_ID;AE:TAttrEx
 var tmpField:TField;
 begin
   result:=0;
+  if AAttrsName='' then begin
+    if FPaperDB.FieldDefs.Find(AName)=nil then begin
+      if aeFailIfNoField in AE then raise AttrsNoFieldErr.Create('找不到字段'+AAttrsName+'.'+AName+'！');
+      exit;
+    end;
+    result:=ReadBasicInteger(AName,PID,aeFailIfNoPID in AE);
+    exit;
+  end;
   if GetFieldType(AAttrsName,AName)=ftUnknown then
     begin
       if aeFailIfNoField in AE then raise AttrsNoFieldErr.Create('找不到字段'+AAttrsName+'.'+AName+'！')
@@ -83,6 +131,14 @@ function TRTFP.ReadFieldAsBoolean(AName,AAttrsName:string;PID:RTFP_ID;AE:TAttrEx
 var tmpField:TField;
 begin
   result:=false;
+  if AAttrsName='' then begin
+    if FPaperDB.FieldDefs.Find(AName)=nil then begin
+      if aeFailIfNoField in AE then raise AttrsNoFieldErr.Create('找不到字段'+AAttrsName+'.'+AName+'！');
+      exit;
+    end;
+    result:=ReadBasicBool(AName,PID,aeFailIfNoPID in AE);
+    exit;
+  end;
   if GetFieldType(AAttrsName,AName)=ftUnknown then
     begin
       if aeFailIfNoField in AE then raise AttrsNoFieldErr.Create('找不到字段'+AAttrsName+'.'+AName+'！')
@@ -100,6 +156,7 @@ function TRTFP.ReadFieldAsDateTime(AName,AAttrsName:string;PID:RTFP_ID;AE:TAttrE
 var tmpField:TField;
 begin
   result:=0;
+  //基本属性没有日期格式
   if GetFieldType(AAttrsName,AName)=ftUnknown then
     begin
       if aeFailIfNoField in AE then raise AttrsNoFieldErr.Create('找不到字段'+AAttrsName+'.'+AName+'！')
@@ -117,6 +174,7 @@ function TRTFP.ReadFieldAsDouble(AName,AAttrsName:string;PID:RTFP_ID;AE:TAttrExt
 var tmpField:TField;
 begin
   result:=0;
+  //基本属性没有浮点型格式
   if GetFieldType(AAttrsName,AName)=ftUnknown then
     begin
       if aeFailIfNoField in AE then raise AttrsNoFieldErr.Create('找不到字段'+AAttrsName+'.'+AName+'！')
@@ -134,6 +192,14 @@ procedure TRTFP.EditFieldAsString(AName,AAttrsName:string;PID:RTFP_ID;value:stri
 var tmpAG:TAttrsGroup;
     tmpField:TField;
 begin
+  if AAttrsName='' then begin
+    if FPaperDB.FieldDefs.Find(AName)=nil then begin
+      if aeFailIfNoField in AE then raise AttrsNoFieldErr.Create('找不到字段'+AAttrsName+'.'+AName+'！');
+      exit;
+    end;
+    EditBasicString(AName,PID,value,aeFailIfNoPID in AE);
+    exit;
+  end;
   case GetFieldType(AAttrsName,AName) of
     ftUnknown:
       begin
@@ -175,6 +241,14 @@ procedure TRTFP.EditFieldAsInteger(AName,AAttrsName:string;PID:RTFP_ID;value:int
 var tmpAG:TAttrsGroup;
     tmpField:TField;
 begin
+  if AAttrsName='' then begin
+    if FPaperDB.FieldDefs.Find(AName)=nil then begin
+      if aeFailIfNoField in AE then raise AttrsNoFieldErr.Create('找不到字段'+AAttrsName+'.'+AName+'！');
+      exit;
+    end;
+    EditBasicInteger(AName,PID,value,aeFailIfNoPID in AE);
+    exit;
+  end;
   case GetFieldType(AAttrsName,AName) of
     ftUnknown:
       begin
@@ -216,6 +290,14 @@ procedure TRTFP.EditFieldAsBoolean(AName,AAttrsName:string;PID:RTFP_ID;value:boo
 var tmpAG:TAttrsGroup;
     tmpField:TField;
 begin
+  if AAttrsName='' then begin
+    if FPaperDB.FieldDefs.Find(AName)=nil then begin
+      if aeFailIfNoField in AE then raise AttrsNoFieldErr.Create('找不到字段'+AAttrsName+'.'+AName+'！');
+      exit;
+    end;
+    EditBasicBool(AName,PID,value,aeFailIfNoPID in AE);
+    exit;
+  end;
   case GetFieldType(AAttrsName,AName) of
     ftUnknown:
       begin
@@ -257,6 +339,7 @@ procedure TRTFP.EditFieldAsDateTime(AName,AAttrsName:string;PID:RTFP_ID;value:TD
 var tmpAG:TAttrsGroup;
     tmpField:TField;
 begin
+  //基本属性没有日期格式
   case GetFieldType(AAttrsName,AName) of
     ftUnknown:
       begin
@@ -298,6 +381,7 @@ procedure TRTFP.EditFieldAsDouble(AName,AAttrsName:string;PID:RTFP_ID;value:doub
 var tmpAG:TAttrsGroup;
     tmpField:TField;
 begin
+  //基本属性没有浮点型格式
   case GetFieldType(AAttrsName,AName) of
     ftUnknown:
       begin
@@ -338,6 +422,7 @@ end;
 procedure TRTFP.ReadFieldAsMemo(AName,AAttrsName:string;PID:RTFP_ID;buf:TStrings;AE:TAttrExtend);
 var tmpField:TField;
 begin
+  //基本属性没有memo格式
   if buf=nil then exit;
   buf.Clear;
   if GetFieldType(AAttrsName,AName)=ftUnknown then
@@ -357,6 +442,7 @@ procedure TRTFP.EditFieldAsMemo(AName,AAttrsName:string;PID:RTFP_ID;buf:TStrings
 var tmpAG:TAttrsGroup;
     tmpField:TField;
 begin
+  //基本属性没有memo格式
   if buf=nil then exit;
   case GetFieldType(AAttrsName,AName) of
     ftUnknown:

@@ -3,22 +3,16 @@
 //网页下载要研究一下JS
 //字段更新日志(有必要吗)
 //Memo字段的搜索
-//统一NodeEdit部分的编辑保存询问，下方的几个Tab共用一套Modified
 //尽快将所有弹窗统一样式（在做了，有点小问题，按键中文或者自动布局还没有处理好）
 //TKlass准备增加一个TKlassGroup类，和Attrs一样格式，这样才能保证ACL_ListView可以不重新折叠
 //增加替换URL的加载模式用以适用不同的webvpn
-//每一个formatEditComponent增加Modified属性用来判断是否修改，在editable和uneditable之间加一个freeze
-//uneditable改为提交数据时提示不能修改
 //FWaitForm加进度条
-//FormatEdit没有的字段要有专门的表示
 //“待注脚知识元”
 //FormatEdit快捷键提交
 //截图转文字想想办法，试试内嵌python
 //单元格设色属性、分类与属性组折叠等界面属性需要储存
 //FormatEdit中的Image通道化不能立刻更新！！！              //procedure TFmtImage.BandSolo(band:byte);
-//纳入分类要两次以上，不知道啥原因
 //分类字段清除后字段数据还在dbf中，没有pack
-//新建工程后的属性列表全部展开，而非打开工程后的全部折叠
 //我他妈服了，DBF的文件错误也太多了吧？？？？
 //异常关闭的恢复
 //formatEditComponent在图像字段数据有误时的解决方案需要明细
@@ -153,10 +147,12 @@ type
   public
     function GetFieldType(attrNa,fieldNa:string):TFieldType;
 
-    function ReadBasicField(AAttrsName:string;PID:RTFP_ID):string;//和GetPaperAttrs重复
-    procedure EditBasicField(AAttrsName:string;PID:RTFP_ID;value:string);
-    function ReadBasicBool(AAttrsName:string;PID:RTFP_ID):boolean;
-    procedure EditBasicBool(AAttrsName:string;PID:RTFP_ID;value:boolean);
+    function ReadBasicString(AName:string;PID:RTFP_ID;fail_if_no_pid:boolean=false):string;//和GetPaperAttrs重复
+    procedure EditBasicString(AName:string;PID:RTFP_ID;value:string;fail_if_no_pid:boolean=false);
+    function ReadBasicBool(AName:string;PID:RTFP_ID;fail_if_no_pid:boolean=false):boolean;
+    procedure EditBasicBool(AName:string;PID:RTFP_ID;value:boolean;fail_if_no_pid:boolean=false);
+    function ReadBasicInteger(AName:string;PID:RTFP_ID;fail_if_no_pid:boolean=false):int64;
+    procedure EditBasicInteger(AName:string;PID:RTFP_ID;value:int64;fail_if_no_pid:boolean=false);
 
     function ReadFieldAsString(AName,AAttrsName:string;PID:RTFP_ID;AE:TAttrExtend):string;
     function ReadFieldAsInteger(AName,AAttrsName:string;PID:RTFP_ID;AE:TAttrExtend):int64;
@@ -405,7 +401,10 @@ type
     procedure UsersChange;//用户列表修改，也会触发Change事件
     procedure FormatListChange;//编辑样式修改，也会触发Change事件
 
-
+  //PACKED_FORMAT.INC 用于压缩与转换的单文件格式
+  public
+    procedure ZTFP_Importer(fullfilename:string);unimplemented;//重复性检验之类的问题比较麻烦
+    procedure ZTFP_Exporter(fullfilename:string);//PID筛选、备份选项未定
 
   //未分类
   protected
@@ -522,7 +521,7 @@ procedure AufScriptFuncDefineRTFP(Auf:TAuf);
 
 
 implementation
-uses RTFP_main;
+uses RTFP_main, Zipper;
 
 {$I aufunc.inc}
 {$I events.inc}
@@ -538,6 +537,8 @@ uses RTFP_main;
 {$I paper.inc}
 {$I image.inc}
 {$I notes.inc}
+
+{$I packed_format.inc}
 
 {$I cite_tool.inc}
 {$I formatedit_component.inc}

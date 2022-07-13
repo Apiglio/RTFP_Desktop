@@ -54,7 +54,7 @@ begin
     str.Add('edit "'+_Attrs_Basic_+'","'+_Col_basic_Keyword_+'","关键词",280,70,"LM","ML","uneditable"');
     str.Add('edit "'+_Attrs_Basic_+'","'+_Col_basic_Summary_+'","摘要",280,140,"M","R","uneditable"');
     str.Add('edit "'+_Attrs_Basic_+'","'+_Col_basic_Organ_+'","单位",280,70,"ML","M","uneditable"');
-    str.Add('edit "'+_Attrs_Basic_+'","'+_Col_basic_Organ_+'","年份",350,70,"L","LM","uneditable"');
+    str.Add('edit "'+_Attrs_Basic_+'","'+_Col_basic_Year_+'","年份",350,70,"L","LM","uneditable"');
     str.Add('edit "'+_Attrs_Basic_+'","'+_Col_basic_Volume_+'","卷",350,70,"LM","ML","uneditable"');
     str.Add('edit "'+_Attrs_Basic_+'","'+_Col_basic_Issue_+'","期",350,70,"ML","M","uneditable"');
     str.Add('edit "'+_Attrs_Basic_+'","'+_Col_basic_PageCount_+'","页数",350,70,"M","MR","uneditable"');
@@ -89,6 +89,14 @@ begin
   end;
   result:=true;
 end;
+//以下是默认属性的呈现，但是我还是把它禁用掉吧，或者至少加一个全局开关
+{
+edit "","文件大小","size",0,70,"L","LM",uneditable
+edit "","目录","dir",0,70,"LM","ML",uneditable
+check "","是否备份","backup?",0,70,"ML","M",uneditable
+edit "","文件名","filename",0,70,"M","R",uneditable
+edit "","文件哈希","hash",70,70,"L","R",uneditable
+}
 function TRTFP.AddFormatEditNull(filename:string):boolean;
 var str:TStringList;
     index:integer;

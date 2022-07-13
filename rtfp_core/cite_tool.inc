@@ -401,9 +401,12 @@ procedure TRTFP.LoadFromRIS(PID:RTFP_ID;str:TStrings);
 var stmp,attr:string;
     has_author,has_keyword:boolean;
     tmpDate:TDate;
+    page_sp,page_ep:string;
 begin
   has_author:=false;
   has_keyword:=false;
+  page_sp:='';
+  page_ep:='';
   with InitBasic(PID) do begin
     for stmp in str do begin
       if length(stmp)<6 then continue;
@@ -423,6 +426,7 @@ begin
             try
               TryStrToDate(attr,tmpDate,'YYYYMMDD','/');
             except
+              //还有这种格式： JUL 29
             end;
             FieldByName(_Col_basic_PubTime_).AsDateTime:=tmpDate;
           end;
@@ -434,15 +438,18 @@ begin
           end;
         'ER':{do nothing};
         'T1','TI':FieldByName(_Col_basic_Title_).AsString:=attr;
-        'JO','JF':FieldByName(_Col_basic_Source_).AsString:=attr;
+        'JO','JF','T2':FieldByName(_Col_basic_Source_).AsString:=attr;
         'PY':FieldByName(_Col_basic_Year_).AsString:=attr;
         'VL':FieldByName(_Col_basic_Volume_).AsString:=attr;
+        'IS':FieldByName(_Col_basic_Issue_).AsString:=attr;
         'AB':FieldByName(_Col_basic_Summary_).AsString:=attr;
         'SN':FieldByName(_Col_basic_ISBN_ISSN_).AsString:=attr;
         'DO':FieldByName(_Col_basic_doi_).AsString:=attr;
         'UR':FieldByName(_Col_basic_Link_).AsString:=attr;
         'DB':FieldByName(_Col_basic_DataProv_).AsString:=attr;
         'DP':FieldByName(_Col_basic_DataProv_).AsString:=attr;
+        'SP':page_sp:=attr;
+        'EP':page_ep:=attr;
         //'AU':FieldByName(Author Address).AsString:=attr;
         //'AN':FieldByName(Accession Number).AsString:=attr;
         //'AV':FieldByName(Location in Archives).AsString:=attr;
@@ -451,6 +458,10 @@ begin
         //'LA':FieldByName(_Col_basic_Language).AsString:=attr;
 
       end;
+      ReEditBasic;
+    end;
+    if (page_sp<>'') and (page_ep<>'') then begin
+      FieldByName(_Col_basic_Page_).AsString:=page_sp+'-'+page_ep;
       ReEditBasic;
     end;
   end;
