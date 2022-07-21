@@ -19,6 +19,21 @@
 //FormatEdit中图像压缩方法，图像字段目前来看太占地方了
 
 
+//FUNCTION TO IMPLEMENT
+//  工程属性加一个简介给自己记录东西
+//  图像字段增加Image文件夹下的文件存储方法，避免字段文件过大
+
+
+//KNOWN FEATURES
+//  图片FormatEdit编辑中所有都是NoData，有一张编辑成Saved以后其他所有也都会变成Saved，重新NodeValidate之后NoData就恢复了
+
+
+//KNOWN BUGS
+//  AufScript的输出不见了（这个应该来自于一个异常之后的问题）
+//  win11百度输入法覆盖输入时会有一个错误（暂时无法复现，可能也是上一个问题的情况）
+//  在主表中显示的字段不能直接删除，否则报错，出自RebuildMainGrid
+
+
 //{$define insert}
 {$define save_xml}
 {$define test}
@@ -163,7 +178,7 @@ type
     procedure EditFieldAsString(AName,AAttrsName:string;PID:RTFP_ID;value:string;AE:TAttrExtend);
     procedure EditFieldAsInteger(AName,AAttrsName:string;PID:RTFP_ID;value:int64;AE:TAttrExtend);
     procedure EditFieldAsBoolean(AName,AAttrsName:string;PID:RTFP_ID;value:boolean;AE:TAttrExtend);
-    procedure EditFieldAsDateTime(AName,AAttrsName:string;PID:RTFP_ID;value:TDateTime;AE:TAttrExtend);
+    procedure EditFieldAsDateTime(AName,AAttrsName:string;PID:RTFP_ID;value:TDateTime;AE:TAttrExtend;modified_time:boolean=true);
     procedure EditFieldAsDouble(AName,AAttrsName:string;PID:RTFP_ID;value:double;AE:TAttrExtend);
 
     procedure ReadFieldAsMemo(AName,AAttrsName:string;PID:RTFP_ID;buf:TStrings;AE:TAttrExtend);
@@ -181,7 +196,7 @@ type
 
   //ACCESS_FIELD.INC 字段
   public
-    function AddField(AName:string;AAttrsName:string;AType:TFieldType{;ASize:word}):TAttrsField;
+    function AddField(AName:string;AAttrsName:string;AType:TFieldType;ASize:word=0):TAttrsField;
     function FindField(AName:string;AAttrsName:string):TAttrsField;
     procedure DeleteField(AName:string;AAttrsName:string);
 
@@ -1517,30 +1532,30 @@ end;
 
 procedure TRTFP.ReNewCreateTime(PID:RTFP_ID);
 begin
-  EditFieldAsDateTime(_Col_notes_CreateTime_,_Attrs_Notes_,PID,Now,[]);
+  EditFieldAsDateTime(_Col_notes_CreateTime_,_Attrs_Notes_,PID,Now,[],false);
 end;
 
 procedure TRTFP.ReNewModifyTime(PID:RTFP_ID);
 begin
-  EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now,[]);
+  EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now,[],false);
 end;
 
 procedure TRTFP.ReNewCheckTime(PID:RTFP_ID);
 begin
-  EditFieldAsDateTime(_Col_notes_CheckTime_,_Attrs_Notes_,PID,Now,[]);
+  EditFieldAsDateTime(_Col_notes_CheckTime_,_Attrs_Notes_,PID,Now,[],false);
 end;
 
 procedure TRTFP.ReNewModifyTimeWithoutChange(PID:RTFP_ID);
 begin
   BeginUpdate;
-  EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now,[]);
+  EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now,[],false);
   EndUpdate;
 end;
 
 procedure TRTFP.ReNewCheckTimeWithoutChange(PID:RTFP_ID);
 begin
   BeginUpdate;
-  EditFieldAsDateTime(_Col_notes_CheckTime_,_Attrs_Notes_,PID,Now,[]);
+  EditFieldAsDateTime(_Col_notes_CheckTime_,_Attrs_Notes_,PID,Now,[],false);
   EndUpdate;
 end;
 

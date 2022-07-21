@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.3-alpha.3';
+  C_VERSION_NUMBER  = '0.2.3-alpha.4';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -1821,9 +1821,12 @@ begin
   poss:=pos(' ',str);
   delete(str,1,poss);
   delete(fieldclassname,poss,length(fieldclassname));
+  {size}poss:=0;
   case str of
     'Memo':ChosenFieldType:=ftMemo;
-    'String':ChosenFieldType:=ftString;
+    'String[16]':begin ChosenFieldType:=ftString;{size}poss:=16;end;
+    'String[72]':begin ChosenFieldType:=ftString;{size}poss:=72;end;
+    'String[240]':begin ChosenFieldType:=ftString;{size}poss:=240;end;
     'Boolean':ChosenFieldType:=ftBoolean;
     'SmallInt':ChosenFieldType:=ftSmallint;
     'LargeInt':ChosenFieldType:=ftLargeint;
@@ -1868,10 +1871,10 @@ begin
     end;
   end;
   if confirmed then begin
-    if CurrentRTFP.AddField(FieldName,GroupName,ChosenFieldType)=nil then ShowMsgOK('警告','字段列创建失败');
+    if CurrentRTFP.AddField(FieldName,GroupName,ChosenFieldType,{size}poss)=nil then ShowMsgOK('警告','字段列创建失败');
   end else begin
     case ShowMsgYesNoAll('创建字段列('+fieldclassname+')','是否在属性组“'+GroupName+'”中创建名为“'+FieldName+'”的字段列？') of
-      'Yes':if CurrentRTFP.AddField(FieldName,GroupName,ChosenFieldType)=nil then ShowMsgOK('警告','字段列创建失败');
+      'Yes':if CurrentRTFP.AddField(FieldName,GroupName,ChosenFieldType,{size}poss)=nil then ShowMsgOK('警告','字段列创建失败');
       else exit;
     end;
   end;
