@@ -1,6 +1,6 @@
 //与字段相关的方法
 
-function TRTFP.AddField(AName:string;AAttrsName:string;AType:TFieldType{;ASize:word}):TAttrsField;
+function TRTFP.AddField(AName:string;AAttrsName:string;AType:TFieldType;ASize:word=0):TAttrsField;
 var tmpAG:TAttrsGroup;
     tmpAF:TAttrsField;
     tmpDefs:TFieldDef;
@@ -17,7 +17,10 @@ begin
         if not Active then Open;
         TryExclusive;
         case AType of
-          ftString:DbfFieldDefs.Add(AName,AType,16);
+          ftString:begin
+                     if ASize=0 then exit;
+                     DbfFieldDefs.Add(AName,AType,ASize);
+                   end;
           ftFloat:DbfFieldDefs.Add(AName,AType,8);
           else DbfFieldDefs.Add(AName,AType{,ASize});
         end;
@@ -32,7 +35,10 @@ begin
     end;
     dstBUF:begin
       case AType of
-        ftString:tmpDefs:=AddFieldInBuf(TBufDataSet(tmpAG.Dbf),AName,Atype,16);
+        ftString:begin
+          if ASize=0 then exit;
+          tmpDefs:=AddFieldInBuf(TBufDataSet(tmpAG.Dbf),AName,Atype,ASize);
+        end;
         ftFloat:tmpDefs:=AddFieldInBuf(TBufDataSet(tmpAG.Dbf),AName,Atype,8);
         else tmpDefs:=AddFieldInBuf(TBufDataSet(tmpAG.Dbf),AName,Atype);
       end;
