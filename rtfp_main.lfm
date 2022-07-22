@@ -1,7 +1,7 @@
 object FormDesktop: TFormDesktop
-  Left = 865
+  Left = 1059
   Height = 622
-  Top = 299
+  Top = 306
   Width = 1003
   AllowDropFiles = True
   Caption = 'RTFP Desktop'
@@ -78,7 +78,7 @@ object FormDesktop: TFormDesktop
         )
         ColWidths = (
           200
-          579
+          553
         )
       end
       object Splitter_PropertiesV: TSplitter
@@ -1945,26 +1945,20 @@ object FormDesktop: TFormDesktop
   object PopupMenu_FieldManager: TPopupMenu
     left = 88
     top = 392
-    object MenuItem_FieldMgr_Del: TMenuItem
-      Caption = '删除'
-      OnClick = MenuItem_FieldMgr_DelClick
-    end
-    object MenuItem_FieldMgr_Ren: TMenuItem
-      Caption = '重命名'
-      Enabled = False
-      OnClick = MenuItem_FieldMgr_RenClick
-    end
     object MenuItem_FieldMgr_Edit: TMenuItem
-      Caption = '更改类型'
-      Enabled = False
+      Caption = '字段设置'
       OnClick = MenuItem_FieldMgr_EditClick
+    end
+    object MenuItem_FieldMgr_DisplayOption: TMenuItem
+      Caption = '字段显示'
+      OnClick = MenuItem_FieldMgr_DisplayOptionClick
     end
     object MenuItem_FieldMgr_div01: TMenuItem
       Caption = '-'
     end
-    object MenuItem_FieldMgr_DisplayOption: TMenuItem
-      Caption = '单元格着色'
-      OnClick = MenuItem_FieldMgr_DisplayOptionClick
+    object MenuItem_FieldMgr_Del: TMenuItem
+      Caption = '删除字段'
+      OnClick = MenuItem_FieldMgr_DelClick
     end
   end
   object PopupMenu_MainDBGrid_Column: TPopupMenu

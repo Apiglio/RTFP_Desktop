@@ -180,9 +180,64 @@ begin
   result:=true;
 end;
 
-function ChangeTypeInBuf(buf:TBufDataset;FieldName:string;OldDataType,NewDataType:TFieldType):boolean;//这个还要考虑一些额外选项
+function ChangeTypeInBuf(buf:TBufDataset;FieldName:string;NewDataType:TFieldType;NewSize:integer=0):boolean;
+var tmpBuf:TBufDataset;
+    pi,ren_id,max_col:integer;
+    res:TFieldDef;
+    convertProc:pConvertFunc;
 begin
-
+  result:=false;
+  ren_id:=buf.FieldDefs.IndexOf(FieldName);
+  if ren_id<0 then exit;//不存在同名则退出
+  FieldTypeChangeMode(buf.FieldDefs[ren_id].DataType,NewDataType,convertProc);
+  if convertProc=nil then exit;
+  tmpBuf:=TBufDataset.Create(nil);
+  tmpBuf.FileName:=buf.FileName+'_bak';
+  try
+    tmpBuf.FieldDefs.Assign(buf.FieldDefs);
+    tmpBuf.CreateDataset;
+    max_col:=buf.FieldDefs.Count;
+    buf.First;
+    while not buf.EOF do
+      begin
+        tmpBuf.Append;
+        for pi:=0 to max_col-1 do tmpBuf.Fields[pi].Assign(buf.Fields[pi]);
+        tmpBuf.Post;
+        buf.Next;
+      end;
+    tmpBuf.Close;
+    tmpBuf.Open;
+    buf.Close;
+    buf.Clear;
+    for pi:=0 to max_col-1 do
+      begin
+        {zan}res:=tmpBuf.FieldDefs[pi];
+        if pi=ren_id then
+          case NewDataType of
+            ftString:buf.FieldDefs.Add(FieldName,NewDataType,NewSize);
+            else buf.FieldDefs.Add(FieldName,NewDataType);
+          end
+        else
+          buf.FieldDefs.Add({zan}res.Name,{zan}res.DataType,{zan}res.Size);
+      end;
+    buf.CreateDataset;
+    buf.Open;
+    tmpBuf.First;
+    while not tmpBuf.EOF do
+      begin
+        buf.Append;
+        for pi:=0 to ren_id-1 do buf.Fields[pi].Assign(tmpBuf.Fields[pi]);
+        convertProc(tmpBuf.Fields[ren_id],buf.Fields[ren_id]);
+        for pi:=ren_id+1 to max_col-1 do buf.Fields[pi].Assign(tmpBuf.Fields[pi]);
+        buf.Post;
+        tmpBuf.Next;
+      end;
+  finally
+    tmpBuf.Close;
+    TRTFP.FileDelete(tmpBuf.FileName);
+    tmpBuf.Free;
+  end;
+  result:=true;
 end;
 
 
