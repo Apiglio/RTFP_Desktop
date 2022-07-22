@@ -77,6 +77,7 @@ type
     ListBox_FormatEditMgr: TListBox;
     MainMenu: TMainMenu;
     Memo_FmtCmt: TMemo;
+    MenuItem_FieldMgr_div01: TMenuItem;
     MenuItem_EditSource: TMenuItem;
     MenuItem_EditKlass: TMenuItem;
     MenuItem_EditReferences: TMenuItem;
@@ -90,7 +91,6 @@ type
     MenuItem_CB_RefNumFormat: TMenuItem;
     MenuItem_DBGC_div03: TMenuItem;
     MenuItem_DBGC_DisplayOpt: TMenuItem;
-    MenuItem_FieldMgr_div01: TMenuItem;
     MenuItem_FieldMgr_DisplayOption: TMenuItem;
     MenuItem_project_profile: TMenuItem;
     MenuItem_klass_SourceClass: TMenuItem;
@@ -118,7 +118,6 @@ type
     MenuItem_CB_PID: TMenuItem;
     MenuItem_ClipBoards: TMenuItem;
     MenuItem_FieldMgr_Del: TMenuItem;
-    MenuItem_FieldMgr_Ren: TMenuItem;
     MenuItem_FieldMgr_Edit: TMenuItem;
     MenuItem_option_div01: TMenuItem;
     MenuItem_klass_div01: TMenuItem;
@@ -283,7 +282,6 @@ type
     procedure MenuItem_ExportToolClick(Sender: TObject);
     procedure MenuItem_FieldMgr_DelClick(Sender: TObject);
     procedure MenuItem_FieldMgr_EditClick(Sender: TObject);
-    procedure MenuItem_FieldMgr_RenClick(Sender: TObject);
     procedure MenuItem_FieldMgr_DisplayOptionClick(Sender: TObject);
     procedure MenuItem_EditKlassClick(Sender: TObject);
     procedure MenuItem_klass_AddKlassClick(Sender: TObject);
@@ -397,7 +395,7 @@ implementation
 uses form_new_project, form_cite_trans, form_classmanager, form_import,
      form_appearance, rtfp_field, rtfp_class, form_options, form_report_tool,
      form_repeated_checker, form_project_profile, form_field_display_option,
-     form_formatedit_option, rtfp_dialog;
+     form_formatedit_option, rtfp_dialog, form_field_change;
 
 {$R *.lfm}
 
@@ -1254,13 +1252,21 @@ begin
 end;
 
 procedure TFormDesktop.MenuItem_FieldMgr_EditClick(Sender: TObject);
+var tmpNode:TACL_TreeNode;
 begin
   if ProjectInvalid then exit;
-end;
+  tmpNode:=TACL_TreeNode(AListView_Attrs.Selected.Data);
+  if tmpNode=nil then exit;
+  if tmpNode.Data is TAttrsGroup then
+    exit
+  else if tmpNode.Data is TAttrsField then
+    begin
+      Form_FieldChange.Call(TAttrsField(tmpNode.Data));
+      SetFocus;
+      CurrentRTFP.UpdateCurrentRec(Selected_PID);
+    end
+  else assert(false,'ACL_TreeNode中有unexpected的类型对象');
 
-procedure TFormDesktop.MenuItem_FieldMgr_RenClick(Sender: TObject);
-begin
-  if ProjectInvalid then exit;
 end;
 
 procedure TFormDesktop.MenuItem_FieldMgr_DisplayOptionClick(Sender: TObject);

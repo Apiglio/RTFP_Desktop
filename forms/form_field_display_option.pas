@@ -67,9 +67,9 @@ end;
 procedure TFormFieldDisplayOption.Call(AAttrsField:TAttrsField);
 var index:integer;
 begin
-  if AAttrsField=nil then begin ShowMsgOK('单元格设色','默认字段暂不支持单元格设色。');exit;end;
+  if AAttrsField=nil then begin ShowMsgOK('字段显示设置','默认字段暂不支持单元格设色。');exit;end;//这句真的能达到触发条件吗
   CurrentField:=AAttrsField;
-  Self.Caption:='单元格着色'+' - '+AAttrsField.FieldName+'('+AAttrsField.AttrsGroup.Name+')';
+  Self.Caption:='字段显示设置'+' - '+AAttrsField.FieldName+'('+AAttrsField.AttrsGroup.Name+')';
   with AAttrsField.FieldDisplayOption do
     begin
       if colorize_process=nil then CheckBox_UseDisplayOption.Checked:=false

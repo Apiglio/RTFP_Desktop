@@ -48,7 +48,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="29">
+    <Units Count="31">
       <Unit0>
         <Filename Value="RTFP_Desktop.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -94,7 +94,9 @@
       <Unit7>
         <Filename Value="forms\form_field_display_option.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="FormFieldDisplayOption"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
       </Unit7>
       <Unit8>
         <Filename Value="forms\form_formatedit_option.pas"/>
@@ -196,6 +198,16 @@
         <Filename Value="rtfp_core\packed_format.inc"/>
         <IsPartOfProject Value="True"/>
       </Unit28>
+      <Unit29>
+        <Filename Value="forms\form_field_change.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form_FieldChange"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit29>
+      <Unit30>
+        <Filename Value="rtfp_core\rtfp_field_convert.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit30>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

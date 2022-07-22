@@ -199,6 +199,8 @@ type
     function AddField(AName:string;AAttrsName:string;AType:TFieldType;ASize:word=0):TAttrsField;
     function FindField(AName:string;AAttrsName:string):TAttrsField;
     procedure DeleteField(AName:string;AAttrsName:string);
+    procedure RenameField(AOldName,ANewName:string;AAttrsName:string);
+    procedure ReTypeField(AName:string;AAttrsName:string;NewType:TFieldType;NewSize:Integer=0);
 
     function CheckField(AName:string;AAttrsName:string;AType:TFieldType):boolean;
     function CheckField(AName:string;AAttrsName:string;ATypes:TFieldTypeSet):boolean;
@@ -536,7 +538,7 @@ procedure AufScriptFuncDefineRTFP(Auf:TAuf);
 
 
 implementation
-uses RTFP_main, Zipper;
+uses RTFP_main, rtfp_field_convert, Zipper;
 
 {$I aufunc.inc}
 {$I events.inc}
