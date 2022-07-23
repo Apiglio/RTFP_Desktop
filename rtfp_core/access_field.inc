@@ -1,6 +1,6 @@
 //与字段相关的方法
 
-function TRTFP.AddField(AName:string;AAttrsName:string;AType:TFieldType{;ASize:word}):TAttrsField;
+function TRTFP.AddField(AName:string;AAttrsName:string;AType:TFieldType;ASize:word=0):TAttrsField;
 var tmpAG:TAttrsGroup;
     tmpAF:TAttrsField;
     tmpDefs:TFieldDef;
@@ -17,7 +17,10 @@ begin
         if not Active then Open;
         TryExclusive;
         case AType of
-          ftString:DbfFieldDefs.Add(AName,AType,16);
+          ftString:begin
+                     if ASize=0 then exit;
+                     DbfFieldDefs.Add(AName,AType,ASize);
+                   end;
           ftFloat:DbfFieldDefs.Add(AName,AType,8);
           else DbfFieldDefs.Add(AName,AType{,ASize});
         end;
@@ -32,7 +35,10 @@ begin
     end;
     dstBUF:begin
       case AType of
-        ftString:tmpDefs:=AddFieldInBuf(TBufDataSet(tmpAG.Dbf),AName,Atype,16);
+        ftString:begin
+          if ASize=0 then exit;
+          tmpDefs:=AddFieldInBuf(TBufDataSet(tmpAG.Dbf),AName,Atype,ASize);
+        end;
         ftFloat:tmpDefs:=AddFieldInBuf(TBufDataSet(tmpAG.Dbf),AName,Atype,8);
         else tmpDefs:=AddFieldInBuf(TBufDataSet(tmpAG.Dbf),AName,Atype);
       end;
@@ -93,6 +99,60 @@ begin
   end;
   tmpAG.Modified:=true;
   if tmpAG.IsEmpty then DeleteAttrs(tmpAG.Name);
+  FieldChange;
+end;
+
+procedure TRTFP.RenameField(AOldName,ANewName:string;AAttrsName:string);
+var tmpAG:TAttrsGroup;
+    tmpAF:TAttrsField;
+    pi:integer;
+    tmpBool:boolean;
+begin
+  tmpAG:=FindAttrs(AAttrsName);
+  if tmpAG=nil then exit;
+  tmpAF:=tmpAG.FieldList.FindItemByName(AOldName);
+  if tmpAF<>nil then case FDataSetType of
+    dstDBF:begin
+      ShowMsgOK('重命名字段','DBF格式工程暂不支持重命名字段，推荐使用BUF格式。');
+    end;
+    dstBUF:begin
+       if not RenameFieldInBuf(TBufDataset(tmpAG.Dbf),AOldName,ANewName) then exit;
+       tmpBool:=tmpAF.Shown;
+       tmpAG.DelField(AOldName);
+       tmpAG.AddField(TBufDataset(tmpAG.Dbf).FieldDefs.Find(ANewName));
+       tmpAG.FieldList.FindItemByName(ANewName).Shown:=tmpBool;
+       //此处重命名或是改类型后局部更新字段列表会造成ListView中顺序不同于真实顺序，在重新打开工程后恢复。
+       //另外*InBuf方法中的重建数据库可能导致AF对应FieldDef不是当前数据库的版本，是否如此？目前还未遇见相关bug。
+    end;
+  end;
+  tmpAG.Modified:=true;
+  FieldChange;
+end;
+
+procedure TRTFP.ReTypeField(AName:string;AAttrsName:string;NewType:TFieldType;NewSize:Integer=0);
+var tmpAG:TAttrsGroup;
+    tmpAF:TAttrsField;
+    pi:integer;
+    tmpBool:boolean;
+begin
+  tmpAG:=FindAttrs(AAttrsName);
+  if tmpAG=nil then exit;
+  tmpAF:=tmpAG.FieldList.FindItemByName(AName);
+  if tmpAF<>nil then case FDataSetType of
+    dstDBF:begin
+      ShowMsgOK('重命名字段','DBF格式工程暂不支持重命名字段，推荐使用BUF格式。');
+    end;
+    dstBUF:begin
+       if not ChangeTypeInBuf(TBufDataset(tmpAG.Dbf),AName,NewType,NewSize) then exit;
+       tmpBool:=tmpAF.Shown;
+       tmpAG.DelField(AName);
+       tmpAG.AddField(TBufDataset(tmpAG.Dbf).FieldDefs.Find(AName));
+       tmpAG.FieldList.FindItemByName(AName).Shown:=tmpBool;
+       //此处重命名或是改类型后局部更新字段列表会造成ListView中顺序不同于真实顺序，在重新打开工程后恢复。
+       //另外*InBuf方法中的重建数据库可能导致AF对应FieldDef不是当前数据库的版本，是否如此？目前还未遇见相关bug。
+    end;
+  end;
+  tmpAG.Modified:=true;
   FieldChange;
 end;
 

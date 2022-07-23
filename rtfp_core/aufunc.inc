@@ -54,7 +54,7 @@ var AufScpt:TAufScript;
     AAuf:TAuf;
     filename:string;
     arv:TAufRamVar;
-    PID:string;
+    PID,mode:string;
 begin
   AufScpt:=Sender as TAufScript;
   AAuf:=AufScpt.Auf as TAuf;
@@ -65,7 +65,19 @@ begin
       if not AAuf.TryArgToARV(2,6,6,[ARV_Char],arv) then exit;
     end
   else arv.VarType:=ARV_Raw;
-  PID:=CurrentRTFP.AddPaper(filename);
+  if AAuf.ArgsCount>3 then
+    begin
+      if not AAuf.TryArgToString(3,mode) then exit;
+    end
+  else mode:='fb';
+  case lowercase(mode) of
+    'fullbackup','full','fb':PID:=CurrentRTFP.AddPaper(filename,apmFullBackup);
+    'cutbackup','cut','cb':PID:=CurrentRTFP.AddPaper(filename,apmCutBackup);
+    'reference','ref':PID:=CurrentRTFP.AddPaper(filename,apmReference);
+    'address','addr':PID:=CurrentRTFP.AddPaper(filename,apmAddress);
+    'website','web':PID:=CurrentRTFP.AddPaper(filename,apmWebsite);
+    else PID:=CurrentRTFP.AddPaper(filename);//默认也是apmFullBackup
+  end;
   if arv.VarType=ARV_Raw then
     begin
       if PID<>'000000' then AufScpt.writeln('新节点['+PID+']已生成。')
@@ -500,7 +512,7 @@ begin
     //Script.add_func('dbf.backup',@aufunc_BackupDBF,'AttrNo','备份第AttrNo个属性组');
     //Script.add_func('dbf.recover',@aufunc_RecoverDBF,'AttrNo','还原第AttrNo个属性组');
 
-    Script.add_func('paper.add',@aufunc_AddPaper,'filename','新建Paper节点');
+    Script.add_func('paper.add',@aufunc_AddPaper,'filename,@out_pid,mode="fb"','新建Paper节点');
     Script.add_func('paper.del',@aufunc_DeletePaper,'PID','删除Paper节点');
 
     Script.add_func('attrs.rec.edit',@aufunc_EditAttr,'PID,AttrName,FieldName,Memo','修改PID节点中第AttrNo表的FieldName字段为Memo');

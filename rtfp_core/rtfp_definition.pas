@@ -19,6 +19,21 @@
 //FormatEdit中图像压缩方法，图像字段目前来看太占地方了
 
 
+//FUNCTION TO IMPLEMENT
+//  工程属性加一个简介给自己记录东西
+//  图像字段增加Image文件夹下的文件存储方法，避免字段文件过大
+
+
+//KNOWN FEATURES
+//  图片FormatEdit编辑中所有都是NoData，有一张编辑成Saved以后其他所有也都会变成Saved，重新NodeValidate之后NoData就恢复了
+
+
+//KNOWN BUGS
+//  AufScript的输出不见了（这个应该来自于一个异常之后的问题）
+//  win11百度输入法覆盖输入时会有一个错误（暂时无法复现，可能也是上一个问题的情况）
+//  在主表中显示的字段不能直接删除，否则报错，出自RebuildMainGrid
+
+
 //{$define insert}
 {$define save_xml}
 {$define test}
@@ -104,6 +119,13 @@ type
     property UserList:TStringList read FUserList;
     property FormatList:TStringList read FFormatList;
 
+  public
+    //这部分设置只与UI设置对接，工程文件本身不存储
+    RunPerformance:record
+      Backup_SaveXml:boolean;//是否在保存数据库是额外保存xml格式备份
+    end;
+
+
   //AUFUNC.INC AufScript定义
   public
     procedure SetAuf(AAuf:TAuf);
@@ -136,7 +158,7 @@ type
   private
     function OpenDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet):boolean;
     function NewDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet):boolean;
-    function SaveDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet):boolean;
+    function SaveDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet;save_xml:boolean=false):boolean;
     function CloseDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet):boolean;
     function DeleteDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet):boolean;
     function PackDbf(Dbf:{TDbf}TDataSet):boolean;
@@ -163,7 +185,7 @@ type
     procedure EditFieldAsString(AName,AAttrsName:string;PID:RTFP_ID;value:string;AE:TAttrExtend);
     procedure EditFieldAsInteger(AName,AAttrsName:string;PID:RTFP_ID;value:int64;AE:TAttrExtend);
     procedure EditFieldAsBoolean(AName,AAttrsName:string;PID:RTFP_ID;value:boolean;AE:TAttrExtend);
-    procedure EditFieldAsDateTime(AName,AAttrsName:string;PID:RTFP_ID;value:TDateTime;AE:TAttrExtend);
+    procedure EditFieldAsDateTime(AName,AAttrsName:string;PID:RTFP_ID;value:TDateTime;AE:TAttrExtend;modified_time:boolean=true);
     procedure EditFieldAsDouble(AName,AAttrsName:string;PID:RTFP_ID;value:double;AE:TAttrExtend);
 
     procedure ReadFieldAsMemo(AName,AAttrsName:string;PID:RTFP_ID;buf:TStrings;AE:TAttrExtend);
@@ -181,9 +203,11 @@ type
 
   //ACCESS_FIELD.INC 字段
   public
-    function AddField(AName:string;AAttrsName:string;AType:TFieldType{;ASize:word}):TAttrsField;
+    function AddField(AName:string;AAttrsName:string;AType:TFieldType;ASize:word=0):TAttrsField;
     function FindField(AName:string;AAttrsName:string):TAttrsField;
     procedure DeleteField(AName:string;AAttrsName:string);
+    procedure RenameField(AOldName,ANewName:string;AAttrsName:string);
+    procedure ReTypeField(AName:string;AAttrsName:string;NewType:TFieldType;NewSize:Integer=0);
 
     function CheckField(AName:string;AAttrsName:string;AType:TFieldType):boolean;
     function CheckField(AName:string;AAttrsName:string;ATypes:TFieldTypeSet):boolean;
@@ -521,7 +545,7 @@ procedure AufScriptFuncDefineRTFP(Auf:TAuf);
 
 
 implementation
-uses RTFP_main, Zipper;
+uses RTFP_main, rtfp_field_convert, Zipper;
 
 {$I aufunc.inc}
 {$I events.inc}
@@ -698,7 +722,7 @@ begin
         //ShowMsgOK('无需保存提示（临时）',tmpAttrs.Name);
         continue;
       end;
-      while not SaveDbf(tmpAttrs.FullPath,tmpAttrs.Dbf) do
+      while not SaveDbf(tmpAttrs.FullPath,tmpAttrs.Dbf,RunPerformance.Backup_SaveXml) do
         case ShowMsgRetryIgnore('错误','属性组保存失败！') of
           'Retry':;
           'Ignore':break;
@@ -744,7 +768,7 @@ var tmpKlass:TKlass;
 begin
   for tmpKlass in FKlassList do
     begin
-      while not SaveDbf(tmpKlass.FullPath,tmpKlass.Dbf) do
+      while not SaveDbf(tmpKlass.FullPath,tmpKlass.Dbf,RunPerformance.Backup_SaveXml) do
         case ShowMsgRetryIgnore('错误','分类文件保存失败！') of
           'Retry':;
           'Ignore':break;
@@ -1217,9 +1241,9 @@ begin
   SaveUserList;
   SaveFormatList;
   SaveProjectOption;
-  SaveDbf('paper',Self.FPaperDB);
-  SaveDbf('image',Self.FImageDB);
-  SaveDbf('note',Self.FNotesDB);
+  SaveDbf('paper',Self.FPaperDB,RunPerformance.Backup_SaveXml);
+  SaveDbf('image',Self.FImageDB,RunPerformance.Backup_SaveXml);
+  SaveDbf('note',Self.FNotesDB,RunPerformance.Backup_SaveXml);
 
   BeginUpdate;
 
@@ -1517,30 +1541,30 @@ end;
 
 procedure TRTFP.ReNewCreateTime(PID:RTFP_ID);
 begin
-  EditFieldAsDateTime(_Col_notes_CreateTime_,_Attrs_Notes_,PID,Now,[]);
+  EditFieldAsDateTime(_Col_notes_CreateTime_,_Attrs_Notes_,PID,Now,[],false);
 end;
 
 procedure TRTFP.ReNewModifyTime(PID:RTFP_ID);
 begin
-  EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now,[]);
+  EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now,[],false);
 end;
 
 procedure TRTFP.ReNewCheckTime(PID:RTFP_ID);
 begin
-  EditFieldAsDateTime(_Col_notes_CheckTime_,_Attrs_Notes_,PID,Now,[]);
+  EditFieldAsDateTime(_Col_notes_CheckTime_,_Attrs_Notes_,PID,Now,[],false);
 end;
 
 procedure TRTFP.ReNewModifyTimeWithoutChange(PID:RTFP_ID);
 begin
   BeginUpdate;
-  EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now,[]);
+  EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now,[],false);
   EndUpdate;
 end;
 
 procedure TRTFP.ReNewCheckTimeWithoutChange(PID:RTFP_ID);
 begin
   BeginUpdate;
-  EditFieldAsDateTime(_Col_notes_CheckTime_,_Attrs_Notes_,PID,Now,[]);
+  EditFieldAsDateTime(_Col_notes_CheckTime_,_Attrs_Notes_,PID,Now,[],false);
   EndUpdate;
 end;
 

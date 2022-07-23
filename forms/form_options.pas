@@ -14,6 +14,8 @@ type
 
   TFormOptions = class(TForm)
     Button_SyncPath: TButton;
+    CheckBox_AutoSave: TCheckBox;
+    CheckBox_Backup_xml: TCheckBox;
     CheckBox_FormatEditOpt_AllowBasicFormatEdit: TCheckBox;
     CheckBox_FormatEditOpt_F9_To_Save: TCheckBox;
     Edit_SyncPath: TEdit;
@@ -28,15 +30,15 @@ type
     RadioGroup_BackupMode: TRadioGroup;
     ScrollBox_Sync: TScrollBox;
     SelectDirectoryDialog: TSelectDirectoryDialog;
+    TabSheet_Backup: TTabSheet;
     TabSheet_Format: TTabSheet;
     TabSheet_Summary: TTabSheet;
     TabSheet_Sync: TTabSheet;
     TrackBar_SyncInterval: TTrackBar;
     procedure Button_SyncPathClick(Sender: TObject);
+    procedure CheckBox_Backup_xmlChange(Sender: TObject);
     procedure Edit_SyncPathChange(Sender: TObject);
     procedure FormActivate(Sender: TObject);
-    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
-    procedure FormCreate(Sender: TObject);
     procedure FormHide(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Memo_RegExprChange(Sender: TObject);
@@ -44,7 +46,7 @@ type
     procedure RadioGroup_BackupModeClick(Sender: TObject);
     procedure TrackBar_SyncIntervalChange(Sender: TObject);
   private
-
+    TimerEnabled:boolean;//在OnShow和OnHide之间存储FormDesktop.SyncTimer.Enabled
   public
     procedure LoadOptionFromReg;
     procedure SaveOptionToReg;
@@ -71,21 +73,24 @@ end;
 
 procedure TFormOptions.CheckBox_SyncEnabledChange(Sender: TObject);
 begin
-  FormDesktop.SyncTimer.Enabled:=(Sender as TCheckBox).Checked;
+  TimerEnabled:=(Sender as TCheckBox).Checked;
 end;
 
 procedure TFormOptions.Edit_SyncPathChange(Sender: TObject);
+var stmp:string;
 begin
-  FormDesktop.SyncTimer.SyncPath:=(Sender as TEdit).Caption;
+  stmp:=(Sender as TEdit).Caption;
+  if FormDesktop.SyncTimer.SyncPath<>stmp then
+    FormDesktop.SyncTimer.SyncPath:=stmp;
 end;
 
 procedure TFormOptions.FormActivate(Sender: TObject);
 var tmpPos:double;
     posint:integer;
 begin
+  CheckBox_SyncEnabled.Checked:=TimerEnabled;
   with FormDesktop.SyncTimer do
     begin
-      CheckBox_SyncEnabled.Checked:=Enabled;
       Edit_SyncPath.Caption:=SyncPath;
       case BackupMode of
         apmCutBackup:RadioGroup_BackupMode.ItemIndex:=0;
@@ -99,27 +104,18 @@ begin
       if posint>20 then posint:=20;
       TrackBar_SyncInterval.Position:=posint;
     end;
-end;
-
-procedure TFormOptions.FormClose(Sender: TObject; var CloseAction: TCloseAction
-  );
-begin
-
-end;
-
-procedure TFormOptions.FormCreate(Sender: TObject);
-begin
-
+  CheckBox_Backup_xml.Checked:=FormDesktop.OptionMap.Backup_SaveXml;
 end;
 
 procedure TFormOptions.FormHide(Sender: TObject);
 begin
-  FormDesktop.SyncTimer.Enabled:=true;
+  if TimerEnabled then FormDesktop.SyncTimer.Enabled:=true;
 end;
 
 procedure TFormOptions.FormShow(Sender: TObject);
 begin
-  FormDesktop.SyncTimer.Enabled:=false;
+  TimerEnabled:=FormDesktop.SyncTimer.Enabled;
+  if TimerEnabled then FormDesktop.SyncTimer.Enabled:=false;
 end;
 
 procedure TFormOptions.Memo_RegExprChange(Sender: TObject);
@@ -137,6 +133,14 @@ begin
     begin
       Edit_SyncPath.Caption:=FileName;
     end;
+end;
+
+procedure TFormOptions.CheckBox_Backup_xmlChange(Sender: TObject);
+var status:boolean;
+begin
+  status:=(Sender as TCheckBox).Checked;
+  FormDesktop.OptionMap.Backup_SaveXml:=status;
+  if not ProjectInvalid then CurrentRTFP.RunPerformance.Backup_SaveXml:=status;
 end;
 
 procedure TFormOptions.RadioGroup_BackupModeClick(Sender: TObject);
@@ -162,6 +166,7 @@ begin
         FormDesktop.SyncTimer.Interval:=Reg.ReadInteger('Interval');
         FormDesktop.SyncTimer.Rule:=WinCPtoUTF8(Reg.ReadString('Rule'));
         FormDesktop.SyncTimer.Enabled:=Reg.ReadBool('Enabled');
+        Reg.CloseKey;
       end
     else
       begin
@@ -170,6 +175,15 @@ begin
         FormDesktop.SyncTimer.Interval:=1195;
         FormDesktop.SyncTimer.Rule:='\.pdf|\.caj|\.docx*|\.xlsx*|\.sep|\.od[ts]';
         FormDesktop.SyncTimer.Enabled:=false;
+      end;
+    if Reg.OpenKey('Software\ApiglioToolBox\RTFP_Desktop\BackupOption',false) then
+      begin
+        FormDesktop.OptionMap.Backup_SaveXml:=Reg.ReadBool('SaveXml');
+        Reg.CloseKey;
+      end
+    else
+      begin
+        FormDesktop.OptionMap.Backup_SaveXml:=false;
       end;
   finally
     Reg.Free;
@@ -188,6 +202,12 @@ begin
     Reg.WriteInteger('Interval',FormDesktop.SyncTimer.Interval);
     Reg.WriteString('Rule',UTF8ToWinCP(FormDesktop.SyncTimer.Rule));
     Reg.WriteBool('Enabled',FormDesktop.SyncTimer.Enabled);
+
+    Reg.CloseKey;
+    Reg.OpenKey('Software\ApiglioToolBox\RTFP_Desktop\BackupOption',true);
+    Reg.WriteBool('SaveXml',FormDesktop.OptionMap.Backup_SaveXml);
+    Reg.CloseKey;
+
   finally
     Reg.Free;
   end;

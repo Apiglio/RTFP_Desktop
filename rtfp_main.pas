@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.3-alpha.3';
+  C_VERSION_NUMBER  = '0.2.3-alpha.4';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -77,6 +77,7 @@ type
     ListBox_FormatEditMgr: TListBox;
     MainMenu: TMainMenu;
     Memo_FmtCmt: TMemo;
+    MenuItem_FieldMgr_div01: TMenuItem;
     MenuItem_EditSource: TMenuItem;
     MenuItem_EditKlass: TMenuItem;
     MenuItem_EditReferences: TMenuItem;
@@ -90,7 +91,6 @@ type
     MenuItem_CB_RefNumFormat: TMenuItem;
     MenuItem_DBGC_div03: TMenuItem;
     MenuItem_DBGC_DisplayOpt: TMenuItem;
-    MenuItem_FieldMgr_div01: TMenuItem;
     MenuItem_FieldMgr_DisplayOption: TMenuItem;
     MenuItem_project_profile: TMenuItem;
     MenuItem_klass_SourceClass: TMenuItem;
@@ -118,7 +118,6 @@ type
     MenuItem_CB_PID: TMenuItem;
     MenuItem_ClipBoards: TMenuItem;
     MenuItem_FieldMgr_Del: TMenuItem;
-    MenuItem_FieldMgr_Ren: TMenuItem;
     MenuItem_FieldMgr_Edit: TMenuItem;
     MenuItem_option_div01: TMenuItem;
     MenuItem_klass_div01: TMenuItem;
@@ -283,7 +282,6 @@ type
     procedure MenuItem_ExportToolClick(Sender: TObject);
     procedure MenuItem_FieldMgr_DelClick(Sender: TObject);
     procedure MenuItem_FieldMgr_EditClick(Sender: TObject);
-    procedure MenuItem_FieldMgr_RenClick(Sender: TObject);
     procedure MenuItem_FieldMgr_DisplayOptionClick(Sender: TObject);
     procedure MenuItem_EditKlassClick(Sender: TObject);
     procedure MenuItem_klass_AddKlassClick(Sender: TObject);
@@ -336,6 +334,10 @@ type
     procedure SetLayoutMode(AModeIndex:integer);
   public
     property LayoutMode:integer read FLayoutMode write SetLayoutMode;
+  public
+    OptionMap:record
+      Backup_SaveXml:boolean;
+    end;
 
   //private
   public
@@ -397,7 +399,7 @@ implementation
 uses form_new_project, form_cite_trans, form_classmanager, form_import,
      form_appearance, rtfp_field, rtfp_class, form_options, form_report_tool,
      form_repeated_checker, form_project_profile, form_field_display_option,
-     form_formatedit_option, rtfp_dialog;
+     form_formatedit_option, rtfp_dialog, form_field_change;
 
 {$R *.lfm}
 
@@ -451,9 +453,10 @@ begin
       Self.EventLink(CurrentRTFP);
     end;
   filename:=(Sender as TMenuItem).Caption;
-  if FileExists(filename) then
-    CurrentRTFP.Open(UTF8ToWinCP(filename))
-  else ShowMsgOK('未找到工程','工程文件未找到！');
+  if FileExists(filename) then begin
+    CurrentRTFP.Open(UTF8ToWinCP(filename));
+    CurrentRTFP.RunPerformance.Backup_SaveXml:=OptionMap.Backup_SaveXml;
+  end else ShowMsgOK('未找到工程','工程文件未找到！');
 end;
 
 procedure TFormDesktop.LoadRecentProject;
@@ -848,8 +851,10 @@ begin
   CurrentRTFP.SetAuf(Frame_AufScript1.Auf);
   Self.EventLink(CurrentRTFP);
 
-  if Self.OpenDialog_Project.Execute then
+  if Self.OpenDialog_Project.Execute then begin
     CurrentRTFP.Open(UTF8ToWinCP(Self.OpenDialog_Project.FileName));
+    CurrentRTFP.RunPerformance.Backup_SaveXml:=OptionMap.Backup_SaveXml;
+  end;
 
 end;
 
@@ -1254,13 +1259,21 @@ begin
 end;
 
 procedure TFormDesktop.MenuItem_FieldMgr_EditClick(Sender: TObject);
+var tmpNode:TACL_TreeNode;
 begin
   if ProjectInvalid then exit;
-end;
+  tmpNode:=TACL_TreeNode(AListView_Attrs.Selected.Data);
+  if tmpNode=nil then exit;
+  if tmpNode.Data is TAttrsGroup then
+    exit
+  else if tmpNode.Data is TAttrsField then
+    begin
+      Form_FieldChange.Call(TAttrsField(tmpNode.Data));
+      SetFocus;
+      CurrentRTFP.UpdateCurrentRec(Selected_PID);
+    end
+  else assert(false,'ACL_TreeNode中有unexpected的类型对象');
 
-procedure TFormDesktop.MenuItem_FieldMgr_RenClick(Sender: TObject);
-begin
-  if ProjectInvalid then exit;
 end;
 
 procedure TFormDesktop.MenuItem_FieldMgr_DisplayOptionClick(Sender: TObject);
@@ -1651,6 +1664,7 @@ begin
       Application.ProcessMessages;
 
       CurrentRTFP.Open(UTF8ToWinCP(FileNames[0]));
+      CurrentRTFP.RunPerformance.Backup_SaveXml:=OptionMap.Backup_SaveXml;
       SetFocus;
     end
   else
@@ -1821,9 +1835,12 @@ begin
   poss:=pos(' ',str);
   delete(str,1,poss);
   delete(fieldclassname,poss,length(fieldclassname));
+  {size}poss:=0;
   case str of
     'Memo':ChosenFieldType:=ftMemo;
-    'String':ChosenFieldType:=ftString;
+    'String[16]':begin ChosenFieldType:=ftString;{size}poss:=16;end;
+    'String[72]':begin ChosenFieldType:=ftString;{size}poss:=72;end;
+    'String[240]':begin ChosenFieldType:=ftString;{size}poss:=240;end;
     'Boolean':ChosenFieldType:=ftBoolean;
     'SmallInt':ChosenFieldType:=ftSmallint;
     'LargeInt':ChosenFieldType:=ftLargeint;
@@ -1868,10 +1885,10 @@ begin
     end;
   end;
   if confirmed then begin
-    if CurrentRTFP.AddField(FieldName,GroupName,ChosenFieldType)=nil then ShowMsgOK('警告','字段列创建失败');
+    if CurrentRTFP.AddField(FieldName,GroupName,ChosenFieldType,{size}poss)=nil then ShowMsgOK('警告','字段列创建失败');
   end else begin
     case ShowMsgYesNoAll('创建字段列('+fieldclassname+')','是否在属性组“'+GroupName+'”中创建名为“'+FieldName+'”的字段列？') of
-      'Yes':if CurrentRTFP.AddField(FieldName,GroupName,ChosenFieldType)=nil then ShowMsgOK('警告','字段列创建失败');
+      'Yes':if CurrentRTFP.AddField(FieldName,GroupName,ChosenFieldType,{size}poss)=nil then ShowMsgOK('警告','字段列创建失败');
       else exit;
     end;
   end;
@@ -2223,7 +2240,7 @@ begin
   FormOptions.Free;
   FWaitForm.Free;
   FFormatEdit_Highlighter.Free;
-
+  //SyncTimer.Free;
 end;
 
 

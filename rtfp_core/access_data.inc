@@ -30,7 +30,8 @@ begin
   FPaperDB.Edit;
   FPaperDB.FieldByName(AName).AsString:=value;
   FPaperDB.Post;
-  DataChange(PID);
+  ReNewModifyTime(PID);
+  //DataChange(PID);
 end;
 
 function TRTFP.ReadBasicBool(AName:string;PID:RTFP_ID;fail_if_no_pid:boolean=false):boolean;
@@ -53,7 +54,8 @@ begin
   FPaperDB.Edit;
   FPaperDB.FieldByName(AName).AsBoolean:=value;
   FPaperDB.Post;
-  DataChange(PID);
+  ReNewModifyTime(PID);
+  //DataChange(PID);
 end;
 
 function TRTFP.ReadBasicInteger(AName:string;PID:RTFP_ID;fail_if_no_pid:boolean=false):int64;
@@ -76,7 +78,8 @@ begin
   FPaperDB.Edit;
   FPaperDB.FieldByName(AName).AsInteger:=value;
   FPaperDB.Post;
-  DataChange(PID);
+  ReNewModifyTime(PID);
+  //DataChange(PID);
 end;
 
 function TRTFP.ReadFieldAsString(AName,AAttrsName:string;PID:RTFP_ID;AE:TAttrExtend):string;
@@ -191,6 +194,8 @@ end;
 procedure TRTFP.EditFieldAsString(AName,AAttrsName:string;PID:RTFP_ID;value:string;AE:TAttrExtend);
 var tmpAG:TAttrsGroup;
     tmpField:TField;
+    tmpDT:TFieldType;
+    odt:TDateTime;
 begin
   if AAttrsName='' then begin
     if FPaperDB.FieldDefs.Find(AName)=nil then begin
@@ -200,7 +205,8 @@ begin
     EditBasicString(AName,PID,value,aeFailIfNoPID in AE);
     exit;
   end;
-  case GetFieldType(AAttrsName,AName) of
+  tmpDT:=GetFieldType(AAttrsName,AName);
+  case tmpDT of
     ftUnknown:
       begin
         if aeFailIfNoField in AE then raise AttrsNoFieldErr.Create('找不到字段'+AAttrsName+'.'+AName+'！')
@@ -226,11 +232,15 @@ begin
   if tmpField<>nil then
     begin
       tmpAG:=FindAttrs(AAttrsName);
+      case tmpDT of
+        ftDateTime,ftDate,ftTime:if not TryStrToDateTime(value,odt) then exit;
+      end;
       tmpAG.Dbf.Edit;
       tmpField.AsString:=value;
       tmpAG.Dbf.Post;
       tmpAG.Modified:=true;
-      DataChange(PID);
+      ReNewModifyTime(PID);
+      //DataChange(PID);
     end
   else begin
     if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
@@ -279,7 +289,8 @@ begin
       tmpField.AsInteger:=value;
       tmpAG.Dbf.Post;
       tmpAG.Modified:=true;
-      DataChange(PID);
+      ReNewModifyTime(PID);
+      //DataChange(PID);
     end
   else begin
     if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
@@ -328,14 +339,15 @@ begin
       tmpField.AsBoolean:=value;
       tmpAG.Dbf.Post;
       tmpAG.Modified:=true;
-      DataChange(PID);
+      ReNewModifyTime(PID);
+      //DataChange(PID);
     end
   else begin
     if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
   end;
 end;
 
-procedure TRTFP.EditFieldAsDateTime(AName,AAttrsName:string;PID:RTFP_ID;value:TDateTime;AE:TAttrExtend);
+procedure TRTFP.EditFieldAsDateTime(AName,AAttrsName:string;PID:RTFP_ID;value:TDateTime;AE:TAttrExtend;modified_time:boolean=true);
 var tmpAG:TAttrsGroup;
     tmpField:TField;
 begin
@@ -370,7 +382,8 @@ begin
       tmpField.AsDateTime:=value;
       tmpAG.Dbf.Post;
       tmpAG.Modified:=true;
-      DataChange(PID);
+      if modified_time then ReNewModifyTime(PID)
+      else DataChange(PID);//现在所有EditField的DataChange都由这里产生，来源于ReNewModifyTime过程
     end
   else begin
     if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
@@ -412,7 +425,8 @@ begin
       tmpField.AsFloat:=value;
       tmpAG.Dbf.Post;
       tmpAG.Modified:=true;
-      DataChange(PID);
+      ReNewModifyTime(PID);
+      //DataChange(PID);
     end
   else begin
     if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
@@ -474,7 +488,8 @@ begin
       tmpField.AsString:=buf.Text;
       tmpAG.Dbf.Post;
       tmpAG.Modified:=true;
-      DataChange(PID);
+      ReNewModifyTime(PID);
+      //DataChange(PID);
     end
   else begin
     if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
@@ -554,7 +569,8 @@ begin
       end;
       tmpAG.Dbf.Post;
       tmpAG.Modified:=true;
-      DataChange(PID);
+      ReNewModifyTime(PID);
+      //DataChange(PID);
     end
   else begin
     if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
