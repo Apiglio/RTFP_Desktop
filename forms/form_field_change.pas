@@ -119,7 +119,6 @@ begin
 end;
 
 procedure TForm_FieldChange.Call(AAttrsField:TAttrsField);
-var index:integer;
 begin
   if AAttrsField=nil then begin ShowMsgOK('字段属性','默认字段无法查看和修改属性。');exit;end;//这句真的能达到触发条件吗
   CurrentField:=AAttrsField;
@@ -134,7 +133,7 @@ begin
   Edit_FieldSize.Caption:=IntToStr(CurrentField.FieldDef.Size);
   FieldTypeToComboBox(CurrentField.FieldDef.DataType);
   case CurrentField.FieldDef.DataType of
-    ftString,ftFloat:Edit_FieldSize.Enabled:=true;
+    ftString:Edit_FieldSize.Enabled:=true;
     else Edit_FieldSize.Enabled:=false;
   end;
 

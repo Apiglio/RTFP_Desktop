@@ -334,6 +334,10 @@ type
     procedure SetLayoutMode(AModeIndex:integer);
   public
     property LayoutMode:integer read FLayoutMode write SetLayoutMode;
+  public
+    OptionMap:record
+      Backup_SaveXml:boolean;
+    end;
 
   //private
   public
@@ -449,9 +453,10 @@ begin
       Self.EventLink(CurrentRTFP);
     end;
   filename:=(Sender as TMenuItem).Caption;
-  if FileExists(filename) then
-    CurrentRTFP.Open(UTF8ToWinCP(filename))
-  else ShowMsgOK('未找到工程','工程文件未找到！');
+  if FileExists(filename) then begin
+    CurrentRTFP.Open(UTF8ToWinCP(filename));
+    CurrentRTFP.RunPerformance.Backup_SaveXml:=OptionMap.Backup_SaveXml;
+  end else ShowMsgOK('未找到工程','工程文件未找到！');
 end;
 
 procedure TFormDesktop.LoadRecentProject;
@@ -846,8 +851,10 @@ begin
   CurrentRTFP.SetAuf(Frame_AufScript1.Auf);
   Self.EventLink(CurrentRTFP);
 
-  if Self.OpenDialog_Project.Execute then
+  if Self.OpenDialog_Project.Execute then begin
     CurrentRTFP.Open(UTF8ToWinCP(Self.OpenDialog_Project.FileName));
+    CurrentRTFP.RunPerformance.Backup_SaveXml:=OptionMap.Backup_SaveXml;
+  end;
 
 end;
 
@@ -1657,6 +1664,7 @@ begin
       Application.ProcessMessages;
 
       CurrentRTFP.Open(UTF8ToWinCP(FileNames[0]));
+      CurrentRTFP.RunPerformance.Backup_SaveXml:=OptionMap.Backup_SaveXml;
       SetFocus;
     end
   else
@@ -2232,7 +2240,7 @@ begin
   FormOptions.Free;
   FWaitForm.Free;
   FFormatEdit_Highlighter.Free;
-
+  //SyncTimer.Free;
 end;
 
 

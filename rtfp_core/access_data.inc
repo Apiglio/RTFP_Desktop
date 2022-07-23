@@ -194,6 +194,8 @@ end;
 procedure TRTFP.EditFieldAsString(AName,AAttrsName:string;PID:RTFP_ID;value:string;AE:TAttrExtend);
 var tmpAG:TAttrsGroup;
     tmpField:TField;
+    tmpDT:TFieldType;
+    odt:TDateTime;
 begin
   if AAttrsName='' then begin
     if FPaperDB.FieldDefs.Find(AName)=nil then begin
@@ -203,7 +205,8 @@ begin
     EditBasicString(AName,PID,value,aeFailIfNoPID in AE);
     exit;
   end;
-  case GetFieldType(AAttrsName,AName) of
+  tmpDT:=GetFieldType(AAttrsName,AName);
+  case tmpDT of
     ftUnknown:
       begin
         if aeFailIfNoField in AE then raise AttrsNoFieldErr.Create('找不到字段'+AAttrsName+'.'+AName+'！')
@@ -229,6 +232,9 @@ begin
   if tmpField<>nil then
     begin
       tmpAG:=FindAttrs(AAttrsName);
+      case tmpDT of
+        ftDateTime,ftDate,ftTime:if not TryStrToDateTime(value,odt) then exit;
+      end;
       tmpAG.Dbf.Edit;
       tmpField.AsString:=value;
       tmpAG.Dbf.Post;

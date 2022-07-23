@@ -386,9 +386,6 @@ end;
 procedure TAttrsGroupList.Clear;
 begin
   inherited Clear;
-  //Self.BeginUpdate;
-  //while Self.Count>0 do Self.Delete(0);
-  //Self.EndUpdate;
 end;
 
 function TAttrsGroupList.GetEnumerator:TAttrsGroupEnumerator;
@@ -427,11 +424,10 @@ begin
   tmpFileList:=TRTFP_FileList.Create(nil,FFullPath+'\'+APath);
   regexp:=TRegExpr.Create;
   case data_set_type of
-    'dbf':regexp.Expression:='[^_run]\.dbf';
-    'buf':regexp.Expression:='\S\.buf';
+    'dbf':regexp.Expression:='[^_run]\.dbf$';
+    'buf':regexp.Expression:='\S\.buf$';
   end;
   try
-    //tmpFileList.BaseDir:=FFullPath+'\'+APath;
     tmpFileList.RunDir;
     for stmp in tmpFileList do
       begin
@@ -440,17 +436,8 @@ begin
         groupname:=ExtractFileName(pathname);
         System.delete(groupname,length(groupname)-3,4);
         System.delete(pathname,length(pathname)-3,4);
-        {
-        if pos('.dbf',lowercase(pathname))<>length(pathname)-3 then continue;
-        poss:=pos('_run.dbf',lowercase(pathname));
-        if (poss=length(pathname)-7) and (poss>0) then continue;
-        if lowercase(ExtractFileExt(groupname))='.dbf' then groupname:=Copy(groupname,1,length(groupname)-4);
-        {if lowercase(ExtractFileExt(pathname))='.dbf' then }pathname:=Copy(pathname,1,length(pathname)-4);
-        //ShowMessage(groupname+#13#10+pathname);
-        }
         Self.AddEx(APath+'\'+pathname,groupname,data_set_type);
       end;
-
   finally
     tmpFileList.Free;
     regexp.Free;
