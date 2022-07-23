@@ -148,6 +148,7 @@ begin
 end;
 procedure TRTFP_SyncTimer.SetEnabled(value:boolean);
 begin
+  //if FEnabled=value then exit;
   if not FTimer.Enabled and value then
     begin
       FFileList.Clear;

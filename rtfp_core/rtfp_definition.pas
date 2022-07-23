@@ -119,6 +119,13 @@ type
     property UserList:TStringList read FUserList;
     property FormatList:TStringList read FFormatList;
 
+  public
+    //这部分设置只与UI设置对接，工程文件本身不存储
+    RunPerformance:record
+      Backup_SaveXml:boolean;//是否在保存数据库是额外保存xml格式备份
+    end;
+
+
   //AUFUNC.INC AufScript定义
   public
     procedure SetAuf(AAuf:TAuf);
@@ -151,7 +158,7 @@ type
   private
     function OpenDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet):boolean;
     function NewDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet):boolean;
-    function SaveDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet):boolean;
+    function SaveDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet;save_xml:boolean=false):boolean;
     function CloseDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet):boolean;
     function DeleteDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet):boolean;
     function PackDbf(Dbf:{TDbf}TDataSet):boolean;
@@ -715,7 +722,7 @@ begin
         //ShowMsgOK('无需保存提示（临时）',tmpAttrs.Name);
         continue;
       end;
-      while not SaveDbf(tmpAttrs.FullPath,tmpAttrs.Dbf) do
+      while not SaveDbf(tmpAttrs.FullPath,tmpAttrs.Dbf,RunPerformance.Backup_SaveXml) do
         case ShowMsgRetryIgnore('错误','属性组保存失败！') of
           'Retry':;
           'Ignore':break;
@@ -761,7 +768,7 @@ var tmpKlass:TKlass;
 begin
   for tmpKlass in FKlassList do
     begin
-      while not SaveDbf(tmpKlass.FullPath,tmpKlass.Dbf) do
+      while not SaveDbf(tmpKlass.FullPath,tmpKlass.Dbf,RunPerformance.Backup_SaveXml) do
         case ShowMsgRetryIgnore('错误','分类文件保存失败！') of
           'Retry':;
           'Ignore':break;
@@ -1234,9 +1241,9 @@ begin
   SaveUserList;
   SaveFormatList;
   SaveProjectOption;
-  SaveDbf('paper',Self.FPaperDB);
-  SaveDbf('image',Self.FImageDB);
-  SaveDbf('note',Self.FNotesDB);
+  SaveDbf('paper',Self.FPaperDB,RunPerformance.Backup_SaveXml);
+  SaveDbf('image',Self.FImageDB,RunPerformance.Backup_SaveXml);
+  SaveDbf('note',Self.FNotesDB,RunPerformance.Backup_SaveXml);
 
   BeginUpdate;
 
