@@ -123,6 +123,7 @@ type
     //这部分设置只与UI设置对接，工程文件本身不存储
     RunPerformance:record
       Backup_SaveXml:boolean;//是否在保存数据库是额外保存xml格式备份
+      Fields_ImgFile:boolean;//将FormatEdit的图像保存在image文件夹中
     end;
 
 
@@ -192,6 +193,8 @@ type
     procedure EditFieldAsMemo(AName,AAttrsName:string;PID:RTFP_ID;buf:TStrings;AE:TAttrExtend);
     procedure ReadFieldAsBitmap(AName,AAttrsName:string;PID:RTFP_ID;buf:Graphics.TBitMap;AE:TAttrExtend);
     procedure EditFieldAsBitmap(AName,AAttrsName:string;PID:RTFP_ID;buf:Graphics.TBitMap;AE:TAttrExtend);
+    function GetImgFilePath(AName,AAttrsName:string):string;inline;
+    function GetImgFileName(PID:RTFP_ID):string;inline;
 
   //ACCESS_ATTRS.INC 属性组
   public

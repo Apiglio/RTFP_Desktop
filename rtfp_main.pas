@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.3-alpha.4';
+  C_VERSION_NUMBER  = '0.2.3-alpha.5';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -77,6 +77,8 @@ type
     ListBox_FormatEditMgr: TListBox;
     MainMenu: TMainMenu;
     Memo_FmtCmt: TMemo;
+    MenuItem_field_div01: TMenuItem;
+    MenuItem_field_RebuildBlob: TMenuItem;
     MenuItem_FieldMgr_div01: TMenuItem;
     MenuItem_EditSource: TMenuItem;
     MenuItem_EditKlass: TMenuItem;
@@ -284,6 +286,7 @@ type
     procedure MenuItem_FieldMgr_EditClick(Sender: TObject);
     procedure MenuItem_FieldMgr_DisplayOptionClick(Sender: TObject);
     procedure MenuItem_EditKlassClick(Sender: TObject);
+    procedure MenuItem_field_RebuildBlobClick(Sender: TObject);
     procedure MenuItem_klass_AddKlassClick(Sender: TObject);
     procedure MenuItem_klass_checkClick(Sender: TObject);
     procedure MenuItem_klass_DelKlassClick(Sender: TObject);
@@ -337,6 +340,7 @@ type
   public
     OptionMap:record
       Backup_SaveXml:boolean;
+      Fields_ImgFile:boolean;
     end;
 
   //private
@@ -456,6 +460,7 @@ begin
   if FileExists(filename) then begin
     CurrentRTFP.Open(UTF8ToWinCP(filename));
     CurrentRTFP.RunPerformance.Backup_SaveXml:=OptionMap.Backup_SaveXml;
+    CurrentRTFP.RunPerformance.Fields_ImgFile:=OptionMap.Fields_ImgFile;
   end else ShowMsgOK('未找到工程','工程文件未找到！');
 end;
 
@@ -854,6 +859,7 @@ begin
   if Self.OpenDialog_Project.Execute then begin
     CurrentRTFP.Open(UTF8ToWinCP(Self.OpenDialog_Project.FileName));
     CurrentRTFP.RunPerformance.Backup_SaveXml:=OptionMap.Backup_SaveXml;
+    CurrentRTFP.RunPerformance.Fields_ImgFile:=OptionMap.Fields_ImgFile;
   end;
 
 end;
@@ -1299,6 +1305,73 @@ begin
   SetFocus;
 end;
 
+procedure TFormDesktop.MenuItem_field_RebuildBlobClick(Sender: TObject);
+var AG:TAttrsGroup;
+    AF:TAttrsField;
+    is_img_file:boolean;
+    PID:RTFP_ID;
+    tmp_mem:TMemoryStream;
+    tmp_bmp:TPicture;
+    img_file_name,img_file_path:string;
+    tmpField:TField;
+begin
+  if ProjectInvalid then exit;
+  //更改数据的警告
+  exit;
+  //将所有图像字段改为当前设置的形式。
+  //真离谱，生成的bmp格式有问题，用TPicture又有错误
+  {
+  tmp_mem:=TMemoryStream.Create;
+  tmp_bmp:=TPicture.Create;
+  try
+    for AG in CurrentRTFP.FieldList do begin
+      AG.Dbf.First;
+      while not AG.Dbf.EOF do begin
+        PID:=AG.Dbf.FieldByName(_Col_PID_).AsString;
+        for AF in AG.FieldList do begin
+          if AF.FieldDef.DataType<>ftBlob then continue;
+          tmpField:=AG.Dbf.FieldByName(AF.FieldName);
+          is_img_file:=false;
+          if TBlobField(tmpField).Size=4 then begin
+            TBlobField(tmpField).SaveToStream(tmp_mem);
+            if pdword(tmp_mem.Memory)^=0 then is_img_file:=true;
+          end;
+          if CurrentRTFP.RunPerformance.Fields_ImgFile=is_img_file then continue;
+          img_file_path:=CurrentRTFP.GetImgFilePath(AF.FieldName,AG.Name);
+          img_file_name:=img_file_path+'\'+CurrentRTFP.GetImgFileName(PID);
+          if is_img_file then begin
+            tmp_bmp.Bitmap.LoadFromFile(img_file_name);
+            tmp_bmp.Bitmap.SaveToStream(tmp_mem);
+            AG.Dbf.Edit;
+            TBlobField(tmpField).LoadFromStream(tmp_mem);
+            AG.Dbf.Post;
+            TRTFP.FileDelete(img_file_name);
+            //文件夹要不要删？
+          end else begin
+            TBlobField(tmpField).SaveToStream(tmp_mem);
+            tmp_bmp.Bitmap.LoadFromStream(tmp_mem);
+            ForceDirectories(img_file_path);
+            tmp_bmp.Bitmap.SaveToFile(img_file_name);
+            tmp_mem.Clear;
+            tmp_mem.Position:=0;
+            tmp_mem.WriteDWord(0);
+            tmp_mem.Position:=0;
+            AG.Dbf.Edit;
+            TBlobField(tmpField).LoadFromStream(tmp_mem);
+            AG.Dbf.Post;
+          end;
+        end;
+        AG.Dbf.Next;
+      end;
+    end;
+  finally
+    tmp_mem.Free;
+    tmp_bmp.Free;
+  end;
+  }
+  CurrentRTFP.FieldAndRecordChange;
+end;
+
 procedure TFormDesktop.MenuItem_klass_AddKlassClick(Sender: TObject);
 var klassname,pathname:string;
 begin
@@ -1665,6 +1738,7 @@ begin
 
       CurrentRTFP.Open(UTF8ToWinCP(FileNames[0]));
       CurrentRTFP.RunPerformance.Backup_SaveXml:=OptionMap.Backup_SaveXml;
+      CurrentRTFP.RunPerformance.Fields_ImgFile:=OptionMap.Fields_ImgFile;
       SetFocus;
     end
   else
