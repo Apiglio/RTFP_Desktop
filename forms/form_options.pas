@@ -14,6 +14,7 @@ type
 
   TFormOptions = class(TForm)
     Button_SyncPath: TButton;
+    CheckBox_Fields_img: TCheckBox;
     CheckBox_AutoSave: TCheckBox;
     CheckBox_Backup_xml: TCheckBox;
     CheckBox_FormatEditOpt_AllowBasicFormatEdit: TCheckBox;
@@ -37,6 +38,7 @@ type
     TrackBar_SyncInterval: TTrackBar;
     procedure Button_SyncPathClick(Sender: TObject);
     procedure CheckBox_Backup_xmlChange(Sender: TObject);
+    procedure CheckBox_Fields_imgChange(Sender: TObject);
     procedure Edit_SyncPathChange(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormHide(Sender: TObject);
@@ -105,6 +107,7 @@ begin
       TrackBar_SyncInterval.Position:=posint;
     end;
   CheckBox_Backup_xml.Checked:=FormDesktop.OptionMap.Backup_SaveXml;
+  CheckBox_Fields_img.Checked:=FormDesktop.OptionMap.Fields_ImgFile;
 end;
 
 procedure TFormOptions.FormHide(Sender: TObject);
@@ -141,6 +144,14 @@ begin
   status:=(Sender as TCheckBox).Checked;
   FormDesktop.OptionMap.Backup_SaveXml:=status;
   if not ProjectInvalid then CurrentRTFP.RunPerformance.Backup_SaveXml:=status;
+end;
+
+procedure TFormOptions.CheckBox_Fields_imgChange(Sender: TObject);
+var status:boolean;
+begin
+  status:=(Sender as TCheckBox).Checked;
+  FormDesktop.OptionMap.Fields_ImgFile:=status;
+  if not ProjectInvalid then CurrentRTFP.RunPerformance.Fields_ImgFile:=status;
 end;
 
 procedure TFormOptions.RadioGroup_BackupModeClick(Sender: TObject);
@@ -185,6 +196,16 @@ begin
       begin
         FormDesktop.OptionMap.Backup_SaveXml:=false;
       end;
+    if Reg.OpenKey('Software\ApiglioToolBox\RTFP_Desktop\FieldsOption',false) then
+      begin
+        FormDesktop.OptionMap.Fields_ImgFile:=Reg.ReadBool('ImgFile');
+        Reg.CloseKey;
+      end
+    else
+      begin
+        FormDesktop.OptionMap.Fields_ImgFile:=false;
+      end;
+
   finally
     Reg.Free;
   end;
@@ -202,10 +223,14 @@ begin
     Reg.WriteInteger('Interval',FormDesktop.SyncTimer.Interval);
     Reg.WriteString('Rule',UTF8ToWinCP(FormDesktop.SyncTimer.Rule));
     Reg.WriteBool('Enabled',FormDesktop.SyncTimer.Enabled);
-
     Reg.CloseKey;
+
     Reg.OpenKey('Software\ApiglioToolBox\RTFP_Desktop\BackupOption',true);
     Reg.WriteBool('SaveXml',FormDesktop.OptionMap.Backup_SaveXml);
+    Reg.CloseKey;
+
+    Reg.OpenKey('Software\ApiglioToolBox\RTFP_Desktop\FieldsOption',true);
+    Reg.WriteBool('ImgFile',FormDesktop.OptionMap.Fields_ImgFile);
     Reg.CloseKey;
 
   finally

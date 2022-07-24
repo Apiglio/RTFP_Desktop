@@ -384,11 +384,117 @@ begin
   end;
 end;
 
+procedure ExportFile_PicsTable(img:TPicture);
+const cell_width=100;
+      cell_height=80;
+var bm:TBookMark;
+    tmpF:TField;
+    stmp:string;
+    rec_no,pi,pixel_width,pixel_height,now_width,idx:integer;
+    cell_rect,src_rect:TRect;
+    tmpBMP:TBitmap;
+    PID:RTFP_ID;
+    AF:TAttrsField;
+    ts:TTextStyle;
+function CellWidth(PAF:Pointer):integer;
+var AF:TAttrsField;
+begin
+  result:=0;
+  if PAF=nil then exit;//基础属性全部不输出
+  AF:=TAttrsField(PAF);
+  case AF.FieldDef.DataType of
+    ftBlob:result:=cell_width;
+    ftString:begin
+      if AF.FieldDef.Size<15 then result:=AF.FieldDef.Size*8
+      else result:=120;
+    end;
+    ftMemo:result:=120;
+    else result:=0;
+  end;
+end;
+
+begin
+  with CurrentRTFP.PaperDS do begin
+    rec_no:=RecNo;
+    img.Bitmap.Height:=cell_height*rec_no;
+    pixel_width:=0;
+    for pi:=0 to FieldDefs.Count-1 do begin
+      inc(pixel_width,CellWidth(CurrentRTFP.PaperDSFieldDefs.Items[pi]));
+    end;
+  end;
+  img.Bitmap.Width:=pixel_width;
+  img.Bitmap.Canvas.Pen.Color:=clWhite;
+  img.Bitmap.Canvas.Brush.Color:=clWhite;
+  img.Bitmap.Canvas.Rectangle(0,0,img.Width,img.Height);
+  img.Bitmap.Canvas.Font.Color:=clBlack;
+  img.Bitmap.Canvas.Font.Size:=8;
+  img.Bitmap.Canvas.Font.Name:='黑体';
+  ts.Alignment:=taCenter;
+
+  with CurrentRTFP do begin
+    with PaperDS do begin
+      FormDesktop.DataSource_Main.DataSet:=nil;
+      bm:=Bookmark;
+      BeginUpdate;
+      First;
+      pixel_height:=0;//可以直接用rect来替换，后面再改吧
+      while not EOF do
+        begin
+          PID:=FieldByName(_Col_PID_).AsString;
+          pixel_width:=0;
+          //for tmpF in Fields do
+          for idx:=0 to Fields.count-1 do
+            begin
+              tmpF:=Fields[idx];
+              now_width:=CellWidth(CurrentRTFP.PaperDSFieldDefs.Items[idx]);
+              cell_rect.Left:=pixel_width;
+              cell_rect.Top:=pixel_height;
+              cell_rect.Width:=now_width;
+              cell_rect.Height:=cell_height;
+              case tmpF.DataType of
+                ftBlob:begin
+                  tmpBMP:=TBitmap.Create;
+                  tmpBMP.PixelFormat:=pf32bit;
+                  try
+                    AF:=TAttrsField(CurrentRTFP.PaperDSFieldDefs.Items[idx]);
+                    CurrentRTFP.ReadFieldAsBitmap(AF.FieldName,AF.AttrsGroup.Name,PID,tmpBMP,[]);
+                    src_rect.Left:=0;
+                    src_rect.Top:=0;
+                    src_rect.Height:=tmpBMP.Height;
+                    src_rect.Width:=tmpBMP.Width;
+                    img.Bitmap.Canvas.CopyMode:=cmSrcCopy;
+                    img.Bitmap.Canvas.CopyRect(cell_rect,tmpBMP.Canvas,src_rect);
+                  finally
+                    tmpBMP.Free;
+                  end;
+                end;
+                else begin
+                  stmp:=tmpF.AsString;
+                  img.Bitmap.Canvas.TextRect(cell_rect,cell_rect.Left,cell_rect.Top+cell_height div 2,stmp,ts);
+                end;
+              end;
+              inc(pixel_width,now_width);
+            end;
+          Next;
+          inc(pixel_height,cell_height);
+        end;
+      GotoBookmark(bm);
+      EndUpdate;
+      FormDesktop.DataSource_Main.DataSet:=PaperDS;
+    end;
+  end;
+
+
+end;
+
+
+
 
 
 procedure TFormReportTool.Button_ReportClick(Sender: TObject);
 var filepath,filename:string;
     str:TStringList;
+    img:TPicture;
 begin
   if not assigned(CurrentRTFP) then exit;
   if not CurrentRTFP.IsOpen then exit;
@@ -411,18 +517,24 @@ begin
   end;
   if SaveDialog_report.Execute then filename:=SaveDialog_report.FileName else exit;
   str:=TStringList.Create;
+  img:=TPicture.Create;
   try
     case ListBox_List.Items[ListBox_List.ItemIndex] of
       '工程基础信息':ExportFile_ProjectInfo(str);
       '导出字段数据':ExportFile_FieldsGrid(str);
       '导出当前主表':ExportFile_CurrentGrid(str);
       '字段数据统计':ExportFile_FieldStat(str);
+      '导出图片表格':ExportFile_PicsTable(img);
       '分类统计':ExportFile_KlassInfo(str);
       '属性统计':ExportFile_FieldInfo(str);
     end;
-    if str.Count>0 then str.SaveToFile(filename);
+    case ListBox_List.Items[ListBox_List.ItemIndex] of
+      '导出图片表格':if img.Width*img.Height>0 then img.SaveToFile(filename,'png');
+      else if str.Count>0 then str.SaveToFile(filename);
+    end;
   finally
     str.Free;
+    img.Free;
   end;
   TRTFP.OpenFile(filename);
   ModalResult:=mrOK;

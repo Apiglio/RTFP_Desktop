@@ -1711,6 +1711,14 @@ object FormDesktop: TFormDesktop
         Caption = '重新构建来源分类'
         OnClick = MenuItem_klass_SourceClassClick
       end
+      object MenuItem_field_div01: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem_field_RebuildBlob: TMenuItem
+        Caption = '重构图像字段'
+        Enabled = False
+        OnClick = MenuItem_field_RebuildBlobClick
+      end
     end
     object MenuItem_Tool: TMenuItem
       Caption = '工具'
