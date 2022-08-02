@@ -32,6 +32,7 @@
 //  AufScript的输出不见了（这个应该来自于一个异常之后的问题）
 //  win11百度输入法覆盖输入时会有一个错误（暂时无法复现，可能也是上一个问题的情况）
 //  在主表中显示的字段不能直接删除，否则报错，出自RebuildMainGrid
+//  【FATAL】TableFilter中使用无效的正则表达式会导致崩溃，并且主窗体中try except不能解决问题
 
 
 //{$define insert}
@@ -124,6 +125,10 @@ type
     RunPerformance:record
       Backup_SaveXml:boolean;//是否在保存数据库是额外保存xml格式备份
       Fields_ImgFile:boolean;//将FormatEdit的图像保存在image文件夹中
+      ForceSaveField:boolean;//在Saved的状态也保存字段属性
+
+      Filter_Command:string;
+      Filter_AutoRun:boolean;
     end;
 
 
@@ -357,7 +362,7 @@ type
 
     procedure RebuildMainGrid;
     procedure UpdateCurrentRec(PID:RTFP_ID);
-    procedure TableFilter(cmd:string);
+    procedure TableFilter;
 
     procedure FieldListValidate(AListView:TListView);
     procedure KlassListValidate(AListView:TListView);
