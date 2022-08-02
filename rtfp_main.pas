@@ -38,7 +38,9 @@ type
   TFormDesktop = class(TForm)
     AListView_Klass: TACL_ListView;
     AListView_Attrs: TACL_ListView;
+    Button_FormatEditPostAndNext: TButton;
     Button_FormatEditLoad: TButton;
+    Button_FormatEditPostAndPrev: TButton;
     Button_FormatEditSave: TButton;
     Button_help: TButton;
     Button_FormatEdit_Ren: TButton;
@@ -48,6 +50,7 @@ type
     Button_AddAttrs: TButton;
     Button_AddField: TButton;
     Button_AddKlass: TButton;
+    CheckBox_MainFilterAuto: TCheckBox;
     Combo_FieldType: TComboBox;
     ComboBox_FormatEdit: TComboBox;
     Button_FormatEditPost: TButton;
@@ -213,6 +216,8 @@ type
     procedure Button_FmtCmt_PostClick(Sender: TObject);
     procedure Button_FmtCmt_RecoverClick(Sender: TObject);
     procedure Button_FormatEditLoadClick(Sender: TObject);
+    procedure Button_FormatEditPostAndNextClick(Sender: TObject);
+    procedure Button_FormatEditPostAndPrevClick(Sender: TObject);
     procedure Button_FormatEditPostClick(Sender: TObject);
     procedure Button_FormatEditRecoverClick(Sender: TObject);
     procedure Button_FormatEditSaveClick(Sender: TObject);
@@ -225,6 +230,7 @@ type
     procedure Button_NodeViewRecoverClick(Sender: TObject);
     procedure Button_Project_NodeView_FreshClick(Sender: TObject);
     procedure Button_tempClick(Sender: TObject);
+    procedure CheckBox_MainFilterAutoClick(Sender: TObject);
     //procedure CheckListBox_MainAttrFilterClickCheck(Sender: TObject);
     procedure ComboBox_AttrNameChange(Sender: TObject);
     procedure ComboBox_FieldNameChange(Sender: TObject);
@@ -341,7 +347,11 @@ type
     OptionMap:record
       Backup_SaveXml:boolean;
       Fields_ImgFile:boolean;
-    end;
+      ForceSaveField:boolean;
+    end;//这些设置需要同步到RTFP对象中，打开工程时需要赋值，同时在软件打开时从注册表中读取，关闭是保存到注册表
+    RunOption:record
+      Filter_AutoRun:boolean;
+    end;//这些设置不需要同步到RTFP对象中，也不记录到注册表中
 
   //private
   public
@@ -461,6 +471,8 @@ begin
     CurrentRTFP.Open(UTF8ToWinCP(filename));
     CurrentRTFP.RunPerformance.Backup_SaveXml:=OptionMap.Backup_SaveXml;
     CurrentRTFP.RunPerformance.Fields_ImgFile:=OptionMap.Fields_ImgFile;
+    CurrentRTFP.RunPerformance.Filter_AutoRun:=CheckBox_MainFilterAuto.Checked;
+    CurrentRTFP.RunPerformance.Filter_Command:=Edit_DBGridMain_Filter.Caption;
   end else ShowMsgOK('未找到工程','工程文件未找到！');
 end;
 
@@ -610,6 +622,7 @@ procedure TFormDesktop.FirstEdit(Sender:TObject);
 begin
   Self.Caption:=C_SOFTWARE_NAME+' - '+(Sender as TRTFP).Title + ' *';
   Self.MenuItem_project_save.Enabled:=true;
+  Application.ProcessMessages;
 end;
 
 procedure TFormDesktop.Clear(Sender:TObject);
@@ -860,6 +873,8 @@ begin
     CurrentRTFP.Open(UTF8ToWinCP(Self.OpenDialog_Project.FileName));
     CurrentRTFP.RunPerformance.Backup_SaveXml:=OptionMap.Backup_SaveXml;
     CurrentRTFP.RunPerformance.Fields_ImgFile:=OptionMap.Fields_ImgFile;
+    CurrentRTFP.RunPerformance.Filter_AutoRun:=CheckBox_MainFilterAuto.Checked;
+    CurrentRTFP.RunPerformance.Filter_Command:=Edit_DBGridMain_Filter.Caption;
   end;
 
 end;
@@ -1739,6 +1754,8 @@ begin
       CurrentRTFP.Open(UTF8ToWinCP(FileNames[0]));
       CurrentRTFP.RunPerformance.Backup_SaveXml:=OptionMap.Backup_SaveXml;
       CurrentRTFP.RunPerformance.Fields_ImgFile:=OptionMap.Fields_ImgFile;
+      CurrentRTFP.RunPerformance.Filter_AutoRun:=CheckBox_MainFilterAuto.Checked;
+      CurrentRTFP.RunPerformance.Filter_Command:=Edit_DBGridMain_Filter.Caption;
       SetFocus;
     end
   else
@@ -2075,6 +2092,30 @@ begin
     end;
 end;
 
+procedure TFormDesktop.Button_FormatEditPostAndNextClick(Sender: TObject);
+begin
+  if ProjectInvalid then exit;
+  with CurrentRTFP do begin
+    FormatEditDataPost(Selected_PID);
+    if not PaperDS.EOF then begin
+      PaperDS.Next;
+      NodeViewValidate;
+    end;
+  end;
+end;
+
+procedure TFormDesktop.Button_FormatEditPostAndPrevClick(Sender: TObject);
+begin
+  if ProjectInvalid then exit;
+  with CurrentRTFP do begin
+    FormatEditDataPost(Selected_PID);
+    if not PaperDS.BOF then begin
+      PaperDS.Prior;
+      NodeViewValidate;
+    end;
+  end;
+end;
+
 procedure TFormDesktop.Button_FormatEditPostClick(Sender: TObject);
 begin
   if ProjectInvalid then exit;
@@ -2155,7 +2196,8 @@ begin
   if ProjectInvalid then exit;
   CurrentRTFP.RebuildMainGrid;//MainGridValidate(CurrentRTFP);
   if FShowWaitForm then FWaitForm.Show;
-  CurrentRTFP.TableFilter(Edit_DBGridMain_Filter.Caption);
+  CurrentRTFP.RunPerformance.Filter_Command:=Edit_DBGridMain_Filter.Caption;
+  CurrentRTFP.TableFilter;
   if FShowWaitForm then FWaitForm.Hide;
 end;
 
@@ -2178,6 +2220,14 @@ begin
   LayoutMode:=(LayoutMode+1) mod 3;
 end;
 
+procedure TFormDesktop.CheckBox_MainFilterAutoClick(Sender: TObject);
+begin
+  Self.Button_MainFilter.Enabled:=not (Sender as TCheckBox).Checked;
+  if ProjectInvalid then exit;
+  CurrentRTFP.RunPerformance.Filter_AutoRun:=(Sender as TCheckBox).Checked;
+  if (Sender as TCheckBox).Checked then CurrentRTFP.TableFilter;
+end;
+
 
 
 procedure TFormDesktop.DBGrid_MainCellClick(Column: TColumn);
@@ -2195,6 +2245,7 @@ procedure TFormDesktop.DBGrid_MainDrawColumnCell(Sender: TObject;
 var tmpFD:TFieldDef;
     tmpA:Pointer;
     tmpCL:TColor;
+
   function min(a,b:integer):integer;
   begin
     if a>b then result:=b else result:=a;
@@ -2216,24 +2267,20 @@ begin
     (Sender as TDBGrid).Canvas.Brush.Color:=tmpCL;
     (Sender as TDBGrid).Canvas.FillRect(Rect);
   end;
-{
+
+  //这里不错，或许可以把PaperDS中的ftString改回ftMemo，
+  //同时可以在主表显示图片
   case tmpFD.DataType of
-    ftMemo:
-      begin
-        //(Sender as TDBGrid).DrawCellText();
-      end;
     ftBlob:
-      begin end;
+      begin
+        //啥没改，图片字段转成文件形式以后这么做的意义也不大了
+      end;
     else
       begin
-}
         (Sender as TDBGrid).DefaultDrawColumnCell(Rect,DataCol,Column,State);
-        //这里不错，或许可以把PaperDS中的ftString改回ftMemo，
-        //同时可以在主表显示图片
-{
       end;
   end;
-}
+
 end;
 
 procedure TFormDesktop.DBGrid_MainKeyUp(Sender: TObject; var Key: Word;
@@ -2293,9 +2340,10 @@ end;
 
 procedure TFormDesktop.Edit_DBGridMain_FilterChange(Sender: TObject);
 begin
-  //激进的筛选方式
-  //MainGridValidate(CurrentRTFP);
-  //CurrentRTFP.TableFilter((Sender as TEdit).Caption);
+  //受限后的激进筛选方式
+  if ProjectInvalid then exit;
+  CurrentRTFP.RunPerformance.Filter_Command:=(Sender as TEdit).Caption;
+  if CurrentRTFP.RunPerformance.Filter_AutoRun then CurrentRTFP.RebuildMainGrid;
 end;
 
 procedure TFormDesktop.Edit_DBGridMain_FilterKeyDown(Sender: TObject;

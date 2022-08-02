@@ -1,7 +1,7 @@
 object FormDesktop: TFormDesktop
-  Left = 1059
+  Left = 824
   Height = 622
-  Top = 306
+  Top = 327
   Width = 1003
   AllowDropFiles = True
   Caption = 'RTFP Desktop'
@@ -144,17 +144,16 @@ object FormDesktop: TFormDesktop
         end
         object Edit_DBGridMain_Filter: TEdit
           AnchorSideLeft.Control = Panel_DBGridMain
-          AnchorSideRight.Control = DBGrid_Main
-          AnchorSideRight.Side = asrBottom
+          AnchorSideRight.Control = CheckBox_MainFilterAuto
           AnchorSideBottom.Control = Panel_DBGridMain
           AnchorSideBottom.Side = asrBottom
           Left = 71
           Height = 32
           Top = 293
-          Width = 657
+          Width = 583
           Anchors = [akLeft, akRight, akBottom]
           BorderSpacing.Left = 70
-          BorderSpacing.Right = 60
+          BorderSpacing.Right = 5
           OnChange = Edit_DBGridMain_FilterChange
           OnKeyDown = Edit_DBGridMain_FilterKeyDown
           TabOrder = 1
@@ -192,6 +191,20 @@ object FormDesktop: TFormDesktop
           Caption = '筛选'
           OnClick = Button_MainFilterClick
           TabOrder = 2
+        end
+        object CheckBox_MainFilterAuto: TCheckBox
+          AnchorSideTop.Control = Edit_DBGridMain_Filter
+          AnchorSideTop.Side = asrCenter
+          AnchorSideRight.Control = Button_MainFilter
+          Left = 659
+          Height = 28
+          Top = 295
+          Width = 64
+          Anchors = [akTop, akRight]
+          BorderSpacing.Right = 5
+          Caption = '自动'
+          OnClick = CheckBox_MainFilterAutoClick
+          TabOrder = 3
         end
       end
     end
@@ -986,9 +999,9 @@ object FormDesktop: TFormDesktop
     Height = 189
     Top = 369
     Width = 797
-    ActivePage = TabSheet_FmtCmt
+    ActivePage = TabSheet_Node_FormatEdit
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 1
+    TabIndex = 2
     TabOrder = 4
     OnChange = PageControl_NodeChange
     object TabSheet_Node_PDF: TTabSheet
@@ -1210,8 +1223,8 @@ object FormDesktop: TFormDesktop
     end
     object TabSheet_Node_FormatEdit: TTabSheet
       Caption = '编辑属性(样式)'
-      ClientHeight = 163
-      ClientWidth = 758
+      ClientHeight = 152
+      ClientWidth = 789
       object ScrollBox_Node_FormatEdit: TScrollBox
         AnchorSideLeft.Control = TabSheet_Node_FormatEdit
         AnchorSideTop.Control = TabSheet_Node_FormatEdit
@@ -1220,9 +1233,9 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Control = TabSheet_Node_FormatEdit
         AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 127
+        Height = 116
         Top = 0
-        Width = 758
+        Width = 789
         HorzScrollBar.Page = 1
         HorzScrollBar.Visible = False
         VertScrollBar.Page = 1
@@ -1237,9 +1250,9 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Control = ComboBox_FormatEdit
         AnchorSideBottom.Control = ComboBox_FormatEdit
         AnchorSideBottom.Side = asrCenter
-        Left = 224
+        Left = 239
         Height = 28
-        Top = 131
+        Top = 118
         Width = 90
         Anchors = [akRight, akBottom]
         BorderSpacing.Right = 5
@@ -1255,9 +1268,9 @@ object FormDesktop: TFormDesktop
         AnchorSideTop.Side = asrCenter
         AnchorSideBottom.Control = ComboBox_FormatEdit
         AnchorSideBottom.Side = asrCenter
-        Left = 444
+        Left = 459
         Height = 28
-        Top = 131
+        Top = 118
         Width = 90
         Anchors = [akLeft, akBottom]
         BorderSpacing.Left = 5
@@ -1273,9 +1286,9 @@ object FormDesktop: TFormDesktop
         AnchorSideTop.Side = asrCenter
         AnchorSideBottom.Control = TabSheet_Node_FormatEdit
         AnchorSideBottom.Side = asrBottom
-        Left = 319
+        Left = 334
         Height = 32
-        Top = 131
+        Top = 116
         Width = 120
         Anchors = [akLeft, akBottom]
         BorderSpacing.Left = 5
@@ -1284,6 +1297,41 @@ object FormDesktop: TFormDesktop
         OnChange = ComboBox_FormatEditChange
         Style = csDropDownList
         TabOrder = 3
+      end
+      object Button_FormatEditPostAndNext: TButton
+        AnchorSideLeft.Control = Button_FormatEditRecover
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideBottom.Control = ComboBox_FormatEdit
+        AnchorSideBottom.Side = asrCenter
+        Left = 554
+        Height = 28
+        Hint = '提交并查看下一条'
+        Top = 118
+        Width = 54
+        Anchors = [akLeft, akBottom]
+        BorderSpacing.Left = 5
+        Caption = '>'
+        OnClick = Button_FormatEditPostAndNextClick
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 4
+      end
+      object Button_FormatEditPostAndPrev: TButton
+        AnchorSideRight.Control = Button_FormatEditPost
+        AnchorSideBottom.Control = ComboBox_FormatEdit
+        AnchorSideBottom.Side = asrCenter
+        Left = 180
+        Height = 28
+        Hint = '提交并查看上一条'
+        Top = 118
+        Width = 54
+        Anchors = [akRight, akBottom]
+        BorderSpacing.Right = 5
+        Caption = '<'
+        OnClick = Button_FormatEditPostAndPrevClick
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 5
       end
     end
   end

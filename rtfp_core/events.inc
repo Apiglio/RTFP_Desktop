@@ -17,9 +17,11 @@ begin
 end;
 
 procedure TRTFP.Change;
+var first_edit:boolean;
 begin
-  if (not FIsChanged) and (FOnFirstEdit<>nil) then Self.FOnFirstEdit(Self);
+  first_edit:=(not FIsChanged) and (FOnFirstEdit<>nil);//把FirstEdit的操作放在Change之后
   if (not IsUpdating) and (FOnChange<>nil) then FOnChange(Self);
+  if first_edit then Self.FOnFirstEdit(Self);
   Self.FIsChanged:=true;
 end;
 
