@@ -50,6 +50,7 @@ begin
     '导出字段数据':Memo_tip.Lines.Add('导出所有文献选定的字段数据，在对话框中选择需要导出的字段。字段数据之间用制表符分隔。');
     '导出当前主表':Memo_tip.Lines.Add('导出文献节点标签页中显示的表格数据，字段数据之间用制表符分隔。');
     '字段数据统计':Memo_tip.Lines.Add('统计具体某个字段中的数据出现次数，半角分号区分为不同的统计项。主要用于关键词、作者和作者单位字段的统计，也可以用于其他类似格式的字段。');
+    '导出图片表格':Memo_tip.Lines.Add('导出文献节点标签页中显示的表格数据，以图片的形式输出，用于图片字段的整体查看。');
     '分类统计':Memo_tip.Lines.Add('导出不同分类组所包含文献的数量统计及其文献明细。');
     '属性统计':Memo_tip.Lines.Add('导出各个属性组的记录使用情况及其字段的类型。');
   end;
@@ -396,22 +397,23 @@ var bm:TBookMark;
     PID:RTFP_ID;
     AF:TAttrsField;
     ts:TTextStyle;
-function CellWidth(PAF:Pointer):integer;
-var AF:TAttrsField;
-begin
-  result:=0;
-  if PAF=nil then exit;//基础属性全部不输出
-  AF:=TAttrsField(PAF);
-  case AF.FieldDef.DataType of
-    ftBlob:result:=cell_width;
-    ftString:begin
-      if AF.FieldDef.Size<15 then result:=AF.FieldDef.Size*8
-      else result:=120;
+
+    function CellWidth(PAF:Pointer):integer;
+    var AF:TAttrsField;
+    begin
+      result:=0;
+      if PAF=nil then exit;//基础属性全部不输出
+      AF:=TAttrsField(PAF);
+      case AF.FieldDef.DataType of
+        ftBlob:result:=cell_width;
+        ftString:begin
+          if AF.FieldDef.Size<15 then result:=AF.FieldDef.Size*8
+          else result:=120;
+        end;
+        ftMemo:result:=120;
+        else result:=0;
+      end;
     end;
-    ftMemo:result:=120;
-    else result:=0;
-  end;
-end;
 
 begin
   with CurrentRTFP.PaperDS do begin
@@ -430,6 +432,9 @@ begin
   img.Bitmap.Canvas.Font.Size:=8;
   img.Bitmap.Canvas.Font.Name:='黑体';
   ts.Alignment:=taCenter;
+  img.Bitmap.Canvas.Pen.Color:=clBlack;
+  img.Bitmap.Canvas.Pen.Width:=1;
+  img.Bitmap.Canvas.Brush.Style:=bsClear;
 
   with CurrentRTFP do begin
     with PaperDS do begin
@@ -473,6 +478,7 @@ begin
                   img.Bitmap.Canvas.TextRect(cell_rect,cell_rect.Left,cell_rect.Top+cell_height div 2,stmp,ts);
                 end;
               end;
+              img.Bitmap.Canvas.Rectangle(cell_rect);
               inc(pixel_width,now_width);
             end;
           Next;
@@ -515,6 +521,10 @@ begin
     Title:='导出报表';
     FileName:='';
   end;
+  case ListBox_List.Items[ListBox_List.ItemIndex] of
+    '导出图片表格':SaveDialog_report.FilterIndex:=2;
+    else SaveDialog_report.FilterIndex:=1;
+  end;
   if SaveDialog_report.Execute then filename:=SaveDialog_report.FileName else exit;
   str:=TStringList.Create;
   img:=TPicture.Create;
@@ -536,6 +546,7 @@ begin
     str.Free;
     img.Free;
   end;
+  CurrentRTFP.FieldAndRecordChange(true);//这里主要是为了更新主表宽度，但是不需要真的对工程文件造成修改
   TRTFP.OpenFile(filename);
   ModalResult:=mrOK;
 end;

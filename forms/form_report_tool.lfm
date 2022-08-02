@@ -120,7 +120,7 @@ object FormReportTool: TFormReportTool
     TabOrder = 4
   end
   object SaveDialog_report: TSaveDialog
-    Filter = '文本文档(*.txt)|*.txt|全部文件(*.*)|*.*'
+    Filter = '文本文档(*.txt)|*.txt|PNG图片(*.png)|*.png|全部文件(*.*)|*.*'
     Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
     left = 296
     top = 15

@@ -21,7 +21,7 @@
 
 //FUNCTION TO IMPLEMENT
 //  工程属性加一个简介给自己记录东西
-//  图像字段增加Image文件夹下的文件存储方法，避免字段文件过大
+//  报表工具增加进度条工具，结合rtfp_dialog来做
 
 
 //KNOWN FEATURES
