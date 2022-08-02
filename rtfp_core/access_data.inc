@@ -496,9 +496,19 @@ begin
   end;
 end;
 
+function TRTFP.GetImgFilePath(AName,AAttrsName:string):string;
+begin
+  result:=CurrentPathFull+'image\'+AAttrsName+'\'+AName;
+end;
+function TRTFP.GetImgFileName(PID:RTFP_ID):string;
+begin
+  result:='Img_'+Usf.zeroplus(TRTFP.IDToNum(PID),10)+'.bmp';
+end;
+
 procedure TRTFP.ReadFieldAsBitmap(AName,AAttrsName:string;PID:RTFP_ID;buf:Graphics.TBitMap;AE:TAttrExtend);
 var tmpField:TField;
     str:TMemoryStream;
+    img_name:string;
 begin
   if buf=nil then exit;
   //buf.Clear;
@@ -514,8 +524,13 @@ begin
       //TBlobField(tmpField).SaveToFile('img_convert_tmp.bmp');
       //buf.Picture.Bitmap.LoadFromFile('img_convert_tmp.bmp');
       TBlobField(tmpField).SaveToStream(str);
-      str.Position:=0;
-      buf.LoadFromStream(str);
+      if (str.Size=4) and (pdword(str.Memory)^=0) then begin
+        img_name:=GetImgFilePath(AName,AAttrsName)+'\'+GetImgFileName(PID);
+        if FileExists(img_name) then try buf.LoadFromFile(img_name) except end;
+      end else begin
+        str.Position:=0;
+        buf.LoadFromStream(str);
+      end;
     finally
       str.Free;
     end;
@@ -528,6 +543,7 @@ procedure TRTFP.EditFieldAsBitmap(AName,AAttrsName:string;PID:RTFP_ID;buf:Graphi
 var tmpAG:TAttrsGroup;
     tmpField:TField;
     str:TMemoryStream;
+    img_path:string;
 begin
   if buf=nil then exit;
   case GetFieldType(AAttrsName,AName) of
@@ -559,11 +575,25 @@ begin
       tmpAG.Dbf.Edit;
       str:=TMemoryStream.Create;
       try
-        //buf.Picture.Bitmap.SaveToFile('img_convert_tmp.bmp');
-        //TBlobField(tmpField).LoadFromFile('img_convert_tmp.bmp');
-        buf.SaveToStream(str);
-        str.Position:=0;
-        TBlobField(tmpField).LoadFromStream(str);
+        if RunPerformance.Fields_ImgFile then begin
+          img_path:=GetImgFilePath(AName,AAttrsName);
+          ForceDirectories(img_path);
+          try
+            buf.SaveToFile(img_path+'\'+GetImgFileName(PID));
+            str.Size:=4;
+            str.Position:=0;
+            str.WriteDWord(0);
+            str.Position:=0;
+            TBlobField(tmpField).LoadFromStream(str);
+          except
+          end;
+        end else begin
+          //buf.Picture.Bitmap.SaveToFile('img_convert_tmp.bmp');
+          //TBlobField(tmpField).LoadFromFile('img_convert_tmp.bmp');
+          buf.SaveToStream(str);
+          str.Position:=0;
+          TBlobField(tmpField).LoadFromStream(str);
+        end;
       finally
         str.Free;
       end;

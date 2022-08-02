@@ -246,7 +246,7 @@ begin
   for Item in FFormatEditComponentList do begin
     if TObject(Item).ClassType=TSplitter then continue;
     with TFormatEditPanel(Item) do begin
-      if State=fesModified then
+      if (State=fesModified) or (RunPerformance.ForceSaveField and (State=fesSaved)) then
         try
           case ComponentClass.ClassName of
             'TEdit':EditFieldAsString(FieldName,AttrsName,PID,AsString,[aeForceEditIfTypeDismatch]);

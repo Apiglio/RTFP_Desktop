@@ -221,6 +221,7 @@ begin
               ftFloat:FPaperDS.Fields[pi].AsFloat:=tmpDbf.Fields[fields_ref[pi].FI].AsFloat;
               ftInteger,ftLargeint,ftSmallint,ftWord:FPaperDS.Fields[pi].AsLargeInt:=tmpDbf.Fields[fields_ref[pi].FI].AsLargeInt;
               ftDateTime,ftDate,ftTime:FPaperDS.Fields[pi].AsDateTime:=tmpDbf.Fields[fields_ref[pi].FI].AsDateTime;
+              ftBlob:FPaperDS.Fields[pi].Assign(tmpDbf.Fields[fields_ref[pi].FI]);
               else assert(false,'FPaperDS.Fields[pi].DataType未预设。');
             end;
           end;
@@ -256,6 +257,7 @@ begin
                   ftFloat:FPaperDS.Fields[pi].AsFloat:=tmpDbf.Fields[fields_ref[pi].FI].AsFloat;
                   ftInteger,ftLargeint,ftSmallint,ftWord:FPaperDS.Fields[pi].AsLargeInt:=tmpDbf.Fields[fields_ref[pi].FI].AsLargeInt;
                   ftDateTime,ftDate,ftTime:FPaperDS.Fields[pi].AsDateTime:=tmpDbf.Fields[fields_ref[pi].FI].AsDateTime;
+                  ftBlob:FPaperDS.Fields[pi].Assign(tmpDbf.Fields[fields_ref[pi].FI]);
                   else assert(false,'FPaperDS.Fields[pi].DataType未预设。');
                 end;
               end;
@@ -290,7 +292,9 @@ begin
                   ftInteger,ftLargeint,ftSmallint,ftWord:
                     FPaperDS.Fields[pi].AsLargeInt:=tmpDbf.Fields[fields_ref[pi].FI].AsLargeInt;
                   ftDateTime,ftDate,ftTime:
-                    FPaperDS.Fields[pi].AsDateTime:=tmpDbf.Fields[fields_ref[pi].FI].AsDateTime
+                    FPaperDS.Fields[pi].AsDateTime:=tmpDbf.Fields[fields_ref[pi].FI].AsDateTime;
+                  ftBlob:
+                    FPaperDS.Fields[pi].Assign(tmpDbf.Fields[fields_ref[pi].FI]);
                   else assert(false,'FPaperDS.Fields[pi].DataType未预设。');
                 end;
               end;
@@ -300,6 +304,7 @@ begin
           until FPaperDS.EOF;
         end;
     END;
+    if RunPerformance.Filter_AutoRun then TableFilter;
     if FPaperDS.BookmarkValid(bm) then FPaperDS.GotoBookmark(bm);
   finally
     EndUpdate;
@@ -370,10 +375,31 @@ begin
 
 end;
 
-procedure TRTFP.TableFilter(cmd:string);
+function CheckRegExpr(expr:string):boolean;
+var regg:TRegExpr;
+begin
+  result:=false;
+  if expr='' then exit;
+  regg:=TRegExpr.Create(expr);
+  try
+    try
+      //regg.Expression:=expr;
+      if regg.Exec('-9~Ma中') then;
+      except exit;
+    end;
+  finally
+    regg.Free;
+  end;
+  result:=true;
+end;
+
+procedure TRTFP.TableFilter;
 var colname,method,value:string;
     col_num:integer;
     regg:TRegExpr;
+    cmd,reg_temp:string;
+    bm:TBookMark;
+    mem:TMemoryStream;
 begin
   //= eql         相等
   //!= <> neq     不相等
@@ -387,9 +413,13 @@ begin
   //<=   leq      小等
   //reg           正则表达式
 
+  cmd:=RunPerformance.Filter_Command;
+
   if (not IsUpdating) and (FOnMainGridRebuilding<>nil) then FOnMainGridRebuilding(Self);
   regg:=TRegExpr.Create;
+  mem:=TMemoryStream.Create;
   BeginUpdate;
+  bm:=FPaperDS.Bookmark;
   try
 
     StringReplace(cmd,'=',' eql ',[rfReplaceAll]);
@@ -410,13 +440,13 @@ begin
     colname:=FAuf.nargs[0].arg;
     method:=FAuf.nargs[1].arg;
     value:=FAuf.nargs[2].arg;
-    if value<>'' then regg.Expression:=value
-    else regg.Expression:='.';
 
     case method of
-      'true','false':;
+      'true','false','valid':;
+      'reg':if CheckRegExpr(value) then regg.Expression:=value else exit;//主窗体的try except似乎没啥用，正则表达式不能判断错误，错误的表达式直接导致闪退
       else if FAuf.ArgsCount<3 then exit;
     end;
+
 
     col_num:=0;
     while col_num<FPaperDS.FieldDefs.Count do
@@ -442,6 +472,15 @@ begin
               '!has','!contains':if pos(value,Fields[Col_num].AsString)>0 then Delete else Next;
               'true':if not Fields[Col_num].AsBoolean then Delete else Next;
               'false':if Fields[Col_num].AsBoolean then Delete else Next;
+              'valid':begin
+                if Fields[Col_num] is TBlobField then begin
+                  mem.Clear;
+                  TBlobField(Fields[Col_num]).SaveToStream(mem);
+                  if mem.Size=0 then Delete else Next;
+                end else begin
+                  if Fields[Col_num].AsString='' then Delete else Next;
+                end;
+              end;
               'gtr':if Fields[Col_num].AsLargeInt<=Usf.to_f(value) then Delete else Next;
               'gtq':if Fields[Col_num].AsLargeInt<Usf.to_f(value) then Delete else Next;
               'les':if Fields[Col_num].AsLargeInt>=Usf.to_f(value) then Delete else Next;
@@ -450,11 +489,12 @@ begin
               else exit;
             end;
           end;
-
       end;
   finally
+    if FPaperDS.BookmarkValid(bm) then FPaperDS.GotoBookmark(bm);
     EndUpdate;
     regg.Free;
+    mem.Free;
     if (not IsUpdating) and (FOnMainGridRebuildDone<>nil) then FOnMainGridRebuildDone(Self);
   end;
 end;

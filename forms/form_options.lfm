@@ -1,7 +1,7 @@
 object FormOptions: TFormOptions
-  Left = 933
+  Left = 1321
   Height = 557
-  Top = 235
+  Top = 390
   Width = 481
   Caption = '选项'
   ClientHeight = 557
@@ -25,9 +25,9 @@ object FormOptions: TFormOptions
     Height = 557
     Top = 0
     Width = 481
-    ActivePage = TabSheet_Backup
+    ActivePage = TabSheet_Format
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 3
+    TabIndex = 2
     TabOrder = 0
     object TabSheet_Summary: TTabSheet
       Caption = '总控制面板'
@@ -246,14 +246,14 @@ object FormOptions: TFormOptions
         AnchorSideRight.Control = TabSheet_Format
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 129
+        Height = 297
         Top = 15
         Width = 463
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 15
         BorderSpacing.Right = 10
         Caption = 'FormatEdit'
-        ClientHeight = 100
+        ClientHeight = 268
         ClientWidth = 459
         TabOrder = 0
         object CheckBox_FormatEditOpt_AllowBasicFormatEdit: TCheckBox
@@ -262,11 +262,12 @@ object FormOptions: TFormOptions
           AnchorSideTop.Side = asrBottom
           Left = 5
           Height = 28
-          Top = 43
-          Width = 184
+          Top = 53
+          Width = 208
           BorderSpacing.Left = 5
-          BorderSpacing.Top = 5
-          Caption = '启用基础字段(风险)'
+          BorderSpacing.Top = 15
+          Caption = '启用基础字段（风险）'
+          Enabled = False
           TabOrder = 0
         end
         object CheckBox_FormatEditOpt_F9_To_Save: TCheckBox
@@ -279,7 +280,36 @@ object FormOptions: TFormOptions
           BorderSpacing.Left = 5
           BorderSpacing.Top = 10
           Caption = '按F9保存字段'
+          Enabled = False
           TabOrder = 1
+        end
+        object CheckBox_FormatEditOpt_ForceSave: TCheckBox
+          AnchorSideLeft.Control = GroupBox_FormatEdit
+          AnchorSideTop.Control = CheckBox_Fields_img
+          AnchorSideTop.Side = asrBottom
+          Left = 5
+          Height = 28
+          Top = 139
+          Width = 298
+          BorderSpacing.Left = 5
+          BorderSpacing.Top = 15
+          Caption = '强制保存所有非空字段（较慢速）'
+          OnChange = CheckBox_FormatEditOpt_ForceSaveChange
+          TabOrder = 2
+        end
+        object CheckBox_Fields_img: TCheckBox
+          AnchorSideLeft.Control = GroupBox_FormatEdit
+          AnchorSideTop.Control = CheckBox_FormatEditOpt_AllowBasicFormatEdit
+          AnchorSideTop.Side = asrBottom
+          Left = 5
+          Height = 28
+          Top = 96
+          Width = 226
+          BorderSpacing.Left = 5
+          BorderSpacing.Top = 15
+          Caption = '以文件形式保存图像字段'
+          OnChange = CheckBox_Fields_imgChange
+          TabOrder = 3
         end
       end
     end

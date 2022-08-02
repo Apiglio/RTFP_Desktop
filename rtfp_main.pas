@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, simpleipc, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.3-alpha.4';
+  C_VERSION_NUMBER  = '0.2.3-alpha.5';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -38,7 +38,9 @@ type
   TFormDesktop = class(TForm)
     AListView_Klass: TACL_ListView;
     AListView_Attrs: TACL_ListView;
+    Button_FormatEditPostAndNext: TButton;
     Button_FormatEditLoad: TButton;
+    Button_FormatEditPostAndPrev: TButton;
     Button_FormatEditSave: TButton;
     Button_help: TButton;
     Button_FormatEdit_Ren: TButton;
@@ -48,6 +50,7 @@ type
     Button_AddAttrs: TButton;
     Button_AddField: TButton;
     Button_AddKlass: TButton;
+    CheckBox_MainFilterAuto: TCheckBox;
     Combo_FieldType: TComboBox;
     ComboBox_FormatEdit: TComboBox;
     Button_FormatEditPost: TButton;
@@ -77,6 +80,8 @@ type
     ListBox_FormatEditMgr: TListBox;
     MainMenu: TMainMenu;
     Memo_FmtCmt: TMemo;
+    MenuItem_field_div01: TMenuItem;
+    MenuItem_field_RebuildBlob: TMenuItem;
     MenuItem_FieldMgr_div01: TMenuItem;
     MenuItem_EditSource: TMenuItem;
     MenuItem_EditKlass: TMenuItem;
@@ -211,6 +216,8 @@ type
     procedure Button_FmtCmt_PostClick(Sender: TObject);
     procedure Button_FmtCmt_RecoverClick(Sender: TObject);
     procedure Button_FormatEditLoadClick(Sender: TObject);
+    procedure Button_FormatEditPostAndNextClick(Sender: TObject);
+    procedure Button_FormatEditPostAndPrevClick(Sender: TObject);
     procedure Button_FormatEditPostClick(Sender: TObject);
     procedure Button_FormatEditRecoverClick(Sender: TObject);
     procedure Button_FormatEditSaveClick(Sender: TObject);
@@ -223,6 +230,7 @@ type
     procedure Button_NodeViewRecoverClick(Sender: TObject);
     procedure Button_Project_NodeView_FreshClick(Sender: TObject);
     procedure Button_tempClick(Sender: TObject);
+    procedure CheckBox_MainFilterAutoClick(Sender: TObject);
     //procedure CheckListBox_MainAttrFilterClickCheck(Sender: TObject);
     procedure ComboBox_AttrNameChange(Sender: TObject);
     procedure ComboBox_FieldNameChange(Sender: TObject);
@@ -284,6 +292,7 @@ type
     procedure MenuItem_FieldMgr_EditClick(Sender: TObject);
     procedure MenuItem_FieldMgr_DisplayOptionClick(Sender: TObject);
     procedure MenuItem_EditKlassClick(Sender: TObject);
+    procedure MenuItem_field_RebuildBlobClick(Sender: TObject);
     procedure MenuItem_klass_AddKlassClick(Sender: TObject);
     procedure MenuItem_klass_checkClick(Sender: TObject);
     procedure MenuItem_klass_DelKlassClick(Sender: TObject);
@@ -337,7 +346,12 @@ type
   public
     OptionMap:record
       Backup_SaveXml:boolean;
-    end;
+      Fields_ImgFile:boolean;
+      ForceSaveField:boolean;
+    end;//这些设置需要同步到RTFP对象中，打开工程时需要赋值，同时在软件打开时从注册表中读取，关闭是保存到注册表
+    RunOption:record
+      Filter_AutoRun:boolean;
+    end;//这些设置不需要同步到RTFP对象中，也不记录到注册表中
 
   //private
   public
@@ -456,6 +470,9 @@ begin
   if FileExists(filename) then begin
     CurrentRTFP.Open(UTF8ToWinCP(filename));
     CurrentRTFP.RunPerformance.Backup_SaveXml:=OptionMap.Backup_SaveXml;
+    CurrentRTFP.RunPerformance.Fields_ImgFile:=OptionMap.Fields_ImgFile;
+    CurrentRTFP.RunPerformance.Filter_AutoRun:=CheckBox_MainFilterAuto.Checked;
+    CurrentRTFP.RunPerformance.Filter_Command:=Edit_DBGridMain_Filter.Caption;
   end else ShowMsgOK('未找到工程','工程文件未找到！');
 end;
 
@@ -605,6 +622,7 @@ procedure TFormDesktop.FirstEdit(Sender:TObject);
 begin
   Self.Caption:=C_SOFTWARE_NAME+' - '+(Sender as TRTFP).Title + ' *';
   Self.MenuItem_project_save.Enabled:=true;
+  Application.ProcessMessages;
 end;
 
 procedure TFormDesktop.Clear(Sender:TObject);
@@ -854,6 +872,9 @@ begin
   if Self.OpenDialog_Project.Execute then begin
     CurrentRTFP.Open(UTF8ToWinCP(Self.OpenDialog_Project.FileName));
     CurrentRTFP.RunPerformance.Backup_SaveXml:=OptionMap.Backup_SaveXml;
+    CurrentRTFP.RunPerformance.Fields_ImgFile:=OptionMap.Fields_ImgFile;
+    CurrentRTFP.RunPerformance.Filter_AutoRun:=CheckBox_MainFilterAuto.Checked;
+    CurrentRTFP.RunPerformance.Filter_Command:=Edit_DBGridMain_Filter.Caption;
   end;
 
 end;
@@ -1299,6 +1320,73 @@ begin
   SetFocus;
 end;
 
+procedure TFormDesktop.MenuItem_field_RebuildBlobClick(Sender: TObject);
+var AG:TAttrsGroup;
+    AF:TAttrsField;
+    is_img_file:boolean;
+    PID:RTFP_ID;
+    tmp_mem:TMemoryStream;
+    tmp_bmp:TPicture;
+    img_file_name,img_file_path:string;
+    tmpField:TField;
+begin
+  if ProjectInvalid then exit;
+  //更改数据的警告
+  exit;
+  //将所有图像字段改为当前设置的形式。
+  //真离谱，生成的bmp格式有问题，用TPicture又有错误
+  {
+  tmp_mem:=TMemoryStream.Create;
+  tmp_bmp:=TPicture.Create;
+  try
+    for AG in CurrentRTFP.FieldList do begin
+      AG.Dbf.First;
+      while not AG.Dbf.EOF do begin
+        PID:=AG.Dbf.FieldByName(_Col_PID_).AsString;
+        for AF in AG.FieldList do begin
+          if AF.FieldDef.DataType<>ftBlob then continue;
+          tmpField:=AG.Dbf.FieldByName(AF.FieldName);
+          is_img_file:=false;
+          if TBlobField(tmpField).Size=4 then begin
+            TBlobField(tmpField).SaveToStream(tmp_mem);
+            if pdword(tmp_mem.Memory)^=0 then is_img_file:=true;
+          end;
+          if CurrentRTFP.RunPerformance.Fields_ImgFile=is_img_file then continue;
+          img_file_path:=CurrentRTFP.GetImgFilePath(AF.FieldName,AG.Name);
+          img_file_name:=img_file_path+'\'+CurrentRTFP.GetImgFileName(PID);
+          if is_img_file then begin
+            tmp_bmp.Bitmap.LoadFromFile(img_file_name);
+            tmp_bmp.Bitmap.SaveToStream(tmp_mem);
+            AG.Dbf.Edit;
+            TBlobField(tmpField).LoadFromStream(tmp_mem);
+            AG.Dbf.Post;
+            TRTFP.FileDelete(img_file_name);
+            //文件夹要不要删？
+          end else begin
+            TBlobField(tmpField).SaveToStream(tmp_mem);
+            tmp_bmp.Bitmap.LoadFromStream(tmp_mem);
+            ForceDirectories(img_file_path);
+            tmp_bmp.Bitmap.SaveToFile(img_file_name);
+            tmp_mem.Clear;
+            tmp_mem.Position:=0;
+            tmp_mem.WriteDWord(0);
+            tmp_mem.Position:=0;
+            AG.Dbf.Edit;
+            TBlobField(tmpField).LoadFromStream(tmp_mem);
+            AG.Dbf.Post;
+          end;
+        end;
+        AG.Dbf.Next;
+      end;
+    end;
+  finally
+    tmp_mem.Free;
+    tmp_bmp.Free;
+  end;
+  }
+  CurrentRTFP.FieldAndRecordChange;
+end;
+
 procedure TFormDesktop.MenuItem_klass_AddKlassClick(Sender: TObject);
 var klassname,pathname:string;
 begin
@@ -1665,6 +1753,9 @@ begin
 
       CurrentRTFP.Open(UTF8ToWinCP(FileNames[0]));
       CurrentRTFP.RunPerformance.Backup_SaveXml:=OptionMap.Backup_SaveXml;
+      CurrentRTFP.RunPerformance.Fields_ImgFile:=OptionMap.Fields_ImgFile;
+      CurrentRTFP.RunPerformance.Filter_AutoRun:=CheckBox_MainFilterAuto.Checked;
+      CurrentRTFP.RunPerformance.Filter_Command:=Edit_DBGridMain_Filter.Caption;
       SetFocus;
     end
   else
@@ -2001,6 +2092,30 @@ begin
     end;
 end;
 
+procedure TFormDesktop.Button_FormatEditPostAndNextClick(Sender: TObject);
+begin
+  if ProjectInvalid then exit;
+  with CurrentRTFP do begin
+    FormatEditDataPost(Selected_PID);
+    if not PaperDS.EOF then begin
+      PaperDS.Next;
+      NodeViewValidate;
+    end;
+  end;
+end;
+
+procedure TFormDesktop.Button_FormatEditPostAndPrevClick(Sender: TObject);
+begin
+  if ProjectInvalid then exit;
+  with CurrentRTFP do begin
+    FormatEditDataPost(Selected_PID);
+    if not PaperDS.BOF then begin
+      PaperDS.Prior;
+      NodeViewValidate;
+    end;
+  end;
+end;
+
 procedure TFormDesktop.Button_FormatEditPostClick(Sender: TObject);
 begin
   if ProjectInvalid then exit;
@@ -2081,7 +2196,8 @@ begin
   if ProjectInvalid then exit;
   CurrentRTFP.RebuildMainGrid;//MainGridValidate(CurrentRTFP);
   if FShowWaitForm then FWaitForm.Show;
-  CurrentRTFP.TableFilter(Edit_DBGridMain_Filter.Caption);
+  CurrentRTFP.RunPerformance.Filter_Command:=Edit_DBGridMain_Filter.Caption;
+  CurrentRTFP.TableFilter;
   if FShowWaitForm then FWaitForm.Hide;
 end;
 
@@ -2104,6 +2220,14 @@ begin
   LayoutMode:=(LayoutMode+1) mod 3;
 end;
 
+procedure TFormDesktop.CheckBox_MainFilterAutoClick(Sender: TObject);
+begin
+  Self.Button_MainFilter.Enabled:=not (Sender as TCheckBox).Checked;
+  if ProjectInvalid then exit;
+  CurrentRTFP.RunPerformance.Filter_AutoRun:=(Sender as TCheckBox).Checked;
+  if (Sender as TCheckBox).Checked then CurrentRTFP.TableFilter;
+end;
+
 
 
 procedure TFormDesktop.DBGrid_MainCellClick(Column: TColumn);
@@ -2121,6 +2245,7 @@ procedure TFormDesktop.DBGrid_MainDrawColumnCell(Sender: TObject;
 var tmpFD:TFieldDef;
     tmpA:Pointer;
     tmpCL:TColor;
+
   function min(a,b:integer):integer;
   begin
     if a>b then result:=b else result:=a;
@@ -2142,24 +2267,20 @@ begin
     (Sender as TDBGrid).Canvas.Brush.Color:=tmpCL;
     (Sender as TDBGrid).Canvas.FillRect(Rect);
   end;
-{
+
+  //这里不错，或许可以把PaperDS中的ftString改回ftMemo，
+  //同时可以在主表显示图片
   case tmpFD.DataType of
-    ftMemo:
-      begin
-        //(Sender as TDBGrid).DrawCellText();
-      end;
     ftBlob:
-      begin end;
+      begin
+        //啥没改，图片字段转成文件形式以后这么做的意义也不大了
+      end;
     else
       begin
-}
         (Sender as TDBGrid).DefaultDrawColumnCell(Rect,DataCol,Column,State);
-        //这里不错，或许可以把PaperDS中的ftString改回ftMemo，
-        //同时可以在主表显示图片
-{
       end;
   end;
-}
+
 end;
 
 procedure TFormDesktop.DBGrid_MainKeyUp(Sender: TObject; var Key: Word;
@@ -2219,9 +2340,10 @@ end;
 
 procedure TFormDesktop.Edit_DBGridMain_FilterChange(Sender: TObject);
 begin
-  //激进的筛选方式
-  //MainGridValidate(CurrentRTFP);
-  //CurrentRTFP.TableFilter((Sender as TEdit).Caption);
+  //受限后的激进筛选方式
+  if ProjectInvalid then exit;
+  CurrentRTFP.RunPerformance.Filter_Command:=(Sender as TEdit).Caption;
+  if CurrentRTFP.RunPerformance.Filter_AutoRun then CurrentRTFP.RebuildMainGrid;
 end;
 
 procedure TFormDesktop.Edit_DBGridMain_FilterKeyDown(Sender: TObject;
