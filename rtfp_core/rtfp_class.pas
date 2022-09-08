@@ -59,7 +59,7 @@ type
     property Items[Index:integer]:TKlass read GetItems write SetItems; default;
     property Path:string read FFullPath write FFullPath;
   public
-    procedure LoadFromPath(APath:string='\');//相对地址
+    procedure LoadFromPath(APath:string='\';data_set_type:string='dbf');//相对地址
     //procedure SaveToPath(APath:string='\');//暂未发现此方法的必要性
 
   public
@@ -69,7 +69,7 @@ type
 
 
 implementation
-uses rtfp_files;
+uses rtfp_files, RegExpr;
 
 
 { TKlass }
@@ -182,10 +182,12 @@ begin
     end;
 end;
 
-procedure TKlassList.LoadFromPath(APath:string='\');
+{
+procedure TKlassList.LoadFromPath(APath:string='\';data_set_type:string='dbf');
 var tmpFileList:TRTFP_FileList;
     stmp:TCollectionItem;
     pathname,klassname:string;
+    ext:string;
 begin
   assert(APath<>'','TRTFP_ClassList.LoadFromPath: APath=""');
   if APath='' then exit;
@@ -198,10 +200,16 @@ begin
       begin
         pathname:=(stmp as TRTFP_FileItem).Name;
         klassname:=ExtractFilename(pathname);
-        if pos('.dbf',lowercase(pathname))<>length(pathname)-3 then continue;
+
+        if (pos('.dbf',lowercase(pathname))<>length(pathname)-3)
+        and (pos('.buf',lowercase(pathname))<>length(pathname)-3) then continue;
         if (pos('_run.dbf',lowercase(pathname))=length(pathname)-7) and (length(pathname)>7) then continue;
-        if lowercase(ExtractFileExt(klassname))='.dbf' then klassname:=Copy(klassname,1,length(klassname)-4);
-        {if lowercase(ExtractFileExt(pathname))='.dbf' then }pathname:=Copy(pathname,1,length(pathname)-4);
+
+        ext:=lowercase(ExtractFileExt(klassname));
+        case ext of
+          '.dbf','.buf':klassname:=Copy(klassname,1,length(klassname)-4);
+        end;
+        {if ext='.dbf' then }pathname:=Copy(pathname,1,length(pathname)-4);
         //ShowMessage(klassname+#13#10+pathname);
         Self.AddEx(APath+'\'+pathname,klassname);
       end;
@@ -211,6 +219,44 @@ begin
   end;
 
 end;
+}
+
+procedure TKlassList.LoadFromPath(APath:string='\';data_set_type:string='dbf');
+var tmpFileList:TRTFP_FileList;
+    stmp:TCollectionItem;
+    pathname,klassname:string;
+    regexp:TRegExpr;
+begin
+  assert(APath<>'','TAttrsGroupList.LoadFromPath: APath=""');
+  if APath='' then exit;
+  Clear;
+  tmpFileList:=TRTFP_FileList.Create(nil,FFullPath+'\'+APath);
+  regexp:=TRegExpr.Create;
+  case data_set_type of
+    'dbf':regexp.Expression:='[^_run]\.dbf$';
+    'buf':regexp.Expression:='\S\.buf$';
+  end;
+  try
+    {}tmpFileList.BaseDir:=FFullPath+'\'+APath;
+    tmpFileList.RunDir;
+    for stmp in tmpFileList do
+      begin
+        pathname:=(stmp as TRTFP_FileItem).Name;
+        if not regexp.Exec(pathname) then continue;
+        klassname:=ExtractFilename(pathname);
+
+        System.delete(klassname,length(klassname)-3,4);
+        System.delete(pathname,length(pathname)-3,4);
+        Self.AddEx(APath+'\'+pathname,klassname,data_set_type);
+
+      end;
+  finally
+    tmpFileList.Free;
+    regexp.Free;
+  end;
+
+end;
+
 
 {
 procedure TKlassList.SaveToPath(APath:string='\');
