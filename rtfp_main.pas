@@ -7,17 +7,17 @@ unit RTFP_main;
 interface
 
 uses
-  Classes, SysUtils, db, dbf, dbf_common, memds, sqldb, mssqlconn, FileUtil,
+  Classes, SysUtils, db, dbf, memds, FileUtil,
   Forms, Controls, Graphics, Dialogs, ComCtrls, Menus, ExtCtrls, DBGrids, Grids,
   ValEdit, StdCtrls, DbCtrls, LazUTF8, SynEdit, Clipbrd, LCLType, Buttons,
   Regexpr, SynHighlighterAuf,
 
   Apiglio_Useful, AufScript_Frame, ACL_ListView, TreeListView,
 
-  RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, simpleipc, Types;
+  RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog;
 
 const
-  C_VERSION_NUMBER  = '0.2.3-alpha.5';
+  C_VERSION_NUMBER  = '0.2.3-alpha.6';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 

@@ -87,6 +87,9 @@ type
     RTFP:TObject;
   end;
 
+  TDataSetCompare=function(Item1,Item2:TFields;DefsList:Tlist):Integer;//用于SortDataSet
+
+
   TRTFP = class(TComponent)
   private
 
@@ -129,6 +132,8 @@ type
 
       Filter_Command:string;
       Filter_AutoRun:boolean;
+      Sorter_Command:string;
+      Sorter_AutoRun:boolean;
     end;
 
 
@@ -316,6 +321,7 @@ type
   public
     function AddFormatDefault:boolean;
     function AddFormatDefault_All:boolean;
+    function AddFormatDefault_SysMgr:boolean;
     function AddFormatEditNull(filename:string):boolean;
     function RenFormatEdit(filename,newname:string):boolean;
     function DelFormatEdit(filename:string):boolean;
@@ -363,6 +369,7 @@ type
     procedure RebuildMainGrid;
     procedure UpdateCurrentRec(PID:RTFP_ID);
     procedure TableFilter;
+    procedure TableSorter;
 
     procedure FieldListValidate(AListView:TListView);
     procedure KlassListValidate(AListView:TListView);
@@ -761,7 +768,11 @@ procedure TRTFP.LoadKlass;
 var tmpKlass:TKlass;
 begin
   //BeginUpdate;
-  FKlassList.LoadFromPath('class\');
+  case FDataSetType of
+    dstDBF:FKlassList.LoadFromPath('class\','dbf');
+    dstBUF:FKlassList.LoadFromPath('class\','buf');
+    else raise Exception.Create('无效DataSetType。');
+  end;
   for tmpKlass in FKlassList do
     begin
       if not OpenDbf(tmpKlass.FullPath,tmpKlass.Dbf) then

@@ -89,6 +89,30 @@ begin
   end;
   result:=true;
 end;
+
+function TRTFP.AddFormatDefault_SysMgr:boolean;
+var str:TStringList;
+    index:integer;
+begin
+  result:=false;
+  if not FFormatList.Find('sys.fmt',index) then FFormatList.Add('sys.fmt');
+  str:=TStringList.Create;
+  try
+
+    str.Add('edit "","'+_Col_Paper_Folder_+'","目录",0,70,"L","LM","uneditable"');
+    str.Add('list "'+_Attrs_Class_+'","'+_Col_class_DefaultCl_+'","分类",0,70,"LM","ML","uneditable"');
+    str.Add('edit "'+_Attrs_Notes_+'","'+_Col_notes_CreateTime_+'","入库时间",0,70,"ML","M","uneditable"');
+    str.Add('edit "'+_Attrs_Notes_+'","'+_Col_notes_ModifyTime_+'","最近修改",0,70,"M","MR","uneditable"');
+    str.Add('edit "'+_Attrs_Notes_+'","'+_Col_notes_CheckTime_+'","最近查询",0,70,"MR","RM","uneditable"');
+    str.Add('edit "'+_Attrs_Notes_+'","'+_Col_notes_User_+'","入库用户",0,70,"RM","R","uneditable"');
+
+    str.SaveToFile(Self.FFilePath+Self.FRootFolder+'\format\sys.fmt');
+  finally
+    str.Free;
+  end;
+  result:=true;
+end;
+
 //以下是默认属性的呈现，但是我还是把它禁用掉吧，或者至少加一个全局开关
 {
 edit "","文件大小","size",0,70,"L","LM",uneditable
@@ -167,6 +191,7 @@ begin
   LoadFormatEditList;
   if not FFormatList.Find('default.fmt',index) then AddFormatDefault;
   if not FFormatList.Find('all.fmt',index) then AddFormatDefault_All;
+  if not FFormatList.Find('sys.fmt',index) then AddFormatDefault_SysMgr;
   //FFormatList.SaveToFile(Self.FFilePath+Self.FRootFolder+'\format.dat');
   FormatListChange;
 end;

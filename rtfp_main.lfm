@@ -1,7 +1,7 @@
 object FormDesktop: TFormDesktop
-  Left = 824
+  Left = 902
   Height = 622
-  Top = 327
+  Top = 332
   Width = 1003
   AllowDropFiles = True
   Caption = 'RTFP Desktop'
@@ -1006,15 +1006,15 @@ object FormDesktop: TFormDesktop
     OnChange = PageControl_NodeChange
     object TabSheet_Node_PDF: TTabSheet
       Caption = 'PDF预览'
-      ClientHeight = 163
-      ClientWidth = 758
+      ClientHeight = 152
+      ClientWidth = 789
       object Image_PDF_View: TImage
         AnchorSideLeft.Control = TabSheet_Node_PDF
         AnchorSideTop.Control = TabSheet_Node_PDF
         AnchorSideBottom.Control = TabSheet_Node_PDF
         AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 163
+        Height = 152
         Top = 0
         Width = 208
         Anchors = [akTop, akLeft, akBottom]
