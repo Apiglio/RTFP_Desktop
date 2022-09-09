@@ -36,12 +36,14 @@ type
     FShown:boolean;
     FOnChangeVisibility:TNotifyEvent;
     FUpdating:boolean;
+    FComboItem:TStringList;
   public//暂时改成公共
     FFieldDisplayOption:TFieldDisplayOption;
   protected
     procedure SetShown(value:boolean);
   public
-    constructor Create(ACollection: TCollection);
+    constructor Create(ACollection: TCollection); override;
+    destructor Destroy; override;
     procedure BeginUpdate;
     procedure EndUpdate;
 
@@ -51,6 +53,14 @@ type
     property FieldName:string read FFieldName write FFieldName;
     property AttrsGroup:TAttrsGroup read FAttrsGroup;
     property FieldDisplayOption:TFieldDisplayOption read FFieldDisplayOption{ write FFieldDisplayOption};
+
+  protected
+    function GetIsCombo:boolean;
+  public
+    procedure ClearCombo;
+    procedure AddCombo(Item:string);
+    property IsCombo:boolean read GetIsCombo;
+    property ComboItem:TStringList read FComboItem write FComboItem;
   end;
 
   TAttrsFieldEnumerator = class(TCollectionEnumerator)
@@ -166,6 +176,13 @@ begin
   FOnChangeVisibility:=nil;
   FFieldDisplayOption.colorize_process:=nil;
   FFieldDisplayOption.display_width:=90;
+  FComboItem:=TStringList.Create;
+  FComboItem.Sorted:=true;
+end;
+destructor TAttrsField.Destroy;
+begin
+  FComboItem.Free;
+  inherited Destroy;
 end;
 
 procedure TAttrsField.BeginUpdate;
@@ -177,6 +194,23 @@ procedure TAttrsField.EndUpdate;
 begin
   FUpdating:=false;
 end;
+
+
+function TAttrsField.GetIsCombo:boolean;
+begin
+  result:=(FComboItem.Count>0);
+end;
+
+procedure TAttrsField.ClearCombo;
+begin
+  FComboItem.Clear;
+end;
+
+procedure TAttrsField.AddCombo(Item:string);
+begin
+  FComboItem.Add(Item);
+end;
+
 
 { TAttrsFieldEnumerator }
 

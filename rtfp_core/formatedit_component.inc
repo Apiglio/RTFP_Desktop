@@ -43,6 +43,8 @@ var SplitterObj:TSplitter;
     index:integer;
     stmp,is_editable,str_editable:string;
     tmp:integer;
+    AG:TAttrsGroup;
+    AF:TAttrsField;
 begin
   assert(FFormatEditComponentList.Count=0,'FormatEditBuild之前需要FormatEditClear！');
   with FFormatEditComponentList do begin
@@ -80,11 +82,9 @@ begin
       if lowercase(is_editable)='editable' then begin
         FormatPanel.Editable:=true;
         str_editable:='';
-        //FormatPanel.BevelColor:=clGreen;//在formatEdit中重写Paint改颜色，目前临时用标题改好了
       end else begin
         FormatPanel.Editable:=false;
         str_editable:='(只读)';
-        //FormatPanel.BevelColor:=clRed;//在formatEdit中重写Paint改颜色，目前临时用标题改好了
       end;
 
       Add(FormatPanel);
@@ -92,6 +92,17 @@ begin
       FormatPanel.FieldName:=Auf.nargs[2].arg;
       FormatPanel.DisplayName:=Auf.nargs[3].arg;
       FormatPanel.TitleLabel.Caption:=Auf.nargs[3].arg+str_editable+': ';
+
+      if FormatPanel.ComponentType=TComboBox then begin
+        AG:=FFieldList.FindItemByName(FormatPanel.AttrsName);
+        if AG<>nil then begin
+          AF:=AG.FieldList.FindItemByName(FormatPanel.FieldName);
+          if AF<>nil then begin
+            for index:=0 to AF.ComboItem.Count-1 do TComboBox(FormatPanel.Component).Items.Add(AF.ComboItem[index]);
+          end;
+        end;
+      end;
+
       with FormatPanel do begin
         Parent:=AScrollBox;
         BeginUpdateBounds;
