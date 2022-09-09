@@ -95,6 +95,7 @@ type
   public
     procedure RestoreState;//Setter函数中包含了FState:=fesSaved，如果是还原字段数值则需要用这个方法
     property State:TFmtEditState read FState write SetState;
+    property ComponentType:TClass read FClass;
 
   public
     property AsBoolean:boolean read GetBool write SetBool;

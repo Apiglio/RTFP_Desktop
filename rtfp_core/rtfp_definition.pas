@@ -1087,6 +1087,7 @@ procedure TRTFP.SaveProjectOption(filename:string='');
 var AG:TAttrsGroup;
     AF:TAttrsField;
     str:TStringList;
+    stmp:string;
     function con(boo:boolean):string;
     begin
       result:='off';
@@ -1104,6 +1105,8 @@ begin
           begin
             str.Add('option.attrs.set "'+AG.Name+'","'+AF.FieldName+'","visible",'+con(AF.Shown));
             str.Add('option.attrs.set "'+AG.Name+'","'+AF.FieldName+'","display_width",'+IntToStr(AF.FFieldDisplayOption.display_width));
+            if AF.IsCombo then for stmp in AF.ComboItem do
+              str.Add('option.attrs.set "'+AG.Name+'","'+AF.FieldName+'","add_combo",'+stmp);
           end;
       end;
     if filename='' then filename:='option.lay.auf';

@@ -169,6 +169,32 @@ begin
 
   CurrentRTFP.EditFieldAsString(AFieldName,AAttrName,APID,AMEMO,[aeCreateIfNoField,aeForceEditIfTypeDismatch]);
 end;
+procedure aufunc_EditImage(Sender:TObject);//attr.edit_image PID,AttrName,FieldName,filename
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    APID,filename,AFieldName,AAttrName:string;
+    APicture:TPicture;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(5) then exit;
+  if not AAuf.TryArgToString(1,APID) then exit;
+  if not AAuf.TryArgToString(2,AAttrName) then exit;
+  if not AAuf.TryArgToString(3,AFieldName) then exit;
+  if not AAuf.TryArgToString(4,filename) then exit;
+
+  if not FileExists(filename) then begin
+    AufScpt.writeln('警告：找不到 '+filename+' 文件，'+Auf.args[0]+'未执行。');
+    exit
+  end;
+  APicture:=TPicture.Create;
+  try
+    APicture.LoadFromFile(filename);
+    CurrentRTFP.EditFieldAsBitmap(AFieldName,AAttrName,APID,APicture.Bitmap,[aeCreateIfNoField]);
+  finally
+    APicture.Free;
+  end;
+end;
 procedure aufunc_ReadAttr(Sender:TObject);//attr.read PID,AttrName,FieldName,out
 var AufScpt:TAufScript;
     AAuf:TAuf;
@@ -454,6 +480,35 @@ begin
         end;
         AF.FFieldDisplayOption.display_width:=slon;
       end;
+    'add_combo':
+      begin
+        if not AAuf.TryArgToString(4,stmp) then exit;
+        AG:=CurrentRTFP.FieldList.FindItemByName(NA);
+        if AG=nil then begin
+          AufScpt.send_error('错误：无属性组“'+NA+'”。');
+          exit;
+        end;
+        AF:=AG.FieldList.FindItemByName(NF);
+        if AF=nil then begin
+          AufScpt.send_error('错误：无属性“'+NF+'”。');
+          exit;
+        end;
+        AF.AddCombo(stmp);
+      end;
+    'clear_combo':
+      begin
+        AG:=CurrentRTFP.FieldList.FindItemByName(NA);
+        if AG=nil then begin
+          AufScpt.send_error('错误：无属性组“'+NA+'”。');
+          exit;
+        end;
+        AF:=AG.FieldList.FindItemByName(NF);
+        if AF=nil then begin
+          AufScpt.send_error('错误：无属性“'+NF+'”。');
+          exit;
+        end;
+        AF.ClearCombo;
+      end;
     else
       begin
         AufScpt.send_error('错误：key名称无意义。');
@@ -515,13 +570,14 @@ begin
     Script.add_func('paper.add',@aufunc_AddPaper,'filename,@out_pid,mode="fb"','新建Paper节点');
     Script.add_func('paper.del',@aufunc_DeletePaper,'PID','删除Paper节点');
 
-    Script.add_func('attrs.rec.edit',@aufunc_EditAttr,'PID,AttrName,FieldName,Memo','修改PID节点中第AttrNo表的FieldName字段为Memo');
-    Script.add_func('attrs.rec.read',@aufunc_ReadAttr,'PID,AttrName,FieldName,arv','修改PID节点中第AttrNo表的FieldName字段为Memo');
+    Script.add_func('attrs.rec.edit',@aufunc_EditAttr,'PID,AttrName,FieldName,Memo','修改PID节点中AttrName属性组的FieldName字段为Memo');
+    Script.add_func('attrs.rec.edit_image',@aufunc_EditImage,'PID,AttrName,FieldName,filename','修改PID节点中AttrName属性组的FieldName图像字段为filename图像');
+    Script.add_func('attrs.rec.read',@aufunc_ReadAttr,'PID,AttrName,FieldName,arv','修改PID节点中AttrName属性组的FieldName字段为Memo');
 
     //Script.add_func('attrs.ag.add',@aufunc_AddAttrGroup,'AttrName','在第AttrNo表中创建FieldName字段');
     //Script.add_func('attrs.ag.del',@aufunc_DelAttrGroup,'AttrName','在第AttrNo表中创建FieldName字段');
-    Script.add_func('attrs.af.add',@aufunc_AddAttrField,'AttrName,FieldName','在第AttrNo表中创建FieldName字段');
-    Script.add_func('attrs.af.del',@aufunc_DelAttrField,'AttrName,FieldName','在第AttrNo表中创建FieldName字段');
+    Script.add_func('attrs.af.add',@aufunc_AddAttrField,'AttrName,FieldName','在AttrName属性组中创建FieldName字段');
+    Script.add_func('attrs.af.del',@aufunc_DelAttrField,'AttrName,FieldName','在AttrName属性组中创建FieldName字段');
 
     Script.add_func('class.add',@aufunc_addKlass,'KlassName, Path','创建分类表');
     Script.add_func('class.del',@aufunc_DeleteKlass,'KlassName','删除分类表');
