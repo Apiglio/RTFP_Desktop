@@ -1,7 +1,7 @@
 object FormDesktop: TFormDesktop
-  Left = 902
+  Left = 1048
   Height = 622
-  Top = 332
+  Top = 475
   Width = 1003
   AllowDropFiles = True
   Caption = 'RTFP Desktop'
@@ -138,7 +138,12 @@ object FormDesktop: TFormDesktop
           OnCellClick = DBGrid_MainCellClick
           OnColumnSized = DBGrid_MainColumnSized
           OnDrawColumnCell = DBGrid_MainDrawColumnCell
+          OnDragDrop = DBGrid_MainDragDrop
+          OnDragOver = DBGrid_MainDragOver
           OnKeyUp = DBGrid_MainKeyUp
+          OnMouseDown = DBGrid_MainMouseDown
+          OnMouseEnter = DBGrid_MainMouseEnter
+          OnMouseLeave = DBGrid_MainMouseLeave
           OnMouseUp = DBGrid_MainMouseUp
           OnMouseWheel = DBGrid_MainMouseWheel
         end
@@ -220,7 +225,7 @@ object FormDesktop: TFormDesktop
         AnchorSideTop.Control = TabSheet_Project_FormatEditMgr
         AnchorSideBottom.Control = SynEdit_FEMgr
         Left = 5
-        Height = 191
+        Height = 192
         Top = 5
         Width = 235
         Anchors = [akTop, akLeft, akBottom]
@@ -238,7 +243,7 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = SynEdit_FEMgr
         Left = 245
-        Height = 221
+        Height = 222
         Top = 5
         Width = 539
         Anchors = [akTop, akLeft, akRight, akBottom]
@@ -273,7 +278,7 @@ object FormDesktop: TFormDesktop
         Left = 215
         Height = 25
         Hint = '重命名样式'
-        Top = 201
+        Top = 202
         Width = 25
         Anchors = [akRight, akBottom]
         BorderSpacing.Left = 5
@@ -292,7 +297,7 @@ object FormDesktop: TFormDesktop
         Left = 185
         Height = 25
         Hint = '删除样式'
-        Top = 201
+        Top = 202
         Width = 25
         Anchors = [akRight, akBottom]
         BorderSpacing.Left = 5
@@ -311,7 +316,7 @@ object FormDesktop: TFormDesktop
         Left = 155
         Height = 25
         Hint = '新建样式'
-        Top = 201
+        Top = 202
         Width = 25
         Anchors = [akRight, akBottom]
         BorderSpacing.Right = 5
@@ -329,7 +334,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Control = SynEdit_FEMgr
         Left = 5
         Height = 25
-        Top = 201
+        Top = 202
         Width = 85
         Anchors = [akTop, akLeft, akRight, akBottom]
         BorderSpacing.Left = 5
@@ -346,8 +351,8 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Control = TabSheet_Project_FormatEditMgr
         AnchorSideBottom.Side = asrBottom
         Left = 5
-        Height = 90
-        Top = 231
+        Height = 89
+        Top = 232
         Width = 779
         BorderSpacing.Left = 5
         BorderSpacing.Right = 5
@@ -853,7 +858,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Control = SynEdit_FEMgr
         Left = 125
         Height = 25
-        Top = 201
+        Top = 202
         Width = 25
         Anchors = [akRight, akBottom]
         BorderSpacing.Right = 5
@@ -867,7 +872,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Control = SynEdit_FEMgr
         Left = 95
         Height = 25
-        Top = 201
+        Top = 202
         Width = 25
         Anchors = [akRight, akBottom]
         BorderSpacing.Right = 5
@@ -880,41 +885,41 @@ object FormDesktop: TFormDesktop
     object TabSheet_Project_AufScript: TTabSheet
       Caption = '脚本'
       ClientHeight = 326
-      ClientWidth = 758
+      ClientWidth = 789
       OnResize = TabSheet_Project_AufScriptResize
       inline Frame_AufScript1: TFrame_AufScript
         Height = 326
-        Width = 758
+        Width = 789
         Align = alClient
         ClientHeight = 326
-        ClientWidth = 758
+        ClientWidth = 789
         inherited ProgressBar: TProgressBar
           AnchorSideLeft.Control = Frame_AufScript1
           AnchorSideRight.Control = Frame_AufScript1
           AnchorSideBottom.Control = Frame_AufScript1
           Height = 12
           Top = 309
-          Width = 748
+          Width = 779
         end
         inherited Memo_out: TMemo
           AnchorSideRight.Control = Frame_AufScript1
-          Left = 494
+          Left = 525
           Height = 242
           Top = 30
           Width = 259
         end
         inherited Button_run: TButton
-          Left = 494
+          Left = 525
           Top = 277
           Width = 85
         end
         inherited Button_pause: TButton
-          Left = 581
+          Left = 612
           Top = 277
           Width = 85
         end
         inherited Button_stop: TButton
-          Left = 668
+          Left = 699
           Top = 277
           Width = 85
         end
@@ -934,9 +939,6 @@ object FormDesktop: TFormDesktop
           Width = 299
           Gutter.Width = 61
           inherited SynLeftGutterPartList1: TSynGutterPartList
-            inherited SynGutterLineNumber1: TSynGutterLineNumber
-              Width = 19
-            end
             inherited SynGutterCodeFolding1: TSynGutterCodeFolding
               AutoSize = False
               Width = 12
@@ -948,7 +950,7 @@ object FormDesktop: TFormDesktop
           AnchorSideTop.Control = Frame_AufScript1
           AnchorSideRight.Control = Frame_AufScript1
           Height = 20
-          Width = 748
+          Width = 779
         end
         inherited OpenDialog: TOpenDialog
           left = 350
@@ -999,9 +1001,9 @@ object FormDesktop: TFormDesktop
     Height = 189
     Top = 369
     Width = 797
-    ActivePage = TabSheet_Node_FormatEdit
+    ActivePage = TabSheet_FmtCmt
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 2
+    TabIndex = 1
     TabOrder = 4
     OnChange = PageControl_NodeChange
     object TabSheet_Node_PDF: TTabSheet
@@ -1016,7 +1018,7 @@ object FormDesktop: TFormDesktop
         Left = 0
         Height = 152
         Top = 0
-        Width = 208
+        Width = 200
         Anchors = [akTop, akLeft, akBottom]
       end
     end
@@ -1409,10 +1411,13 @@ object FormDesktop: TFormDesktop
         Font.CharSet = ANSI_CHARSET
         Font.Pitch = fpFixed
         Font.Quality = fqDraft
+        HideSelection = False
         ParentFont = False
         PopupMenu = PopupMenu_ClassManager
         ReadOnly = True
         TabOrder = 0
+        OnDragDrop = AListView_KlassDragDrop
+        OnDragOver = AListView_KlassDragOver
         OnNodeChecked = AListView_KlassNodeChecked
       end
       object Button_AddKlass: TButton
