@@ -182,45 +182,6 @@ begin
     end;
 end;
 
-{
-procedure TKlassList.LoadFromPath(APath:string='\';data_set_type:string='dbf');
-var tmpFileList:TRTFP_FileList;
-    stmp:TCollectionItem;
-    pathname,klassname:string;
-    ext:string;
-begin
-  assert(APath<>'','TRTFP_ClassList.LoadFromPath: APath=""');
-  if APath='' then exit;
-  Clear;
-  tmpFileList:=TRTFP_FileList.Create(nil,FFullPath+'\'+APath);
-  try
-    tmpFileList.BaseDir:=FFullPath+'\'+APath;
-    tmpFileList.RunDir;
-    for stmp in tmpFileList do
-      begin
-        pathname:=(stmp as TRTFP_FileItem).Name;
-        klassname:=ExtractFilename(pathname);
-
-        if (pos('.dbf',lowercase(pathname))<>length(pathname)-3)
-        and (pos('.buf',lowercase(pathname))<>length(pathname)-3) then continue;
-        if (pos('_run.dbf',lowercase(pathname))=length(pathname)-7) and (length(pathname)>7) then continue;
-
-        ext:=lowercase(ExtractFileExt(klassname));
-        case ext of
-          '.dbf','.buf':klassname:=Copy(klassname,1,length(klassname)-4);
-        end;
-        {if ext='.dbf' then }pathname:=Copy(pathname,1,length(pathname)-4);
-        //ShowMessage(klassname+#13#10+pathname);
-        Self.AddEx(APath+'\'+pathname,klassname);
-      end;
-
-  finally
-    tmpFileList.Free;
-  end;
-
-end;
-}
-
 procedure TKlassList.LoadFromPath(APath:string='\';data_set_type:string='dbf');
 var tmpFileList:TRTFP_FileList;
     stmp:TCollectionItem;

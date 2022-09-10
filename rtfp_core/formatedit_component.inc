@@ -98,7 +98,11 @@ begin
         if AG<>nil then begin
           AF:=AG.FieldList.FindItemByName(FormatPanel.FieldName);
           if AF<>nil then begin
-            for index:=0 to AF.ComboItem.Count-1 do TComboBox(FormatPanel.Component).Items.Add(AF.ComboItem[index]);
+            if AF.ComboItem.Count>0 then begin
+              for index:=0 to AF.ComboItem.Count-1 do TComboBox(FormatPanel.Component).Items.Add(AF.ComboItem[index]);
+            end else begin
+              TComboBox(FormatPanel.Component).Items.Add('');
+            end;
           end;
         end;
       end;
@@ -263,7 +267,7 @@ begin
             'TEdit':EditFieldAsString(FieldName,AttrsName,PID,AsString,[aeForceEditIfTypeDismatch]);
             'TMemo':EditFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[]);
             'TCheckBox':EditFieldAsBoolean(FieldName,AttrsName,PID,AsBoolean,[]);
-            'TComboBox':EditFieldAsString(FieldName,AttrsName,PID,AsString,[]);
+            'TComboBox':EditFieldAsString(FieldName,AttrsName,PID,AsString,[aeForceEditIfTypeDismatch]);
             'TFmtImage':EditFieldAsBitmap(FieldName,AttrsName,PID,AsBitmap,[]);
             'TListBox':EditFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[]);
           end;

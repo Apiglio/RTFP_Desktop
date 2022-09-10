@@ -443,6 +443,7 @@ function TFormatEditPanel.GetString:string;
 begin
   case FClass.ClassName of
     'TEdit':result:=TEdit(FComponent).Caption;
+    'TComboBox':result:=TComboBox(FComponent).Caption;
     else result:='';
   end;
 end;
@@ -495,9 +496,19 @@ begin
   FState:=fesSaved;
 end;
 procedure TFormatEditPanel.SetString(value:string);
+var index:integer;
 begin
   case FClass.ClassName of
     'TEdit':TEdit(FComponent).Caption:=value;
+    'TComboBox':
+      begin
+        index:=TComboBox(FComponent).Items.IndexOf(value);
+        if index<0 then begin
+          TComboBox(FComponent).Caption:=value;
+        end else begin
+          TComboBox(FComponent).ItemIndex:=index;
+        end;
+      end;
   end;
   FState:=fesSaved;
 end;

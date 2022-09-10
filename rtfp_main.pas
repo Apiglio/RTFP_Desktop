@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog;
 
 const
-  C_VERSION_NUMBER  = '0.2.3-alpha.7';
+  C_VERSION_NUMBER  = '0.2.3-alpha.8';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -208,6 +208,9 @@ type
     TabSheet_Project_DataGrid: TTabSheet;
     PropertiesValueListEditor: TValueListEditor;
     procedure AListView_AttrsNodeChecked(Sender: TObject; Item: TACL_TreeNode);
+    procedure AListView_KlassDragDrop(Sender, Source: TObject; X, Y: Integer);
+    procedure AListView_KlassDragOver(Sender, Source: TObject; X, Y: Integer;
+      State: TDragState; var Accept: Boolean);
     procedure AListView_KlassNodeChecked(Sender: TObject; Item: TACL_TreeNode);
     procedure Button_AddAttrsClick(Sender: TObject);
     procedure Button_AddFieldClick(Sender: TObject);
@@ -238,10 +241,17 @@ type
     procedure DataSource_MainUpdateData(Sender: TObject);
     procedure DBGrid_MainCellClick(Column: TColumn);
     procedure DBGrid_MainColumnSized(Sender: TObject);
+    procedure DBGrid_MainDragDrop(Sender, Source: TObject; X, Y: Integer);
+    procedure DBGrid_MainDragOver(Sender, Source: TObject; X, Y: Integer;
+      State: TDragState; var Accept: Boolean);
     procedure DBGrid_MainDrawColumnCell(Sender: TObject; const Rect: TRect;
       DataCol: Integer; Column: TColumn; State: TGridDrawState);
     procedure DBGrid_MainKeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure DBGrid_MainMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure DBGrid_MainMouseEnter(Sender: TObject);
+    procedure DBGrid_MainMouseLeave(Sender: TObject);
     procedure DBGrid_MainMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure DBGrid_MainMouseWheel(Sender: TObject; Shift: TShiftState;
@@ -333,6 +343,12 @@ type
 
     LastDBGridPos:TPoint;
 
+    //记录不同控件之间的鼠标起落情况
+    UIState:record
+      DragButton:TMouseButton;
+      DragShift:TShiftState;
+    end;
+
   public
     SyncTimer:TRTFP_SyncTimer;
     property ShowWaitForm:boolean read FShowWaitForm write FShowWaitForm;
@@ -358,6 +374,7 @@ type
     function Selected_PID:RTFP_ID;//根据DBGrid_Main的选择返回PID
     function Select_PID(PID:RTFP_ID):Boolean;
     function Selected_FileName:string;//根据DBGrid_Main的选择返回文件名
+    procedure ShowStatusHelper(str:string);
 
   public
     //RTFP类事件，Sender参数为TRTFP类
@@ -778,13 +795,17 @@ begin
     if Locate(_Col_PID_,PID,[]) then result:=true;
 end;
 
-
 function TFormDesktop.Selected_FileName:string;
 begin
   result:='';
   if DBGrid_Main.DataSource.DataSet=nil then exit;
   if not DBGrid_Main.DataSource.DataSet.Active then exit;
   result:=DBGrid_Main.DataSource.DataSet.Fields.FieldByName(_Col_Paper_FileName_).AsString;
+end;
+
+procedure TFormDesktop.ShowStatusHelper(str: string);
+begin
+  StatusBar.Panels[2].Text:=ExtractFileName(str);
 end;
 
 procedure TFormDesktop.ViewPdfValidate;
@@ -1091,6 +1112,7 @@ var klassname:string;
 begin
   if ProjectInvalid then exit;
   tmpLV:=AListView_Klass;
+  if tmpLV.SelCount<>1 then exit;
   tmpNode:=TACL_TreeNode(tmpLV.Selected.Data);
   if tmpNode<>nil then
   klassname:=tmpNode.Name;
@@ -1122,6 +1144,7 @@ procedure TFormDesktop.MenuItem_ClassMgr_CheckAllClick(Sender: TObject);
 var tmpNode:TACL_TreeNode;
 begin
   if ProjectInvalid then exit;
+  if AListView_Klass.SelCount<>1 then exit;
   tmpNode:=TACL_TreeNode(AListView_Klass.Selected.Data);
   CurrentRTFP.BeginUpdate;
   tmpNode.CheckAll;
@@ -1134,6 +1157,7 @@ procedure TFormDesktop.MenuItem_ClassMgr_UnCheckAllClick(Sender: TObject);
 var tmpNode:TACL_TreeNode;
 begin
   if ProjectInvalid then exit;
+  if AListView_Klass.SelCount<>1 then exit;
   tmpNode:=TACL_TreeNode(AListView_Klass.Selected.Data);
   CurrentRTFP.BeginUpdate;
   tmpNode.UnCheckAll;
@@ -1671,6 +1695,7 @@ begin
   AufScriptFuncDefineRTFP(Self.Frame_AufScript1.Auf);
   Self.Frame_AufScript1.HighLighterReNew;
   CurrentRTFP.UpdatePIDExpr('000000',Self.Frame_AufScript1.Auf.Script);
+  Self.Frame_AufScript1.OnHelper:=@ShowStatusHelper;
 
   LocalPath:=ExtractFilePath(ParamStr(0));
   if Self.Height>Screen.Height then Self.Height:=trunc(Screen.Height*0.8);
@@ -1877,6 +1902,29 @@ begin
   else ;
 end;
 
+procedure TFormDesktop.AListView_KlassDragDrop(Sender, Source: TObject; X,
+  Y: Integer);
+var tmpListItem:TListItem;
+    tmpNode:TACL_TreeNode;
+begin
+  tmpListItem:=(Sender as TACL_ListView).GetItemAt(X,Y);
+  if tmpListItem=nil then exit;
+  tmpNode:=TACL_TreeNode(tmpListItem.Data);
+  if tmpNode.Data=nil then exit;
+  if ssShift in UIState.DragShift then
+    CurrentRTFP.KlassExclude((tmpNode.Data as TKlass).Name,Selected_PID)
+  else
+    CurrentRTFP.KlassInclude((tmpNode.Data as TKlass).Name,Selected_PID);
+end;
+
+procedure TFormDesktop.AListView_KlassDragOver(Sender, Source: TObject; X,
+  Y: Integer; State: TDragState; var Accept: Boolean);
+var tmpListItem:TListItem;
+begin
+  tmpListItem:=(Sender as TACL_ListView).GetItemAt(X,Y);
+  Accept:=tmpListItem<>nil;
+end;
+
 procedure TFormDesktop.AListView_KlassNodeChecked(Sender: TObject;
   Item: TACL_TreeNode);
 var tmpKL:TKlass;
@@ -2017,29 +2065,17 @@ procedure TFormDesktop.Button_FieldTypeClick(Sender: TObject);
 begin
   //这里可以增加额外的字段类型设置
   ShowMsgOK('字段类型说明',
-    '段落　  '+#9+'(Memo)      '+#9+'无限制长度的文本内容'+#13#10+
-    '字符串  '+#9+'(String)    '+#9+'最大长度16的文本内容'+#13#10+
-    '布尔　  '+#9+'(Boolean)   '+#9+'只有是与否的两个选项'+#13#10+
-    '短整型  '+#9+'(SmallInt)  '+#9+'范围为-32768到32767'+#13#10+
-    '长整型  '+#9+'(LargeInt)  '+#9+'18位十进制位的整数'+#13#10+
-    '浮点型  '+#9+'(Float)     '+#9+'带小数点的数据'+#13#10+
-    '时间　  '+#9+'(DateTime)  '+#9+'记录日期与时刻'+#13#10+
-    '图像　  '+#9+'(Blob)      '+#9+'记录图像数据'
+    '段落　　'+#9+'(Memo)         '+#9+'无限制长度的文本内容'+#13#10+
+    '短字符串'+#9+'(String[16])   '+#9+'最大长度16的文本内容'+#13#10+
+    '中字符串'+#9+'(String[72])   '+#9+'最大长度16的文本内容'+#13#10+
+    '长字符串'+#9+'(String[240])  '+#9+'最大长度16的文本内容'+#13#10+
+    '布尔　　'+#9+'(Boolean)      '+#9+'只有是与否的两个选项'+#13#10+
+    '短整型　'+#9+'(SmallInt)     '+#9+'范围为-32768到32767'+#13#10+
+    '长整型　'+#9+'(LargeInt)     '+#9+'18位十进制位的整数'+#13#10+
+    '浮点型　'+#9+'(Float)        '+#9+'带小数点的数据'+#13#10+
+    '时间　　'+#9+'(DateTime)     '+#9+'记录日期与时刻'+#13#10+
+    '图像　　'+#9+'(Blob)         '+#9+'记录图像数据'
   );
-
-
-  {
-  段落 Memo
-  字符串 String
-  布尔 Boolean
-  短整型 SmallInt
-  长整型 LargeInt
-  浮点型 Float
-  时间 DateTime
-  图像 Blob
-
-  }
-
 end;
 
 procedure TFormDesktop.Button_FmtCmt_PostClick(Sender: TObject);
@@ -2240,6 +2276,18 @@ begin
   Self.DBGridColumnAllocating(Sender);
 end;
 
+procedure TFormDesktop.DBGrid_MainDragDrop(Sender, Source: TObject; X,
+  Y: Integer);
+begin
+  //
+end;
+
+procedure TFormDesktop.DBGrid_MainDragOver(Sender, Source: TObject; X,
+  Y: Integer; State: TDragState; var Accept: Boolean);
+begin
+  Accept:=false;
+end;
+
 procedure TFormDesktop.DBGrid_MainDrawColumnCell(Sender: TObject;
   const Rect: TRect; DataCol: Integer; Column: TColumn; State: TGridDrawState);
 var tmpFD:TFieldDef;
@@ -2302,12 +2350,31 @@ begin
   end;
 end;
 
+procedure TFormDesktop.DBGrid_MainMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if ((ssShift in Shift) or (ssCtrl in Shift)) and (Button = mbLeft) then begin
+    UIState.DragShift:=Shift;
+    UIState.DragButton:=Button;
+    Self.BeginDrag(True);
+  end;
+end;
+
+procedure TFormDesktop.DBGrid_MainMouseEnter(Sender: TObject);
+begin
+  ShowStatusHelper('按Ctrl拖动至分类节点加入分类，按Shift拖动至分类节点排除出分类。');
+end;
+
+procedure TFormDesktop.DBGrid_MainMouseLeave(Sender: TObject);
+begin
+  ShowStatusHelper('');
+end;
+
 procedure TFormDesktop.DBGrid_MainMouseUp(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var vCell:TGridCoord;
     vGrid:TDBGrid;
 begin
-
   if (Shift=[]) and (Button=mbRight) then
     begin
       vGrid:=Sender as TDBGrid;
