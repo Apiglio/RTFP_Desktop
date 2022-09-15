@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog;
 
 const
-  C_VERSION_NUMBER  = '0.2.3-alpha.8';
+  C_VERSION_NUMBER  = '0.2.3-alpha.9';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -38,6 +38,7 @@ type
   TFormDesktop = class(TForm)
     AListView_Klass: TACL_ListView;
     AListView_Attrs: TACL_ListView;
+    Button_MainSorter: TButton;
     Button_FormatEditPostAndNext: TButton;
     Button_FormatEditLoad: TButton;
     Button_FormatEditPostAndPrev: TButton;
@@ -50,6 +51,12 @@ type
     Button_AddAttrs: TButton;
     Button_AddField: TButton;
     Button_AddKlass: TButton;
+    CheckBox_MainSorterAuto: TCheckBox;
+    Edit_DBGridMain_Sorter: TEdit;
+    Label_MainSorter: TLabel;
+    RadioButton_KlassAND: TRadioButton;
+    CheckBox_KlassNot: TCheckBox;
+    RadioButton_KlassOR: TRadioButton;
     CheckBox_MainFilterAuto: TCheckBox;
     Combo_FieldType: TComboBox;
     ComboBox_FormatEdit: TComboBox;
@@ -229,10 +236,17 @@ type
     procedure Button_FormatEdit_RenClick(Sender: TObject);
     procedure Button_helpClick(Sender: TObject);
     procedure Button_MainFilterClick(Sender: TObject);
+    procedure Button_MainSorterClick(Sender: TObject);
 
     procedure Button_NodeViewRecoverClick(Sender: TObject);
     procedure Button_Project_NodeView_FreshClick(Sender: TObject);
     procedure Button_tempClick(Sender: TObject);
+    procedure CheckBox_MainSorterAutoClick(Sender: TObject);
+    procedure Edit_DBGridMain_SorterChange(Sender: TObject);
+    procedure Edit_DBGridMain_SorterKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure RadioButton_KlassANDClick(Sender: TObject);
+    procedure RadioButton_KlassORClick(Sender: TObject);
     procedure CheckBox_MainFilterAutoClick(Sender: TObject);
     //procedure CheckListBox_MainAttrFilterClickCheck(Sender: TObject);
     procedure ComboBox_AttrNameChange(Sender: TObject);
@@ -658,6 +672,9 @@ end;
 
 procedure TFormDesktop.ProjectOpenDone(Sender:TObject);
 begin
+
+  Self.Frame_AufScript1.OpenDialog.InitialDir:=CurrentRTFP.CurrentPathFull+'script';
+  Self.Frame_AufScript1.SaveDialog.InitialDir:=CurrentRTFP.CurrentPathFull+'script';
 
   //文献节点选项卡
   Self.DataSource_Main.DataSet:=CurrentRTFP.PaperDS;
@@ -1923,6 +1940,7 @@ var tmpListItem:TListItem;
 begin
   tmpListItem:=(Sender as TACL_ListView).GetItemAt(X,Y);
   Accept:=tmpListItem<>nil;
+  if Accept then (Sender as TACL_ListView).ItemIndex:=tmpListItem.Index;
 end;
 
 procedure TFormDesktop.AListView_KlassNodeChecked(Sender: TObject;
@@ -2237,6 +2255,16 @@ begin
   if FShowWaitForm then FWaitForm.Hide;
 end;
 
+procedure TFormDesktop.Button_MainSorterClick(Sender: TObject);
+begin
+  if ProjectInvalid then exit;
+  //CurrentRTFP.RebuildMainGrid;//MainGridValidate(CurrentRTFP);
+  if FShowWaitForm then FWaitForm.Show;
+  CurrentRTFP.RunPerformance.Sorter_Command:=Edit_DBGridMain_Sorter.Caption;
+  CurrentRTFP.TableSorter;
+  if FShowWaitForm then FWaitForm.Hide;
+end;
+
 procedure TFormDesktop.Button_NodeViewRecoverClick(Sender: TObject);
 begin
   if ProjectInvalid then exit;
@@ -2254,6 +2282,40 @@ end;
 procedure TFormDesktop.Button_tempClick(Sender: TObject);
 begin
   LayoutMode:=(LayoutMode+1) mod 3;
+end;
+
+procedure TFormDesktop.CheckBox_MainSorterAutoClick(Sender: TObject);
+begin
+  Self.Button_MainSorter.Enabled:=not (Sender as TCheckBox).Checked;
+  if ProjectInvalid then exit;
+  CurrentRTFP.RunPerformance.Sorter_AutoRun:=(Sender as TCheckBox).Checked;
+  if (Sender as TCheckBox).Checked then CurrentRTFP.TableSorter;
+end;
+
+procedure TFormDesktop.Edit_DBGridMain_SorterChange(Sender: TObject);
+begin
+  if ProjectInvalid then exit;
+  CurrentRTFP.RunPerformance.Sorter_Command:=(Sender as TEdit).Caption;
+  if CurrentRTFP.RunPerformance.Sorter_AutoRun then CurrentRTFP.TableSorter;//??
+end;
+
+procedure TFormDesktop.Edit_DBGridMain_SorterKeyDown(Sender: TObject;
+  var Key: Word; Shift: TShiftState);
+begin
+  if (Shift = []) and (Key=13) then
+    begin
+      Button_MainSorterClick(nil);
+    end;
+end;
+
+procedure TFormDesktop.RadioButton_KlassANDClick(Sender: TObject);
+begin
+  RadioButton_KlassOR.Checked:=not (Sender as TRadioButton).Checked;
+end;
+
+procedure TFormDesktop.RadioButton_KlassORClick(Sender: TObject);
+begin
+  RadioButton_KlassAND.Checked:=not (Sender as TRadioButton).Checked;
 end;
 
 procedure TFormDesktop.CheckBox_MainFilterAutoClick(Sender: TObject);
