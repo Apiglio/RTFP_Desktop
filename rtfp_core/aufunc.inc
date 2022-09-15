@@ -22,6 +22,14 @@ begin
 end;
 }
 
+function intern_aufunc_sort_double(Item1,Item2:Pointer):integer;
+begin
+  sleep(1);
+  if double(Item1)<double(Item2) then result:=-1
+  else if double(Item1)>double(Item2) then result:=1
+  else result:=0;
+end;
+
 procedure aufunc_BeginUpdate(Sender:TObject);
 begin
   CurrentRTFP.BeginUpdate;
@@ -555,6 +563,75 @@ begin
     AufScpt.writeln('T') else AufScpt.writeln('F');
 end;
 
+{$define qsort}
+procedure aufunc_sort_test(Sender:TObject);
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    {$ifdef qsort}
+    AList:TList;
+    {$else}
+    sbt:TSortingBinaryTree;
+    ptr:Pointer;
+    {$endif}
+    pi,len:integer;
+
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(1) then exit;
+  if not AAuf.TryArgToLong(1,len) then exit;
+  {$ifdef qsort}
+  AList:=TList.Create;
+  {$else}
+  sbt:=TSortingBinaryTree.Create;
+  {$endif}
+  try
+    Randomize;
+    {$ifdef qsort}
+    for pi:=0 to len-1 do AList.Add(Pointer(random()));
+    AList.Sort(@intern_aufunc_sort_double);
+    {$else}
+    for pi:=0 to len-1 do sbt.Compare(Pointer(random()),@intern_aufunc_sort_double);
+    for ptr in sbt do ;
+    {$endif}
+  finally
+    {$ifdef qsort}
+    AList.Free;
+    {$else}
+    sbt.Free;
+    {$endif}
+  end;
+
+end;
+
+procedure aufunc_maingrid_sort(Sender:TObject);//update.sort field_name
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    arg_count,argi:byte;
+    fieldnames:array of string;
+    opt:TDataSetSortOption;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(2) then exit;
+  arg_count:=AAuf.ArgsCount;
+  SetLength(fieldnames,arg_count-1);
+  try
+    for argi:=1 to arg_count-1 do
+      if not AAuf.TryArgToString(argi,fieldnames[argi-1]) then exit;
+    opt:=TDataSetSortOption.Create;
+    try
+      for argi:=1 to arg_count-1 do opt.Assign(fieldnames[argi-1],smAscending);
+      SortDataSet(CurrentRTFP.PaperDS,opt);
+    finally
+      opt.Free;
+    end;
+  finally
+    SetLength(fieldnames,0);
+  end;
+
+end;
+
 {$endif}
 
 procedure AufScriptFuncDefineRTFP(Auf:TAuf);
@@ -589,6 +666,7 @@ begin
 
     Script.add_func('update.begin',@aufunc_BeginUpdate,'filename','开始更新模式');
     Script.add_func('update.end',@aufunc_EndUpdate,'filename','结束更新模式');
+    Script.add_func('update.mg.sort',@aufunc_maingrid_sort,'*arg','主表按字段排序');
     Script.add_func('update.test',@aufunc_update_case,'mode','测试更新过程');
 
     Script.add_func('fmt.rebuild',@aufunc_RebuildFormatEdit,'filename','从filename中加载FormatEdit布局');
@@ -604,6 +682,9 @@ begin
 
     {$ifdef test}
     Script.add_func('test',@aufunc_test,'*arg','测试');
+    Script.add_func('sort_test',@aufunc_sort_test,'*arg','测试');
+
+
     {$endif}
 
   end;

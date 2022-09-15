@@ -13,7 +13,7 @@ end;
 procedure TRTFP.EndUpdate;
 begin
   //IsUpdating:=false;
-  dec(FUpdatingLevel);
+  if FUpdatingLevel>0 then dec(FUpdatingLevel);
 end;
 
 procedure TRTFP.Change;

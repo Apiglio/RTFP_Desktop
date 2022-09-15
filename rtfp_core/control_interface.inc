@@ -506,103 +506,21 @@ begin
   end;
 end;
 
-function DefaultDataSetCompare(Item1,Item2:TFields;DefsList:Tlist):Integer;
-var fid:integer;
-    function sgn(value:int64):integer;
-    begin
-      if value>0 then result:=1 else if value<0 then result:=-1 else result:=0;
-    end;
-    function DoCompare(Item1,Item2:TField):integer;
-    begin
-      case Item1.DataType of
-        ftInteger,ftLargeint,ftSmallint:
-          begin
-            if Item1.AsInteger>Item2.AsInteger then result:=1
-            else if Item1.AsInteger<Item2.AsInteger then result:=-1
-            else result:=0;
-          end;
-        ftFloat:
-          begin
-            if Item1.AsFloat>Item2.AsFloat then result:=1
-            else if Item1.AsFloat<Item2.AsFloat then result:=-1
-            else result:=0;
-          end;
-        ftString,ftMemo:result:=sgn(strcomp(pchar(Item1.AsString),pchar(Item2.AsString)));
-        ftBoolean:
-          begin
-            if Item1.AsBoolean and not Item2.AsBoolean then result:=1
-            else if not Item1.AsBoolean and Item2.AsBoolean then result:=-1
-            else result:=0;
-          end;
-      end;
-    end;
-begin
-  result:=0;
-  fid:=0;
-  while fid<DefsList.Count do begin
-    result:=DoCompare(Item1[TFieldDef(DefsList[fid]).Index],Item2[TFieldDef(DefsList[fid]).Index]);
-    if result<>0 then exit;
-    inc(fid);
-  end;
-end;
-
-procedure SortDataSet(DS:TDataSet;Compare:TDataSetCompare);
-var bound,maxo,pi,size:integer;
-    item:array[1..2]of TFields;
-    recn:array[1..2]of integer;//同时记录item的行号，如果对比相等则不重复复制
-    procedure load_fields(which,recno:integer);
-    begin
-      //if recn[which]<>recno then item[which]
-    end;
-
-begin
-  recn[1]:=-1;
-  recn[2]:=-1;
-  DS.RecNo:=0;
-  bound:=0;
-  maxo:=0;
-  size:=DS.RecordCount;
-  item[1]:=TFields.Create(nil);
-  item[2]:=TFields.Create(nil);
-  try
-    while bound<size-1 do begin
-      maxo:=bound;
-      for pi:=bound to size-1 do begin
-        //if Compare();
-      end;
-      inc(bound);
-    end;
-
-  finally
-    item[1].Free;
-    item[2].Free;
-  end;
-  //Compare(Item1,Item2,nil);
-end;
-
-procedure SortDataSet(DS:TDataSet);
-begin
-  SortDataSet(DS,@DefaultDataSetCompare);
-end;
-
-procedure TRTFP.TableSorter;
-var flist:TList;
-    fid:integer;
-    cmd,fstmp:string;
-    tmpDef:TFieldDef;
-    bm:TBookMark;
-    mem:TMemoryStream;
+procedure TRTFP.TableSorter;unimplemented;
+var sort_option:TDataSetSortOption;
+    field_count,field_no:byte;
+    mode:TDataSetSortMode;
+    stmp,cmd:string;
     tmp_pfunc:array[0..2]of pFuncAufStr;
 begin
 
-  cmd:=RunPerformance.Filter_Command;
+  cmd:=RunPerformance.Sorter_Command;
 
   if (not IsUpdating) and (FOnMainGridRebuilding<>nil) then FOnMainGridRebuilding(Self);
-  mem:=TMemoryStream.Create;
-  flist:=TList.Create;
   BeginUpdate;
-  bm:=FPaperDS.Bookmark;
+  //bm:=FPaperDS.Bookmark;//这个书签要单独找
   try
+    sort_option:=TDataSetSortOption.Create;
     tmp_pfunc[0]:=FAuf.Script.IO_fptr.error;
     tmp_pfunc[1]:=FAuf.Script.IO_fptr.print;
     tmp_pfunc[2]:=FAuf.Script.IO_fptr.echo;
@@ -610,41 +528,26 @@ begin
     FAuf.Script.IO_fptr.print:=nil;
     FAuf.Script.IO_fptr.echo:=nil;
     FAuf.ReadArgs(cmd);
-    if FAuf.ArgsCount<2 then exit;
-    fid:=0;
-    repeat
-      fstmp:=FAuf.nargs[fid].arg;
-      tmpDef:=FPaperDS.FieldDefs.Find(fstmp);
-      if tmpDef<>nil then flist.Add(tmpDef);
-      inc(fid);
-    until (fstmp='') or (fid>=32);
-    if flist.Count<=0 then exit;
-
-    fid:=0;
-    while fid<FPaperDS.FieldDefs.Count do
-      begin
-        if FPaperDS.FieldDefs[fid].Name=IntToStr(fid) then break;
-        inc(fid);
+    field_count:=FAuf.ArgsCount;
+    if field_count<1 then exit;
+    mode:=smAscending;
+    for field_no:=0 to field_count-1 do begin
+      if not FAuf.TryArgToString(field_no,stmp) then continue;
+      case lowercase(stmp) of
+        'a','升序','+','up':mode:=smAscending;
+        'd','降序','-','down':mode:=smDescending;
+        else sort_option.Assign(stmp,mode);
       end;
-    if fid>=FPaperDS.FieldDefs.Count then exit;
+    end;
 
-    with FPaperDS do
-      begin
-        if not Active then Open;//没有必要吧
-        First;
-        while not EOF do
-          begin
-
-          end;
-      end;
+    SortDataSet(FPaperDS,sort_option);
   finally
+    sort_option.Free;
     FAuf.Script.IO_fptr.error:=tmp_pfunc[0];
     FAuf.Script.IO_fptr.print:=tmp_pfunc[1];
     FAuf.Script.IO_fptr.echo:=tmp_pfunc[2];
-    if FPaperDS.BookmarkValid(bm) then FPaperDS.GotoBookmark(bm);
+    //if FPaperDS.BookmarkValid(bm) then FPaperDS.GotoBookmark(bm);
     EndUpdate;
-    mem.Free;
-    flist.Free;
     if (not IsUpdating) and (FOnMainGridRebuildDone<>nil) then FOnMainGridRebuildDone(Self);
   end;
 end;

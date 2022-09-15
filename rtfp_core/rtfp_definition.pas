@@ -26,13 +26,15 @@
 
 //KNOWN FEATURES
 //  图片FormatEdit编辑中所有都是NoData，有一张编辑成Saved以后其他所有也都会变成Saved，重新NodeValidate之后NoData就恢复了
-
+//  为什么AufScriptFrame的两个Dialog初始地址不能改？在projectOpenDone里头。
+//  导出图片报表目前需要将游标指向最后一行才能完整导出所有记录
 
 //KNOWN BUGS
 //  AufScript的输出不见了（这个应该来自于一个异常之后的问题）
 //  win11百度输入法覆盖输入时会有一个错误（暂时无法复现，可能也是上一个问题的情况）
 //  在主表中显示的字段不能直接删除，否则报错，出自RebuildMainGrid
 //  【FATAL】TableFilter中使用无效的正则表达式会导致崩溃，并且主窗体中try except不能解决问题
+//  执行了批量编辑图片的代码之后，UpdateCurrentPID开始不能正常运行，怀疑是update.begin的问题（应该已经解决好了）
 
 
 //{$define insert}
@@ -58,7 +60,7 @@ uses
 
   {$ifndef insert}
   Apiglio_Useful, auf_ram_var, rtfp_pdfobj, rtfp_files, rtfp_class, rtfp_field,
-  rtfp_constants, rtfp_type, rtfp_tags, rtfp_format_component, rtfp_dialog, rtfp_misc,
+  rtfp_constants, rtfp_type, rtfp_tags, rtfp_format_component, rtfp_dialog, rtfp_misc, rtfp_dataset_sorter,
   {$endif}
   BufDataset, xmldatapacketreader,
   db, dbf, dbf_common, dbf_fields, sqldb, memds;
@@ -86,8 +88,6 @@ type
   public
     RTFP:TObject;
   end;
-
-  TDataSetCompare=function(Item1,Item2:TFields;DefsList:Tlist):Integer;//用于SortDataSet
 
 
   TRTFP = class(TComponent)

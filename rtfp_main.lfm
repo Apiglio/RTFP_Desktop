@@ -1,7 +1,7 @@
 object FormDesktop: TFormDesktop
-  Left = 1048
+  Left = 908
   Height = 622
-  Top = 475
+  Top = 455
   Width = 1003
   AllowDropFiles = True
   Caption = 'RTFP Desktop'
@@ -44,10 +44,10 @@ object FormDesktop: TFormDesktop
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Splitter_RightH
-    Left = 206
+    Left = 254
     Height = 363
     Top = 0
-    Width = 797
+    Width = 749
     ActivePage = TabSheet_Project_DataGrid
     Anchors = [akTop, akLeft, akRight, akBottom]
     TabIndex = 1
@@ -98,7 +98,7 @@ object FormDesktop: TFormDesktop
     object TabSheet_Project_DataGrid: TTabSheet
       Caption = '文献节点'
       ClientHeight = 326
-      ClientWidth = 789
+      ClientWidth = 741
       object Panel_DBGridMain: TPanel
         AnchorSideLeft.Control = TabSheet_Project_DataGrid
         AnchorSideTop.Control = TabSheet_Project_DataGrid
@@ -109,29 +109,28 @@ object FormDesktop: TFormDesktop
         Left = 0
         Height = 326
         Top = 0
-        Width = 789
+        Width = 741
         Anchors = [akTop, akLeft, akRight, akBottom]
         Caption = 'Panel_DBGridMain'
         ClientHeight = 326
-        ClientWidth = 789
+        ClientWidth = 741
         TabOrder = 0
         object DBGrid_Main: TDBGrid
           AnchorSideLeft.Control = Panel_DBGridMain
           AnchorSideTop.Control = Panel_DBGridMain
           AnchorSideRight.Control = Panel_DBGridMain
           AnchorSideRight.Side = asrBottom
-          AnchorSideBottom.Control = Panel_DBGridMain
-          AnchorSideBottom.Side = asrBottom
+          AnchorSideBottom.Control = Edit_DBGridMain_Sorter
           Left = 1
-          Height = 296
+          Height = 260
           Top = 1
-          Width = 787
+          Width = 739
           Anchors = [akTop, akLeft, akRight, akBottom]
-          BorderSpacing.Bottom = 28
           Color = clWindow
           Columns = <>
           DataSource = DataSource_Main
           Options = [dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgRowSelect, dgAlwaysShowSelection, dgConfirmDelete, dgCancelOnExit, dgAnyButtonCanSelect, dgDblClickAutoSize]
+          ParentFont = False
           PopupMenu = PopupMenu_MainDBGrid
           ReadOnly = True
           TabOrder = 0
@@ -155,7 +154,7 @@ object FormDesktop: TFormDesktop
           Left = 71
           Height = 32
           Top = 293
-          Width = 583
+          Width = 535
           Anchors = [akLeft, akRight, akBottom]
           BorderSpacing.Left = 70
           BorderSpacing.Right = 5
@@ -188,7 +187,7 @@ object FormDesktop: TFormDesktop
           AnchorSideRight.Side = asrBottom
           AnchorSideBottom.Control = Edit_DBGridMain_Filter
           AnchorSideBottom.Side = asrBottom
-          Left = 728
+          Left = 680
           Height = 32
           Top = 293
           Width = 60
@@ -201,7 +200,7 @@ object FormDesktop: TFormDesktop
           AnchorSideTop.Control = Edit_DBGridMain_Filter
           AnchorSideTop.Side = asrCenter
           AnchorSideRight.Control = Button_MainFilter
-          Left = 659
+          Left = 611
           Height = 28
           Top = 295
           Width = 64
@@ -210,6 +209,64 @@ object FormDesktop: TFormDesktop
           Caption = '自动'
           OnClick = CheckBox_MainFilterAutoClick
           TabOrder = 3
+        end
+        object Edit_DBGridMain_Sorter: TEdit
+          AnchorSideLeft.Control = Panel_DBGridMain
+          AnchorSideRight.Control = CheckBox_MainSorterAuto
+          AnchorSideBottom.Control = Edit_DBGridMain_Filter
+          Left = 71
+          Height = 32
+          Top = 261
+          Width = 535
+          Anchors = [akLeft, akRight, akBottom]
+          BorderSpacing.Left = 70
+          BorderSpacing.Right = 5
+          OnChange = Edit_DBGridMain_SorterChange
+          OnKeyDown = Edit_DBGridMain_SorterKeyDown
+          TabOrder = 4
+          Text = '"PID"'
+        end
+        object Label_MainSorter: TLabel
+          AnchorSideLeft.Control = Panel_DBGridMain
+          AnchorSideTop.Control = Edit_DBGridMain_Sorter
+          AnchorSideTop.Side = asrCenter
+          Left = 6
+          Height = 24
+          Hint = '按顺序输入主表中的字段名，用半角双引号包括在内，用空格或逗号间隔。'
+          Top = 265
+          Width = 52
+          BorderSpacing.Left = 5
+          Caption = 'Sorter'
+          ParentColor = False
+        end
+        object CheckBox_MainSorterAuto: TCheckBox
+          AnchorSideTop.Control = Edit_DBGridMain_Sorter
+          AnchorSideTop.Side = asrCenter
+          AnchorSideRight.Control = Button_MainSorter
+          Left = 611
+          Height = 28
+          Top = 263
+          Width = 64
+          Anchors = [akTop, akRight]
+          BorderSpacing.Right = 5
+          Caption = '自动'
+          OnClick = CheckBox_MainSorterAutoClick
+          TabOrder = 5
+        end
+        object Button_MainSorter: TButton
+          AnchorSideTop.Control = Edit_DBGridMain_Sorter
+          AnchorSideRight.Control = DBGrid_Main
+          AnchorSideRight.Side = asrBottom
+          AnchorSideBottom.Control = Edit_DBGridMain_Sorter
+          AnchorSideBottom.Side = asrBottom
+          Left = 680
+          Height = 32
+          Top = 261
+          Width = 60
+          Anchors = [akTop, akRight, akBottom]
+          Caption = '排序'
+          OnClick = Button_MainSorterClick
+          TabOrder = 6
         end
       end
     end
@@ -966,7 +1023,7 @@ object FormDesktop: TFormDesktop
   object Splitter_MainV: TSplitter
     AnchorSideTop.Control = Owner
     AnchorSideBottom.Control = StatusBar
-    Left = 200
+    Left = 248
     Height = 558
     Top = 0
     Width = 6
@@ -980,10 +1037,10 @@ object FormDesktop: TFormDesktop
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     Cursor = crVSplit
-    Left = 206
+    Left = 254
     Height = 6
     Top = 363
-    Width = 797
+    Width = 749
     Align = alNone
     Anchors = [akLeft, akRight]
     ResizeAnchor = akTop
@@ -997,10 +1054,10 @@ object FormDesktop: TFormDesktop
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = StatusBar
-    Left = 206
+    Left = 254
     Height = 189
     Top = 369
-    Width = 797
+    Width = 749
     ActivePage = TabSheet_FmtCmt
     Anchors = [akTop, akLeft, akRight, akBottom]
     TabIndex = 1
@@ -1025,13 +1082,13 @@ object FormDesktop: TFormDesktop
     object TabSheet_FmtCmt: TTabSheet
       Caption = '编辑属性(单个)'
       ClientHeight = 152
-      ClientWidth = 789
+      ClientWidth = 741
       object Button_FmtCmt_Post: TButton
         AnchorSideLeft.Control = ComboBox_AttrName
         AnchorSideRight.Control = TabSheet_FmtCmt
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = Button_FmtCmt_Recover
-        Left = 642
+        Left = 594
         Height = 32
         Top = 68
         Width = 142
@@ -1049,7 +1106,7 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = TabSheet_FmtCmt
         AnchorSideBottom.Side = asrBottom
-        Left = 642
+        Left = 594
         Height = 32
         Top = 110
         Width = 142
@@ -1070,7 +1127,7 @@ object FormDesktop: TFormDesktop
         Left = 0
         Height = 152
         Top = 0
-        Width = 564
+        Width = 516
         Anchors = [akTop, akLeft, akRight, akBottom]
         BorderSpacing.Right = 225
         OnChange = Memo_FmtCmtChange
@@ -1082,7 +1139,7 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Control = TabSheet_FmtCmt
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = ComboBox_FieldName
-        Left = 642
+        Left = 594
         Height = 32
         Top = -16
         Width = 112
@@ -1102,7 +1159,7 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Control = TabSheet_FmtCmt
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = Button_FmtCmt_Post
-        Left = 642
+        Left = 594
         Height = 32
         Top = 26
         Width = 112
@@ -1122,7 +1179,7 @@ object FormDesktop: TFormDesktop
         AnchorSideTop.Control = ComboBox_AttrName
         AnchorSideTop.Side = asrCenter
         AnchorSideRight.Control = ComboBox_AttrName
-        Left = 574
+        Left = 526
         Height = 21
         Top = -10
         Width = 68
@@ -1134,7 +1191,7 @@ object FormDesktop: TFormDesktop
         AnchorSideTop.Control = ComboBox_FieldName
         AnchorSideTop.Side = asrCenter
         AnchorSideRight.Control = ComboBox_FieldName
-        Left = 574
+        Left = 526
         Height = 21
         Top = 32
         Width = 68
@@ -1145,7 +1202,7 @@ object FormDesktop: TFormDesktop
       object Label_FmtCmtPID: TLabel
         AnchorSideLeft.Control = StaticText_AttrNameCombo
         AnchorSideTop.Control = Button_FmtCmt_Post
-        Left = 574
+        Left = 526
         Height = 24
         Top = 98
         Width = 66
@@ -1158,7 +1215,7 @@ object FormDesktop: TFormDesktop
         AnchorSideTop.Control = ComboBox_FieldName
         AnchorSideRight.Control = TabSheet_FmtCmt
         AnchorSideRight.Side = asrBottom
-        Left = 760
+        Left = 712
         Height = 24
         Hint = '该字段不支持FmtCmt'
         Top = 28
@@ -1189,7 +1246,7 @@ object FormDesktop: TFormDesktop
         AnchorSideTop.Control = ComboBox_FieldName
         AnchorSideRight.Control = TabSheet_FmtCmt
         AnchorSideRight.Side = asrBottom
-        Left = 760
+        Left = 712
         Height = 24
         Hint = '该字段支持FmtCmt'
         Top = 28
@@ -1354,7 +1411,7 @@ object FormDesktop: TFormDesktop
     Left = 0
     Height = 6
     Top = 0
-    Width = 200
+    Width = 248
     Align = alNone
     Anchors = [akTop, akLeft, akRight]
     ResizeAnchor = akTop
@@ -1369,20 +1426,20 @@ object FormDesktop: TFormDesktop
     Left = 0
     Height = 552
     Top = 6
-    Width = 200
-    ActivePage = TabSheet_Filter_Field
+    Width = 248
+    ActivePage = TabSheet_Filter_Klass
     Anchors = [akTop, akLeft, akRight, akBottom]
     Constraints.MinWidth = 200
     Font.CharSet = ANSI_CHARSET
     Font.Pitch = fpFixed
     Font.Quality = fqDraft
     ParentFont = False
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 7
     object TabSheet_Filter_Klass: TTabSheet
       Caption = '分类节点'
       ClientHeight = 515
-      ClientWidth = 192
+      ClientWidth = 240
       Font.CharSet = ANSI_CHARSET
       Font.Pitch = fpFixed
       Font.Quality = fqDraft
@@ -1392,12 +1449,12 @@ object FormDesktop: TFormDesktop
         AnchorSideTop.Control = TabSheet_Filter_Klass
         AnchorSideRight.Control = TabSheet_Filter_Klass
         AnchorSideRight.Side = asrBottom
-        AnchorSideBottom.Control = TabSheet_Filter_Klass
+        AnchorSideBottom.Control = RadioButton_KlassOR
         AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 479
+        Height = 442
         Top = 0
-        Width = 192
+        Width = 240
         Anchors = [akTop, akLeft, akRight, akBottom]
         AutoSort = False
         BorderSpacing.Bottom = 36
@@ -1425,7 +1482,7 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = TabSheet_Filter_Klass
         AnchorSideBottom.Side = asrBottom
-        Left = 166
+        Left = 214
         Height = 26
         Hint = '长度限制在40个字节（约13个汉字），'#13#10'可使用的特殊符号包括：()_-+&"'':'
         Top = 484
@@ -1447,7 +1504,7 @@ object FormDesktop: TFormDesktop
         Left = 56
         Height = 32
         Top = 478
-        Width = 110
+        Width = 158
         Anchors = [akLeft, akRight, akBottom]
         BorderSpacing.Bottom = 5
         TabOrder = 2
@@ -1465,6 +1522,50 @@ object FormDesktop: TFormDesktop
         BorderSpacing.Bottom = 5
         Caption = '分类：'
         ParentColor = False
+      end
+      object CheckBox_KlassNot: TCheckBox
+        AnchorSideLeft.Control = RadioButton_KlassOR
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideBottom.Control = RadioButton_KlassOR
+        AnchorSideBottom.Side = asrCenter
+        Left = 152
+        Height = 28
+        Top = 450
+        Width = 64
+        Anchors = [akLeft, akBottom]
+        Caption = '取反'
+        Enabled = False
+        TabOrder = 3
+      end
+      object RadioButton_KlassAND: TRadioButton
+        AnchorSideRight.Control = RadioButton_KlassOR
+        AnchorSideBottom.Control = RadioButton_KlassOR
+        AnchorSideBottom.Side = asrCenter
+        Left = 24
+        Height = 28
+        Top = 450
+        Width = 64
+        Anchors = [akRight, akBottom]
+        Caption = '交集'
+        Enabled = False
+        OnClick = RadioButton_KlassANDClick
+        TabOrder = 4
+      end
+      object RadioButton_KlassOR: TRadioButton
+        AnchorSideLeft.Control = TabSheet_Filter_Klass
+        AnchorSideLeft.Side = asrCenter
+        AnchorSideBottom.Control = Edit_AddKlass
+        Left = 88
+        Height = 28
+        Top = 450
+        Width = 64
+        Anchors = [akLeft, akBottom]
+        Caption = '并集'
+        Checked = True
+        Enabled = False
+        OnClick = RadioButton_KlassORClick
+        TabOrder = 5
+        TabStop = True
       end
     end
     object TabSheet_Filter_Field: TTabSheet
@@ -1975,8 +2076,8 @@ object FormDesktop: TFormDesktop
     end
   end
   object PopupMenu_ClassManager: TPopupMenu
-    left = 88
-    top = 352
+    left = 96
+    top = 304
     object MenuItem_ClassMgr_Del: TMenuItem
       Caption = '删除分类'
       OnClick = MenuItem_ClassMgr_DelClick
@@ -2004,8 +2105,8 @@ object FormDesktop: TFormDesktop
     end
   end
   object PopupMenu_FieldManager: TPopupMenu
-    left = 88
-    top = 392
+    left = 96
+    top = 352
     object MenuItem_FieldMgr_Edit: TMenuItem
       Caption = '字段设置'
       OnClick = MenuItem_FieldMgr_EditClick
