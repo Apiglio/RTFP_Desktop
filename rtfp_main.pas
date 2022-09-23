@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog;
 
 const
-  C_VERSION_NUMBER  = '0.2.3-alpha.9';
+  C_VERSION_NUMBER  = '0.2.3-alpha.10';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -239,8 +239,8 @@ type
     procedure Button_MainSorterClick(Sender: TObject);
 
     procedure Button_NodeViewRecoverClick(Sender: TObject);
-    procedure Button_Project_NodeView_FreshClick(Sender: TObject);
     procedure Button_tempClick(Sender: TObject);
+    procedure CheckBox_KlassNotClick(Sender: TObject);
     procedure CheckBox_MainSorterAutoClick(Sender: TObject);
     procedure Edit_DBGridMain_SorterChange(Sender: TObject);
     procedure Edit_DBGridMain_SorterKeyDown(Sender: TObject; var Key: Word;
@@ -2271,17 +2271,14 @@ begin
   NodeViewValidate;
 end;
 
-procedure TFormDesktop.Button_Project_NodeView_FreshClick(Sender: TObject);
-begin
-  //LvlGraphControl.Clear;
-  //LvlGraphControl.Graph.GetEdge('AA','BB',true);
-  //LvlGraphControl.Graph.GetEdge('AA','CC',true);
-  //LvlGraphControl.Graph.GetEdge('AA','DD',true);
-end;
-
 procedure TFormDesktop.Button_tempClick(Sender: TObject);
 begin
   LayoutMode:=(LayoutMode+1) mod 3;
+end;
+
+procedure TFormDesktop.CheckBox_KlassNotClick(Sender: TObject);
+begin
+  CurrentRTFP.RunPerformance.Klass_Filter_NOT:=(Sender as TCheckBox).Checked;
 end;
 
 procedure TFormDesktop.CheckBox_MainSorterAutoClick(Sender: TObject);

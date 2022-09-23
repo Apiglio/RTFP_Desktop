@@ -231,7 +231,7 @@ begin
       for klass in FKlassList do
         begin
           with klass.Dbf do begin
-            if not klass.FilterEnabled then continue;
+            if not RunPerformance.Klass_Filter_NOT xor klass.FilterEnabled then continue;
             if not Active then Open;
             First;
             while not EOF do
@@ -376,27 +376,30 @@ begin
 end;
 
 function CheckRegExpr(expr:string):boolean;
-var regg:TRegExpr;
+//var regg:TRegExpr;
 begin
   result:=false;
   if expr='' then exit;
-  regg:=TRegExpr.Create(expr);
+  //regg:=TRegExpr.Create{(expr)};
+  //try
   try
-    try
-      //regg.Expression:=expr;
-      if regg.Exec('-9~Ma中') then;
-      except exit;
-    end;
-  finally
-    regg.Free;
+    //regg.Expression:=expr;
+    //if regg.Exec('-9~Ma中') then;
+    rtfp_reg.Expression:=expr;
+    if rtfp_reg.Exec('-9~Ma中') then;
+  except
+    exit;
   end;
+  //finally
+    //regg.Free;
+  //end;
   result:=true;
 end;
 
 procedure TRTFP.TableFilter;
 var colname,method,value:string;
     col_num:integer;
-    regg:TRegExpr;
+    //regg:TRegExpr;
     cmd:string;
     bm:TBookMark;
     mem:TMemoryStream;
@@ -417,7 +420,7 @@ begin
   cmd:=RunPerformance.Filter_Command;
 
   if (not IsUpdating) and (FOnMainGridRebuilding<>nil) then FOnMainGridRebuilding(Self);
-  regg:=TRegExpr.Create;
+  //regg:=TRegExpr.Create;
   mem:=TMemoryStream.Create;
   BeginUpdate;
   bm:=FPaperDS.Bookmark;
@@ -447,7 +450,9 @@ begin
 
     case method of
       'true','false','valid':;
-      'reg':if CheckRegExpr(value) then regg.Expression:=value else exit;//主窗体的try except似乎没啥用，正则表达式不能判断错误，错误的表达式直接导致闪退
+      'reg':if CheckRegExpr(value) then rtfp_reg.Expression:=value else exit;
+      //'reg':if CheckRegExpr(value) then regg.Expression:=value else exit;
+      //主窗体的try except似乎没啥用，正则表达式不能判断错误，错误的表达式直接导致闪退
       else if FAuf.ArgsCount<3 then exit;
     end;
 
@@ -489,7 +494,8 @@ begin
               'gtq':if Fields[Col_num].AsLargeInt<Usf.to_f(value) then Delete else Next;
               'les':if Fields[Col_num].AsLargeInt>=Usf.to_f(value) then Delete else Next;
               'leq':if Fields[Col_num].AsLargeInt>Usf.to_f(value) then Delete else Next;
-              'reg':if not regg.Exec(Fields[Col_num].AsString) then Delete else Next;
+              //'reg':if not regg.Exec(Fields[Col_num].AsString) then Delete else Next;
+              'reg':if not rtfp_reg.Exec(Fields[Col_num].AsString) then Delete else Next;
               else exit;
             end;
           end;
@@ -500,7 +506,7 @@ begin
     FAuf.Script.IO_fptr.echo:=tmp_pfunc[2];
     if FPaperDS.BookmarkValid(bm) then FPaperDS.GotoBookmark(bm);
     EndUpdate;
-    regg.Free;
+    //regg.Free;
     mem.Free;
     if (not IsUpdating) and (FOnMainGridRebuildDone<>nil) then FOnMainGridRebuildDone(Self);
   end;

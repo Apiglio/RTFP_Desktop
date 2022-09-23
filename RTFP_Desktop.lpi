@@ -316,7 +316,6 @@
       </Item6>
       <Item7>
         <Name Value="EDatabaseError"/>
-        <Enabled Value="False"/>
       </Item7>
       <Item8>
         <Name Value="EConvertError"/>

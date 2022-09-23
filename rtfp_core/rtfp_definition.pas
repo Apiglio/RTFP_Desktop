@@ -134,6 +134,10 @@ type
       Filter_AutoRun:boolean;
       Sorter_Command:string;
       Sorter_AutoRun:boolean;
+
+      Klass_Filter_NOT:boolean;
+      Klass_Filter_AND:boolean;//false则为OR
+
     end;
 
 
@@ -561,6 +565,7 @@ procedure AufScriptFuncDefineRTFP(Auf:TAuf);
 
 implementation
 uses RTFP_main, rtfp_field_convert, Zipper;
+var rtfp_reg:TRegExpr;
 
 {$I aufunc.inc}
 {$I events.inc}
@@ -1942,6 +1947,13 @@ begin
   ShellExecute(0,'open',pchar(linkage),'','',SW_NORMAL);
   {$endif}
 end;
+
+initialization
+
+  rtfp_reg:=TRegExpr.Create;
+
+finalization
+  rtfp_reg.Free;
 
 end.
 
