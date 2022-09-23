@@ -417,7 +417,7 @@ var bm:TBookMark;
 
 begin
   with CurrentRTFP.PaperDS do begin
-    rec_no:=RecNo;
+    rec_no:=RecordCount;
     img.Bitmap.Height:=cell_height*rec_no;
     pixel_width:=0;
     for pi:=0 to FieldDefs.Count-1 do begin

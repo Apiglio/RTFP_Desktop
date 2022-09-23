@@ -234,9 +234,9 @@ object FormDesktop: TFormDesktop
           Height = 24
           Hint = '按顺序输入主表中的字段名，用半角双引号包括在内，用空格或逗号间隔。'
           Top = 265
-          Width = 52
+          Width = 56
           BorderSpacing.Left = 5
-          Caption = 'Sorter'
+          Caption = 'Sorter:'
           ParentColor = False
         end
         object CheckBox_MainSorterAuto: TCheckBox
@@ -1534,7 +1534,7 @@ object FormDesktop: TFormDesktop
         Width = 64
         Anchors = [akLeft, akBottom]
         Caption = '取反'
-        Enabled = False
+        OnClick = CheckBox_KlassNotClick
         TabOrder = 3
       end
       object RadioButton_KlassAND: TRadioButton

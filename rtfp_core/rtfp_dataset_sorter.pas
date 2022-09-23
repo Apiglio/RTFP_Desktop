@@ -197,13 +197,17 @@ end;
 function Intern_DSSortMethod(Item1,Item2:Pointer;ds:TDataSet=nil;AOptions:TDataSetSortOption=nil):integer;
 var tmpDSSOption:TDataSetSortOption;
     v1,v2:Variant;
-    reverse:integer;
+    reverse,fs,fi:integer;
+    no_field:boolean;
 begin
   result:=0;
   tmpDSSOption:=AOptions;
   while true do begin
     if tmpDSSOption=nil then exit;
-    if ds.FieldByName(tmpDSSOption.FieldName)=nil then begin
+    fs:=ds.FieldCount;
+    no_field:=true;
+    for fi:=0 to fs-1 do if ds.FieldDefs.Items[fi].Name=tmpDSSOption.FieldName then begin no_field:=false;break;end;
+    if no_field then begin
       tmpDSSOption:=tmpDSSOption.NextOption as TDataSetSortOption;
       continue;
     end;
@@ -233,9 +237,6 @@ var index,index_sub,field_no,dssize,fdcount:longint;
     order,fixed_order:array of longint;
     field_var:array of Variant;
     ptr:Pointer;
-    {$ifdef ListDialogTest}
-    tmpStrList:TStringList;
-    {$endif}
 
 begin
   if DSSOption=nil then exit;
@@ -244,9 +245,6 @@ begin
   fdcount:=ds.FieldCount;
 
   binary_tree_sort:=TSortingBinaryTree.Create;
-  {$ifdef ListDialogTest}
-  tmpStrList:=TStringList.Create;
-  {$endif}
   SetLength(order,dssize);
   SetLength(fixed_order,dssize);
   SetLength(field_var,fdcount);
@@ -258,16 +256,8 @@ begin
     index:=0;
     for ptr in binary_tree_sort do begin
       order[index]:=plongint(ptr)^+1;
-      {$ifdef ListDialogTest}
-      ds.RecNo:=plongint(ptr)^+1;
-      tmpStrList.Add('CunID['+IntToStr(order[index])+']'+ds.FieldByName('编号(村落属性)').AsString);
-      {$endif}
       inc(index);
     end;
-    {$ifdef ListDialogTest}
-    ShowMsgEdit('','',binary_tree_sort.ExportToString(@temp_intern_ptr_str));
-    ShowMsgList('主表排序测试','sort_dateset_list: ',tmpStrList);
-    {$endif}
     for index:=0 to dssize-1 do begin
       ds.RecNo:=order[index];
       for field_no:=0 to fdcount-1 do field_var[field_no]:=ds.Fields[field_no].AsVariant;
@@ -285,9 +275,6 @@ begin
     binary_tree_sort.Free;
     SetLength(order,0);
     SetLength(fixed_order,0);
-    {$ifdef ListDialogTest}
-    tmpStrList.Free;
-    {$endif}
   end;
 end;
 
