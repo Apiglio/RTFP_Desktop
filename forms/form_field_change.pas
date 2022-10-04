@@ -18,10 +18,13 @@ type
     Edit_FieldName: TEdit;
     Edit_FieldSize: TEdit;
     ComboBox_FieldType: TComboBox;
+    Label_FieldComboItem: TLabel;
     Label_FieldName: TLabel;
     Label_FieldType: TLabel;
     Label_FieldSize: TLabel;
+    Memo_ComboItem: TMemo;
     Memo_TypeChangeTip: TMemo;
+    ScrollBox_FieldOption: TScrollBox;
     procedure Button_ChangeFieldClick(Sender: TObject);
     procedure ComboBox_FieldTypeChange(Sender: TObject);
   private
@@ -116,6 +119,8 @@ begin
   //再改名
   if CurrentField.FieldDef.Name<>new_name then CurrentRTFP.RenameField(CurrentField.FieldName,new_name,CurrentField.AttrsGroup.Name);
   ModalResult:=mrOK;
+  //最后改combo选项
+  CurrentField.ComboItem.Assign(Memo_ComboItem.Lines);
 end;
 
 procedure TForm_FieldChange.Call(AAttrsField:TAttrsField);
@@ -136,7 +141,7 @@ begin
     ftString:Edit_FieldSize.Enabled:=true;
     else Edit_FieldSize.Enabled:=false;
   end;
-
+  Memo_ComboItem.Lines.Assign(CurrentField.ComboItem);
 end;
 
 end.

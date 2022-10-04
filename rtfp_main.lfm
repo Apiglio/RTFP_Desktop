@@ -1066,7 +1066,7 @@ object FormDesktop: TFormDesktop
     object TabSheet_Node_PDF: TTabSheet
       Caption = 'PDF预览'
       ClientHeight = 152
-      ClientWidth = 789
+      ClientWidth = 741
       object Image_PDF_View: TImage
         AnchorSideLeft.Control = TabSheet_Node_PDF
         AnchorSideTop.Control = TabSheet_Node_PDF
@@ -1283,7 +1283,7 @@ object FormDesktop: TFormDesktop
     object TabSheet_Node_FormatEdit: TTabSheet
       Caption = '编辑属性(样式)'
       ClientHeight = 152
-      ClientWidth = 789
+      ClientWidth = 741
       object ScrollBox_Node_FormatEdit: TScrollBox
         AnchorSideLeft.Control = TabSheet_Node_FormatEdit
         AnchorSideTop.Control = TabSheet_Node_FormatEdit
@@ -1294,7 +1294,7 @@ object FormDesktop: TFormDesktop
         Left = 0
         Height = 116
         Top = 0
-        Width = 789
+        Width = 741
         HorzScrollBar.Page = 1
         HorzScrollBar.Visible = False
         VertScrollBar.Page = 1
@@ -1309,7 +1309,7 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Control = ComboBox_FormatEdit
         AnchorSideBottom.Control = ComboBox_FormatEdit
         AnchorSideBottom.Side = asrCenter
-        Left = 239
+        Left = 215
         Height = 28
         Top = 118
         Width = 90
@@ -1327,7 +1327,7 @@ object FormDesktop: TFormDesktop
         AnchorSideTop.Side = asrCenter
         AnchorSideBottom.Control = ComboBox_FormatEdit
         AnchorSideBottom.Side = asrCenter
-        Left = 459
+        Left = 435
         Height = 28
         Top = 118
         Width = 90
@@ -1345,7 +1345,7 @@ object FormDesktop: TFormDesktop
         AnchorSideTop.Side = asrCenter
         AnchorSideBottom.Control = TabSheet_Node_FormatEdit
         AnchorSideBottom.Side = asrBottom
-        Left = 334
+        Left = 310
         Height = 32
         Top = 116
         Width = 120
@@ -1362,7 +1362,7 @@ object FormDesktop: TFormDesktop
         AnchorSideLeft.Side = asrBottom
         AnchorSideBottom.Control = ComboBox_FormatEdit
         AnchorSideBottom.Side = asrCenter
-        Left = 554
+        Left = 530
         Height = 28
         Hint = '提交并查看下一条'
         Top = 118
@@ -1379,7 +1379,7 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Control = Button_FormatEditPost
         AnchorSideBottom.Control = ComboBox_FormatEdit
         AnchorSideBottom.Side = asrCenter
-        Left = 180
+        Left = 156
         Height = 28
         Hint = '提交并查看上一条'
         Top = 118

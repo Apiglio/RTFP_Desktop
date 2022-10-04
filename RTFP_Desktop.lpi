@@ -101,7 +101,9 @@
       <Unit8>
         <Filename Value="forms\form_formatedit_option.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="FormFormatEditOption"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
       </Unit8>
       <Unit9>
         <Filename Value="forms\form_import.pas"/>

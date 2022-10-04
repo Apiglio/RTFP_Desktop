@@ -29,12 +29,13 @@ type
     Memo_RegExpr: TMemo;
     PageControl_Option: TPageControl;
     CheckBox_SyncEnabled: TCheckBox;
+    RadioGroup_MGSC_CR: TRadioGroup;
     RadioGroup_BackupMode: TRadioGroup;
     ScrollBox_Sync: TScrollBox;
     SelectDirectoryDialog: TSelectDirectoryDialog;
     TabSheet_Backup: TTabSheet;
     TabSheet_Format: TTabSheet;
-    TabSheet_Summary: TTabSheet;
+    TabSheet_MaingridShortcut: TTabSheet;
     TabSheet_Sync: TTabSheet;
     TrackBar_SyncInterval: TTrackBar;
     procedure Button_SyncPathClick(Sender: TObject);
@@ -48,6 +49,7 @@ type
     procedure Memo_RegExprChange(Sender: TObject);
     procedure CheckBox_SyncEnabledChange(Sender: TObject);
     procedure RadioGroup_BackupModeClick(Sender: TObject);
+    procedure RadioGroup_MGSC_CRClick(Sender: TObject);
     procedure TrackBar_SyncIntervalChange(Sender: TObject);
   private
     TimerEnabled:boolean;//在OnShow和OnHide之间存储FormDesktop.SyncTimer.Enabled
@@ -111,6 +113,17 @@ begin
   CheckBox_Backup_xml.Checked:=FormDesktop.OptionMap.Backup_SaveXml;
   CheckBox_Fields_img.Checked:=FormDesktop.OptionMap.Fields_ImgFile;
   CheckBox_FormatEditOpt_ForceSave.Checked:=FormDesktop.OptionMap.ForceSaveField;
+  case FormDesktop.OptionMap.Shortcut_CtrlR of
+    mgsc_cc_title:RadioGroup_MGSC_CR.ItemIndex:=0;
+    mgsc_cc_path:RadioGroup_MGSC_CR.ItemIndex:=1;
+    mgsc_cc_link:RadioGroup_MGSC_CR.ItemIndex:=2;
+    mgsc_cc_gb7714:RadioGroup_MGSC_CR.ItemIndex:=3;
+    mgsc_cc_apa:RadioGroup_MGSC_CR.ItemIndex:=4;
+    mgsc_cc_mla:RadioGroup_MGSC_CR.ItemIndex:=5;
+    mgsc_cc_order:RadioGroup_MGSC_CR.ItemIndex:=6;
+    mgsc_cc_auyear:RadioGroup_MGSC_CR.ItemIndex:=7;
+    else RadioGroup_MGSC_CR.ItemIndex:=-1;
+  end;
 end;
 
 procedure TFormOptions.FormHide(Sender: TObject);
@@ -174,6 +187,27 @@ begin
   end;
 end;
 
+procedure TFormOptions.RadioGroup_MGSC_CRClick(Sender: TObject);
+var tmpCR:TMGSC_CR_Option;
+begin
+  with (Sender as TRadioGroup) do begin
+    case ItemIndex of
+      0:tmpCR:=mgsc_cc_title;
+      1:tmpCR:=mgsc_cc_path;
+      2:tmpCR:=mgsc_cc_link;
+      3:tmpCR:=mgsc_cc_gb7714;
+      4:tmpCR:=mgsc_cc_apa;
+      5:tmpCR:=mgsc_cc_mla;
+      6:tmpCR:=mgsc_cc_order;
+      7:tmpCR:=mgsc_cc_auyear;
+      else
+    end;
+  end;
+  FormDesktop.OptionMap.Shortcut_CtrlR:=tmpCR;
+  //if not ProjectInvalid then CurrentRTFP.RunPerformance.:=tmpCR;不涉及工程的设置
+
+end;
+
 procedure TFormOptions.LoadOptionFromReg;
 var Reg:TRegistry;
 begin
@@ -206,6 +240,15 @@ begin
     else
       begin
         FormDesktop.OptionMap.Backup_SaveXml:=false;
+      end;
+    if Reg.OpenKey('Software\ApiglioToolBox\RTFP_Desktop\ShortcutOption',false) then
+      begin
+        FormDesktop.OptionMap.Shortcut_CtrlR:=TMGSC_CR_Option(Reg.ReadInteger('Ctrl_R'));
+        Reg.CloseKey;
+      end
+    else
+      begin
+        FormDesktop.OptionMap.Shortcut_CtrlR:=mgsc_cc_gb7714;
       end;
     if Reg.OpenKey('Software\ApiglioToolBox\RTFP_Desktop\FieldsOption',false) then
       begin
@@ -242,6 +285,10 @@ begin
 
     Reg.OpenKey('Software\ApiglioToolBox\RTFP_Desktop\BackupOption',true);
     Reg.WriteBool('SaveXml',FormDesktop.OptionMap.Backup_SaveXml);
+    Reg.CloseKey;
+
+    Reg.OpenKey('Software\ApiglioToolBox\RTFP_Desktop\ShortcutOption',true);
+    Reg.WriteInteger('Ctrl_R',integer(FormDesktop.OptionMap.Shortcut_CtrlR));
     Reg.CloseKey;
 
     Reg.OpenKey('Software\ApiglioToolBox\RTFP_Desktop\FieldsOption',true);

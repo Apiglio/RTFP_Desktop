@@ -14,10 +14,10 @@ uses
 
   Apiglio_Useful, AufScript_Frame, ACL_ListView, TreeListView,
 
-  RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog;
+  RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.3-alpha.10';
+  C_VERSION_NUMBER  = '0.2.3-alpha.11';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -378,6 +378,7 @@ type
       Backup_SaveXml:boolean;
       Fields_ImgFile:boolean;
       ForceSaveField:boolean;
+      Shortcut_CtrlR:TMGSC_CR_Option;
     end;//这些设置需要同步到RTFP对象中，打开工程时需要赋值，同时在软件打开时从注册表中读取，关闭是保存到注册表
     RunOption:record
       Filter_AutoRun:boolean;
@@ -388,6 +389,8 @@ type
     function Selected_PID:RTFP_ID;//根据DBGrid_Main的选择返回PID
     function Select_PID(PID:RTFP_ID):Boolean;
     function Selected_FileName:string;//根据DBGrid_Main的选择返回文件名
+    function Selected_Title:string;//根据DBGrid_Main的选择返回标题
+    function Selected_Link:string;//根据DBGrid_Main的选择返回链接
     procedure ShowStatusHelper(str:string);
 
   public
@@ -818,6 +821,20 @@ begin
   if DBGrid_Main.DataSource.DataSet=nil then exit;
   if not DBGrid_Main.DataSource.DataSet.Active then exit;
   result:=DBGrid_Main.DataSource.DataSet.Fields.FieldByName(_Col_Paper_FileName_).AsString;
+end;
+function TFormDesktop.Selected_Title:string;
+begin
+  result:='';
+  if DBGrid_Main.DataSource.DataSet=nil then exit;
+  if not DBGrid_Main.DataSource.DataSet.Active then exit;
+  result:=CurrentRTFP.ReadFieldAsString(_Col_basic_Title_,_Attrs_Basic_,Selected_PID,[]);
+end;
+function TFormDesktop.Selected_Link:string;
+begin
+  result:='';
+  if DBGrid_Main.DataSource.DataSet=nil then exit;
+  if not DBGrid_Main.DataSource.DataSet.Active then exit;
+  result:=CurrentRTFP.ReadFieldAsString(_Col_basic_Link_,_Attrs_Basic_,Selected_PID,[]);
 end;
 
 procedure TFormDesktop.ShowStatusHelper(str: string);
@@ -2278,7 +2295,9 @@ end;
 
 procedure TFormDesktop.CheckBox_KlassNotClick(Sender: TObject);
 begin
+  if ProjectInvalid then exit;
   CurrentRTFP.RunPerformance.Klass_Filter_NOT:=(Sender as TCheckBox).Checked;
+  CurrentRTFP.RebuildMainGrid;
 end;
 
 procedure TFormDesktop.CheckBox_MainSorterAutoClick(Sender: TObject);
@@ -2307,12 +2326,16 @@ end;
 
 procedure TFormDesktop.RadioButton_KlassANDClick(Sender: TObject);
 begin
+  if ProjectInvalid then exit;
   RadioButton_KlassOR.Checked:=not (Sender as TRadioButton).Checked;
+  CurrentRTFP.RebuildMainGrid;
 end;
 
 procedure TFormDesktop.RadioButton_KlassORClick(Sender: TObject);
 begin
+  if ProjectInvalid then exit;
   RadioButton_KlassAND.Checked:=not (Sender as TRadioButton).Checked;
+  CurrentRTFP.RebuildMainGrid;
 end;
 
 procedure TFormDesktop.CheckBox_MainFilterAutoClick(Sender: TObject);
@@ -2401,6 +2424,19 @@ begin
         79:CurrentRTFP.OpenPaper(Selected_PID);//O
         68:CurrentRTFP.OpenPaperDir(Selected_PID);//D
         83:if not ProjectInvalid then CurrentRTFP.Save;//S
+        82:begin
+          case OptionMap.Shortcut_CtrlR of
+            mgsc_cc_title:ClipBoard.AsText:=Self.Selected_Title;
+            mgsc_cc_path:ClipBoard.AsText:=Self.Selected_FileName;
+            mgsc_cc_link:ClipBoard.AsText:=Self.Selected_Link;
+            mgsc_cc_gb7714:ClipBoard.AsText:=CurrentRTFP.GetGBT7714(Selected_PID);
+            mgsc_cc_apa:ClipBoard.AsText:=CurrentRTFP.GetAPA(Selected_PID);
+            mgsc_cc_mla:ClipBoard.AsText:=CurrentRTFP.GetMLA(Selected_PID);
+            mgsc_cc_order:ClipBoard.AsText:=CurrentRTFP.GetRef_InOrder(Selected_PID);
+            mgsc_cc_auyear:ClipBoard.AsText:=CurrentRTFP.GetRef_AurYear(Selected_PID);
+            else ;
+          end;
+        end;//R
       end;
     end;
   //方向键时刷新主表
