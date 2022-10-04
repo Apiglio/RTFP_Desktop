@@ -27,6 +27,10 @@ type
   TSimChkOptions = set of TSimChkOption;
   TRTFP_DataSetType = (dstDBF,dstBUF);
 
+  TMGSC_CR_Option = (mgsc_cc_unknown=0, mgsc_cc_title=1, mgsc_cc_path=2,
+                     mgsc_cc_link=3, mgsc_cc_gb7714=4, mgsc_cc_apa=5,
+                     mgsc_cc_mla=6, mgsc_cc_order=7, mgsc_cc_auyear=8);//数字不允许修改，只能增加，用于注册表
+
 
 implementation
 
