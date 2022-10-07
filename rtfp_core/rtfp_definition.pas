@@ -45,7 +45,7 @@ unit RTFP_definition;
 interface
 
 uses
-  Classes, SysUtils, Dialogs, ValEdit, LazUTF8, StdCtrls, ComCtrls, ExtCtrls, Forms,
+  Classes, SysUtils, Dialogs, ValEdit, LazUTF8, StdCtrls, ComCtrls, ExtCtrls, Forms, FileUtil,
   ACL_ListView, Controls, Graphics, RegExpr,
 
   {$ifdef Windows}
@@ -542,6 +542,7 @@ type
     class function FileMove(source,dest:string;bFailIfExist:boolean):boolean;
     class function FileRename(oldname,newname:string):boolean;
     class function MakeDir(filename:string):boolean;inline;
+    class function DeleteDir(filename:string;force_delete:boolean=false):boolean;inline;
     class function OpenDir(filename:string):boolean;inline;
     class function OpenFile(filename:string;exefile:string=''):boolean;inline;
     class function OpenLink(linkage:string):boolean;inline;
@@ -1916,6 +1917,21 @@ class function TRTFP.MakeDir(filename:string):boolean;
 begin
   result:=false;
   result:=ForceDirectories(filename);
+end;
+
+class function TRTFP.DeleteDir(filename:string;force_delete:boolean=false):boolean;
+var filelist:TStringList;
+    stmp:string;
+begin
+  result:=false;
+  filelist:=TStringList.Create;
+  try
+    FindAllFiles(filelist,filename,'',true,faAnyFile);
+    for stmp in filelist do FileDelete(stmp);
+  finally
+    filelist.Free;
+  end;
+  result:=RemoveDir(filename);
 end;
 
 class function TRTFP.OpenDir(filename:string):boolean;

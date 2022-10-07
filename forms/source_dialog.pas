@@ -59,6 +59,7 @@ begin
     'No':;
     else result:=false;
   end;
+  CurrentRTFP.DataChange(Current_PID);
 end;
 function TForm_FileSource.SetNewBackup(backup:string):boolean;
 var pathn,filen:string;
@@ -76,6 +77,7 @@ begin
   CurrentRTFP.EditBasicString(_Col_Paper_Folder_,Current_PID,pathn);
   CurrentRTFP.EditBasicString(_Col_Paper_FileName_,Current_PID,filen);
   CurrentRTFP.EditBasicBool(_Col_Paper_Is_Backup_,Current_PID,true);
+  CurrentRTFP.DataChange(Current_PID);
   result:=true;
 end;
 procedure TForm_FileSource.SetWeblink(weblink:string);
@@ -84,19 +86,21 @@ begin
   CurrentRTFP.EditBasicString(_Col_Paper_Folder_,Current_PID,'weblnk');
   CurrentRTFP.EditBasicString(_Col_Paper_FileName_,Current_PID,'');
   CurrentRTFP.EditBasicBool(_Col_Paper_Is_Backup_,Current_PID,false);
-  //ShowMessage(CurrentRTFP.ReadFieldAsString(_Col_basic_Link_,_Attrs_Basic_,Current_PID,[]));
+  CurrentRTFP.DataChange(Current_PID);
 end;
 procedure TForm_FileSource.SetExternPath(path:string);
 begin
   CurrentRTFP.EditBasicString(_Col_Paper_FileName_,Current_PID,path);
   CurrentRTFP.EditBasicString(_Col_Paper_Folder_,Current_PID,'extern');
   CurrentRTFP.EditBasicBool(_Col_Paper_Is_Backup_,Current_PID,false);
+  CurrentRTFP.DataChange(Current_PID);
 end;
 procedure TForm_FileSource.SetDefault;
 begin
   CurrentRTFP.EditBasicString(_Col_Paper_FileName_,Current_PID,'');
   CurrentRTFP.EditBasicString(_Col_Paper_Folder_,Current_PID,'');
   CurrentRTFP.EditBasicBool(_Col_Paper_Is_Backup_,Current_PID,false);
+  CurrentRTFP.DataChange(Current_PID);
 end;
 
 

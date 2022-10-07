@@ -31,6 +31,13 @@ type
                      mgsc_cc_link=3, mgsc_cc_gb7714=4, mgsc_cc_apa=5,
                      mgsc_cc_mla=6, mgsc_cc_order=7, mgsc_cc_auyear=8);//数字不允许修改，只能增加，用于注册表
 
+  TPicStretch = (psch_stretch=0, psch_clip=1, psch_middle=2);//0-拉伸, 1-裁切, 2-缩放居中. 数字不允许修改，只能增加，用于注册表
+  TPicsExportOption = record
+    cell_width:integer;
+    cell_height:integer;
+    head_height:integer;
+    pic_stretch:TPicStretch;
+  end;
 
 implementation
 

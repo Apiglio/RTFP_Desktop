@@ -386,17 +386,18 @@ begin
 end;
 
 procedure ExportFile_PicsTable(img:TPicture);
-const cell_width=100;
-      cell_height=80;
 var bm:TBookMark;
     tmpF:TField;
     stmp:string;
-    rec_no,pi,pixel_width,pixel_height,now_width,idx:integer;
-    cell_rect,src_rect:TRect;
+    rec_no,pi,pixel_width,pixel_height,now_width,idx,pixel_tmp,white_bound:integer;
+    cell_rect,src_rect,mid_rect:TRect;
+    cell_wph,pics_wph:double;
     tmpBMP:TBitmap;
     PID:RTFP_ID;
     AF:TAttrsField;
     ts:TTextStyle;
+    option:TPicsExportOption;
+    option_list:TStringList;
 
     function CellWidth(PAF:Pointer):integer;
     var AF:TAttrsField;
@@ -405,20 +406,51 @@ var bm:TBookMark;
       if PAF=nil then exit;//基础属性全部不输出
       AF:=TAttrsField(PAF);
       case AF.FieldDef.DataType of
-        ftBlob:result:=cell_width;
+        ftBlob:result:=option.cell_width;
         ftString:begin
           if AF.FieldDef.Size<15 then result:=AF.FieldDef.Size*8
           else result:=120;
         end;
         ftMemo:result:=120;
+        ftFloat,ftInteger,ftSmallint,ftLargeint:result:=90;
         else result:=0;
       end;
     end;
 
 begin
+  with option do begin
+    head_height:=60;
+    try
+      cell_height:=StrToInt(ShowMsgEdit('导出图片表格','单元格高度：','120'));
+      if cell_height<40 then cell_height:=40;
+      if cell_height>400 then cell_height:=400;
+    except
+      cell_height:=120;
+    end;
+    try
+      cell_width:=StrToInt(ShowMsgEdit('导出图片表格','单元格宽度：','120'));
+      if cell_width<60 then cell_width:=60;
+      if cell_width>600 then cell_width:=600;
+    except
+      cell_width:=180;
+    end;
+    option_list:=TStringList.Create;
+    try
+      option_list.Add('拉伸');
+      option_list.Add('裁切');
+      option_list.Add('居中');
+      case ShowMsgList('导出图片表格','图片镶嵌模式：',option_list) of
+        '裁切':pic_stretch:=psch_clip;
+        '居中':pic_stretch:=psch_middle;
+        else pic_stretch:=psch_stretch;
+      end;
+    finally
+      option_list.Free;
+    end;
+  end;
   with CurrentRTFP.PaperDS do begin
     rec_no:=RecordCount;
-    img.Bitmap.Height:=cell_height*rec_no;
+    img.Bitmap.Height:=option.cell_height*rec_no+option.head_height;
     pixel_width:=0;
     for pi:=0 to FieldDefs.Count-1 do begin
       inc(pixel_width,CellWidth(CurrentRTFP.PaperDSFieldDefs.Items[pi]));
@@ -443,11 +475,29 @@ begin
       BeginUpdate;
       First;
       pixel_height:=0;//可以直接用rect来替换，后面再改吧
+
+      //打印标题栏
+      pixel_width:=0;
+      for idx:=0 to Fields.count-1 do
+        begin
+          tmpF:=Fields[idx];
+          now_width:=CellWidth(CurrentRTFP.PaperDSFieldDefs.Items[idx]);
+          cell_rect.Left:=pixel_width;
+          cell_rect.Top:=pixel_height;
+          cell_rect.Width:=now_width;
+          cell_rect.Height:=option.head_height;
+          stmp:=tmpF.FieldName;
+          img.Bitmap.Canvas.TextRect(cell_rect,cell_rect.Left,cell_rect.Top+option.head_height div 2,stmp,ts);
+          img.Bitmap.Canvas.Rectangle(cell_rect);
+          inc(pixel_width,now_width);
+        end;
+      inc(pixel_height,option.head_height);
+      cell_wph:=option.cell_width / option.cell_height;
+
       while not EOF do
         begin
           PID:=FieldByName(_Col_PID_).AsString;
           pixel_width:=0;
-          //for tmpF in Fields do
           for idx:=0 to Fields.count-1 do
             begin
               tmpF:=Fields[idx];
@@ -455,7 +505,7 @@ begin
               cell_rect.Left:=pixel_width;
               cell_rect.Top:=pixel_height;
               cell_rect.Width:=now_width;
-              cell_rect.Height:=cell_height;
+              cell_rect.Height:=option.cell_height;
               case tmpF.DataType of
                 ftBlob:begin
                   tmpBMP:=TBitmap.Create;
@@ -463,26 +513,73 @@ begin
                   try
                     AF:=TAttrsField(CurrentRTFP.PaperDSFieldDefs.Items[idx]);
                     CurrentRTFP.ReadFieldAsBitmap(AF.FieldName,AF.AttrsGroup.Name,PID,tmpBMP,[]);
-                    src_rect.Left:=0;
-                    src_rect.Top:=0;
-                    src_rect.Height:=tmpBMP.Height;
-                    src_rect.Width:=tmpBMP.Width;
-                    img.Bitmap.Canvas.CopyMode:=cmSrcCopy;
-                    img.Bitmap.Canvas.CopyRect(cell_rect,tmpBMP.Canvas,src_rect);
+                    IF (tmpBMP.Height<>0) and (tmpBMP.Width<>0) then BEGIN
+                      img.Bitmap.Canvas.CopyMode:=cmSrcCopy;
+                      pics_wph:=tmpBMP.Width / tmpBMP.Height;
+                      case option.pic_stretch of
+                        psch_stretch:begin
+                          src_rect.Top:=0;
+                          src_rect.Left:=0;
+                          src_rect.Width:=tmpBMP.Width;
+                          src_rect.Height:=tmpBMP.Height;
+                          img.Bitmap.Canvas.CopyRect(cell_rect,tmpBMP.Canvas,src_rect);
+                        end;
+                        psch_clip:begin
+                          if pics_wph > cell_wph then begin
+                            pixel_tmp:=trunc(tmpBMP.Height * cell_wph);
+                            white_bound:=tmpBMP.Width - pixel_tmp;
+                            src_rect.Top:=0;
+                            src_rect.Left:=white_bound div 2;
+                            src_rect.Width:=pixel_tmp;
+                            src_rect.Height:=tmpBMP.Height;
+                          end else begin
+                            pixel_tmp:=trunc(tmpBMP.Width / cell_wph);
+                            white_bound:=tmpBMP.Height - pixel_tmp;
+                            src_rect.Top:=white_bound div 2;
+                            src_rect.Left:=0;
+                            src_rect.Width:=tmpBMP.Width;
+                            src_rect.Height:=pixel_tmp;
+                          end;
+                          img.Bitmap.Canvas.CopyRect(cell_rect,tmpBMP.Canvas,src_rect);
+                        end;
+                        psch_middle:begin
+                          src_rect.Top:=0;
+                          src_rect.Left:=0;
+                          src_rect.Width:=tmpBMP.Width;
+                          src_rect.Height:=tmpBMP.Height;
+                          if pics_wph > cell_wph then begin
+                            pixel_tmp:=trunc(cell_rect.Width / pics_wph);
+                            white_bound:=cell_rect.Height - pixel_tmp;
+                            mid_rect.top:=cell_rect.Top+white_bound div 2;
+                            mid_rect.Left:=cell_rect.Left;
+                            mid_rect.Width:=cell_rect.Width;
+                            mid_rect.Height:=cell_rect.Height - white_bound;
+                          end else begin
+                            pixel_tmp:=trunc(cell_rect.Height * pics_wph);
+                            white_bound:=cell_rect.Width - pixel_tmp;
+                            mid_rect.top:=cell_rect.Top;
+                            mid_rect.Left:=cell_rect.Left+white_bound div 2;
+                            mid_rect.Width:=cell_rect.Width - white_bound;
+                            mid_rect.Height:=cell_rect.Height;
+                          end;
+                          img.Bitmap.Canvas.CopyRect(mid_rect,tmpBMP.Canvas,src_rect);
+                        end;
+                      end;
+                    END;
                   finally
                     tmpBMP.Free;
                   end;
                 end;
                 else begin
                   stmp:=tmpF.AsString;
-                  img.Bitmap.Canvas.TextRect(cell_rect,cell_rect.Left,cell_rect.Top+cell_height div 2,stmp,ts);
+                  img.Bitmap.Canvas.TextRect(cell_rect,cell_rect.Left,cell_rect.Top+option.cell_height div 2,stmp,ts);
                 end;
               end;
               img.Bitmap.Canvas.Rectangle(cell_rect);
               inc(pixel_width,now_width);
             end;
           Next;
-          inc(pixel_height,cell_height);
+          inc(pixel_height,option.cell_height);
         end;
       GotoBookmark(bm);
       EndUpdate;
@@ -501,6 +598,8 @@ procedure TFormReportTool.Button_ReportClick(Sender: TObject);
 var filepath,filename:string;
     str:TStringList;
     img:TPicture;
+    option_str:string;
+    pics_option:TPicsExportOption;
 begin
   if not assigned(CurrentRTFP) then exit;
   if not CurrentRTFP.IsOpen then exit;
@@ -521,15 +620,18 @@ begin
     Title:='导出报表';
     FileName:='';
   end;
-  case ListBox_List.Items[ListBox_List.ItemIndex] of
+  option_str:=ListBox_List.Items[ListBox_List.ItemIndex];
+  case option_str of
     '导出图片表格':SaveDialog_report.FilterIndex:=2;
     else SaveDialog_report.FilterIndex:=1;
   end;
   if SaveDialog_report.Execute then filename:=SaveDialog_report.FileName else exit;
-  str:=TStringList.Create;
-  img:=TPicture.Create;
+  case option_str of
+    '导出图片表格':img:=TPicture.Create;
+    else str:=TStringList.Create;
+  end;
   try
-    case ListBox_List.Items[ListBox_List.ItemIndex] of
+    case option_str of
       '工程基础信息':ExportFile_ProjectInfo(str);
       '导出字段数据':ExportFile_FieldsGrid(str);
       '导出当前主表':ExportFile_CurrentGrid(str);
@@ -538,13 +640,15 @@ begin
       '分类统计':ExportFile_KlassInfo(str);
       '属性统计':ExportFile_FieldInfo(str);
     end;
-    case ListBox_List.Items[ListBox_List.ItemIndex] of
+    case option_str of
       '导出图片表格':if img.Width*img.Height>0 then img.SaveToFile(filename,'png');
       else if str.Count>0 then str.SaveToFile(filename);
     end;
   finally
-    str.Free;
-    img.Free;
+    case option_str of
+      '导出图片表格':img.Free;
+      else str.Free;
+    end;
   end;
   CurrentRTFP.FieldAndRecordChange(true);//这里主要是为了更新主表宽度，但是不需要真的对工程文件造成修改
   TRTFP.OpenFile(filename);

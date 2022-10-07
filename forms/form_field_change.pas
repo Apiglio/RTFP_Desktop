@@ -142,6 +142,7 @@ begin
     else Edit_FieldSize.Enabled:=false;
   end;
   Memo_ComboItem.Lines.Assign(CurrentField.ComboItem);
+  Application.ProcessMessages;
 end;
 
 end.

@@ -68,33 +68,42 @@ begin
   tmpAG:=FindAttrs(AAttrsName);
   if tmpAG=nil then exit;
   tmpAF:=tmpAG.FieldList.FindItemByName(AName);
-  if tmpAF<>nil then case FDataSetType of
-    dstDBF:begin
-      with TDbf(tmpAG.Dbf) do begin
-        if not Active then Open;
-        TryExclusive;
-        pi:=0;
-        while pi<DbfFieldDefs.Count do
-          begin
-            if DbfFieldDefs.Items[pi].FieldName=AName then break;
-            inc(pi);
-          end;
-        if pi<DbfFieldDefs.Count then
-          begin
-            DbfFieldDefs.Delete(pi);
-            PackTable;
-          end
-        else ;
-        Close;
-        Open;
-        EndExclusive;
-        RegenerateIndexes;
-        tmpAG.DelField(AName);//LoadFieldListFromDbf;
+  if tmpAF<>nil then begin
+    //删除image文件中的关联图片
+    if tmpAF.FieldDef.DataType=ftBlob then begin
+      case ShowMsgYesNoAll('删除图像字段','是否删除image文件夹中对应的图像文件？') of
+        'Yes':if not TRTFP.DeleteDir(CurrentPathFull+'image\'+tmpAG.Name+'\'+tmpAF.FieldName+'\',true) then
+          ShowMsgOK('删除图像字段','image文件夹中图像文件删除失败，请手动删除。');
       end;
     end;
-    dstBUF:begin
-       if not DeleteFieldInBuf(TBufDataset(tmpAG.Dbf),AName) then exit;
-       tmpAG.DelField(AName);//LoadFieldListFromDbf;
+    case FDataSetType of
+      dstDBF:begin
+        with TDbf(tmpAG.Dbf) do begin
+          if not Active then Open;
+          TryExclusive;
+          pi:=0;
+          while pi<DbfFieldDefs.Count do
+            begin
+              if DbfFieldDefs.Items[pi].FieldName=AName then break;
+              inc(pi);
+            end;
+          if pi<DbfFieldDefs.Count then
+            begin
+              DbfFieldDefs.Delete(pi);
+              PackTable;
+            end
+          else ;
+          Close;
+          Open;
+          EndExclusive;
+          RegenerateIndexes;
+          tmpAG.DelField(AName);//LoadFieldListFromDbf;
+        end;
+      end;
+      dstBUF:begin
+         if not DeleteFieldInBuf(TBufDataset(tmpAG.Dbf),AName) then exit;
+         tmpAG.DelField(AName);//LoadFieldListFromDbf;
+      end;
     end;
   end;
   tmpAG.Modified:=true;
@@ -107,6 +116,7 @@ var tmpAG:TAttrsGroup;
     tmpAF:TAttrsField;
     pi:integer;
     tmpBool:boolean;
+    old_image_folder,new_image_folder:string;
 begin
   tmpAG:=FindAttrs(AAttrsName);
   if tmpAG=nil then exit;
@@ -114,6 +124,7 @@ begin
   if tmpAF<>nil then case FDataSetType of
     dstDBF:begin
       ShowMsgOK('重命名字段','DBF格式工程暂不支持重命名字段，推荐使用BUF格式。');
+      exit;
     end;
     dstBUF:begin
        if not RenameFieldInBuf(TBufDataset(tmpAG.Dbf),AOldName,ANewName) then exit;
@@ -123,6 +134,12 @@ begin
        tmpAG.FieldList.FindItemByName(ANewName).Shown:=tmpBool;
        //此处重命名或是改类型后局部更新字段列表会造成ListView中顺序不同于真实顺序，在重新打开工程后恢复。
        //另外*InBuf方法中的重建数据库可能导致AF对应FieldDef不是当前数据库的版本，是否如此？目前还未遇见相关bug。
+       old_image_folder:=CurrentPathFull+'image\'+tmpAG.Name+'\'+AOldName+'\';
+       new_image_folder:=CurrentPathFull+'image\'+tmpAG.Name+'\'+ANewName+'\';
+       if DirectoryExists(old_image_folder) then begin
+         if not RenameFile(old_image_folder,new_image_folder) then
+           ShowMsgOK('重命名字段','字段在image文件夹下的同名文件夹重命名失败，请手动修改。');
+       end;
     end;
   end;
   tmpAG.Modified:=true;

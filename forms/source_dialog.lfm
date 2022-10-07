@@ -9,7 +9,7 @@ object Form_FileSource: TForm_FileSource
   ClientWidth = 567
   Constraints.MinHeight = 200
   Constraints.MinWidth = 500
-  DesignTimePPI = 120
+  DesignTimePPI = 144
   OnDropFiles = FormDropFiles
   Position = poScreenCenter
   LCLVersion = '1.8.4.0'
@@ -81,7 +81,7 @@ object Form_FileSource: TForm_FileSource
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 2
-    ClientHeight = 54
+    ClientHeight = 45
     ClientWidth = 210
     Columns = 2
     Items.Strings = (

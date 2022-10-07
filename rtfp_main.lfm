@@ -1,7 +1,7 @@
 object FormDesktop: TFormDesktop
-  Left = 908
+  Left = 779
   Height = 622
-  Top = 455
+  Top = 377
   Width = 1003
   AllowDropFiles = True
   Caption = 'RTFP Desktop'
@@ -55,7 +55,7 @@ object FormDesktop: TFormDesktop
     object TabSheet_Project_Properties: TTabSheet
       Caption = '工程信息'
       ClientHeight = 326
-      ClientWidth = 789
+      ClientWidth = 741
       object PropertiesValueListEditor: TValueListEditor
         AnchorSideLeft.Control = TabSheet_Project_Properties
         AnchorSideTop.Control = TabSheet_Project_Properties
@@ -65,7 +65,7 @@ object FormDesktop: TFormDesktop
         Left = 0
         Height = 326
         Top = 0
-        Width = 783
+        Width = 735
         Anchors = [akTop, akLeft, akRight, akBottom]
         DefaultColWidth = 200
         FixedCols = 0
@@ -78,7 +78,7 @@ object FormDesktop: TFormDesktop
         )
         ColWidths = (
           200
-          553
+          531
         )
       end
       object Splitter_PropertiesV: TSplitter
@@ -87,7 +87,7 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = TabSheet_Project_Properties
         AnchorSideBottom.Side = asrBottom
-        Left = 783
+        Left = 735
         Height = 326
         Top = 0
         Width = 6
@@ -1058,9 +1058,9 @@ object FormDesktop: TFormDesktop
     Height = 189
     Top = 369
     Width = 749
-    ActivePage = TabSheet_FmtCmt
+    ActivePage = TabSheet_Node_FormatEdit
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 1
+    TabIndex = 2
     TabOrder = 4
     OnChange = PageControl_NodeChange
     object TabSheet_Node_PDF: TTabSheet
@@ -1767,7 +1767,6 @@ object FormDesktop: TFormDesktop
     end
   end
   object MainMenu: TMainMenu
-    OwnerDraw = True
     left = 24
     top = 136
     object MenuItem_project: TMenuItem

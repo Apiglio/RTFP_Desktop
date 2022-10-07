@@ -37,14 +37,19 @@ end;
 procedure TRTFP.DeleteAttrs(AName:string);
 var index:integer;
     tmp:TAttrsGroup;
+    image_folder:string;
 begin
   index:=FFieldList.FindItemIndexByName(AName);
   if index<0 then exit;
   tmp:=FFieldList.Items[index];
   CloseDbf(tmp.FullPath,tmp.Dbf);
   DeleteDbf(tmp.FullPath,tmp.Dbf);
+  image_folder:=CurrentPathFull+'image\'+tmp.Name+'\';
+  if DirectoryExists(image_folder) then
+    if not TRTFP.DeleteDir(image_folder,true) then
+      ShowMsgOK('删除属性组','image文件夹中属性组文件夹删除失败，请手动删除。');
   FFieldList.Delete(index);
-  tmp.Modified:=true;
+  tmp.Modified:=true;//这里tmp不会泄漏吗？
   FieldChange;
 end;
 
