@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.3-alpha.12';
+  C_VERSION_NUMBER  = '0.2.4-alpha.1';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -54,6 +54,7 @@ type
     CheckBox_MainSorterAuto: TCheckBox;
     Edit_DBGridMain_Sorter: TEdit;
     Label_MainSorter: TLabel;
+    MenuItem_DBGC_Calc: TMenuItem;
     RadioButton_KlassAND: TRadioButton;
     CheckBox_KlassNot: TCheckBox;
     RadioButton_KlassOR: TRadioButton;
@@ -106,7 +107,6 @@ type
     MenuItem_FieldMgr_DisplayOption: TMenuItem;
     MenuItem_project_profile: TMenuItem;
     MenuItem_klass_SourceClass: TMenuItem;
-    MenuItem_DBGC_Calc: TMenuItem;
     MenuItem_DBGC_div02: TMenuItem;
     MenuItem_DBGC_Seek: TMenuItem;
     MenuItem_RepeatedChecker: TMenuItem;
@@ -207,7 +207,6 @@ type
     TabSheet_Node_FormatEdit: TTabSheet;
     TabSheet_Filter_Klass: TTabSheet;
     TabSheet_Filter_Field: TTabSheet;
-    TabSheet_Project_NodeView: TTabSheet;
     TabSheet_FmtCmt: TTabSheet;
     TabSheet_Project_Properties: TTabSheet;
     TabSheet_Node_PDF: TTabSheet;
@@ -245,6 +244,7 @@ type
     procedure Edit_DBGridMain_SorterChange(Sender: TObject);
     procedure Edit_DBGridMain_SorterKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure MenuItem_DBGC_CalcClick(Sender: TObject);
     procedure RadioButton_KlassANDClick(Sender: TObject);
     procedure RadioButton_KlassORClick(Sender: TObject);
     procedure CheckBox_MainFilterAutoClick(Sender: TObject);
@@ -305,7 +305,6 @@ type
     procedure MenuItem_ClassMgr_RenClick(Sender: TObject);
     procedure MenuItem_ClassMgr_UnCheckAllClick(Sender: TObject);
     procedure MenuItem_ClassToolClick(Sender: TObject);
-    procedure MenuItem_DBGC_CalcClick(Sender: TObject);
     procedure MenuItem_DBGC_DisplayOptClick(Sender: TObject);
     procedure MenuItem_DBGC_SeekClick(Sender: TObject);
     procedure MenuItem_DBGC_TitleClick(Sender: TObject);
@@ -447,7 +446,7 @@ implementation
 uses form_new_project, form_cite_trans, form_classmanager, form_import,
      form_appearance, rtfp_field, rtfp_class, form_options, form_report_tool,
      form_repeated_checker, form_project_profile, form_field_display_option,
-     form_formatedit_option, rtfp_dialog, form_field_change;
+     form_formatedit_option, rtfp_dialog, form_field_change, form_calc_field;
 
 {$R *.lfm}
 
@@ -949,6 +948,7 @@ end;
 
 procedure TFormDesktop.MenuItem_project_saveClick(Sender: TObject);
 begin
+  if ProjectInvalid then exit;
   CurrentRTFP.Save;
 end;
 
@@ -1205,44 +1205,6 @@ begin
   if ProjectInvalid then exit;
   ClassManagerForm.ShowModal;//ClassManagerForm.show;
   SetFocus;
-end;
-
-procedure TFormDesktop.MenuItem_DBGC_CalcClick(Sender: TObject);
-var searchstr:string;
-    bm:TBookMark;
-    //reg:TRegexpr;
-    attrsname,fieldname:string;
-    poss:integer;
-begin
-  if ProjectInvalid then exit;
-  //reg:=TRegexpr.Create;
-  try
-  searchstr:=ShowMsgEdit('计算字段','批量赋值：','');//远期改为公式赋值
-  if searchstr='' then exit;
-  //if searchstr
-  with DBGrid_Main.DataSource.DataSet do
-    begin
-      fieldname:=Fields[LastDBGridPos.x-1].FieldName;
-      poss:=pos('(',fieldname);
-      if poss<=0 then attrsname:='' else
-        begin
-          attrsname:=fieldname;
-          System.delete(attrsname,1,poss);
-          System.delete(attrsname,length(attrsname),1);
-          System.delete(fieldname,poss,length(fieldname));
-        end;
-      bm:=Bookmark;
-      First;
-      while not EOF do
-        begin
-          CurrentRTFP.EditFieldAsString(fieldname,attrsname,FieldByName(_Col_PID_).AsString,searchstr,[aeForceEditIfTypeDismatch]);
-          Next;
-        end;
-      GotoBookmark(bm);
-    end;
-  finally
-    //reg.Free;
-  end;
 end;
 
 procedure TFormDesktop.MenuItem_DBGC_DisplayOptClick(Sender:TObject);
@@ -2322,6 +2284,16 @@ begin
     begin
       Button_MainSorterClick(nil);
     end;
+end;
+
+procedure TFormDesktop.MenuItem_DBGC_CalcClick(Sender: TObject);
+var tmpAF:TAttrsField;
+begin
+  if ProjectInvalid then exit;
+  tmpAF:=TAttrsField(CurrentRTFP.PaperDSFieldDefs.Items[LastDBGridPos.x-1]);
+  if tmpAF=nil then begin ShowMsgOK('编辑字段值','该字段不支持编辑。');exit end;
+  Form_CalcField.Call(tmpAF);
+  SetFocus;
 end;
 
 procedure TFormDesktop.RadioButton_KlassANDClick(Sender: TObject);

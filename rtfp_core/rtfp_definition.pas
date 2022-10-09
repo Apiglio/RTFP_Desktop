@@ -201,6 +201,7 @@ type
     procedure EditFieldAsMemo(AName,AAttrsName:string;PID:RTFP_ID;buf:TStrings;AE:TAttrExtend);
     procedure ReadFieldAsBitmap(AName,AAttrsName:string;PID:RTFP_ID;buf:Graphics.TBitMap;AE:TAttrExtend);
     procedure EditFieldAsBitmap(AName,AAttrsName:string;PID:RTFP_ID;buf:Graphics.TBitMap;AE:TAttrExtend);
+    procedure EditFieldFromImageFile(AName,AAttrsName:string;PID:RTFP_ID;filename:string;AE:TAttrExtend);
     function GetImgFilePath(AName,AAttrsName:string):string;inline;
     function GetImgFileName(PID:RTFP_ID):string;inline;
 
@@ -213,6 +214,9 @@ type
     property FieldList:TAttrsGroupList read FFieldList;
 
   //ACCESS_FIELD.INC 字段
+  private
+    procedure DeleteFieldImageFolder(AF:TAttrsField);
+    //procedure RenameFieldImageFolder(AF:TAttrsField);
   public
     function AddField(AName:string;AAttrsName:string;AType:TFieldType;ASize:word=0):TAttrsField;
     function FindField(AName:string;AAttrsName:string):TAttrsField;

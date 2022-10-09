@@ -1,7 +1,7 @@
 object FormDesktop: TFormDesktop
-  Left = 779
+  Left = 839
   Height = 622
-  Top = 377
+  Top = 380
   Width = 1003
   AllowDropFiles = True
   Caption = 'RTFP Desktop'
@@ -78,7 +78,7 @@ object FormDesktop: TFormDesktop
         )
         ColWidths = (
           200
-          531
+          505
         )
       end
       object Splitter_PropertiesV: TSplitter
@@ -270,45 +270,41 @@ object FormDesktop: TFormDesktop
         end
       end
     end
-    object TabSheet_Project_NodeView: TTabSheet
-      Caption = '层次网络'
-    end
     object TabSheet_Project_FormatEditMgr: TTabSheet
       Caption = '样式管理'
       ClientHeight = 326
-      ClientWidth = 789
+      ClientWidth = 741
       object ListBox_FormatEditMgr: TListBox
-        AnchorSideLeft.Control = TabSheet_Project_FormatEditMgr
+        AnchorSideLeft.Control = Button_help
+        AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = TabSheet_Project_FormatEditMgr
-        AnchorSideBottom.Control = SynEdit_FEMgr
-        Left = 5
-        Height = 192
-        Top = 5
-        Width = 235
-        Anchors = [akTop, akLeft, akBottom]
-        BorderSpacing.Left = 5
-        BorderSpacing.Top = 5
-        BorderSpacing.Bottom = 35
+        AnchorSideRight.Control = TabSheet_Project_FormatEditMgr
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = Button_FormatEdit_Ren
+        AnchorSideBottom.Side = asrBottom
+        Left = 473
+        Height = 150
+        Top = 0
+        Width = 268
+        Anchors = [akTop, akLeft, akRight, akBottom]
         ItemHeight = 0
         TabOrder = 0
       end
       object StringGrid_FormatEditLayout: TStringGrid
         AnchorSideLeft.Control = ListBox_FormatEditMgr
         AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Control = TabSheet_Project_FormatEditMgr
+        AnchorSideTop.Control = Button_FormatEdit_Ren
+        AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = TabSheet_Project_FormatEditMgr
         AnchorSideRight.Side = asrBottom
-        AnchorSideBottom.Control = SynEdit_FEMgr
-        Left = 245
-        Height = 222
-        Top = 5
-        Width = 539
-        Anchors = [akTop, akLeft, akRight, akBottom]
+        AnchorSideBottom.Control = TabSheet_Project_FormatEditMgr
+        AnchorSideBottom.Side = asrBottom
+        Left = 441
+        Height = 176
+        Top = 150
+        Width = 300
+        Anchors = [akTop, akRight, akBottom]
         AutoFillColumns = True
-        BorderSpacing.Left = 5
-        BorderSpacing.Top = 5
-        BorderSpacing.Right = 5
-        BorderSpacing.Bottom = 5
         ColCount = 7
         ExtendedSelect = False
         Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goSmoothScroll]
@@ -318,28 +314,28 @@ object FormDesktop: TFormDesktop
         OnMouseUp = StringGrid_FormatEditLayoutMouseUp
         ColWidths = (
           80
-          71
-          71
-          71
-          71
-          71
-          74
+          31
+          31
+          31
+          31
+          31
+          35
         )
       end
       object Button_FormatEdit_Ren: TButton
         AnchorSideLeft.Control = Button_FormatEdit_Del
         AnchorSideLeft.Side = asrBottom
-        AnchorSideRight.Control = ListBox_FormatEditMgr
-        AnchorSideRight.Side = asrBottom
+        AnchorSideTop.Control = Button_FormatEdit_Del
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = Button_help
+        AnchorSideRight.Side = asrCenter
         AnchorSideBottom.Control = SynEdit_FEMgr
-        Left = 215
+        Left = 441
         Height = 25
         Hint = '重命名样式'
-        Top = 202
-        Width = 25
-        Anchors = [akRight, akBottom]
-        BorderSpacing.Left = 5
-        BorderSpacing.Bottom = 5
+        Top = 125
+        Width = 32
+        Anchors = [akTop, akRight]
         Caption = 'R'
         OnClick = Button_FormatEdit_RenClick
         ParentShowHint = False
@@ -349,17 +345,17 @@ object FormDesktop: TFormDesktop
       object Button_FormatEdit_Del: TButton
         AnchorSideLeft.Control = Button_FormatEdit_Add
         AnchorSideLeft.Side = asrBottom
-        AnchorSideRight.Control = Button_FormatEdit_Ren
+        AnchorSideTop.Control = Button_FormatEdit_Add
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = Button_help
+        AnchorSideRight.Side = asrCenter
         AnchorSideBottom.Control = SynEdit_FEMgr
-        Left = 185
+        Left = 441
         Height = 25
         Hint = '删除样式'
-        Top = 202
-        Width = 25
-        Anchors = [akRight, akBottom]
-        BorderSpacing.Left = 5
-        BorderSpacing.Right = 5
-        BorderSpacing.Bottom = 5
+        Top = 100
+        Width = 32
+        Anchors = [akTop, akRight]
         Caption = '-'
         OnClick = Button_FormatEdit_DelClick
         ParentShowHint = False
@@ -368,16 +364,17 @@ object FormDesktop: TFormDesktop
       end
       object Button_FormatEdit_Add: TButton
         AnchorSideLeft.Control = ListBox_FormatEditMgr
-        AnchorSideRight.Control = Button_FormatEdit_Del
+        AnchorSideTop.Control = Button_FormatEditLoad
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = Button_help
+        AnchorSideRight.Side = asrCenter
         AnchorSideBottom.Control = SynEdit_FEMgr
-        Left = 155
+        Left = 441
         Height = 25
         Hint = '新建样式'
-        Top = 202
-        Width = 25
-        Anchors = [akRight, akBottom]
-        BorderSpacing.Right = 5
-        BorderSpacing.Bottom = 5
+        Top = 75
+        Width = 32
+        Anchors = [akTop, akRight]
         Caption = '+'
         OnClick = Button_FormatEdit_AddClick
         ParentShowHint = False
@@ -385,36 +382,33 @@ object FormDesktop: TFormDesktop
         TabOrder = 4
       end
       object Button_help: TButton
-        AnchorSideLeft.Control = TabSheet_Project_FormatEditMgr
-        AnchorSideTop.Control = Button_FormatEdit_Ren
+        AnchorSideLeft.Control = SynEdit_FEMgr
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = TabSheet_Project_FormatEditMgr
         AnchorSideRight.Control = Button_FormatEditSave
         AnchorSideBottom.Control = SynEdit_FEMgr
-        Left = 5
+        Left = 441
         Height = 25
-        Top = 202
-        Width = 85
-        Anchors = [akTop, akLeft, akRight, akBottom]
-        BorderSpacing.Left = 5
-        BorderSpacing.Right = 5
-        BorderSpacing.Bottom = 5
-        Caption = '帮助'
+        Hint = '样式帮助'
+        Top = 0
+        Width = 32
+        Caption = '?'
         OnClick = Button_helpClick
+        ParentShowHint = False
+        ShowHint = True
         TabOrder = 5
       end
       inline SynEdit_FEMgr: TSynEdit
         AnchorSideLeft.Control = TabSheet_Project_FormatEditMgr
-        AnchorSideRight.Control = TabSheet_Project_FormatEditMgr
-        AnchorSideRight.Side = asrBottom
+        AnchorSideTop.Control = TabSheet_Project_FormatEditMgr
+        AnchorSideRight.Control = StringGrid_FormatEditLayout
         AnchorSideBottom.Control = TabSheet_Project_FormatEditMgr
         AnchorSideBottom.Side = asrBottom
-        Left = 5
-        Height = 89
-        Top = 232
-        Width = 779
-        BorderSpacing.Left = 5
-        BorderSpacing.Right = 5
-        BorderSpacing.Bottom = 5
-        Anchors = [akLeft, akRight, akBottom]
+        Left = 0
+        Height = 326
+        Top = 0
+        Width = 441
+        Anchors = [akTop, akLeft, akRight, akBottom]
         Font.Height = -13
         Font.Name = 'Courier New'
         Font.Pitch = fpFixed
@@ -911,72 +905,80 @@ object FormDesktop: TFormDesktop
         end
       end
       object Button_FormatEditLoad: TButton
-        AnchorSideRight.Control = Button_FormatEdit_Add
+        AnchorSideTop.Control = Button_FormatEditSave
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = Button_help
+        AnchorSideRight.Side = asrCenter
         AnchorSideBottom.Control = SynEdit_FEMgr
-        Left = 125
+        Left = 441
         Height = 25
-        Top = 202
-        Width = 25
-        Anchors = [akRight, akBottom]
-        BorderSpacing.Right = 5
-        BorderSpacing.Bottom = 5
-        Caption = '↓'
+        Hint = '读取样式'
+        Top = 50
+        Width = 32
+        Anchors = [akTop, akRight]
+        Caption = '←'
         OnClick = Button_FormatEditLoadClick
+        ParentShowHint = False
+        ShowHint = True
         TabOrder = 7
       end
       object Button_FormatEditSave: TButton
-        AnchorSideRight.Control = Button_FormatEditLoad
+        AnchorSideTop.Control = Button_help
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = Button_help
+        AnchorSideRight.Side = asrCenter
         AnchorSideBottom.Control = SynEdit_FEMgr
-        Left = 95
+        Left = 441
         Height = 25
-        Top = 202
-        Width = 25
-        Anchors = [akRight, akBottom]
-        BorderSpacing.Right = 5
-        BorderSpacing.Bottom = 5
-        Caption = '↑'
+        Hint = '保存样式'
+        Top = 25
+        Width = 32
+        Anchors = [akTop, akRight]
+        Caption = '→'
         OnClick = Button_FormatEditSaveClick
+        ParentShowHint = False
+        ShowHint = True
         TabOrder = 8
       end
     end
     object TabSheet_Project_AufScript: TTabSheet
       Caption = '脚本'
       ClientHeight = 326
-      ClientWidth = 789
+      ClientWidth = 741
       OnResize = TabSheet_Project_AufScriptResize
       inline Frame_AufScript1: TFrame_AufScript
         Height = 326
-        Width = 789
+        Width = 741
         Align = alClient
         ClientHeight = 326
-        ClientWidth = 789
+        ClientWidth = 741
         inherited ProgressBar: TProgressBar
           AnchorSideLeft.Control = Frame_AufScript1
           AnchorSideRight.Control = Frame_AufScript1
           AnchorSideBottom.Control = Frame_AufScript1
           Height = 12
           Top = 309
-          Width = 779
+          Width = 731
         end
         inherited Memo_out: TMemo
           AnchorSideRight.Control = Frame_AufScript1
-          Left = 525
+          Left = 477
           Height = 242
           Top = 30
           Width = 259
         end
         inherited Button_run: TButton
-          Left = 525
+          Left = 477
           Top = 277
           Width = 85
         end
         inherited Button_pause: TButton
-          Left = 612
+          Left = 564
           Top = 277
           Width = 85
         end
         inherited Button_stop: TButton
-          Left = 699
+          Left = 651
           Top = 277
           Width = 85
         end
@@ -1007,7 +1009,7 @@ object FormDesktop: TFormDesktop
           AnchorSideTop.Control = Frame_AufScript1
           AnchorSideRight.Control = Frame_AufScript1
           Height = 20
-          Width = 779
+          Width = 731
         end
         inherited OpenDialog: TOpenDialog
           left = 350

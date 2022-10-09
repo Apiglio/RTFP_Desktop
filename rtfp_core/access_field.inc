@@ -1,5 +1,17 @@
 //与字段相关的方法
 
+procedure TRTFP.DeleteFieldImageFolder(AF:TAttrsField);
+var image_folder:string;
+begin
+  image_folder:=CurrentPathFull+'image\'+AF.AttrsGroup.Name+'\'+AF.FieldName+'\';
+  if DirectoryExists(image_folder) then begin
+    case ShowMsgYesNoAll('删除图像字段','是否删除image文件夹中对应的图像文件？') of
+      'Yes':if not TRTFP.DeleteDir(image_folder,true) then
+        ShowMsgOK('删除图像字段','image文件夹中图像文件删除失败，请手动删除。');
+    end;
+  end;
+end;
+
 function TRTFP.AddField(AName:string;AAttrsName:string;AType:TFieldType;ASize:word=0):TAttrsField;
 var tmpAG:TAttrsGroup;
     tmpAF:TAttrsField;
@@ -69,13 +81,7 @@ begin
   if tmpAG=nil then exit;
   tmpAF:=tmpAG.FieldList.FindItemByName(AName);
   if tmpAF<>nil then begin
-    //删除image文件中的关联图片
-    if tmpAF.FieldDef.DataType=ftBlob then begin
-      case ShowMsgYesNoAll('删除图像字段','是否删除image文件夹中对应的图像文件？') of
-        'Yes':if not TRTFP.DeleteDir(CurrentPathFull+'image\'+tmpAG.Name+'\'+tmpAF.FieldName+'\',true) then
-          ShowMsgOK('删除图像字段','image文件夹中图像文件删除失败，请手动删除。');
-      end;
-    end;
+    if tmpAF.FieldDef.DataType=ftBlob then DeleteFieldImageFolder(tmpAF);//删除image文件中的关联图片
     case FDataSetType of
       dstDBF:begin
         with TDbf(tmpAG.Dbf) do begin
@@ -160,6 +166,7 @@ begin
       ShowMsgOK('重命名字段','DBF格式工程暂不支持重命名字段，推荐使用BUF格式。');
     end;
     dstBUF:begin
+       if (tmpAF.FieldDef.DataType=ftBlob) and (NewType<>ftBlob) then DeleteFieldImageFolder(tmpAF);//删除image文件中的关联图片     ;
        if not ChangeTypeInBuf(TBufDataset(tmpAG.Dbf),AName,NewType,NewSize) then exit;
        tmpBool:=tmpAF.Shown;
        tmpAG.DelField(AName);
@@ -254,8 +261,9 @@ begin
   case AFieldDef.DisplayName of
     _Col_Paper_Folder_:begin result:=3;exit end;
     _Col_Paper_FileHash_:begin result:=3;exit end;
+    _Col_Paper_FileName_:begin result:=60;exit end;
     _Col_Paper_FileSize_:begin result:=3;exit end;
-    _Col_Paper_Is_Backup_:begin result:=40;exit end;
+    _Col_Paper_Is_Backup_:begin result:=30;exit end;
     _Col_OID_:begin result:=3;exit end;
     else ;
   end;

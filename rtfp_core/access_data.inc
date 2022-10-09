@@ -605,4 +605,57 @@ begin
   else begin
     if aeFailIfNoPID in AE then raise AttrsNoPIDErr.Create('找不到PID['+PID+']！');
   end;
-end;                                          
+end;
+
+procedure TRTFP.EditFieldFromImageFile(AName,AAttrsName:string;PID:RTFP_ID;filename:string;AE:TAttrExtend);
+var tmpPicture:TPicture;
+begin
+  if FileExists(filename) then begin
+    tmpPicture:=TPicture.Create;
+    try
+      tmpPicture.LoadFromFile(filename);
+      EditFieldAsBitmap(AName,AAttrsName,PID,tmpPicture.Bitmap,AE);
+    finally
+      tmpPicture.Free;
+    end;
+  end else begin
+    //没有图片文件的处理
+  end;
+
+end;
+
+
+
+
+
+
+
+
+{
+procedure aufunc_EditImage(Sender:TObject);//attr.edit_image PID,AttrName,FieldName,filename
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    APID,filename,AFieldName,AAttrName:string;
+    APicture:TPicture;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(5) then exit;
+  if not AAuf.TryArgToString(1,APID) then exit;
+  if not AAuf.TryArgToString(2,AAttrName) then exit;
+  if not AAuf.TryArgToString(3,AFieldName) then exit;
+  if not AAuf.TryArgToString(4,filename) then exit;
+
+  if not FileExists(filename) then begin
+    AufScpt.writeln('警告：找不到 '+filename+' 文件，'+Auf.args[0]+'未执行。');
+    exit
+  end;
+  APicture:=TPicture.Create;
+  try
+    APicture.LoadFromFile(filename);
+    CurrentRTFP.EditFieldAsBitmap(AFieldName,AAttrName,APID,APicture.Bitmap,[aeCreateIfNoField]);
+  finally
+    APicture.Free;
+  end;
+end;
+}
