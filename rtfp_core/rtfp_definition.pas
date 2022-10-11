@@ -30,6 +30,11 @@
 //  在主表中显示的字段不能直接删除，否则报错，出自RebuildMainGrid
 //  【FATAL】TableFilter中使用无效的正则表达式会导致崩溃，并且主窗体中try except不能解决问题
 
+//AG和AF的DisplayName
+//FieldCalc的主表模式
+//FieldMatch的正则模式
+//FormatEdit界面右键增加项，替换原本的样式管理
+
 
 //{$define insert}
 {$define save_xml}
@@ -1109,6 +1114,7 @@ begin
           begin
             str.Add('option.attrs.set "'+AG.Name+'","'+AF.FieldName+'","visible",'+con(AF.Shown));
             str.Add('option.attrs.set "'+AG.Name+'","'+AF.FieldName+'","display_width",'+IntToStr(AF.FFieldDisplayOption.display_width));
+            str.Add('option.attrs.set "'+AG.Name+'","'+AF.FieldName+'","display_name",'+AF.FFieldDisplayOption.display_name);
             if AF.IsCombo then for stmp in AF.ComboItem do
               str.Add('option.attrs.set "'+AG.Name+'","'+AF.FieldName+'","add_combo",'+stmp);
           end;

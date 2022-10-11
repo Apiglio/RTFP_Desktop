@@ -121,6 +121,7 @@ begin
   ModalResult:=mrOK;
   //最后改combo选项
   CurrentField.ComboItem.Assign(Memo_ComboItem.Lines);
+  CurrentRTFP.FieldAndRecordChange;
 end;
 
 procedure TForm_FieldChange.Call(AAttrsField:TAttrsField);

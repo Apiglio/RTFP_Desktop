@@ -76,7 +76,7 @@ var
   Form_CalcField: TForm_CalcField;
 
 implementation
-uses RTFP_main, rtfp_dialog, db;
+uses RTFP_main, rtfp_dialog, rtfp_type, db;
 
 {$R *.lfm}
 
@@ -88,6 +88,10 @@ var pid_list:TStringList;
     tmpValueI:int64;
     tmpValueD:TDateTime;
 begin
+  if FMatchField=nil then begin
+    ShowMsgOK('匹配字段','请选择用于匹配的字段。');
+    exit;
+  end;
   pid_list:=TStringList.Create;
   CurrentRTFP.BeginUpdate;
     try
@@ -105,7 +109,7 @@ begin
         match_field:=CurrentRTFP.ReadFieldAsString(FMatchField.FieldName,FMatchField.AttrsGroup.Name,pid,[]);
         if match_field=match_str then begin
           case FTargetField.FieldDef.DataType of
-            ftString,ftMemo:CurrentRTFP.EditFieldAsString(FTargetField.FieldName,FTargetField.AttrsGroup.Name,pid,target_str,[]);
+            ftString,ftMemo:CurrentRTFP.EditFieldAsString(FTargetField.FieldName,FTargetField.AttrsGroup.Name,pid,target_str,[aeForceEditIfTypeDismatch]);
             ftblob:CurrentRTFP.EditFieldFromImageFile(FTargetField.FieldName,FTargetField.AttrsGroup.Name,pid,target_str,[]);
             ftFloat:if TryStrToFloat(target_str,tmpValueF) then
                       CurrentRTFP.EditFieldAsDouble(FTargetField.FieldName,FTargetField.AttrsGroup.Name,pid,tmpValueF,[]);
@@ -155,7 +159,7 @@ var cmd:TStringList;
 begin
   //这里因为界面没考虑好，那就暂时不实现主表计算了，计算字段一定会计算全部节点
   cmd:=TStringList.Create;
-  CurrentRTFP.BeginUpdate;
+  //CurrentRTFP.BeginUpdate;
   try
     for stmp in Memo_CalcSyntaxPre.Lines do cmd.Add(stmp);
     for stmp in Memo_CalcSyntaxMid.Lines do cmd.Add(stmp);
@@ -163,7 +167,7 @@ begin
     FormDesktop.Frame_AufScript1.Auf.Script.command(cmd);
   finally
     cmd.Free;
-    CurrentRTFP.EndUpdate;
+    //CurrentRTFP.EndUpdate;
   end;
   CurrentRTFP.RecordChange;
 end;
@@ -197,6 +201,8 @@ begin
   Memo_CalcSyntaxPre.Highlighter:=FormDesktop.Frame_AufScript1.Auf.Script.SynAufSyn;
   Memo_CalcSyntaxMid.Highlighter:=FormDesktop.Frame_AufScript1.Auf.Script.SynAufSyn;
   Memo_CalcSyntaxPost.Highlighter:=FormDesktop.Frame_AufScript1.Auf.Script.SynAufSyn;
+  FRangeMode:=rm_maingrid;
+  FMatchMode:=mm_all;
 end;
 
 procedure TForm_CalcField.ListBox_FieldsDblClick(Sender: TObject);
@@ -351,6 +357,7 @@ begin
   end;
   ComboBox_ValueField.ItemIndex:=index;
   ComboBox_MatchField.ItemIndex:=-1;
+  Memo_CalcSyntaxMid.Clear;
   FMatchField:=nil;
   StringGrid_Join.Clean;
   StringGrid_Join.RowCount:=CurrentRTFP.CountPaper+1;

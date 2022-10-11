@@ -624,38 +624,3 @@ begin
 
 end;
 
-
-
-
-
-
-
-
-{
-procedure aufunc_EditImage(Sender:TObject);//attr.edit_image PID,AttrName,FieldName,filename
-var AufScpt:TAufScript;
-    AAuf:TAuf;
-    APID,filename,AFieldName,AAttrName:string;
-    APicture:TPicture;
-begin
-  AufScpt:=Sender as TAufScript;
-  AAuf:=AufScpt.Auf as TAuf;
-  if not AAuf.CheckArgs(5) then exit;
-  if not AAuf.TryArgToString(1,APID) then exit;
-  if not AAuf.TryArgToString(2,AAttrName) then exit;
-  if not AAuf.TryArgToString(3,AFieldName) then exit;
-  if not AAuf.TryArgToString(4,filename) then exit;
-
-  if not FileExists(filename) then begin
-    AufScpt.writeln('警告：找不到 '+filename+' 文件，'+Auf.args[0]+'未执行。');
-    exit
-  end;
-  APicture:=TPicture.Create;
-  try
-    APicture.LoadFromFile(filename);
-    CurrentRTFP.EditFieldAsBitmap(AFieldName,AAttrName,APID,APicture.Bitmap,[aeCreateIfNoField]);
-  finally
-    APicture.Free;
-  end;
-end;
-}

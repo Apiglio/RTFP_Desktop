@@ -1034,7 +1034,8 @@ object Form_CalcField: TForm_CalcField
           'ifdef _apiglio_res_,@2_lines_next'
           'var char _apiglio_res_ 2048'
           'ifdef _apiglio_tmp_,@2_lines_next'
-          'var char _apiglio_tmp_ 2048'
+          'var char _apiglio_tmp_ 256'
+          'update.begin'
           'pid.first @_apiglio_pid_'
           'loo:'
           'mov @_apiglio_res_,""'
@@ -1550,6 +1551,8 @@ object Form_CalcField: TForm_CalcField
         Lines.Strings = (
           'attrs.rec.edit @_apiglio_pid_,AttrName,FieldName,@_apiglio_res_'
           'pid.next_jump @_apiglio_pid_,:loo'
+          'update.end'
+          'update.apply "rebuild_mg"  '
           'unvar _apiglio_pid_'
           'unvar _apiglio_res_'
           'unvar _apiglio_tmp_'

@@ -476,43 +476,38 @@ begin
     'width','w','display_width':
       begin
         if not AAuf.TryArgToLong(4,slon) then exit;
-        AG:=CurrentRTFP.FieldList.FindItemByName(NA);
+        AF:=CurrentRTFP.FindField(NF,NA);
         if AG=nil then begin
-          AufScpt.send_error('错误：无属性组“'+NA+'”。');
-          exit;
-        end;
-        AF:=AG.FieldList.FindItemByName(NF);
-        if AF=nil then begin
-          AufScpt.send_error('错误：无属性“'+NF+'”。');
+          AufScpt.send_error('错误：找不到属性组“'+NA+'.'+NF+'”。');
           exit;
         end;
         AF.FFieldDisplayOption.display_width:=slon;
       end;
+    'display_name','disp':
+      begin
+        if not AAuf.TryArgToString(4,stmp) then exit;
+        AF:=CurrentRTFP.FindField(NF,NA);
+        if AG=nil then begin
+          AufScpt.send_error('错误：找不到属性组“'+NA+'.'+NF+'”。');
+          exit;
+        end;
+        AF.FFieldDisplayOption.display_name:=stmp;
+      end;
     'add_combo':
       begin
         if not AAuf.TryArgToString(4,stmp) then exit;
-        AG:=CurrentRTFP.FieldList.FindItemByName(NA);
+        AF:=CurrentRTFP.FindField(NF,NA);
         if AG=nil then begin
-          AufScpt.send_error('错误：无属性组“'+NA+'”。');
-          exit;
-        end;
-        AF:=AG.FieldList.FindItemByName(NF);
-        if AF=nil then begin
-          AufScpt.send_error('错误：无属性“'+NF+'”。');
+          AufScpt.send_error('错误：找不到属性组“'+NA+'.'+NF+'”。');
           exit;
         end;
         AF.AddCombo(stmp);
       end;
     'clear_combo':
       begin
-        AG:=CurrentRTFP.FieldList.FindItemByName(NA);
+        AF:=CurrentRTFP.FindField(NF,NA);
         if AG=nil then begin
-          AufScpt.send_error('错误：无属性组“'+NA+'”。');
-          exit;
-        end;
-        AF:=AG.FieldList.FindItemByName(NF);
-        if AF=nil then begin
-          AufScpt.send_error('错误：无属性“'+NF+'”。');
+          AufScpt.send_error('错误：找不到属性组“'+NA+'.'+NF+'”。');
           exit;
         end;
         AF.ClearCombo;
@@ -542,7 +537,7 @@ begin
     'fieldchange':CurrentRTFP.FieldChange;
     'recordchange':CurrentRTFP.RecordChange;
     'classchange':CurrentRTFP.ClassChange;
-    else AufScpt.writeln('无效的更新测试');
+    else AufScpt.writeln('无效的更新模式。');
   end;
 end;
 
@@ -664,10 +659,10 @@ begin
     Script.add_func('pdf.meta',@aufunc_ShowMeta,'filename','检查pdf文件的meta数据');
     Script.add_func('pdf.view',@aufunc_ShowView,'filename,page','预览pdf的page页');
 
-    Script.add_func('update.begin',@aufunc_BeginUpdate,'filename','开始更新模式');
-    Script.add_func('update.end',@aufunc_EndUpdate,'filename','结束更新模式');
+    Script.add_func('update.begin',@aufunc_BeginUpdate,'','开始更新模式');
+    Script.add_func('update.end',@aufunc_EndUpdate,'','结束更新模式');
     Script.add_func('update.mg.sort',@aufunc_maingrid_sort,'*arg','主表按字段排序');
-    Script.add_func('update.test',@aufunc_update_case,'mode','测试更新过程');
+    Script.add_func('update.apply',@aufunc_update_case,'mode','触发更新过程');
 
     Script.add_func('fmt.rebuild',@aufunc_RebuildFormatEdit,'filename','从filename中加载FormatEdit布局');
     //把FmtCmp改掉，取消泛型

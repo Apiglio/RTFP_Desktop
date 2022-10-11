@@ -25,6 +25,7 @@ type
     expression:string;
     colorize_process:TColorizeProcess;
     display_width:integer;
+    display_name:string;
   end;
 
 
@@ -176,6 +177,7 @@ begin
   FOnChangeVisibility:=nil;
   FFieldDisplayOption.colorize_process:=nil;
   FFieldDisplayOption.display_width:=90;
+  FFieldDisplayOption.display_name:='';
   FComboItem:=TStringList.Create;
   FComboItem.Sorted:=true;
 end;
