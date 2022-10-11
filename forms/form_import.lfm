@@ -8,7 +8,7 @@ object Form_ImportFiles: TForm_ImportFiles
   ClientWidth = 884
   Constraints.MinHeight = 420
   Constraints.MinWidth = 600
-  DesignTimePPI = 120
+  DesignTimePPI = 144
   OnClose = FormClose
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
@@ -177,10 +177,10 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideLeft.Side = asrCenter
           AnchorSideTop.Control = Image_AddImage
           AnchorSideTop.Side = asrBottom
-          Left = 47
-          Height = 21
+          Left = 38
+          Height = 25
           Top = 139
-          Width = 90
+          Width = 108
           AutoSize = True
           BorderSpacing.Top = 10
           Caption = '创建位图节点'
@@ -280,10 +280,10 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideLeft.Side = asrCenter
           AnchorSideTop.Control = Image_FileFullBackup
           AnchorSideTop.Side = asrBottom
-          Left = 47
-          Height = 21
+          Left = 38
+          Height = 25
           Top = 139
-          Width = 90
+          Width = 108
           AutoSize = True
           BorderSpacing.Top = 10
           Caption = '备份文件节点'
@@ -393,10 +393,10 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideLeft.Side = asrCenter
           AnchorSideTop.Control = Image_FileReference
           AnchorSideTop.Side = asrBottom
-          Left = 55
-          Height = 21
+          Left = 47
+          Height = 25
           Top = 139
-          Width = 75
+          Width = 90
           AutoSize = True
           BorderSpacing.Top = 10
           Caption = '取消此按键'
@@ -504,10 +504,10 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideLeft.Side = asrCenter
           AnchorSideTop.Control = Image_TestFile
           AnchorSideTop.Side = asrBottom
-          Left = 62
-          Height = 21
+          Left = 56
+          Height = 25
           Top = 139
-          Width = 60
+          Width = 72
           AutoSize = True
           BorderSpacing.Top = 10
           Caption = '识别文件'
@@ -701,10 +701,10 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideLeft.Side = asrCenter
           AnchorSideTop.Control = Image_UpdateFile
           AnchorSideTop.Side = asrBottom
-          Left = 55
-          Height = 21
+          Left = 47
+          Height = 25
           Top = 139
-          Width = 75
+          Width = 90
           AutoSize = True
           BorderSpacing.Top = 10
           Caption = '取消此按键'
@@ -847,10 +847,10 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideLeft.Side = asrCenter
           AnchorSideTop.Control = Image_AddNote
           AnchorSideTop.Side = asrBottom
-          Left = 47
-          Height = 21
+          Left = 38
+          Height = 25
           Top = 139
-          Width = 90
+          Width = 108
           AutoSize = True
           BorderSpacing.Top = 10
           Caption = '创建笔记节点'
@@ -894,7 +894,7 @@ object Form_ImportFiles: TForm_ImportFiles
       TabOrder = 0
       object TabSheet_AddPaper: TTabSheet
         Caption = '创建文件节点'
-        ClientHeight = 457
+        ClientHeight = 453
         ClientWidth = 685
         object StaticText_ImportFileNames: TStaticText
           Left = 0
@@ -912,7 +912,7 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideBottom.Side = asrBottom
           Left = 581
           Height = 63
-          Top = 386
+          Top = 382
           Width = 94
           Anchors = [akTop, akRight, akBottom]
           BorderSpacing.Top = 10
@@ -928,7 +928,7 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideRight.Side = asrBottom
           AnchorSideBottom.Control = Button_ImportFileNamesCheck
           Left = 0
-          Height = 346
+          Height = 342
           Top = 30
           Width = 685
           Anchors = [akTop, akLeft, akRight, akBottom]
@@ -955,13 +955,13 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideBottom.Control = RadioGroup_AddPaperMethod
           AnchorSideBottom.Side = asrBottom
           Left = 234
-          Height = 28
-          Top = 421
+          Height = 32
+          Top = 413
           Width = 332
           Anchors = [akLeft, akRight, akBottom]
           BorderSpacing.Left = 10
           BorderSpacing.Right = 15
-          ItemHeight = 20
+          ItemHeight = 24
           TabOrder = 3
         end
         object CheckBox_DefaultCl: TCheckBox
@@ -970,9 +970,9 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideTop.Control = RadioGroup_AddPaperMethod
           AnchorSideBottom.Control = ComboBox_DefaultCl
           Left = 234
-          Height = 24
-          Top = 392
-          Width = 144
+          Height = 28
+          Top = 380
+          Width = 172
           Anchors = [akLeft, akBottom]
           BorderSpacing.Left = 10
           BorderSpacing.Bottom = 5
@@ -987,7 +987,7 @@ object Form_ImportFiles: TForm_ImportFiles
           AnchorSideBottom.Side = asrBottom
           Left = 5
           Height = 73
-          Top = 376
+          Top = 372
           Width = 219
           Anchors = [akLeft, akBottom]
           AutoFill = True
@@ -1000,7 +1000,7 @@ object Form_ImportFiles: TForm_ImportFiles
           ChildSizing.ShrinkVertical = crsScaleChilds
           ChildSizing.Layout = cclLeftToRightThenTopToBottom
           ChildSizing.ControlsPerLine = 2
-          ClientHeight = 48
+          ClientHeight = 44
           ClientWidth = 215
           Columns = 2
           ItemIndex = 0

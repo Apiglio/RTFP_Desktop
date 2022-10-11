@@ -68,7 +68,7 @@ type
   protected
     DragField:TAttrsField;
   public
-    procedure Call(ATargetField:TAttrsField);
+    function Call(ATargetField:TAttrsField):Integer;
     procedure Update;
   end;
 
@@ -333,7 +333,7 @@ begin
   RadioGroup_MatchMode.Width:=radio_width;
 end;
 
-procedure TForm_CalcField.Call(ATargetField:TAttrsField);
+function TForm_CalcField.Call(ATargetField:TAttrsField):Integer;
 var tmpAG:TAttrsGroup;
     tmpAF:TAttrsField;
     stmp:string;
@@ -365,8 +365,9 @@ begin
   StringGrid_Join.ColWidths[0]:=30;
   StringGrid_Join.ColWidths[1]:=90;
   StringGrid_Join.ColWidths[2]:=90;
+  StringGrid_Join.Selection:=TGridRect(Rect(1,1,1,1));
   Update;
-  ShowModal;
+  result:=ShowModal;
 end;
 
 procedure TForm_CalcField.Update;

@@ -54,7 +54,7 @@ type
     procedure DefaultPosition;
 
   public
-    procedure Call(Sender:TObject;t,b,l,r:integer);
+    function Call(Sender:TObject;t,b,l,r:integer):Integer;
     property Syntax:string read GetSyntax;
     property DisplayName:string read GetDisplayName;
     property AttrsName:string read GetAttrsName;
@@ -221,7 +221,7 @@ begin
 end;
 
 
-procedure TFormFormatEditOption.Call(Sender:TObject;t,b,l,r:integer);
+function TFormFormatEditOption.Call(Sender:TObject;t,b,l,r:integer):Integer;
 var tmpAG:TAttrsGroup;
 begin
   ProjectObj:=Sender;
@@ -241,7 +241,7 @@ begin
   with ProjectObj as TRTFP do
     for tmpAG in FieldList do ComboBox_Attrs.AddItem(tmpAG.Name,tmpAG);
 
-  ShowModal;
+  result:=ShowModal;
 end;
 
 end.

@@ -220,6 +220,7 @@ object FormFieldDisplayOption: TFormFieldDisplayOption
     BorderSpacing.Top = 10
     BorderSpacing.Bottom = 10
     Caption = '确定'
+    ModalResult = 1
     OnClick = Button_OKClick
     TabOrder = 7
   end

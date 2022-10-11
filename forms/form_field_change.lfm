@@ -29,6 +29,7 @@ object Form_FieldChange: TForm_FieldChange
     BorderSpacing.Right = 20
     BorderSpacing.Bottom = 8
     Caption = '应用修改'
+    ModalResult = 1
     OnClick = Button_ChangeFieldClick
     TabOrder = 0
   end

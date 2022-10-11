@@ -83,7 +83,7 @@ type
     Panel_Down:boolean;//六个按键的状态，重复按过快可能报错，加入这个变量限制快速按键操作
 
   public
-    procedure Call(AFileNames: array of String);
+    function Call(AFileNames: array of String):Integer;
     procedure Clear;
     procedure Phase1;
     procedure Phase2;
@@ -104,7 +104,7 @@ uses RTFP_main, RTFP_definition, rtfp_type, rtfp_class;
 
 { TForm_ImportFiles }
 
-procedure TForm_ImportFiles.Call(AFileNames: array of String);
+function TForm_ImportFiles.Call(AFileNames: array of String):Integer;
 var len,pi:integer;
     tmpKl:TKlass;
 begin
@@ -128,7 +128,7 @@ begin
   ComboBox_DefaultCl.Text:='';
 
   FHaltoff:=false;
-  Self.ShowModal;
+  result:=ShowModal;
 end;
 
 procedure TForm_ImportFiles.Clear;

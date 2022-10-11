@@ -214,6 +214,7 @@ type
   public
     function AddAttrs(AName:string):TAttrsGroup;
     function FindAttrs(AName:string):TAttrsGroup;
+    function RenameAttrs(AName,ANewName:string):boolean;unimplemented;
     procedure DeleteAttrs(AName:string);
 
     property FieldList:TAttrsGroupList read FFieldList;
@@ -508,7 +509,7 @@ type
     procedure New(filename:ansistring;p_title:string;p_user:string);
     Procedure Open(filename:ansistring);
     procedure Save;
-    procedure SaveAs(filename:ansistring);
+    procedure SaveAs(filename:ansistring);unimplemented;
     function Close:boolean;
 
   private
@@ -1294,7 +1295,7 @@ end;
 procedure TRTFP.SaveAs(filename:ansistring);
 begin
   if FOnSaveAs <> nil then FOnSaveAs(Self);
-
+  ShowMsgOK('另存为','暂无另存功能。');
   //暂未实现
 
   if FOnSaveAsDone <> nil then FOnSaveAsDone(Self);

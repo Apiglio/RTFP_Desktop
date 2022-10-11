@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.4-alpha.2';
+  C_VERSION_NUMBER  = '0.2.4-alpha.3';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -907,7 +907,7 @@ end;
 
 procedure TFormDesktop.MenuItem_project_newClick(Sender: TObject);
 begin
-  Form_NewProject.ShowModal;//Form_NewProject.Show;
+  Form_NewProject.ShowModal;
   SetFocus;
 end;
 
@@ -961,7 +961,7 @@ end;
 
 procedure TFormDesktop.MenuItem_EditReferencesClick(Sender: TObject);
 begin
-  Form_CiteTrans.ShowModal;//Form_CiteTrans.Show;
+  Form_CiteTrans.ShowModal;
   SetFocus;
 end;
 
@@ -1305,15 +1305,15 @@ begin
   if ProjectInvalid then exit;
   tmpNode:=TACL_TreeNode(AListView_Attrs.Selected.Data);
   if tmpNode=nil then exit;
-  if tmpNode.Data is TAttrsGroup then
-    exit
-  else if tmpNode.Data is TAttrsField then
-    begin
-      Form_FieldChange.Call(TAttrsField(tmpNode.Data));
-      SetFocus;
-      CurrentRTFP.UpdateCurrentRec(Selected_PID);
-    end
-  else assert(false,'ACL_TreeNode中有unexpected的类型对象');
+  if tmpNode.Data is TAttrsGroup then begin
+    if Form_FieldChange.Call(TAttrsField(tmpNode.Data))=mrOK then
+      CurrentRTFP.RebuildMainGrid;
+    SetFocus;
+  end else if tmpNode.Data is TAttrsField then begin
+    if Form_FieldChange.Call(TAttrsField(tmpNode.Data))=mrOK then
+      CurrentRTFP.RebuildMainGrid;
+    SetFocus;
+  end else assert(false,'ACL_TreeNode中有unexpected的类型对象');
 
 end;
 
@@ -1327,9 +1327,9 @@ begin
     exit
   else if tmpNode.Data is TAttrsField then
     begin
-      FormFieldDisplayOption.Call(TAttrsField(tmpNode.Data));
+      if FormFieldDisplayOption.Call(TAttrsField(tmpNode.Data))=mrOK then;
+        //DBGrid_MainDrawColumnCell(DBGrid_Main,)
       SetFocus;
-      CurrentRTFP.UpdateCurrentRec(Selected_PID);
     end
   else assert(false,'ACL_TreeNode中有unexpected的类型对象');
 end;

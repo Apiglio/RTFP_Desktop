@@ -35,7 +35,7 @@ type
     Current_PID:string;
     Origin_Mode:integer;
     OriPath:string;
-    procedure Call;
+    function Call:Integer;
   end;
 
 var
@@ -138,10 +138,10 @@ begin
   Memo_Path.Lines.Add(OriPath);
 end;
 
-procedure TForm_FileSource.Call;
+function TForm_FileSource.Call:Integer;
 begin
   UpdateMemo;
-  ShowModal;
+  result:=ShowModal;
 end;
 
 procedure TForm_FileSource.Button_OpenDialogClick(Sender: TObject);

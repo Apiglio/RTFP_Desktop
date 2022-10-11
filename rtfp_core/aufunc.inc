@@ -477,7 +477,7 @@ begin
       begin
         if not AAuf.TryArgToLong(4,slon) then exit;
         AF:=CurrentRTFP.FindField(NF,NA);
-        if AG=nil then begin
+        if AF=nil then begin
           AufScpt.send_error('错误：找不到属性组“'+NA+'.'+NF+'”。');
           exit;
         end;
@@ -487,7 +487,7 @@ begin
       begin
         if not AAuf.TryArgToString(4,stmp) then exit;
         AF:=CurrentRTFP.FindField(NF,NA);
-        if AG=nil then begin
+        if AF=nil then begin
           AufScpt.send_error('错误：找不到属性组“'+NA+'.'+NF+'”。');
           exit;
         end;
@@ -497,7 +497,7 @@ begin
       begin
         if not AAuf.TryArgToString(4,stmp) then exit;
         AF:=CurrentRTFP.FindField(NF,NA);
-        if AG=nil then begin
+        if AF=nil then begin
           AufScpt.send_error('错误：找不到属性组“'+NA+'.'+NF+'”。');
           exit;
         end;
@@ -506,7 +506,7 @@ begin
     'clear_combo':
       begin
         AF:=CurrentRTFP.FindField(NF,NA);
-        if AG=nil then begin
+        if AF=nil then begin
           AufScpt.send_error('错误：找不到属性组“'+NA+'.'+NF+'”。');
           exit;
         end;

@@ -34,7 +34,7 @@ type
   private
     CurrentField:TAttrsField;
   public
-    procedure Call(AAttrsField:TAttrsField);
+    function Call(AAttrsField:TAttrsField):Integer;
   end;
 
 var
@@ -51,6 +51,8 @@ function Successive_FDOP(v1,v2:double;c1,c2:TColor;expresion:string;Value:TField
 var fvalue:double;
 begin
   if v1=v2 then begin result:=c1;exit;end;
+  result:=clNone;
+  case value.DataType of ftInteger,ftSmallint,ftLargeint,ftFloat:;else exit end;
   fvalue:=value.AsFloat;
   fvalue:=(fvalue-v1)/(v2-v1);
   result:=HSVLinearCombination(c1,c2,fvalue);
@@ -64,7 +66,7 @@ end;
 
 { TFormFieldDisplayOption }
 
-procedure TFormFieldDisplayOption.Call(AAttrsField:TAttrsField);
+function TFormFieldDisplayOption.Call(AAttrsField:TAttrsField):Integer;
 var index:integer;
 begin
   if AAttrsField=nil then begin ShowMsgOK('字段显示设置','默认字段暂不支持单元格设色。');exit;end;//这句真的能达到触发条件吗
@@ -96,7 +98,7 @@ begin
         end;
     end;
   RadioGroup_ColorStyleSelectionChanged(RadioGroup_ColorStyle);
-  ShowModal;
+  result:=ShowModal;
 end;
 
 procedure TFormFieldDisplayOption.RadioGroup_ColorStyleSelectionChanged(

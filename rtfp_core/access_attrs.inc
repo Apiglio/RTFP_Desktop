@@ -34,6 +34,40 @@ begin
   result:=FFieldList.FindItemByName(AName);
 end;
 
+function TRTFP.RenameAttrs(AName,ANewName:string):boolean;
+var tmpAG:TAttrsGroup;
+    oldname,newname:string;
+begin
+  result:=false;
+  tmpAG:=FFieldList.FindItemByName(AName);
+  if tmpAG=nil then exit;
+  if FFieldList.FindItemByName(ANewName)<>nil then exit;
+  case FDataSetType of
+    dstDBF:
+      begin
+        ShowMsgOK('重命名字段','DBF格式工程暂不支持重命名属性组，推荐使用BUF格式。');
+        exit;
+      end;
+    dstBUF:
+      begin
+        if tmpAG.Dbf.Active then tmpAG.Dbf.Close;
+        oldname:=CurrentPathFull+'attr\'+AName+'.buf';
+        newname:=CurrentPathFull+'attr\'+ANewName+'.buf';
+        if not TRTFP.FileCopy(oldname,newname,true) then begin
+          ShowMsgOK('重命名属性组','重命名属性组失败，未能成功创建属性组文件。');
+          exit;
+        end;
+        if not TRTFP.FileDelete(oldname) then ShowMsgOK('重命名属性组','旧属性组文件删除失败，请手动删除。');
+        tmpAG.Rename(ANewName);
+        TBufDataset(tmpAG.Dbf).FileName:=newname;
+        tmpAG.Dbf.Open;
+      end;
+    else ;
+  end;
+  FieldAndRecordChange;
+  result:=true;
+end;
+
 procedure TRTFP.DeleteAttrs(AName:string);
 var index:integer;
     tmp:TAttrsGroup;

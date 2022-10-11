@@ -55,6 +55,9 @@ type
     property AttrsGroup:TAttrsGroup read FAttrsGroup;
     property FieldDisplayOption:TFieldDisplayOption read FFieldDisplayOption{ write FFieldDisplayOption};
 
+  public
+    procedure ResetFieldDef(AFieldDef:TFieldDef);
+
   protected
     function GetIsCombo:boolean;
   public
@@ -118,6 +121,7 @@ type
     procedure LoadFieldListFromDbf;
     procedure DelField(AName:string);
     procedure AddField(AFieldDef:TFieldDef);
+    procedure Rename(ANewName:string);
   end;
 
 
@@ -197,6 +201,10 @@ begin
   FUpdating:=false;
 end;
 
+procedure TAttrsField.ResetFieldDef(AFieldDef:TFieldDef);
+begin
+  FFieldDef:=AFieldDef;
+end;
 
 function TAttrsField.GetIsCombo:boolean;
 begin
@@ -348,6 +356,11 @@ var idx:integer;
 begin
   idx:=FFieldList.FindItemIndexByName(AFieldDef.Name);
   if idx<0 then FFieldList.AddEx(AFieldDef).FAttrsGroup:=Self;
+end;
+
+procedure TAttrsGroup.Rename(ANewName:string);
+begin
+  FName:=ANewName;
 end;
 
 function TAttrsGroup.GetIsEmpty:boolean;

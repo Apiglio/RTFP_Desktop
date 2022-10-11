@@ -32,7 +32,7 @@ type
     function ComboBoxToFieldType:TFieldType;
     procedure FieldTypeToComboBox(value:TFieldType);
   public
-    procedure Call(AAttrsField:TAttrsField);
+    function Call(AAttrsField:TAttrsField):Integer;
     procedure Update;
   end;
 
@@ -78,12 +78,14 @@ begin
     ftAutoInc:ComboBox_FieldType.ItemIndex:=9;
     else ComboBox_FieldType.ItemIndex:=-1;
   end;
+  if value=ftUnknown then ComboBox_FieldType.Text:='属性组';
   //这里如果ComboBox_FieldType列表内容顺序变化全部要重新修改
 end;
 
 procedure TForm_FieldChange.ComboBox_FieldTypeChange(Sender: TObject);
 var target_type:TFieldType;
     cvf:pConvertFunc;
+    res:string;
 begin
   target_type:=ComboBoxToFieldType;
   case target_type of
@@ -91,7 +93,10 @@ begin
     else Edit_FieldSize.Enabled:=false;
   end;
   Memo_TypeChangeTip.Clear;
-  Memo_TypeChangeTip.Lines.Add(FieldTypeChangeMode(CurrentField.FieldDef.DataType,target_type,cvf));
+  res:=FieldTypeChangeMode(CurrentField.FieldDef.DataType,target_type,cvf);
+  Memo_TypeChangeTip.Lines.Add(res);
+  if res='不支持保留数值的转换。' then Button_ChangeField.Enabled:=false
+  else Button_ChangeField.Enabled:=true;
 end;
 
 procedure TForm_FieldChange.Button_ChangeFieldClick(Sender: TObject);
@@ -99,50 +104,83 @@ var new_name:string;
     new_type:TFieldType;
     new_size:integer;
 begin
-  new_name:=Edit_FieldName.Caption;
-  new_type:=ComboBoxToFieldType;
-  try
-    new_size:=StrToInt(Edit_FieldSize.Caption);
-  except
-    new_size:=CurrentField.FieldDef.Size;
-  end;
-  //先改类型
-  if CurrentField.FieldDef.DataType<>new_type then begin
-    case new_type of
-      ftString:CurrentRTFP.ReTypeField(CurrentField.FieldName,CurrentField.AttrsGroup.Name,new_type,new_size);
-      else CurrentRTFP.ReTypeField(CurrentField.FieldName,CurrentField.AttrsGroup.Name,new_type);
+  if CurrentField is TAttrsField then begin
+    new_name:=Edit_FieldName.Caption;
+    new_type:=ComboBoxToFieldType;
+    try
+      new_size:=StrToInt(Edit_FieldSize.Caption);
+    except
+      new_size:=CurrentField.FieldDef.Size;
     end;
+    //先改类型
+    if CurrentField.FieldDef.DataType<>new_type then begin
+      case new_type of
+        ftString:
+          begin
+            if new_size<1 then new_size:=1;
+            CurrentRTFP.ReTypeField(CurrentField.FieldName,CurrentField.AttrsGroup.Name,new_type,new_size);
+          end
+        else CurrentRTFP.ReTypeField(CurrentField.FieldName,CurrentField.AttrsGroup.Name,new_type);
+      end;
+    end else begin
+      if (CurrentField.FieldDef.Size<>new_size) and (new_type=ftString) then
+        CurrentRTFP.ReTypeField(CurrentField.FieldName,CurrentField.AttrsGroup.Name,new_type,new_size);
+    end;
+    //再改名
+    if CurrentField.FieldDef.Name<>new_name then CurrentRTFP.RenameField(CurrentField.FieldName,new_name,CurrentField.AttrsGroup.Name);
+    ModalResult:=mrOK;
+    CurrentRTFP.FieldAndRecordChange;
+    //最后改combo选项
+    CurrentField.ComboItem.Assign(Memo_ComboItem.Lines);
   end else begin
-    if (CurrentField.FieldDef.Size<>new_size) and (new_type=ftString) then
-      CurrentRTFP.ReTypeField(CurrentField.FieldName,CurrentField.AttrsGroup.Name,new_type,new_size);
+    new_name:=Edit_FieldName.Caption;
+    CurrentRTFP.RenameAttrs(TAttrsGroup(CurrentField).Name,new_name);
+    CurrentRTFP.FieldAndRecordChange;
+    ModalResult:=mrOK;
   end;
-  //再改名
-  if CurrentField.FieldDef.Name<>new_name then CurrentRTFP.RenameField(CurrentField.FieldName,new_name,CurrentField.AttrsGroup.Name);
-  ModalResult:=mrOK;
-  //最后改combo选项
-  CurrentField.ComboItem.Assign(Memo_ComboItem.Lines);
-  CurrentRTFP.FieldAndRecordChange;
 end;
 
-procedure TForm_FieldChange.Call(AAttrsField:TAttrsField);
+function TForm_FieldChange.Call(AAttrsField:TAttrsField):Integer;
 begin
-  if AAttrsField=nil then begin ShowMsgOK('字段属性','默认字段无法查看和修改属性。');exit;end;//这句真的能达到触发条件吗
+  if AAttrsField=nil then begin
+    ShowMsgOK('字段属性','默认字段无法查看和修改属性。');
+    exit;
+  end;//这句真的能达到触发条件吗
   CurrentField:=AAttrsField;
-  Self.Caption:='字段属性'+' - '+AAttrsField.FieldName+'('+AAttrsField.AttrsGroup.Name+')';
+  if CurrentField is TAttrsField then
+    Self.Caption:='字段属性'+' - '+AAttrsField.FieldName+'('+AAttrsField.AttrsGroup.Name+')'
+  else
+    Self.Caption:='属性组设置'+' - '+AAttrsField.FieldName;
   Update;
-  ShowModal;
+  result:=ShowModal;
 end;
 
 procedure TForm_FieldChange.Update;
 begin
-  Edit_FieldName.Caption:=CurrentField.FieldName;
-  Edit_FieldSize.Caption:=IntToStr(CurrentField.FieldDef.Size);
-  FieldTypeToComboBox(CurrentField.FieldDef.DataType);
-  case CurrentField.FieldDef.DataType of
-    ftString:Edit_FieldSize.Enabled:=true;
-    else Edit_FieldSize.Enabled:=false;
+  if CurrentField is TAttrsField then begin
+    Label_FieldName.Caption:='字段名称：';
+    Edit_FieldName.Caption:=CurrentField.FieldName;
+    Edit_FieldSize.Enabled:=true;
+    Edit_FieldSize.Caption:=IntToStr(CurrentField.FieldDef.Size);
+    FieldTypeToComboBox(CurrentField.FieldDef.DataType);
+    ComboBox_FieldType.Enabled:=true;
+    case CurrentField.FieldDef.DataType of
+      ftString:Edit_FieldSize.Enabled:=true;
+      else Edit_FieldSize.Enabled:=false;
+    end;
+    Memo_ComboItem.Enabled:=true;
+    Memo_ComboItem.Lines.Assign(CurrentField.ComboItem);
+  end else begin
+    Label_FieldName.Caption:='属性组：';
+    Edit_FieldName.Caption:=TAttrsGroup(CurrentField).Name;
+    Edit_FieldSize.Enabled:=false;
+    FieldTypeToComboBox(ftUnknown);
+    ComboBox_FieldType.Enabled:=false;
+    Edit_FieldSize.Enabled:=false;
+    Memo_TypeChangeTip.Clear;
+    Memo_TypeChangeTip.Lines.Add('属性组仅能修改名称');
+    Memo_ComboItem.Enabled:=false;
   end;
-  Memo_ComboItem.Lines.Assign(CurrentField.ComboItem);
   Application.ProcessMessages;
 end;
 
