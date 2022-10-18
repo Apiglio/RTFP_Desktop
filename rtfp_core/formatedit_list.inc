@@ -24,6 +24,7 @@ begin
   end;
   result:=true;
 end;
+
 function TRTFP.AddFormatDefault_All:boolean;
 var str:TStringList;
     index:integer;
@@ -136,6 +137,7 @@ begin
   FormatListChange;
   result:=true;
 end;
+
 function TRTFP.RenFormatEdit(filename,newname:string):boolean;
 var index:integer;
     f:file of byte;
@@ -149,8 +151,10 @@ begin
   TRTFP.FileRename(old_f,new_f);
   FFormatList[index]:=newname;
   FormatListChange;
+  FormatEditChange(newname,filename);
   result:=true;
 end;
+
 function TRTFP.DelFormatEdit(filename:string):boolean;
 var index:integer;
 begin
@@ -159,8 +163,23 @@ begin
   TRTFP.FileDelete(FFilePath+FRootFolder+'\format\'+filename);
   FFormatList.Delete(index);
   FormatListChange;
+  FormatEditChange('',filename);
   result:=true;
 end;
+
+procedure TRTFP.LoadFromFormatEdit(filename:string;str:TStrings);
+begin
+  if not assigned(str) then exit;
+  str.LoadFromFile(CurrentPathFull+'format\'+filename);
+end;
+
+procedure TRTFP.SaveToFormatEdit(filename:string;str:TStrings);
+begin
+  if not assigned(str) then exit;
+  str.SaveToFile(CurrentPathFull+'format\'+filename);
+  FormatEditChange(filename,filename);
+end;
+
 procedure TRTFP.LoadFormatEditList;
 var tmpFileList:TRTFP_FileList;
     stmp:TCollectionItem;
@@ -198,7 +217,7 @@ end;
 
 function TRTFP.SaveFormatList:boolean;
 begin
-  FFormatList.SaveToFile(Self.FFilePath+Self.FRootFolder+'\format.dat');
+  FFormatList.SaveToFile(Self.FFilePath+Self.FRootFolder+'\format.dat');//这个文件的存在仅为了保持兼容性
   result:=true;
 end;
 

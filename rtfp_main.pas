@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.4-alpha.3';
+  C_VERSION_NUMBER  = '0.2.4-alpha.4';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -248,7 +248,6 @@ type
     procedure RadioButton_KlassANDClick(Sender: TObject);
     procedure RadioButton_KlassORClick(Sender: TObject);
     procedure CheckBox_MainFilterAutoClick(Sender: TObject);
-    //procedure CheckListBox_MainAttrFilterClickCheck(Sender: TObject);
     procedure ComboBox_AttrNameChange(Sender: TObject);
     procedure ComboBox_FieldNameChange(Sender: TObject);
     procedure ComboBox_FormatEditChange(Sender: TObject);
@@ -406,6 +405,7 @@ type
     procedure MainGridRebuildDone(Sender:TObject);
     procedure MainGridUpdateRec(Sender:TObject;PID:RTFP_ID);
     procedure FormatListValidate(Sender:TObject);
+    procedure FormatEditValidate(Sender:TObject;fe_new,fe_old:string);
 
     procedure FirstEdit(Sender:TObject);//工程第一次编辑
     procedure Clear(Sender:TObject);//清空
@@ -468,7 +468,6 @@ end;
 
 procedure TFormDesktop.EventLink(Sender:TRTFP);//链接所有事件
 begin
-  //Sender.onNewDone:=@ProjectOpenDone;
   Sender.onOpenDone:=@ProjectOpenDone;
   Sender.onFirstEdit:=@FirstEdit;
   Sender.onSaveDone:=@ProjectSaveDone;
@@ -476,14 +475,12 @@ begin
   Sender.onClose:=@ProjectClose;
 
   Sender.onChange:=@Validate;
-  //Sender.onDataChange:=@MainGridValidate;
-  //Sender.onDataChange:=@MainGridUpdateRec;
   Sender.OnMainGridRebuilding:=@MainGridRebuilding;
   Sender.OnMainGridRebuildDone:=@MainGridRebuildDone;
   Sender.onClassChange:=@ClassListValidate;
   Sender.onFieldChange:=@FieldListValidate;
-  //Sender.OnTableValidateDone:=@DBGridColumnAdjusting;
   Sender.onFormatListChange:=@FormatListValidate;
+  Sender.onFormatEditChange:=@FormatEditValidate;
 end;
 
 procedure TFormDesktop.MenuItemOpenProject(Sender:TObject);
@@ -607,17 +604,12 @@ procedure TFormDesktop.MainGridRebuilding(Sender:TObject);
 begin
   Self.DBGrid_Main.Visible:=false;
   if FShowWaitForm then FWaitForm.Show;
-  //(Sender as TRTFP).RebuildMainGrid;//(Sender as TRTFP).TableValidate;
-  //if FShowWaitForm then FWaitForm.Hide;
-  //Self.DBGrid_Main.Visible:=true;
 end;
 procedure TFormDesktop.MainGridRebuildDone(Sender:TObject);
 begin
-  //Self.DBGrid_Main.Visible:=false;
-  //if FShowWaitForm then FWaitForm.Show;
-  //(Sender as TRTFP).RebuildMainGrid;//(Sender as TRTFP).TableValidate;
   if FShowWaitForm then FWaitForm.Hide;
   Self.DBGrid_Main.Visible:=true;
+  TabSheet_Project_DataGrid.Caption:='文献节点 ('+IntToStr(CurrentRTFP.CountMainGrid)+')';
 end;
 
 procedure TFormDesktop.MainGridUpdateRec(Sender:TObject;PID:RTFP_ID);
@@ -649,6 +641,37 @@ begin
   for stmp in (Sender as TRTFP).FormatList do ListBox_FormatEditMgr.Items.Add(stmp);
   if ListBox_FormatEditMgr.Count>index then ListBox_FormatEditMgr.ItemIndex:=index;
 
+end;
+
+procedure TFormDesktop.FormatEditValidate(Sender:TObject;fe_new,fe_old:string);
+var stored:integer;
+    current_fe:string;
+begin
+  if ComboBox_FormatEdit.Items.Count>0 then begin
+    {zan}stored:=ComboBox_FormatEdit.ItemIndex;
+    if {zan}stored<0 then current_fe:=''
+    else current_fe:=ComboBox_FormatEdit.Items[{zan}stored];
+  end else current_fe:='';
+  if (fe_old<>current_fe) and (fe_new<>'') then exit;
+  if fe_new='' then begin //删除FormatEdit
+    stored:=ComboBox_FormatEdit.Items.IndexOf('default.fmt');
+    if ComboBox_FormatEdit.Items.Count<1 then begin
+      ComboBox_FormatEdit.ItemIndex:=-1;
+    end else if stored<0 then begin
+      ComboBox_FormatEdit.ItemIndex:=0;
+    end else begin
+      ComboBox_FormatEdit.ItemIndex:=stored;
+    end;
+  end else if fe_new=fe_old then begin //修改FormatEdit
+    //
+  end else begin //重命名FormatEdit
+    stored:=ComboBox_FormatEdit.Items.IndexOf(fe_new);
+    ComboBox_FormatEdit.ItemIndex:=stored;
+  end;
+  CurrentRTFP.FormatEditClear(nil);
+  if fe_new<>'' then CurrentRTFP.FormatEditBuild(Self.ScrollBox_Node_FormatEdit,fe_new)
+  else CurrentRTFP.FormatEditBuild(Self.ScrollBox_Node_FormatEdit,'default.fmt');
+  CurrentRTFP.FormatEditValidate(Selected_PID);
 end;
 
 procedure TFormDesktop.FirstEdit(Sender:TObject);
@@ -2116,7 +2139,8 @@ begin
   SynEdit_FEMgr.Clear;
   with ListBox_FormatEditMgr do
     filename:=Items[ItemIndex];
-  SynEdit_FEMgr.Lines.LoadFromFile(CurrentRTFP.CurrentPathFull+'format\'+filename);
+  //SynEdit_FEMgr.Lines.LoadFromFile(CurrentRTFP.CurrentPathFull+'format\'+filename);
+  CurrentRTFP.LoadFromFormatEdit(filename,SynEdit_FEMgr.Lines);
   with StringGrid_FormatEditLayout do
     begin
       for pi:=1 to ColCount-1 do
@@ -2171,7 +2195,8 @@ begin
     'Yes':;
     else ;
   end;
-  SynEdit_FEMgr.Lines.SaveToFile(CurrentRTFP.CurrentPathFull+'format\'+filename);
+  //SynEdit_FEMgr.Lines.SaveToFile(CurrentRTFP.CurrentPathFull+'format\'+filename);
+  CurrentRTFP.SaveToFormatEdit(filename,SynEdit_FEMgr.Lines);
 end;
 
 procedure TFormDesktop.Button_FormatEdit_AddClick(Sender: TObject);
@@ -2227,7 +2252,7 @@ procedure TFormDesktop.Button_MainFilterClick(Sender: TObject);
 begin
   //温和的筛选方式
   if ProjectInvalid then exit;
-  CurrentRTFP.RebuildMainGrid;//MainGridValidate(CurrentRTFP);
+  CurrentRTFP.RebuildMainGrid;
   if FShowWaitForm then FWaitForm.Show;
   CurrentRTFP.RunPerformance.Filter_Command:=Edit_DBGridMain_Filter.Caption;
   CurrentRTFP.TableFilter;
@@ -2237,7 +2262,6 @@ end;
 procedure TFormDesktop.Button_MainSorterClick(Sender: TObject);
 begin
   if ProjectInvalid then exit;
-  //CurrentRTFP.RebuildMainGrid;//MainGridValidate(CurrentRTFP);
   if FShowWaitForm then FWaitForm.Show;
   CurrentRTFP.RunPerformance.Sorter_Command:=Edit_DBGridMain_Sorter.Caption;
   CurrentRTFP.TableSorter;
@@ -2263,8 +2287,11 @@ begin
 end;
 
 procedure TFormDesktop.CheckBox_MainSorterAutoClick(Sender: TObject);
+var not_checked:boolean;
 begin
-  Self.Button_MainSorter.Enabled:=not (Sender as TCheckBox).Checked;
+  not_checked:=not (Sender as TCheckBox).Checked;
+  Self.Button_MainSorter.Enabled:=not_checked;
+  Edit_DBGridMain_Sorter.Enabled:=not_checked;
   if ProjectInvalid then exit;
   CurrentRTFP.RunPerformance.Sorter_AutoRun:=(Sender as TCheckBox).Checked;
   if (Sender as TCheckBox).Checked then CurrentRTFP.TableSorter;
@@ -2274,7 +2301,7 @@ procedure TFormDesktop.Edit_DBGridMain_SorterChange(Sender: TObject);
 begin
   if ProjectInvalid then exit;
   CurrentRTFP.RunPerformance.Sorter_Command:=(Sender as TEdit).Caption;
-  if CurrentRTFP.RunPerformance.Sorter_AutoRun then CurrentRTFP.TableSorter;//??
+  //if CurrentRTFP.RunPerformance.Sorter_AutoRun then CurrentRTFP.TableSorter;//你需要了
 end;
 
 procedure TFormDesktop.Edit_DBGridMain_SorterKeyDown(Sender: TObject;
@@ -2311,8 +2338,11 @@ begin
 end;
 
 procedure TFormDesktop.CheckBox_MainFilterAutoClick(Sender: TObject);
+var not_checked:boolean;
 begin
-  Self.Button_MainFilter.Enabled:=not (Sender as TCheckBox).Checked;
+  not_checked:=not (Sender as TCheckBox).Checked;
+  Button_MainFilter.Enabled:=not_checked;
+  Edit_DBGridMain_Filter.Enabled:=not_checked;
   if ProjectInvalid then exit;
   CurrentRTFP.RunPerformance.Filter_AutoRun:=(Sender as TCheckBox).Checked;
   if (Sender as TCheckBox).Checked then CurrentRTFP.TableFilter;

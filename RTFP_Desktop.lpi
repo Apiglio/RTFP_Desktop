@@ -48,7 +48,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="48">
+    <Units Count="49">
       <Unit0>
         <Filename Value="RTFP_Desktop.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -75,7 +75,9 @@
       <Unit4>
         <Filename Value="forms\form_appearance.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="AppearanceForm"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
       </Unit4>
       <Unit5>
         <Filename Value="forms\form_cite_trans.pas"/>
@@ -129,7 +131,9 @@
       <Unit12>
         <Filename Value="forms\form_project_profile.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="FormProjectProfile"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
       </Unit12>
       <Unit13>
         <Filename Value="forms\form_repeated_checker.pas"/>
@@ -284,6 +288,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit47>
+      <Unit48>
+        <Filename Value="rtfp_core\status.inc"/>
+        <IsPartOfProject Value="True"/>
+      </Unit48>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -243,9 +243,7 @@ begin
         end;
       FPaperDS.First;
       if not FPaperDS.Active then FPaperDB.Open;
-      //TDbf(FPaperDB).IndexName:='id';
       while not FPaperDS.EOF do begin
-        //if TDbf(FPaperDB).SearchKey(FPaperDS.FieldByName(_Col_PID_).AsString,stEqual) then
         if LocatePID(FPaperDB,FPaperDS.FieldByName(_Col_PID_).AsString) then
           begin
             FPaperDS.Edit;
@@ -277,8 +275,6 @@ begin
           FPaperDS.First;
           if not FPaperDS.EOF then repeat
             PID:=FPaperDS.FieldByName(_Col_PID_).AsString;
-            //TDbf(tmpDbf).IndexName:='id';
-            //if TDbf(tmpDbf).SearchKey(PID,stEqual) then begin
             if LocatePID(tmpDbf,PID) then begin
               FPaperDS.Edit;
               for pi:=attr_range[pj].min to attr_range[pj].max do begin
@@ -305,6 +301,7 @@ begin
         end;
     END;
     if RunPerformance.Filter_AutoRun then TableFilter;
+    if RunPerformance.Sorter_AutoRun then TableSorter;//为啥不放这呢
     if FPaperDS.BookmarkValid(bm) then FPaperDS.GotoBookmark(bm);
   finally
     EndUpdate;
@@ -512,7 +509,7 @@ begin
   end;
 end;
 
-procedure TRTFP.TableSorter;unimplemented;
+procedure TRTFP.TableSorter;
 var sort_option:TDataSetSortOption;
     field_count,field_no:byte;
     mode:TDataSetSortMode;

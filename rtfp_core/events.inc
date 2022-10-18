@@ -84,5 +84,8 @@ begin
   Change;
 end;
 
-
-
+procedure TRTFP.FormatEditChange(fe_new,fe_old:string);
+begin
+  if (not IsUpdating) and (FOnFormatEditChange<>nil) then FOnFormatEditChange(Self,fe_new,fe_old);
+  Change;
+end;

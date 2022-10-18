@@ -83,6 +83,12 @@ type
   AttrsTypeDismatchErr=class(AttrsError)
   end;
 
+  TRTFPProjectEvent = procedure(Sender:TObject) of object;//TNotifyEvent;
+  TRTFPChangeEvent = procedure(Sender:TObject) of object;//TNotifyEvent;
+  TRTFPOneStrEvent = procedure(Sender:TObject;str:string) of object;
+  TRTFPTwoStrEvent = procedure(Sender:TObject;str1,str2:string) of object;
+
+
   TRTFP_Auf=class(TAuf)
   public
     RTFP:TObject;
@@ -333,6 +339,10 @@ type
     function AddFormatEditNull(filename:string):boolean;
     function RenFormatEdit(filename,newname:string):boolean;
     function DelFormatEdit(filename:string):boolean;
+
+    procedure LoadFromFormatEdit(filename:string;str:TStrings);
+    procedure SaveToFormatEdit(filename:string;str:TStrings);
+
   private
     procedure LoadFormatEditList;
     procedure LoadFormatList;inline;
@@ -389,17 +399,32 @@ type
 
   //EVENTS.INC 事件与禁用事件
   private
-    FIsChanged:boolean;
-    FUpdatingLevel:integer;//为0时触发onChange，每次BeginUpdate+1，EndUpdate-1
+    FIsChanged     :boolean;
+    FUpdatingLevel :integer;//为0时触发onChange，每次BeginUpdate+1，EndUpdate-1
 
-    FOnNew,FOnNewDone,FOnOpen,FOnOpenDone,FOnSave,FOnSaveDone,
-    FOnSaveAs,FOnSaveAsDone,FOnClose,FOnCloseDone:TNotifyEvent;
+    FOnNew         :TRTFPProjectEvent;
+    FOnNewDone     :TRTFPProjectEvent;
+    FOnOpen        :TRTFPProjectEvent;
+    FOnOpenDone    :TRTFPProjectEvent;
+    FOnSave        :TRTFPProjectEvent;
+    FOnSaveDone    :TRTFPProjectEvent;
+    FOnSaveAs      :TRTFPProjectEvent;
+    FOnSaveAsDone  :TRTFPProjectEvent;
+    FOnClose       :TRTFPProjectEvent;
+    FOnCloseDone   :TRTFPProjectEvent;
 
-    //FOnTableValidateDone:TNotifyEvent;
-    FOnMainGridRebuilding,FOnMainGridRebuildDone:TNotifyEvent;
+    FOnMainGridRebuilding    :TNotifyEvent;
+    FOnMainGridRebuildDone   :TNotifyEvent;
 
-    FOnFirstEdit,FOnChange,FOnDataChange,FOnFieldChange,FOnRecordChange,
-    FOnClassChange,FOnUsersChange,FOnFormatListChange:TNotifyEvent;
+    FOnFirstEdit             :TRTFPChangeEvent;
+    FOnChange                :TRTFPChangeEvent;
+    FOnDataChange            :TRTFPChangeEvent;
+    FOnFieldChange           :TRTFPChangeEvent;
+    FOnRecordChange          :TRTFPChangeEvent;
+    FOnClassChange           :TRTFPChangeEvent;
+    FOnUsersChange           :TRTFPChangeEvent;
+    FOnFormatListChange      :TRTFPChangeEvent;
+    FOnFormatEditChange      :TRTFPTwoStrEvent;
 
   protected
     function GetIsUpdating:boolean;
@@ -413,30 +438,30 @@ type
     property IsUpdating:boolean read GetIsUpdating;
 
   public
-    property onNew:TNotifyEvent read FOnNew write FOnNew;
-    property onNewDone:TNotifyEvent read FOnNewDone write FOnNewDone;
-    property onOpen:TNotifyEvent read FOnOpen write FOnOpen;
-    property onOpenDone:TNotifyEvent read FOnOpenDone write FOnOpenDone;
-    property onSave:TNotifyEvent read FOnSave write FOnSave;
-    property onSaveDone:TNotifyEvent read FOnSaveDone write FOnSaveDone;
-    property onSaveAs:TNotifyEvent read FOnSaveAs write FOnSaveAs;
-    property onSaveAsDone:TNotifyEvent read FOnSaveAsDone write FOnSaveAsDone;
-    property onClose:TNotifyEvent read FOnClose write FOnClose;
-    property onCloseDone:TNotifyEvent read FOnCloseDone write FOnCloseDone;
+    property onNew                :TRTFPProjectEvent read FOnNew                  write FOnNew;
+    property onNewDone            :TRTFPProjectEvent read FOnNewDone              write FOnNewDone;
+    property onOpen               :TRTFPProjectEvent read FOnOpen                 write FOnOpen;
+    property onOpenDone           :TRTFPProjectEvent read FOnOpenDone             write FOnOpenDone;
+    property onSave               :TRTFPProjectEvent read FOnSave                 write FOnSave;
+    property onSaveDone           :TRTFPProjectEvent read FOnSaveDone             write FOnSaveDone;
+    property onSaveAs             :TRTFPProjectEvent read FOnSaveAs               write FOnSaveAs;
+    property onSaveAsDone         :TRTFPProjectEvent read FOnSaveAsDone           write FOnSaveAsDone;
+    property onClose              :TRTFPProjectEvent read FOnClose                write FOnClose;
+    property onCloseDone          :TRTFPProjectEvent read FOnCloseDone            write FOnCloseDone;
 
-    //property OnTableValidateDone:TNotifyEvent read FOnTableValidateDone write FOnTableValidateDone;
-    property OnMainGridRebuilding:TNotifyEvent read FOnMainGridRebuilding write FOnMainGridRebuilding;
-    property OnMainGridRebuildDone:TNotifyEvent read FOnMainGridRebuildDone write FOnMainGridRebuildDone;
+    property OnMainGridRebuilding :TNotifyEvent      read FOnMainGridRebuilding   write FOnMainGridRebuilding;
+    property OnMainGridRebuildDone:TNotifyEvent      read FOnMainGridRebuildDone  write FOnMainGridRebuildDone;
 
-    property onFirstEdit:TNotifyEvent read FOnFirstEdit write FOnFirstEdit;
-    property onChange:TNotifyEvent read FOnChange write FOnChange;
+    property onFirstEdit          :TRTFPChangeEvent  read FOnFirstEdit            write FOnFirstEdit;
+    property onChange             :TRTFPChangeEvent  read FOnChange               write FOnChange;
     //以下On*Change事件会触发OnChange
-    property onDataChange:TNotifyEvent read FOnDataChange write FOnDataChange;
-    property onFieldChange:TNotifyEvent read FOnFieldChange write FOnFieldChange;
-    property onRecordChange:TNotifyEvent read FOnRecordChange write FOnRecordChange;
-    property onClassChange:TNotifyEvent read FOnClassChange write FOnClassChange;
-    property onUsersChange:TNotifyEvent read FOnUsersChange write FOnUsersChange;
-    property onFormatListChange:TNotifyEvent read FOnFormatListChange write FOnFormatListChange;
+    property onDataChange         :TRTFPChangeEvent  read FOnDataChange           write FOnDataChange;
+    property onFieldChange        :TRTFPChangeEvent  read FOnFieldChange          write FOnFieldChange;
+    property onRecordChange       :TRTFPChangeEvent  read FOnRecordChange         write FOnRecordChange;
+    property onClassChange        :TRTFPChangeEvent  read FOnClassChange          write FOnClassChange;
+    property onUsersChange        :TRTFPChangeEvent  read FOnUsersChange          write FOnUsersChange;
+    property onFormatListChange   :TRTFPChangeEvent  read FOnFormatListChange     write FOnFormatListChange;
+    property onFormatEditChange   :TRTFPTwoStrEvent  read FOnFormatEditChange     write FOnFormatEditChange;
 
   public
     procedure Change;//用于标记工程已经发生改变，如果之前未改变，会触发OnFirstEdit
@@ -446,26 +471,30 @@ type
     procedure FieldAndRecordChange(not_change_at_the_beginning:boolean=false);//记录和字段同时修改，也会触发DataChange和Change事件
     procedure ClassChange(not_change_at_the_beginning:boolean=false);//分类修改，也会触发Change事件
     procedure UsersChange;//用户列表修改，也会触发Change事件
-    procedure FormatListChange;//编辑样式修改，也会触发Change事件
+    procedure FormatListChange;//编辑样式列表修改，也会触发Change事件
+    procedure FormatEditChange(fe_new,fe_old:string);//编辑单独的样式，fe_old默认与fe_new一致，不一致是表示为改名，也会触发Change事件
 
   //PACKED_FORMAT.INC 用于压缩与转换的单文件格式
   public
     procedure ZTFP_Importer(fullfilename:string);unimplemented;//重复性检验之类的问题比较麻烦
     procedure ZTFP_Exporter(fullfilename:string);//PID筛选、备份选项未定
 
-  //未分类
+  //STATUS.INC 计数器与状态返回
   protected
     function GetPaperCount:integer;
     function GetBackupPaperCount:integer;
     function GetExternPaperCount:integer;
     function GetWeblnkPaperCount:integer;
+    function GetMainGridCount:integer;
 
   public
     property CountPaper:integer read GetPaperCount;
     property CountBackupPaper:integer read GetBackupPaperCount;
     property CountExternPaper:integer read GetExternPaperCount;
     property CountWeblnkPaper:integer read GetWeblnkPaperCount;
+    property CountMainGrid:integer read GetMainGridCount;
 
+  //未分类
   private
     function NewProjectFile(p_title,p_user:string):boolean;inline;
     function OpenProjectFile:boolean;inline;
@@ -573,6 +602,7 @@ uses RTFP_main, rtfp_field_convert, Zipper;
 var rtfp_reg:TRegExpr;
 
 {$I aufunc.inc}
+{$I status.inc}
 {$I events.inc}
 {$I control_interface.inc}
 
@@ -606,9 +636,6 @@ begin
   PaperDSFieldDefs:=TList.Create;
   FFormatEditComponentList:=TList.Create;
 
-  //ProjectFileValue:=TValueListEditor.Create(nil);
-  //ProjectFileValue.Parent:=AOwner;
-  //ProjectFileValue.Hide;
   FProjectTags:=TTags.Create;
 
   case FDataSetType of
@@ -638,7 +665,6 @@ begin
 
   FIsChanged:=false;
   FIsOpen:=false;
-  //FIsUpdating:=false;
   FUpdatingLevel:=0;
 
   FOnNew:=nil;
@@ -652,7 +678,6 @@ begin
   FOnClose:=nil;
   FOnCloseDone:=nil;
 
-  //FOnTableValidateDone:=nil;
   FOnMainGridRebuildDone:=nil;
   FOnMainGridRebuilding:=nil;
 
@@ -661,6 +686,8 @@ begin
   FOnDataChange:=nil;
   FOnFieldChange:=nil;
   FOnRecordChange:=nil;
+  FOnFormatListChange:=nil;
+  FOnFormatEditChange:=nil;
 
 end;
 
@@ -679,7 +706,6 @@ begin
   FImageDB.Free;
   FNotesDB.Free;
 
-  //ProjectFileValue.Free;
   FProjectTags.Free;
 
   FPaperDS.Free;
@@ -1601,28 +1627,6 @@ begin
   EndUpdate;
 end;
 
-
-{
-function DBConvertToString(inp:boolean):string;
-begin
-  if inp then result:='true'
-  else result:='false';
-end;
-function DBConvertToString(inp:int64):string;
-begin
-  result:=IntToStr(inp);
-end;
-function DBConvertToString(inp:extended):string;
-begin
-  result:=FormatFloat('0.00000',inp);
-end;
-function DBConvertToString(inp:TDateTime):string;
-begin
-  result:=FormatDateTime('yyyy-mm-dd hh:mm:ss',inp);
-end;
-}
-//这部分原本用来干啥的？
-
 procedure TRTFP.AttrNameValidate(AItems:TStrings);
 var tmpAG:TAttrsGroup;
 begin
@@ -1645,57 +1649,6 @@ begin
   result:=FFilePath+FRootFolder+'\';
 end;
 
-function TRTFP.GetPaperCount:integer;
-var acc:integer;
-begin
-  acc:=0;
-  with FPaperDB do begin
-    if not Active then Open;
-    First;
-    while not EOF do
-      begin
-        inc(acc);
-        Next;
-      end;
-    result:=acc;
-  end;
-end;
-function TRTFP.GetBackupPaperCount:integer;
-begin
-  result:=0;
-  with FPaperDB do begin
-    if not Active then Open;
-    First;
-    while not EOF do begin
-      if FieldByName(_Col_Paper_Is_Backup_).AsBoolean then inc(result);
-      Next;
-    end;
-  end;
-end;
-function TRTFP.GetExternPaperCount:integer;
-begin
-  result:=0;
-  with FPaperDB do begin
-    if not Active then Open;
-    First;
-    while not EOF do begin
-      if FieldByName(_Col_Paper_Folder_).AsString='extern' then inc(result);
-      Next;
-    end;
-  end;
-end;
-function TRTFP.GetWeblnkPaperCount:integer;
-begin
-  result:=0;
-  with FPaperDB do begin
-    if not Active then Open;
-    First;
-    while not EOF do begin
-      if FieldByName(_Col_Paper_Folder_).AsString='weblnk' then inc(result);
-      Next;
-    end;
-  end;
-end;
 
 class function TRTFP.NumToID(Num:dword):RTFP_ID;
 begin
