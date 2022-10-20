@@ -423,7 +423,7 @@ type
     FOnRecordChange          :TRTFPChangeEvent;
     FOnClassChange           :TRTFPChangeEvent;
     FOnUsersChange           :TRTFPChangeEvent;
-    FOnFormatListChange      :TRTFPChangeEvent;
+    FOnFormatListChange      :TRTFPOneStrEvent;
     FOnFormatEditChange      :TRTFPTwoStrEvent;
 
   protected
@@ -460,7 +460,7 @@ type
     property onRecordChange       :TRTFPChangeEvent  read FOnRecordChange         write FOnRecordChange;
     property onClassChange        :TRTFPChangeEvent  read FOnClassChange          write FOnClassChange;
     property onUsersChange        :TRTFPChangeEvent  read FOnUsersChange          write FOnUsersChange;
-    property onFormatListChange   :TRTFPChangeEvent  read FOnFormatListChange     write FOnFormatListChange;
+    property onFormatListChange   :TRTFPOneStrEvent  read FOnFormatListChange     write FOnFormatListChange;
     property onFormatEditChange   :TRTFPTwoStrEvent  read FOnFormatEditChange     write FOnFormatEditChange;
 
   public
@@ -471,7 +471,7 @@ type
     procedure FieldAndRecordChange(not_change_at_the_beginning:boolean=false);//记录和字段同时修改，也会触发DataChange和Change事件
     procedure ClassChange(not_change_at_the_beginning:boolean=false);//分类修改，也会触发Change事件
     procedure UsersChange;//用户列表修改，也会触发Change事件
-    procedure FormatListChange;//编辑样式列表修改，也会触发Change事件
+    procedure FormatListChange(rename:string='default.fmt');//编辑样式列表修改，也会触发Change事件
     procedure FormatEditChange(fe_new,fe_old:string);//编辑单独的样式，fe_old默认与fe_new一致，不一致是表示为改名，也会触发Change事件
 
   //PACKED_FORMAT.INC 用于压缩与转换的单文件格式

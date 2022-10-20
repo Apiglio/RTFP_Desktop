@@ -78,9 +78,9 @@ begin
   Change;
 end;
 
-procedure TRTFP.FormatListChange;
+procedure TRTFP.FormatListChange(rename:string='default.fmt');
 begin
-  if (not IsUpdating) and (FOnFormatListChange<>nil) then FOnFormatListChange(Self);
+  if (not IsUpdating) and (FOnFormatListChange<>nil) then FOnFormatListChange(Self,rename);
   Change;
 end;
 

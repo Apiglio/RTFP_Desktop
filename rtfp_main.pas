@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.4-alpha.4';
+  C_VERSION_NUMBER  = '0.2.4-alpha.5';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -404,7 +404,7 @@ type
     procedure MainGridRebuilding(Sender:TObject);
     procedure MainGridRebuildDone(Sender:TObject);
     procedure MainGridUpdateRec(Sender:TObject;PID:RTFP_ID);
-    procedure FormatListValidate(Sender:TObject);
+    procedure FormatListValidate(Sender:TObject;rename:string='default.fmt');
     procedure FormatEditValidate(Sender:TObject;fe_new,fe_old:string);
 
     procedure FirstEdit(Sender:TObject);//工程第一次编辑
@@ -617,13 +617,14 @@ begin
   (Sender as TRTFP).UpdateCurrentRec(PID);
 end;
 
-procedure TFormDesktop.FormatListValidate(Sender:TObject);
+procedure TFormDesktop.FormatListValidate(Sender:TObject;rename:string='default.fmt');
 var stmp,stored:string;
     marked,acc,index:integer;
 begin
   //NodeTab
   stored:=ComboBox_FormatEdit.SelText;
-  if stored='' then stored:='default.fmt';
+  //if stored='' then stored:='default.fmt';
+  if stored='' then stored:=rename;
   ComboBox_FormatEdit.Clear;
   acc:=0;
   marked:=-1;

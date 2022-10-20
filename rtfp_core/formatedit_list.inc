@@ -149,8 +149,9 @@ begin
   new_f:=old_f+newname;
   old_f:=old_f+filename;
   TRTFP.FileRename(old_f,new_f);
-  FFormatList[index]:=newname;
-  FormatListChange;
+  FFormatList.Delete(index);
+  FFormatList.Add(newname);
+  FormatListChange(newname);
   FormatEditChange(newname,filename);
   result:=true;
 end;
