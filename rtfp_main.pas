@@ -12,7 +12,7 @@ uses
   ValEdit, StdCtrls, DbCtrls, LazUTF8, SynEdit, Clipbrd, LCLType, Buttons,
   Regexpr, SynHighlighterAuf,
 
-  Apiglio_Useful, AufScript_Frame, ACL_ListView, TreeListView,
+  Apiglio_Useful, AufScript_Frame, ACL_ListView,
 
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, Types;
 
@@ -515,8 +515,9 @@ begin
   filename:=LocalPath+'recent_project.dat';
   with MenuItem_project_recent do while Count>0 do
     begin
-      Items[0].Free;
+      tmp:=Items[0];
       Delete(0);
+      tmp.Free;
     end;
   str:=TStringList.Create;
   try
@@ -539,7 +540,6 @@ begin
         MenuItem_project_recent.Add(tmp);
       end;
   end;
-  //MenuItem_project_recent.Items
 end;
 procedure TFormDesktop.SaveRecentProject;
 var filename,stmp:string;
@@ -762,6 +762,9 @@ begin
   Self.MenuItem_project_unzip.Enabled:=true;
   Self.MenuItem_project_check.Enabled:=false;
   Self.MenuItem_Tool_ProjectDir.Enabled:=false;
+
+  SaveRecentProject;
+  LoadRecentProject;
 
 end;
 
