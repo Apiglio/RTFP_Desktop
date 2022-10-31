@@ -1060,9 +1060,9 @@ object FormDesktop: TFormDesktop
     Height = 189
     Top = 369
     Width = 749
-    ActivePage = TabSheet_Node_FormatEdit
+    ActivePage = TabSheet_Node_PDF
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 2
+    TabIndex = 0
     TabOrder = 4
     OnChange = PageControl_NodeChange
     object TabSheet_Node_PDF: TTabSheet
@@ -1429,14 +1429,14 @@ object FormDesktop: TFormDesktop
     Height = 552
     Top = 6
     Width = 248
-    ActivePage = TabSheet_Filter_Klass
+    ActivePage = TabSheet_Filter_Field
     Anchors = [akTop, akLeft, akRight, akBottom]
     Constraints.MinWidth = 200
     Font.CharSet = ANSI_CHARSET
     Font.Pitch = fpFixed
     Font.Quality = fqDraft
     ParentFont = False
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 7
     object TabSheet_Filter_Klass: TTabSheet
       Caption = '分类节点'
@@ -1467,7 +1467,6 @@ object FormDesktop: TFormDesktop
             MinWidth = 100
             Width = 96
           end>
-        Font.CharSet = ANSI_CHARSET
         Font.Pitch = fpFixed
         Font.Quality = fqDraft
         HideSelection = False
@@ -1573,7 +1572,7 @@ object FormDesktop: TFormDesktop
     object TabSheet_Filter_Field: TTabSheet
       Caption = '属性节点'
       ClientHeight = 515
-      ClientWidth = 192
+      ClientWidth = 240
       Font.CharSet = ANSI_CHARSET
       Font.Pitch = fpFixed
       Font.Quality = fqDraft
@@ -1588,7 +1587,7 @@ object FormDesktop: TFormDesktop
         Left = 0
         Height = 407
         Top = 0
-        Width = 192
+        Width = 240
         Anchors = [akTop, akLeft, akRight, akBottom]
         AutoSort = False
         BorderSpacing.Bottom = 108
@@ -1599,7 +1598,6 @@ object FormDesktop: TFormDesktop
             MinWidth = 200
             Width = 96
           end>
-        Font.CharSet = ANSI_CHARSET
         Font.Pitch = fpFixed
         Font.Quality = fqDraft
         ParentFont = False
@@ -1612,7 +1610,7 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Control = TabSheet_Filter_Field
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = Button_FieldType
-        Left = 166
+        Left = 214
         Height = 26
         Hint = '长度限制在12个字节（4个汉字），'#13#10'可使用的特殊符号包括：_-'
         Top = 450
@@ -1634,7 +1632,7 @@ object FormDesktop: TFormDesktop
         Left = 74
         Height = 32
         Top = 447
-        Width = 92
+        Width = 140
         Anchors = [akLeft, akRight, akBottom]
         BorderSpacing.Bottom = 5
         TabOrder = 2
@@ -1663,7 +1661,7 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Control = TabSheet_Filter_Field
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = Button_AddField
-        Left = 166
+        Left = 214
         Height = 26
         Hint = '长度限制在20个字节（约6个汉字），'#13#10'可使用的特殊符号包括：_-'
         Top = 416
@@ -1702,7 +1700,7 @@ object FormDesktop: TFormDesktop
         Left = 74
         Height = 32
         Top = 413
-        Width = 92
+        Width = 140
         Anchors = [akLeft, akRight, akBottom]
         ItemHeight = 24
         TabOrder = 4
@@ -1716,7 +1714,7 @@ object FormDesktop: TFormDesktop
         Left = 74
         Height = 32
         Top = 481
-        Width = 92
+        Width = 140
         Anchors = [akLeft, akRight, akBottom]
         ItemHeight = 24
         Items.Strings = (
@@ -1739,7 +1737,7 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = TabSheet_Filter_Field
         AnchorSideBottom.Side = asrBottom
-        Left = 166
+        Left = 214
         Height = 26
         Top = 484
         Width = 26
@@ -1836,13 +1834,21 @@ object FormDesktop: TFormDesktop
       end
     end
     object MenuItem_Node: TMenuItem
-      Caption = '节点'
-      object MenuItem_Node_New: TMenuItem
+      Caption = '编辑'
+      object MenuItem_Edit_NewNode: TMenuItem
         Caption = '新建节点'
-        OnClick = MenuItem_Node_NewClick
+        OnClick = MenuItem_Edit_NewNodeClick
       end
-      object MenuItem_Node_div01: TMenuItem
+      object MenuItem_Edit_div01: TMenuItem
         Caption = '-'
+      end
+      object MenuItem_Edit_NewField: TMenuItem
+        Caption = '新建字段'
+        Enabled = False
+      end
+      object MenuItem_Edit_FieldComboBuild: TMenuItem
+        Caption = '构建字段选项'
+        Enabled = False
       end
     end
     object MenuItem_KlassMenu: TMenuItem

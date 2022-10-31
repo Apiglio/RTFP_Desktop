@@ -54,6 +54,8 @@ type
     CheckBox_MainSorterAuto: TCheckBox;
     Edit_DBGridMain_Sorter: TEdit;
     Label_MainSorter: TLabel;
+    MenuItem_Edit_FieldComboBuild: TMenuItem;
+    MenuItem_Edit_NewField: TMenuItem;
     MenuItem_DBGC_Calc: TMenuItem;
     RadioButton_KlassAND: TRadioButton;
     CheckBox_KlassNot: TCheckBox;
@@ -96,8 +98,8 @@ type
     MenuItem_EditReferences: TMenuItem;
     MenuItem_Edit: TMenuItem;
     MenuItem_NewPaper: TMenuItem;
-    MenuItem_Node_New: TMenuItem;
-    MenuItem_Node_div01: TMenuItem;
+    MenuItem_Edit_NewNode: TMenuItem;
+    MenuItem_Edit_div01: TMenuItem;
     MenuItem_Node: TMenuItem;
     MenuItem_CB_RefNum_InOrder: TMenuItem;
     MenuItem_CB_RefNum_AurYear: TMenuItem;
@@ -322,7 +324,7 @@ type
     procedure MenuItem_Mark_IsRead_NoClick(Sender: TObject);
     procedure MenuItem_Mark_IsRead_YesClick(Sender: TObject);
     procedure MenuItem_NewPaperClick(Sender: TObject);
-    procedure MenuItem_Node_NewClick(Sender: TObject);
+    procedure MenuItem_Edit_NewNodeClick(Sender: TObject);
     procedure MenuItem_OpenAsCajClick(Sender: TObject);
     procedure MenuItem_OpenAsPdfClick(Sender: TObject);
     procedure MenuItem_OpenDefaultClick(Sender: TObject);
@@ -1558,7 +1560,7 @@ begin
   Action_NewPaper;
 end;
 
-procedure TFormDesktop.MenuItem_Node_NewClick(Sender: TObject);
+procedure TFormDesktop.MenuItem_Edit_NewNodeClick(Sender: TObject);
 begin
   Action_NewPaper;
 end;

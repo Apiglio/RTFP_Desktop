@@ -14,12 +14,11 @@ type
   { TAppearanceForm }
 
   TAppearanceForm = class(TForm)
-    Button1: TButton;
-    ButtonPanel1: TButtonPanel;
     ColorBox: TColorBox;
-    Image1: TImage;
+    Label_Appearance_alpha: TLabel;
+    Label_Appearance_color: TLabel;
+    ScrollBox_Appearance: TScrollBox;
     TrackBar: TTrackBar;
-    procedure Button1Click(Sender: TObject);
     procedure ColorBoxChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
@@ -52,8 +51,12 @@ begin
 end;
 
 procedure TAppearanceForm.ColorBoxChange(Sender: TObject);
+var selc:TColor;
 begin
-  FormDesktop.Color:=(Sender as TColorBox).Selected;
+  selc:=(Sender as TColorBox).Selected;
+  FormDesktop.Color:=selc;
+  FormDesktop.TabSheet_Node_PDF.Color:=selc;
+  FormDesktop.PageControl_Node.Color:=selc;
 
   //FormDesktop.TabSheet_Filter_Field.Color:=(Sender as TColorBox).Selected;
   //FormDesktop.TabSheet_Filter_Klass.Color:=(Sender as TColorBox).Selected;
@@ -64,14 +67,6 @@ procedure TAppearanceForm.FormCreate(Sender: TObject);
 begin
   if Self.Height>Screen.Height then Self.Height:=trunc(Screen.Height*0.8);
   if Self.Width>Screen.Width then Self.Height:=trunc(Screen.Width*0.8);
-end;
-
-procedure TAppearanceForm.Button1Click(Sender: TObject);
-begin
-  if Clipboard.HasFormat(PredefinedClipboardFormat(pcfDelphiBitmap)) then
-    Image1.Picture.Bitmap.LoadFromClipboardFormat(PredefinedClipboardFormat(pcfDelphiBitmap));
-  if Clipboard.HasFormat(PredefinedClipboardFormat(pcfBitmap)) then
-    Image1.Picture.Bitmap.LoadFromClipboardFormat(PredefinedClipboardFormat(pcfBitmap));
 end;
 
 end.
