@@ -103,6 +103,7 @@ procedure TForm_FieldChange.Button_ChangeFieldClick(Sender: TObject);
 var new_name:string;
     new_type:TFieldType;
     new_size:integer;
+    current_fe:string;
 begin
   if CurrentField is TAttrsField then begin
     new_name:=Edit_FieldName.Caption;
@@ -132,6 +133,8 @@ begin
     CurrentRTFP.FieldAndRecordChange;
     //最后改combo选项
     CurrentField.ComboItem.Assign(Memo_ComboItem.Lines);
+    current_fe:=FormDesktop.ComboBox_FormatEdit.Text;
+    CurrentRTFP.FormatEditChange(current_fe,current_fe);
   end else begin
     new_name:=Edit_FieldName.Caption;
     CurrentRTFP.RenameAttrs(TAttrsGroup(CurrentField).Name,new_name);
