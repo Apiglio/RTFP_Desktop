@@ -363,12 +363,24 @@ begin
         '+':FieldByName(_Col_basic_Organ_).AsString:=attr;
         'T':FieldByName(_Col_basic_Title_).AsString:=attr;
         'J','I':FieldByName(_Col_basic_Source_).AsString:=attr;
-        'D':FieldByName(_Col_basic_Year_).AsString:=attr;
+        'D':
+          try
+            FieldByName(_Col_basic_Year_).AsString:=attr;
+          except
+          end;
         'V':case reftype of
               '标准规范':FieldByName(_Col_basic_ISBN_ISSN_).AsString:=attr;
-              else FieldByName(_Col_basic_Issue_).AsString:=attr;
+              else
+                try
+                  FieldByName(_Col_basic_Issue_).AsString:=attr;
+                except
+                end;
             end;
-        'N':FieldByName(_Col_basic_Volume_).AsString:=attr;
+        'N':
+          try
+            FieldByName(_Col_basic_Volume_).AsString:=attr;
+          except
+          end;
         'K':FieldByName(_Col_basic_Keyword_).AsString:=attr;
         'X':FieldByName(_Col_basic_Summary_).AsString:=attr;
         'P':FieldByName(_Col_basic_Page_).AsString:=attr;
@@ -411,6 +423,7 @@ begin
     for stmp in str do begin
       if length(stmp)<6 then continue;
       if (stmp[3]<>' ') or (stmp[4]<>' ') or (stmp[5]<>'-') or (stmp[6]<>' ') then continue;
+      //有见到只有一个空格的RIS格式，暂不因为特例进行修改了。
       attr:=stmp;
       delete(attr,1,6);
       case uppercase(stmp[1]+stmp[2]) of
@@ -439,9 +452,21 @@ begin
         'ER':{do nothing};
         'T1','TI':FieldByName(_Col_basic_Title_).AsString:=attr;
         'JO','JF','T2':FieldByName(_Col_basic_Source_).AsString:=attr;
-        'PY':FieldByName(_Col_basic_Year_).AsString:=attr;
-        'VL':FieldByName(_Col_basic_Volume_).AsString:=attr;
-        'IS':FieldByName(_Col_basic_Issue_).AsString:=attr;
+        'PY':
+          try
+            FieldByName(_Col_basic_Year_).AsString:=attr;
+          except
+          end;
+        'VL':
+          try
+            FieldByName(_Col_basic_Volume_).AsString:=attr;
+          except
+          end;
+        'IS':
+          try
+            FieldByName(_Col_basic_Issue_).AsString:=attr;
+          except
+          end;
         'AB':FieldByName(_Col_basic_Summary_).AsString:=attr;
         'SN':FieldByName(_Col_basic_ISBN_ISSN_).AsString:=attr;
         'DO':FieldByName(_Col_basic_doi_).AsString:=attr;

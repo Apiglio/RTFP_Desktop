@@ -8,6 +8,7 @@
       <MainUnit Value="0"/>
       <Title Value="RTFP_Desktop"/>
       <ResourceType Value="res"/>
+      <UseXPManifest Value="True"/>
       <Icon Value="0"/>
     </General>
     <BuildModes Count="1">
