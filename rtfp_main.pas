@@ -488,6 +488,7 @@ end;
 procedure TFormDesktop.MenuItemOpenProject(Sender:TObject);
 var filename:string;
 begin
+  filename:=(Sender as TMenuItem).Caption;
   if not ProjectInvalid then
     begin
       if not CurrentRTFP.Close then exit;
@@ -498,7 +499,6 @@ begin
       CurrentRTFP.SetAuf(Frame_AufScript1.Auf);
       Self.EventLink(CurrentRTFP);
     end;
-  filename:=(Sender as TMenuItem).Caption;
   if FileExists(filename) then begin
     CurrentRTFP.Open(UTF8ToWinCP(filename));
     CurrentRTFP.RunPerformance.Backup_SaveXml:=OptionMap.Backup_SaveXml;
