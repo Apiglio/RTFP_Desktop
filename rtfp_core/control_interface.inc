@@ -50,16 +50,25 @@ end;
 procedure TRTFP.FieldListValidate(AListView:TListView);
 var tmpAG:TAttrsGroup;
     tmpAF:TAttrsField;
+    dispAG,dispAF:string;
 begin
   AListView.BeginUpdate;
   (AListView as TACL_ListView).Clear;
   for tmpAG in FFieldList do
     begin
+      if (tmpAG.DisplayName<>'') and (tmpAG.DisplayName<>tmpAG.Name) then
+        dispAG:=tmpAG.DisplayName+' ('+tmpAG.Name+')'
+      else
+        dispAG:=tmpAG.Name;
       for tmpAF in tmpAG.FieldList do
         begin
-          (AListView as TACL_ListView).AddShellNodeItem(tmpAG.Name+'\'+tmpAF.FieldName,tmpAF,tmpAF.Shown);
+          if (tmpAF.DisplayName<>'') and (tmpAF.DisplayName<>tmpAF.FieldName) then
+            dispAF:=tmpAF.DisplayName+' ('+tmpAF.FieldName+')'
+          else
+            dispAF:=tmpAF.FieldName;
+          (AListView as TACL_ListView).AddShellNodeItem(dispAG+'\'+dispAF,tmpAF,tmpAF.Shown);
         end;
-      (AListView as TACL_ListView).GetShellNodeItem(tmpAG.Name).Data:=tmpAG;
+      (AListView as TACL_ListView).GetShellNodeItem(dispAG).Data:=tmpAG;
     end;
   AListView.EndUpdate;
   for tmpAG in FFieldList do

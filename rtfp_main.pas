@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.4-alpha.7';
+  C_VERSION_NUMBER  = '0.2.4-alpha.8';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -54,6 +54,7 @@ type
     CheckBox_MainSorterAuto: TCheckBox;
     Edit_DBGridMain_Sorter: TEdit;
     Label_MainSorter: TLabel;
+    MenuItem_DBGC_FieldOpt: TMenuItem;
     MenuItem_Edit_FieldComboBuild: TMenuItem;
     MenuItem_Edit_NewField: TMenuItem;
     MenuItem_DBGC_Calc: TMenuItem;
@@ -247,6 +248,7 @@ type
     procedure Edit_DBGridMain_SorterKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure MenuItem_DBGC_CalcClick(Sender: TObject);
+    procedure MenuItem_DBGC_FieldOptClick(Sender: TObject);
     procedure RadioButton_KlassANDClick(Sender: TObject);
     procedure RadioButton_KlassORClick(Sender: TObject);
     procedure CheckBox_MainFilterAutoClick(Sender: TObject);
@@ -608,7 +610,16 @@ begin
   if FShowWaitForm then FWaitForm.Show;
 end;
 procedure TFormDesktop.MainGridRebuildDone(Sender:TObject);
+var len,idx:integer;
+    tmpAF:TAttrsField;
 begin
+  len:=Self.DBGrid_Main.Columns.Count;
+  for idx:=0 to len-1 do begin
+    tmpAF:=TAttrsField(CurrentRTFP.PaperDSFieldDefs[idx]);
+    if tmpAF=nil then continue;
+    if tmpAF.FFieldDisplayOption.display_name<>'' then
+      Self.DBGrid_Main.Columns[idx].Title.Caption:=tmpAF.FFieldDisplayOption.display_name;
+  end;
   if FShowWaitForm then FWaitForm.Hide;
   Self.DBGrid_Main.Visible:=true;
   TabSheet_Project_DataGrid.Caption:='文献节点 ('+IntToStr(CurrentRTFP.CountMainGrid)+')';
@@ -2326,6 +2337,15 @@ begin
   tmpAF:=TAttrsField(CurrentRTFP.PaperDSFieldDefs.Items[LastDBGridPos.x-1]);
   if tmpAF=nil then begin ShowMsgOK('编辑字段值','该字段不支持编辑。');exit end;
   Form_CalcField.Call(tmpAF);
+  SetFocus;
+end;
+
+procedure TFormDesktop.MenuItem_DBGC_FieldOptClick(Sender: TObject);
+var tmpAF:TAttrsField;
+begin
+  if ProjectInvalid then exit;
+  tmpAF:=TAttrsField(CurrentRTFP.PaperDSFieldDefs[LastDBGridPos.x-1]);
+  if Form_FieldChange.Call(tmpAF)=mrOK then CurrentRTFP.RebuildMainGrid;
   SetFocus;
 end;
 

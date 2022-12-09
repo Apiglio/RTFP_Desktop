@@ -2161,8 +2161,12 @@ object FormDesktop: TFormDesktop
       Caption = '-'
     end
     object MenuItem_DBGC_DisplayOpt: TMenuItem
-      Caption = '单元格设色'
+      Caption = '字段样式'
       OnClick = MenuItem_DBGC_DisplayOptClick
+    end
+    object MenuItem_DBGC_FieldOpt: TMenuItem
+      Caption = '字段设置'
+      OnClick = MenuItem_DBGC_FieldOptClick
     end
   end
 end

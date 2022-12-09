@@ -54,6 +54,7 @@ type
     property FieldName:string read FFieldName write FFieldName;
     property AttrsGroup:TAttrsGroup read FAttrsGroup;
     property FieldDisplayOption:TFieldDisplayOption read FFieldDisplayOption{ write FFieldDisplayOption};
+    property DisplayName:string read FFieldDisplayOption.display_name;
 
   public
     procedure ResetFieldDef(AFieldDef:TFieldDef);
@@ -101,6 +102,7 @@ type
   TAttrsGroup = class(TCollectionItem)
   private
     FName,FFullPath:string;
+    FDisplayName:string;
     FDbf:{TDbf}TDataSet;
     FFieldList:TAttrsFieldList;
     FGroupShown:boolean;
@@ -109,6 +111,7 @@ type
     function GetIsEmpty:boolean;
   public
     property Name:string read FName;
+    property DisplayName:string read FDisplayName write FDisplayName;
     property FullPath:string read FFullPath;
     property FieldList:TAttrsFieldList read FFieldList;
     property Dbf:{TDbf}TDataSet read FDbf;
@@ -317,8 +320,8 @@ begin
 
   FFieldList:=TAttrsFieldList.Create(nil);
   FGroupShown:=true;
-  FModified:=false
-
+  FModified:=false;
+  FDisplayName:='';
 end;
 
 destructor TAttrsGroup.Destroy;

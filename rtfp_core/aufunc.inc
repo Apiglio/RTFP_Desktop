@@ -486,6 +486,15 @@ begin
     'display_name','disp':
       begin
         if not AAuf.TryArgToString(4,stmp) then exit;
+        if NF='' then begin
+          AG:=CurrentRTFP.FieldList.FindItemByName(NA);
+          if AG=nil then begin
+            AufScpt.send_error('错误：无属性组“'+NA+'”。');
+            exit;
+          end;
+          AG.DisplayName:=stmp;
+          exit;
+        end;
         AF:=CurrentRTFP.FindField(NF,NA);
         if AF=nil then begin
           AufScpt.send_error('错误：找不到属性组“'+NA+'.'+NF+'”。');

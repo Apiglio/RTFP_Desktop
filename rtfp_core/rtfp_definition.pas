@@ -29,6 +29,8 @@
 //KNOWN BUGS
 //  在主表中显示的字段不能直接删除，否则报错，出自RebuildMainGrid
 //  【FATAL】TableFilter中使用无效的正则表达式会导致崩溃，并且主窗体中try except不能解决问题
+//  文献节点主表的tab括号内的数量在直接连接dbf时，数量有可能是错误的，值比较小时会减一，还不知道哪里的问题。
+//  属性组和字段改名后FormatEdit没有一起修改
 
 //AG和AF的DisplayName
 //FieldCalc的主表模式
@@ -1137,11 +1139,12 @@ begin
     for AG in FFieldList do
       begin
         str.Add('option.attrs.set "'+AG.Name+'","","folded",'+con(not AG.GroupShown));
+        str.Add('option.attrs.set "'+AG.Name+'","","display_name","'+AG.DisplayName+'"');
         for AF in AG.FieldList do
           begin
             str.Add('option.attrs.set "'+AG.Name+'","'+AF.FieldName+'","visible",'+con(AF.Shown));
             str.Add('option.attrs.set "'+AG.Name+'","'+AF.FieldName+'","display_width",'+IntToStr(AF.FFieldDisplayOption.display_width));
-            str.Add('option.attrs.set "'+AG.Name+'","'+AF.FieldName+'","display_name",'+AF.FFieldDisplayOption.display_name);
+            str.Add('option.attrs.set "'+AG.Name+'","'+AF.FieldName+'","display_name","'+AF.FFieldDisplayOption.display_name+'"');
             if AF.IsCombo then for stmp in AF.ComboItem do
               str.Add('option.attrs.set "'+AG.Name+'","'+AF.FieldName+'","add_combo",'+stmp);
           end;

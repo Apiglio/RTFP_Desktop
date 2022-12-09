@@ -16,12 +16,14 @@ type
     Button_information: TButton;
     Button_ChangeField: TButton;
     Edit_FieldName: TEdit;
+    Edit_FieldDisplayName: TEdit;
     Edit_FieldSize: TEdit;
     ComboBox_FieldType: TComboBox;
     Label_FieldComboItem: TLabel;
     Label_FieldName: TLabel;
     Label_FieldType: TLabel;
     Label_FieldSize: TLabel;
+    Label_FieldDisplayName: TLabel;
     Memo_ComboItem: TMemo;
     Memo_TypeChangeTip: TMemo;
     ScrollBox_FieldOption: TScrollBox;
@@ -33,7 +35,7 @@ type
     procedure FieldTypeToComboBox(value:TFieldType);
   public
     function Call(AAttrsField:TAttrsField):Integer;
-    procedure Update;
+    procedure DataUpdate;
   end;
 
 var
@@ -128,6 +130,7 @@ begin
         CurrentRTFP.ReTypeField(CurrentField.FieldName,CurrentField.AttrsGroup.Name,new_type,new_size);
     end;
     //再改名
+    CurrentField.FFieldDisplayOption.display_name:=Edit_FieldDisplayName.Caption;
     if CurrentField.FieldDef.Name<>new_name then CurrentRTFP.RenameField(CurrentField.FieldName,new_name,CurrentField.AttrsGroup.Name);
     ModalResult:=mrOK;
     CurrentRTFP.FieldAndRecordChange;
@@ -137,6 +140,7 @@ begin
     CurrentRTFP.FormatEditChange(current_fe,current_fe);
   end else begin
     new_name:=Edit_FieldName.Caption;
+    TAttrsGroup(CurrentField).DisplayName:=Edit_FieldDisplayName.Caption;
     CurrentRTFP.RenameAttrs(TAttrsGroup(CurrentField).Name,new_name);
     CurrentRTFP.FieldAndRecordChange;
     ModalResult:=mrOK;
@@ -148,21 +152,22 @@ begin
   if AAttrsField=nil then begin
     ShowMsgOK('字段属性','默认字段无法查看和修改属性。');
     exit;
-  end;//这句真的能达到触发条件吗
+  end;
   CurrentField:=AAttrsField;
   if CurrentField is TAttrsField then
     Self.Caption:='字段属性'+' - '+AAttrsField.FieldName+'('+AAttrsField.AttrsGroup.Name+')'
   else
     Self.Caption:='属性组设置'+' - '+AAttrsField.FieldName;
-  Update;
+  DataUpdate;
   result:=ShowModal;
 end;
 
-procedure TForm_FieldChange.Update;
+procedure TForm_FieldChange.DataUpdate;
 begin
   if CurrentField is TAttrsField then begin
     Label_FieldName.Caption:='字段名称：';
     Edit_FieldName.Caption:=CurrentField.FieldName;
+    Edit_FieldDisplayName.Caption:=CurrentField.FieldDisplayOption.display_name;
     Edit_FieldSize.Enabled:=true;
     Edit_FieldSize.Caption:=IntToStr(CurrentField.FieldDef.Size);
     FieldTypeToComboBox(CurrentField.FieldDef.DataType);
@@ -171,17 +176,21 @@ begin
       ftString:Edit_FieldSize.Enabled:=true;
       else Edit_FieldSize.Enabled:=false;
     end;
+    Memo_TypeChangeTip.Clear;
     Memo_ComboItem.Enabled:=true;
     Memo_ComboItem.Lines.Assign(CurrentField.ComboItem);
   end else begin
     Label_FieldName.Caption:='属性组：';
     Edit_FieldName.Caption:=TAttrsGroup(CurrentField).Name;
+    Edit_FieldDisplayName.Caption:=TAttrsGroup(CurrentField).DisplayName;
     Edit_FieldSize.Enabled:=false;
     FieldTypeToComboBox(ftUnknown);
     ComboBox_FieldType.Enabled:=false;
+    Edit_FieldSize.Caption:='';
     Edit_FieldSize.Enabled:=false;
     Memo_TypeChangeTip.Clear;
     Memo_TypeChangeTip.Lines.Add('属性组仅能修改名称');
+    Memo_ComboItem.Clear;
     Memo_ComboItem.Enabled:=false;
   end;
   Application.ProcessMessages;

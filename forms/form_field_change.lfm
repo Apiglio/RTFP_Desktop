@@ -59,10 +59,10 @@ object Form_FieldChange: TForm_FieldChange
     Top = 0
     Width = 402
     HorzScrollBar.Page = 214
-    VertScrollBar.Page = 416
+    VertScrollBar.Page = 441
     Anchors = [akTop, akLeft, akRight, akBottom]
     ClientHeight = 441
-    ClientWidth = 398
+    ClientWidth = 372
     TabOrder = 2
     object Memo_TypeChangeTip: TMemo
       AnchorSideLeft.Control = ScrollBox_FieldOption
@@ -72,8 +72,8 @@ object Form_FieldChange: TForm_FieldChange
       AnchorSideRight.Side = asrBottom
       Left = 8
       Height = 96
-      Top = 320
-      Width = 382
+      Top = 360
+      Width = 356
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Left = 8
       BorderSpacing.Top = 16
@@ -90,8 +90,8 @@ object Form_FieldChange: TForm_FieldChange
       AnchorSideRight.Side = asrBottom
       Left = 8
       Height = 136
-      Top = 168
-      Width = 382
+      Top = 208
+      Width = 356
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Left = 8
       BorderSpacing.Top = 16
@@ -105,7 +105,7 @@ object Form_FieldChange: TForm_FieldChange
       AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 24
-      Top = 128
+      Top = 168
       Width = 90
       BorderSpacing.Left = 8
       BorderSpacing.Top = 16
@@ -113,7 +113,7 @@ object Form_FieldChange: TForm_FieldChange
       ParentColor = False
     end
     object Edit_FieldSize: TEdit
-      AnchorSideLeft.Control = Label_FieldType
+      AnchorSideLeft.Control = Label_FieldName
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Label_FieldSize
       AnchorSideTop.Side = asrCenter
@@ -121,8 +121,8 @@ object Form_FieldChange: TForm_FieldChange
       AnchorSideRight.Side = asrBottom
       Left = 106
       Height = 32
-      Top = 84
-      Width = 284
+      Top = 124
+      Width = 258
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Left = 8
       BorderSpacing.Right = 8
@@ -130,7 +130,7 @@ object Form_FieldChange: TForm_FieldChange
       Text = 'Edit_FieldSize'
     end
     object ComboBox_FieldType: TComboBox
-      AnchorSideLeft.Control = Label_FieldType
+      AnchorSideLeft.Control = Label_FieldName
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Label_FieldType
       AnchorSideTop.Side = asrCenter
@@ -138,8 +138,8 @@ object Form_FieldChange: TForm_FieldChange
       AnchorSideRight.Side = asrBottom
       Left = 106
       Height = 32
-      Top = 44
-      Width = 284
+      Top = 84
+      Width = 258
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Left = 8
       BorderSpacing.Right = 8
@@ -170,7 +170,7 @@ object Form_FieldChange: TForm_FieldChange
       Left = 106
       Height = 32
       Top = 4
-      Width = 284
+      Width = 258
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Left = 8
       BorderSpacing.Right = 8
@@ -183,7 +183,7 @@ object Form_FieldChange: TForm_FieldChange
       AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 24
-      Top = 88
+      Top = 128
       Width = 90
       BorderSpacing.Left = 8
       BorderSpacing.Top = 16
@@ -192,11 +192,11 @@ object Form_FieldChange: TForm_FieldChange
     end
     object Label_FieldType: TLabel
       AnchorSideLeft.Control = ScrollBox_FieldOption
-      AnchorSideTop.Control = Label_FieldName
+      AnchorSideTop.Control = Label_FieldDisplayName
       AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 24
-      Top = 48
+      Top = 88
       Width = 90
       BorderSpacing.Left = 8
       BorderSpacing.Top = 16
@@ -214,6 +214,35 @@ object Form_FieldChange: TForm_FieldChange
       BorderSpacing.Top = 8
       Caption = '字段名称：'
       ParentColor = False
+    end
+    object Label_FieldDisplayName: TLabel
+      AnchorSideLeft.Control = ScrollBox_FieldOption
+      AnchorSideTop.Control = Label_FieldName
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 24
+      Top = 48
+      Width = 90
+      BorderSpacing.Left = 8
+      BorderSpacing.Top = 16
+      Caption = '显示名称：'
+      ParentColor = False
+    end
+    object Edit_FieldDisplayName: TEdit
+      AnchorSideLeft.Control = Label_FieldName
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Label_FieldDisplayName
+      AnchorSideTop.Side = asrCenter
+      AnchorSideRight.Control = ScrollBox_FieldOption
+      AnchorSideRight.Side = asrBottom
+      Left = 106
+      Height = 32
+      Top = 44
+      Width = 258
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Left = 8
+      BorderSpacing.Right = 8
+      TabOrder = 5
     end
   end
 end
