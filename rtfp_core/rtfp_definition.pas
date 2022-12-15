@@ -496,6 +496,11 @@ type
     property CountWeblnkPaper:integer read GetWeblnkPaperCount;
     property CountMainGrid:integer read GetMainGridCount;
 
+  public
+    function ExportDSToCSVOrTSV(sep:char):string;
+    function ExportDSToRubyOrPython(sep:string):string;
+
+
   //未分类
   private
     function NewProjectFile(p_title,p_user:string):boolean;inline;

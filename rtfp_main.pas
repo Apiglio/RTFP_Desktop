@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.4-alpha.8';
+  C_VERSION_NUMBER  = '0.2.4-alpha.9';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -54,10 +54,15 @@ type
     CheckBox_MainSorterAuto: TCheckBox;
     Edit_DBGridMain_Sorter: TEdit;
     Label_MainSorter: TLabel;
+    MenuItem_DBGE_python_dict: TMenuItem;
+    MenuItem_DBGE_ruby_hash: TMenuItem;
+    MenuItem_DBGE_tsv: TMenuItem;
+    MenuItem_DBGE_csv: TMenuItem;
     MenuItem_DBGC_FieldOpt: TMenuItem;
     MenuItem_Edit_FieldComboBuild: TMenuItem;
     MenuItem_Edit_NewField: TMenuItem;
     MenuItem_DBGC_Calc: TMenuItem;
+    PopupMenu_MainDBGrid_Export: TPopupMenu;
     RadioButton_KlassAND: TRadioButton;
     CheckBox_KlassNot: TCheckBox;
     RadioButton_KlassOR: TRadioButton;
@@ -249,6 +254,10 @@ type
       Shift: TShiftState);
     procedure MenuItem_DBGC_CalcClick(Sender: TObject);
     procedure MenuItem_DBGC_FieldOptClick(Sender: TObject);
+    procedure MenuItem_DBGE_csvClick(Sender: TObject);
+    procedure MenuItem_DBGE_python_dictClick(Sender: TObject);
+    procedure MenuItem_DBGE_ruby_hashClick(Sender: TObject);
+    procedure MenuItem_DBGE_tsvClick(Sender: TObject);
     procedure RadioButton_KlassANDClick(Sender: TObject);
     procedure RadioButton_KlassORClick(Sender: TObject);
     procedure CheckBox_MainFilterAutoClick(Sender: TObject);
@@ -2349,6 +2358,26 @@ begin
   SetFocus;
 end;
 
+procedure TFormDesktop.MenuItem_DBGE_csvClick(Sender: TObject);
+begin
+  ClipBoard.AsText:=CurrentRTFP.ExportDSToCSVOrTSV(',');
+end;
+
+procedure TFormDesktop.MenuItem_DBGE_python_dictClick(Sender: TObject);
+begin
+  ClipBoard.AsText:=CurrentRTFP.ExportDSToRubyOrPython(':');
+end;
+
+procedure TFormDesktop.MenuItem_DBGE_ruby_hashClick(Sender: TObject);
+begin
+  ClipBoard.AsText:=CurrentRTFP.ExportDSToRubyOrPython('=>');
+end;
+
+procedure TFormDesktop.MenuItem_DBGE_tsvClick(Sender: TObject);
+begin
+  ClipBoard.AsText:=CurrentRTFP.ExportDSToCSVOrTSV(#9);
+end;
+
 procedure TFormDesktop.RadioButton_KlassANDClick(Sender: TObject);
 begin
   if ProjectInvalid then exit;
@@ -2498,25 +2527,25 @@ procedure TFormDesktop.DBGrid_MainMouseUp(Sender: TObject;
 var vCell:TGridCoord;
     vGrid:TDBGrid;
 begin
-  if (Shift=[]) and (Button=mbRight) then
-    begin
-      vGrid:=Sender as TDBGrid;
-      if vGrid.DataSource.DataSet=nil then exit;
-      with vGrid do
-        begin
-          vCell:=MouseCoord(X,Y);
-          //ShowMessageFmt('cell=<%d,%d>',[Cell.x,Cell.y]);
-          LastDBGridPos:=vCell;
-          if vCell.y=0 then begin
-            PopupMenu:=Self.PopupMenu_MainDBGrid_Column;
-            if vCell.x>0 then PopupMenu_MainDBGrid_Column.Items[0].Caption:=Columns[vCell.x-1].FieldName
-            else PopupMenu_MainDBGrid_Column.Items[0].Caption:='<字段名>';
-          end else begin
-            PopupMenu:=Self.PopupMenu_MainDBGrid;
-          end;
-
+  if (Shift=[]) and (Button=mbRight) then begin
+    vGrid:=Sender as TDBGrid;
+    if vGrid.DataSource.DataSet=nil then exit;
+    with vGrid do begin
+      vCell:=MouseCoord(X,Y);
+      LastDBGridPos:=vCell;
+      if vCell.y=0 then begin
+        if vCell.x>0 then begin
+          PopupMenu:=Self.PopupMenu_MainDBGrid_Column;
+          PopupMenu_MainDBGrid_Column.Items[0].Caption:=Columns[vCell.x-1].FieldName;
+        end else begin
+          PopupMenu:=Self.PopupMenu_MainDBGrid_Export;
         end;
+      end else begin
+        PopupMenu:=Self.PopupMenu_MainDBGrid;
+      end;
+
     end;
+  end;
   //右键标题
 
 end;

@@ -2169,4 +2169,24 @@ object FormDesktop: TFormDesktop
       OnClick = MenuItem_DBGC_FieldOptClick
     end
   end
+  object PopupMenu_MainDBGrid_Export: TPopupMenu
+    left = 168
+    top = 216
+    object MenuItem_DBGE_tsv: TMenuItem
+      Caption = '复制为tsv'
+      OnClick = MenuItem_DBGE_tsvClick
+    end
+    object MenuItem_DBGE_csv: TMenuItem
+      Caption = '复制为csv'
+      OnClick = MenuItem_DBGE_csvClick
+    end
+    object MenuItem_DBGE_ruby_hash: TMenuItem
+      Caption = '复制为ruby'
+      OnClick = MenuItem_DBGE_ruby_hashClick
+    end
+    object MenuItem_DBGE_python_dict: TMenuItem
+      Caption = '复制为python'
+      OnClick = MenuItem_DBGE_python_dictClick
+    end
+  end
 end
