@@ -481,12 +481,16 @@ begin
       for idx:=0 to Fields.count-1 do
         begin
           tmpF:=Fields[idx];
+          AF:=TAttrsField(CurrentRTFP.PaperDSFieldDefs.Items[idx]);
           now_width:=CellWidth(CurrentRTFP.PaperDSFieldDefs.Items[idx]);
           cell_rect.Left:=pixel_width;
           cell_rect.Top:=pixel_height;
           cell_rect.Width:=now_width;
           cell_rect.Height:=option.head_height;
-          stmp:=tmpF.FieldName;
+          if AF=nil then stmp:=tmpF.FieldName else
+            begin
+              if AF.DisplayName='' then stmp:=AF.FieldName else stmp:=AF.DisplayName;
+            end;
           img.Bitmap.Canvas.TextRect(cell_rect,cell_rect.Left,cell_rect.Top+option.head_height div 2,stmp,ts);
           img.Bitmap.Canvas.Rectangle(cell_rect);
           inc(pixel_width,now_width);

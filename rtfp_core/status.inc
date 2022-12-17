@@ -72,6 +72,7 @@ function TRTFP.ExportDSToCSVOrTSV(sep:char):string;
 var bm:TBookMark;
     idx,len,idx_f,len_f:integer;
     tmpAF:TAttrsField;
+    disp_name:string;
 begin
   result:='';
   if not FPaperDS.Active then exit;
@@ -82,6 +83,7 @@ begin
   for idx_f:=0 to len_f-1 do begin
     tmpAF:=TAttrsField(FPaperDSFieldDefs.Items[idx_f]);
     if tmpAF=nil then continue;
+    if tmpAF.DisplayName='' then disp_name:=tmpAF.FieldName else disp_name:=tmpAF.DisplayName;
     case tmpAF.FieldDef.DataType of
       ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo,
       //ftFmtMemo,ftFixedChar,
@@ -90,7 +92,7 @@ begin
       ftFloat,
       ftInteger,ftLargeint,ftSmallint,ftWord,
       ftDateTime,ftDate,ftTime:
-        result:=result+tmpAF.FieldDef.Name+sep;
+        result:=result+disp_name+sep;
     end;
   end;
   delete(result,length(result),1);
@@ -127,6 +129,7 @@ function TRTFP.ExportDSToRubyOrPython(sep:string):string;
 var bm:TBookMark;
     idx,len,idx_f,len_f:integer;
     tmpAF:TAttrsField;
+    disp_name:string;
 begin
   result:='[';
   if not FPaperDS.Active then exit;
@@ -140,19 +143,20 @@ begin
     for idx_f:=0 to len_f-1 do begin
       tmpAF:=TAttrsField(FPaperDSFieldDefs.Items[idx_f]);
       if tmpAF=nil then continue;
+      if tmpAF.DisplayName='' then disp_name:=tmpAF.FieldName else disp_name:=tmpAF.DisplayName;
       case tmpAF.FieldDef.DataType of
         ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo:
-          result:=result+'"'+tmpAF.FieldName+'"'+sep+'"'+FPaperDS.Fields[idx_f].AsString+'",';
+          result:=result+'"'+disp_name+'"'+sep+'"'+FPaperDS.Fields[idx_f].AsString+'",';
         //ftFmtMemo,ftFixedChar,
         //ftBlob,
         ftBoolean:
-          result:=result+'"'+tmpAF.FieldName+'"'+sep+export_con_string(FPaperDS.Fields[idx_f].AsBoolean)+',';
+          result:=result+'"'+disp_name+'"'+sep+export_con_string(FPaperDS.Fields[idx_f].AsBoolean)+',';
         ftFloat:
-          result:=result+'"'+tmpAF.FieldName+'"'+sep+FloatToStr(FPaperDS.Fields[idx_f].AsFloat)+',';
+          result:=result+'"'+disp_name+'"'+sep+FloatToStr(FPaperDS.Fields[idx_f].AsFloat)+',';
         ftInteger,ftLargeint,ftSmallint,ftWord:
-          result:=result+'"'+tmpAF.FieldName+'"'+sep+IntToStr(FPaperDS.Fields[idx_f].AsLargeInt)+',';
+          result:=result+'"'+disp_name+'"'+sep+IntToStr(FPaperDS.Fields[idx_f].AsLargeInt)+',';
         ftDateTime,ftDate,ftTime:
-          result:=result+'"'+tmpAF.FieldName+'"'+sep+'"'+DateTimeToStr(FPaperDS.Fields[idx_f].AsDateTime)+'",';//可以考虑改成Time.mktime()
+          result:=result+'"'+disp_name+'"'+sep+'"'+DateTimeToStr(FPaperDS.Fields[idx_f].AsDateTime)+'",';//可以考虑改成Time.mktime()
       end;
     end;
     delete(result,length(result),1);
