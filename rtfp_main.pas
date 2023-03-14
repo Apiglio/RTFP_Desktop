@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.4-alpha.10';
+  C_VERSION_NUMBER  = '0.2.5-alpha.1';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -626,8 +626,8 @@ begin
   for idx:=0 to len-1 do begin
     tmpAF:=TAttrsField(CurrentRTFP.PaperDSFieldDefs[idx]);
     if tmpAF=nil then continue;
-    if tmpAF.FFieldDisplayOption.display_name<>'' then
-      Self.DBGrid_Main.Columns[idx].Title.Caption:=tmpAF.FFieldDisplayOption.display_name;
+    if tmpAF.FFieldDisplayOption.DispName<>'' then
+      Self.DBGrid_Main.Columns[idx].Title.Caption:=tmpAF.FFieldDisplayOption.DispName;
   end;
   if FShowWaitForm then FWaitForm.Hide;
   Self.DBGrid_Main.Visible:=true;
@@ -815,8 +815,8 @@ begin
     begin
       AF:=TAttrsField(CurrentRTFP.PaperDSFieldDefs[index]);
       if AF=nil then DoDefault
-      else if AF.FieldDisplayOption.display_width<0 then DoDefault
-      else DoCustom(AF.FieldDisplayOption.display_width);
+      else if AF.FieldDisplayOption.DispWidth<0 then DoDefault
+      else DoCustom(AF.FieldDisplayOption.DispWidth);
     end;
 end;
 
@@ -830,8 +830,8 @@ begin
     begin
       AF:=TAttrsField(CurrentRTFP.PaperDSFieldDefs[index]);
       if AF=nil then continue;
-      if Columns[index].Width<2 then AF.FFieldDisplayOption.display_width:=2
-      else AF.FFieldDisplayOption.display_width:=Columns[index].Width;
+      if Columns[index].Width<2 then AF.FFieldDisplayOption.DispWidth:=2
+      else AF.FFieldDisplayOption.DispWidth:=Columns[index].Width;
     end;
 end;
 
@@ -2445,11 +2445,8 @@ begin
   tmpA:=CurrentRTFP.PaperDSFieldDefs.Items[DataCol];
   if tmpA=nil then exit;
   //if (Sender as TDBGrid).SelectedRows.Items[0]=(Sender as TDBGrid).DataSource.DataSet.RecNo then exit;
-  if TObject(tmpA) is TAttrsField then with TAttrsField(tmpA).FieldDisplayOption do
-    begin
-      if colorize_process<>nil then
-      tmpCL:=colorize_process(v1,v2,c1,c2,expression,Column.Field);
-    end;
+  if TObject(tmpA) is TAttrsField then
+    tmpCL:=TAttrsField(tmpA).FieldDisplayOption.GetFieldColor(Column.Field);
   if tmpCL and $ff000000 <> $ff000000 then begin
     (Sender as TDBGrid).Canvas.Brush.Color:=tmpCL;
     (Sender as TDBGrid).Canvas.FillRect(Rect);

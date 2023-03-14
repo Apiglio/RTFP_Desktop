@@ -1148,8 +1148,9 @@ begin
         for AF in AG.FieldList do
           begin
             str.Add('option.attrs.set "'+AG.Name+'","'+AF.FieldName+'","visible",'+con(AF.Shown));
-            str.Add('option.attrs.set "'+AG.Name+'","'+AF.FieldName+'","display_width",'+IntToStr(AF.FFieldDisplayOption.display_width));
-            str.Add('option.attrs.set "'+AG.Name+'","'+AF.FieldName+'","display_name","'+AF.FFieldDisplayOption.display_name+'"');
+            str.Add('option.attrs.set "'+AG.Name+'","'+AF.FieldName+'","display_width",'+IntToStr(AF.FFieldDisplayOption.DispWidth));
+            str.Add('option.attrs.set "'+AG.Name+'","'+AF.FieldName+'","display_name","'+AF.FFieldDisplayOption.DispName+'"');
+            str.Add('option.attrs.set "'+AG.Name+'","'+AF.FieldName+'","display_option","'+AF.FFieldDisplayOption.SaveToJSON+'"');
             if AF.IsCombo then for stmp in AF.ComboItem do
               str.Add('option.attrs.set "'+AG.Name+'","'+AF.FieldName+'","add_combo",'+stmp);
           end;

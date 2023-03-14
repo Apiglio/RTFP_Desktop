@@ -481,7 +481,7 @@ begin
           AufScpt.send_error('错误：找不到属性组“'+NA+'.'+NF+'”。');
           exit;
         end;
-        AF.FFieldDisplayOption.display_width:=slon;
+        AF.FFieldDisplayOption.DispWidth:=slon;
       end;
     'display_name','disp':
       begin
@@ -500,7 +500,21 @@ begin
           AufScpt.send_error('错误：找不到属性组“'+NA+'.'+NF+'”。');
           exit;
         end;
-        AF.FFieldDisplayOption.display_name:=stmp;
+        AF.FFieldDisplayOption.DispName:=stmp;
+      end;
+    'display_option':
+      begin
+        if not AAuf.TryArgToString(4,stmp) then exit;
+        if NF='' then begin
+          AufScpt.send_error('错误：不能给属性组“'+NA+'”设置显示信息。');
+          exit;
+        end;
+        AF:=CurrentRTFP.FindField(NF,NA);
+        if AF=nil then begin
+          AufScpt.send_error('错误：找不到属性组“'+NA+'.'+NF+'”。');
+          exit;
+        end;
+        AF.FFieldDisplayOption.LoadFromJSON(stmp);
       end;
     'add_combo':
       begin

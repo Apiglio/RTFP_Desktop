@@ -1,38 +1,25 @@
 object FormFieldDisplayOption: TFormFieldDisplayOption
-  Left = 796
-  Height = 304
-  Top = 276
-  Width = 400
+  Left = 1218
+  Height = 417
+  Top = 567
+  Width = 481
   Caption = '字段显示设置'
-  ClientHeight = 304
-  ClientWidth = 400
+  ClientHeight = 417
+  ClientWidth = 481
   Constraints.MinHeight = 270
   Constraints.MinWidth = 400
   DesignTimePPI = 144
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   Position = poOwnerFormCenter
   LCLVersion = '1.8.4.0'
-  object ColorBox_C1: TColorBox
-    AnchorSideLeft.Control = Label_C1
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = Label_C1
-    AnchorSideTop.Side = asrCenter
-    Left = 80
-    Height = 26
-    Top = 158
-    Width = 125
-    BorderSpacing.Left = 5
-    Enabled = False
-    ItemHeight = 20
-    TabOrder = 0
-  end
   object RadioGroup_ColorStyle: TRadioGroup
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
     Left = 10
-    Height = 99
+    Height = 152
     Top = 40
-    Width = 127
+    Width = 150
     AutoFill = True
     BorderSpacing.Left = 10
     BorderSpacing.Top = 40
@@ -44,13 +31,14 @@ object FormFieldDisplayOption: TFormFieldDisplayOption
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
-    ClientHeight = 70
-    ClientWidth = 123
+    ClientHeight = 123
+    ClientWidth = 146
     ItemIndex = 0
     Items.Strings = (
+      '无'
       '连续色带'
-      '二值显示'
-      '高区分度'
+      '离散值列表'
+      '正则表达式'
     )
     OnSelectionChanged = RadioGroup_ColorStyleSelectionChanged
     TabOrder = 1
@@ -63,10 +51,10 @@ object FormFieldDisplayOption: TFormFieldDisplayOption
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = RadioGroup_ColorStyle
     AnchorSideBottom.Side = asrBottom
-    Left = 142
-    Height = 89
+    Left = 165
+    Height = 142
     Top = 50
-    Width = 248
+    Width = 306
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 5
     BorderSpacing.Top = 10
@@ -75,146 +63,15 @@ object FormFieldDisplayOption: TFormFieldDisplayOption
     ParentColor = True
     TabOrder = 2
   end
-  object ColorBox_C2: TColorBox
-    AnchorSideLeft.Control = Label_C2
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = Label_C2
-    AnchorSideTop.Side = asrCenter
-    Left = 80
-    Height = 26
-    Top = 202
-    Width = 125
-    BorderSpacing.Left = 5
-    Enabled = False
-    ItemHeight = 20
-    TabOrder = 3
-  end
-  object Label_C1: TLabel
-    AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = RadioGroup_ColorStyle
-    AnchorSideTop.Side = asrBottom
-    Left = 10
-    Height = 24
-    Top = 159
-    Width = 65
-    BorderSpacing.Left = 10
-    BorderSpacing.Top = 20
-    Caption = '颜色1：'
-    ParentColor = False
-  end
-  object Label_C2: TLabel
-    AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = Label_C1
-    AnchorSideTop.Side = asrBottom
-    Left = 10
-    Height = 24
-    Top = 203
-    Width = 65
-    BorderSpacing.Left = 10
-    BorderSpacing.Top = 20
-    Caption = '颜色2：'
-    ParentColor = False
-  end
-  object Edit_V1: TEdit
-    AnchorSideLeft.Control = Label_V1
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = Label_C1
-    AnchorSideTop.Side = asrCenter
-    AnchorSideRight.Control = Owner
-    AnchorSideRight.Side = asrBottom
-    Left = 262
-    Height = 32
-    Top = 155
-    Width = 128
-    Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Left = 5
-    BorderSpacing.Right = 10
-    Enabled = False
-    TabOrder = 4
-  end
-  object Edit_V2: TEdit
-    AnchorSideLeft.Control = Label_V2
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = Label_C2
-    AnchorSideTop.Side = asrCenter
-    AnchorSideRight.Control = Owner
-    AnchorSideRight.Side = asrBottom
-    Left = 262
-    Height = 32
-    Top = 199
-    Width = 128
-    Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Left = 5
-    BorderSpacing.Right = 10
-    Enabled = False
-    TabOrder = 5
-  end
-  object Label_V1: TLabel
-    AnchorSideLeft.Control = ColorBox_C1
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = Label_C1
-    AnchorSideTop.Side = asrCenter
-    Left = 210
-    Height = 24
-    Top = 159
-    Width = 47
-    BorderSpacing.Left = 5
-    Caption = '值1：'
-    ParentColor = False
-  end
-  object Label_V2: TLabel
-    AnchorSideLeft.Control = ColorBox_C2
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = Label_C2
-    AnchorSideTop.Side = asrCenter
-    Left = 210
-    Height = 24
-    Top = 203
-    Width = 47
-    BorderSpacing.Left = 5
-    Caption = '值2：'
-    ParentColor = False
-  end
-  object Label_ConditionalSyntax: TLabel
-    AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = Label_C2
-    AnchorSideTop.Side = asrBottom
-    Left = 10
-    Height = 24
-    Top = 247
-    Width = 108
-    BorderSpacing.Left = 10
-    BorderSpacing.Top = 20
-    Caption = '条件表达式：'
-    ParentColor = False
-  end
-  object Edit_ConditionalSyntax: TEdit
-    AnchorSideLeft.Control = Label_ConditionalSyntax
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = Label_ConditionalSyntax
-    AnchorSideTop.Side = asrCenter
-    AnchorSideRight.Control = Owner
-    AnchorSideRight.Side = asrBottom
-    Left = 123
-    Height = 32
-    Top = 243
-    Width = 267
-    Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Left = 5
-    BorderSpacing.Right = 10
-    Enabled = False
-    TabOrder = 6
-  end
   object Button_OK: TButton
     AnchorSideLeft.Control = Owner
     AnchorSideLeft.Side = asrCenter
-    AnchorSideTop.Control = Edit_ConditionalSyntax
     AnchorSideTop.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 159
+    Left = 199
     Height = 33
-    Top = 261
+    Top = 374
     Width = 82
     Anchors = [akLeft, akBottom]
     BorderSpacing.Top = 10
@@ -222,21 +79,71 @@ object FormFieldDisplayOption: TFormFieldDisplayOption
     Caption = '确定'
     ModalResult = 1
     OnClick = Button_OKClick
-    TabOrder = 7
+    TabOrder = 3
   end
-  object CheckBox_UseDisplayOption: TCheckBox
+  object StringGrid_ValuesColors: TStringGrid
     AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = Owner
+    AnchorSideTop.Control = RadioGroup_ColorStyle
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Button_OK
     Left = 10
-    Height = 28
-    Top = 10
-    Width = 262
+    Height = 162
+    Top = 202
+    Width = 461
+    Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 10
     BorderSpacing.Top = 10
-    Caption = '主表单元格根据字段数据设色'
-    Checked = True
-    OnChange = CheckBox_UseDisplayOptionChange
-    State = cbChecked
-    TabOrder = 8
+    BorderSpacing.Right = 10
+    BorderSpacing.Bottom = 10
+    ColCount = 2
+    DefaultRowHeight = 27
+    Flat = True
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goEditing, goSmoothScroll]
+    PopupMenu = PopupMenu_ValuesColors
+    RowCount = 1
+    TabOrder = 4
+    OnDrawCell = StringGrid_ValuesColorsDrawCell
+    OnMouseUp = StringGrid_ValuesColorsMouseUp
+    OnResize = StringGrid_ValuesColorsResize
+    OnSelectCell = StringGrid_ValuesColorsSelectCell
+  end
+  object ColorBox_Popup: TColorBox
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Side = asrCenter
+    Left = -184
+    Height = 26
+    Top = 137
+    Width = 125
+    Anchors = []
+    BorderSpacing.Left = 5
+    ItemHeight = 20
+    OnSelect = ColorBox_PopupSelect
+    TabOrder = 0
+  end
+  object PopupMenu_ValuesColors: TPopupMenu
+    left = 96
+    top = 512
+    object MenuItem_VC_Add: TMenuItem
+      Caption = '新增行'
+      OnClick = MenuItem_VC_AddClick
+    end
+    object MenuItem_VC_Ins: TMenuItem
+      Caption = '插入行'
+      OnClick = MenuItem_VC_InsClick
+    end
+    object MenuItem_VC_Del: TMenuItem
+      Caption = '删除行'
+      OnClick = MenuItem_VC_DelClick
+    end
+    object MenuItem_VC_div01: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem_VC_Custom_Color: TMenuItem
+      Caption = '自定义颜色'
+      Enabled = False
+      OnClick = MenuItem_VC_Custom_ColorClick
+    end
   end
 end

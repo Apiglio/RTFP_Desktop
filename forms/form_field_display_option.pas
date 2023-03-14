@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ColorBox,
-  StdCtrls, ExtCtrls, rtfp_field, db, Regexpr;
+  StdCtrls, ExtCtrls, Grids, Menus, rtfp_field, db, Regexpr, Types;
 
 type
 
@@ -14,89 +14,69 @@ type
 
   TFormFieldDisplayOption = class(TForm)
     Button_OK: TButton;
-    CheckBox_UseDisplayOption: TCheckBox;
-    ColorBox_C1: TColorBox;
-    ColorBox_C2: TColorBox;
-    Edit_ConditionalSyntax: TEdit;
-    Edit_V1: TEdit;
-    Edit_V2: TEdit;
-    Label_C1: TLabel;
-    Label_C2: TLabel;
-    Label_ConditionalSyntax: TLabel;
-    Label_V1: TLabel;
-    Label_V2: TLabel;
+    ColorBox_Popup: TColorBox;
+    MenuItem_VC_Custom_Color: TMenuItem;
+    MenuItem_VC_div01: TMenuItem;
+    MenuItem_VC_Ins: TMenuItem;
+    MenuItem_VC_Add: TMenuItem;
+    MenuItem_VC_Del: TMenuItem;
+    PopupMenu_ValuesColors: TPopupMenu;
+    StringGrid_ValuesColors: TStringGrid;
     Memo_Tip: TMemo;
     RadioGroup_ColorStyle: TRadioGroup;
     procedure Button_OKClick(Sender: TObject);
     procedure CheckBox_UseDisplayOptionChange(Sender: TObject);
+    procedure ColorBox_PopupSelect(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure MenuItem_VC_AddClick(Sender: TObject);
+    procedure MenuItem_VC_Custom_ColorClick(Sender: TObject);
+    procedure MenuItem_VC_DelClick(Sender: TObject);
+    procedure MenuItem_VC_InsClick(Sender: TObject);
+    procedure StringGrid_ValuesColorsDrawCell(Sender: TObject; aCol, aRow: Integer;
+      aRect: TRect; aState: TGridDrawState);
+    procedure StringGrid_ValuesColorsMouseUp(Sender: TObject;
+      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure StringGrid_ValuesColorsResize(Sender: TObject);
     procedure RadioGroup_ColorStyleSelectionChanged(Sender: TObject);
+    procedure StringGrid_ValuesColorsSelectCell(Sender: TObject; aCol,
+      aRow: Integer; var CanSelect: Boolean);
   private
     CurrentField:TAttrsField;
+    StoredDisplayOption:TFieldDisplayOption;
   public
     function Call(AAttrsField:TAttrsField):Integer;
   end;
 
 var
   FormFieldDisplayOption: TFormFieldDisplayOption;
-  display_reg:TRegexpr;
 
 implementation
 uses rtfp_dialog, rtfp_misc;
 
 {$R *.lfm}
 
-
-function Successive_FDOP(v1,v2:double;c1,c2:TColor;expresion:string;Value:TField):TColor;
-var fvalue:double;
-begin
-  if v1=v2 then begin result:=c1;exit;end;
-  result:=clNone;
-  case value.DataType of ftInteger,ftSmallint,ftLargeint,ftFloat:;else exit end;
-  fvalue:=value.AsFloat;
-  fvalue:=(fvalue-v1)/(v2-v1);
-  result:=HSVLinearCombination(c1,c2,fvalue);
-end;
-
-function Binary_FDOP(v1,v2:double;c1,c2:TColor;expresion:string;Value:TField):TColor;
-begin
-  display_reg.Expression:=expresion;
-  if display_reg.Exec(Value.AsString) then result:=c1 else result:=$ff000000;
-end;
-
 { TFormFieldDisplayOption }
 
 function TFormFieldDisplayOption.Call(AAttrsField:TAttrsField):Integer;
-var index:integer;
+var pi,len:integer;
 begin
   if AAttrsField=nil then begin ShowMsgOK('字段显示设置','默认字段暂不支持单元格设色。');exit;end;//这句真的能达到触发条件吗
   CurrentField:=AAttrsField;
   Self.Caption:='字段显示设置'+' - '+AAttrsField.FieldName+'('+AAttrsField.AttrsGroup.Name+')';
-  with AAttrsField.FieldDisplayOption do
-    begin
-      if colorize_process=nil then CheckBox_UseDisplayOption.Checked:=false
-      else CheckBox_UseDisplayOption.Checked:=true;
-      if CheckBox_UseDisplayOption.Checked then
-        begin
-          Edit_V1.Text:=FloatToStr(v1);
-          Edit_V2.Text:=FloatToStr(v2);
-          ColorBox_C1.ItemIndex:=-1;
-          index:=0;
-          while index<ColorBox_C1.Items.Count do
-            begin
-              if ColorBox_C1.Items.Objects[index]=TObject(qword(c1)) then
-                ColorBox_C1.Selected:=ColorBox_C1.Colors[index];
-                //ColorBox_C1.ItemIndex:=index;//两个ColorBox容量相同，否则遗漏或报错
-              if ColorBox_C2.Items.Objects[index]=TObject(qword(c2)) then
-                ColorBox_C2.Selected:=ColorBox_C2.Colors[index];
-                //ColorBox_C2.ItemIndex:=index;//两个ColorBox容量相同，否则遗漏或报错
-              inc(index);
-            end;
-          //ColorBox_C1.Color:=;
 
-          Edit_ConditionalSyntax.Text:=expression;
-        end;
-    end;
+  StoredDisplayOption.Assign(AAttrsField.FFieldDisplayOption);
+  len:=StoredDisplayOption.Count;
+  StringGrid_ValuesColors.RowCount:=len+1;
+  for pi:=1 to len do StringGrid_ValuesColors.Cells[1,pi]:=StoredDisplayOption.Values[pi-1];
+  case StoredDisplayOption.Mode of
+    fdmSuccessive:RadioGroup_ColorStyle.ItemIndex:=1;
+    fdmIdentical:RadioGroup_ColorStyle.ItemIndex:=2;
+    fdmRegexpr:RadioGroup_ColorStyle.ItemIndex:=3;
+    fdmDisabled:RadioGroup_ColorStyle.ItemIndex:=0;
+    else RadioGroup_ColorStyle.ItemIndex:=0;
+  end;
+  StringGrid_ValuesColorsResize(StringGrid_ValuesColors);
   RadioGroup_ColorStyleSelectionChanged(RadioGroup_ColorStyle);
   result:=ShowModal;
 end;
@@ -107,80 +87,96 @@ var RG:TRadioGroup;
 begin
   RG:=Sender as TRadioGroup;
   Memo_Tip.Clear;
-  if RG.ItemIndex<0 then
-    begin
-      Edit_V1.Enabled:=false;
-      Edit_V2.Enabled:=false;
-      Edit_ConditionalSyntax.Enabled:=false;
-      ColorBox_C1.Enabled:=false;
-      ColorBox_C2.Enabled:=false;
-      exit;
-    end
-  else CheckBox_UseDisplayOption.Checked:=true;
   case RG.Items[RG.ItemIndex] of
     '连续色带':
       begin
         Memo_Tip.Lines.Add('对数值型字段有效，选择两个数值边界及对应的颜色，两值中间的数值去渐变色带上的相应颜色。');
-        Edit_V1.Enabled:=true;
-        Edit_V2.Enabled:=true;
-        Edit_ConditionalSyntax.Enabled:=false;
-        ColorBox_C1.Enabled:=true;
-        ColorBox_C2.Enabled:=true;
+        StringGrid_ValuesColors.Enabled:=true;
       end;
-    '二值显示':
+    '离散值列表':
       begin
-        Memo_Tip.Lines.Add('对字符型字段有效，修改符合特定条件的单元格颜色。');
-        Edit_V1.Enabled:=false;
-        Edit_V2.Enabled:=false;
-        Edit_ConditionalSyntax.Enabled:=true;
-        ColorBox_C1.Enabled:=true;
-        ColorBox_C2.Enabled:=false;
+        Memo_Tip.Lines.Add('对字符型字段有效，依次判断字段值确定单元格颜色。');
+        StringGrid_ValuesColors.Enabled:=true;
       end;
-    '高区分度':
+    '正则表达式':
       begin
-        Memo_Tip.Lines.Add('用于表现分组数据，目前暂不可使用。');
-        Edit_V1.Enabled:=false;
-        Edit_V2.Enabled:=false;
-        Edit_ConditionalSyntax.Enabled:=false;
-        ColorBox_C1.Enabled:=false;
-        ColorBox_C2.Enabled:=false;
+        Memo_Tip.Lines.Add('对字符型字段有效，依次判断正则表达式确定单元格颜色。');
+        StringGrid_ValuesColors.Enabled:=true;
+      end;
+    '无':
+      begin
+        Memo_Tip.Lines.Add('不进行单元格着色。');
+        StringGrid_ValuesColors.Enabled:=false;
       end
     else ;
   end;
 end;
 
-procedure TFormFieldDisplayOption.Button_OKClick(Sender: TObject);
+function FindColorBox(CB:TColorBox;color:TColor):integer;
+var pi:integer;
 begin
-  if not CheckBox_UseDisplayOption.Checked then begin
-    ModalResult:=mrOK;
-    exit;
+  for pi:=0 to CB.Items.Count-1 do begin
+    result:=pi;
+    {$ifdef cpu64}
+    if qword(CB.Items.Objects[pi])=qword(color) then exit;
+    {$else}
+      {$error 'TColorBox color only work on cpu64'}
+    {$endif}
   end;
-  with CurrentField.FieldDisplayOption do begin
+  result:=-1;
+end;
+
+procedure TFormFieldDisplayOption.StringGrid_ValuesColorsSelectCell(
+  Sender: TObject; aCol, aRow: Integer; var CanSelect: Boolean);
+var cell_rect:TRect;
+    SG:TStringGrid;
+    vc_color:TColor;
+begin
+  //这里ColorBox为什么总是没办法初始化就在正确的位置上？？？
+  if aRow=0 then exit;
+  SG:=Sender as TStringGrid;
+  ColorBox_Popup.Parent:=SG;
+  ColorBox_Popup.Visible:=true;
+  cell_rect:=SG.CellRect(2,aRow);
+  ColorBox_Popup.Width:=cell_rect.Width-1;
+  ColorBox_Popup.Height:=SG.DefaultRowHeight;//cell_rect.Height-2;
+  ColorBox_Popup.Top:=cell_rect.Top;// + SG.Top;
+  ColorBox_Popup.Left:=cell_rect.Left;// + SG.Left;
+  vc_color:=StoredDisplayOption.Colors[aRow-1];
+  ColorBox_Popup.ItemIndex:=FindColorBox(ColorBox_Popup,vc_color);
+  Application.ProcessMessages;
+
+end;
+
+procedure TFormFieldDisplayOption.Button_OKClick(Sender: TObject);
+var SG:TStringGrid;
+    pi:integer;
+begin
+  with StoredDisplayOption do begin
     case RadioGroup_ColorStyle.Items[RadioGroup_ColorStyle.ItemIndex] of
       '连续色带':
         begin
-          colorize_process:=@Successive_FDOP;
+          Mode:=fdmSuccessive;
         end;
-      '二值显示':
+      '离散值列表':
         begin
-          colorize_process:=@Binary_FDOP;
+          Mode:=fdmIdentical;
         end;
-      '高区分度':
+      '正则表达式':
         begin
-          ShowMsgOK('单元格着色','暂不支持“高区分度”颜色方案。');
-          exit;
+          Mode:=fdmRegexpr;
+        end;
+      '无':
+        begin
+          Mode:=fdmDisabled;
         end;
     end;
-    c1:=ColorBox_C1.Selected;
-    c2:=ColorBox_C2.Selected;
-    if colorize_process=@Successive_FDOP then try
-      v1:=StrToFloat(Edit_V1.Text);
-      v2:=StrToFloat(Edit_V2.Text);
-    except
-      ShowMsgOK('单元格着色','“值1”或“值2”并非有效数值。');
-      exit;
+    SG:=StringGrid_ValuesColors;
+    for pi:=1 to SG.RowCount-1 do begin
+      StoredDisplayOption.Values[pi-1]:=SG.Cells[1,pi];
     end;
-    expression:=Edit_ConditionalSyntax.Text;
+    CurrentField.FFieldDisplayOption.Assign(StoredDisplayOption);
+
   end;
   CurrentField:=nil;
   ModalResult:=mrOK;
@@ -191,7 +187,7 @@ procedure TFormFieldDisplayOption.CheckBox_UseDisplayOptionChange(
 begin
   if (Sender as TCheckBox).Checked then
     begin
-      if CurrentField.FieldDisplayOption.colorize_process = @Binary_FDOP then
+      if StoredDisplayOption.Mode = fdmIdentical then
         RadioGroup_ColorStyle.ItemIndex:=1
       else
         RadioGroup_ColorStyle.ItemIndex:=0;
@@ -200,13 +196,21 @@ begin
     begin
       RadioGroup_ColorStyle.ItemIndex:=-1;
       Memo_Tip.Lines.Add('');
-      Edit_V1.Enabled:=false;
-      Edit_V2.Enabled:=false;
-      Edit_ConditionalSyntax.Enabled:=true;
-      ColorBox_C1.Enabled:=true;
-      ColorBox_C2.Enabled:=false;
+      ColorBox_Popup.Enabled:=true;
     end;
   RadioGroup_ColorStyleSelectionChanged(RadioGroup_ColorStyle);
+end;
+
+procedure TFormFieldDisplayOption.ColorBox_PopupSelect(Sender: TObject);
+var SG:TStringGrid;
+    CB:TColorBox;
+    tmpColor:TColor;
+begin
+  SG:=StringGrid_ValuesColors;
+  CB:=Sender as TColorBox;
+  tmpColor:=CB.Selected;
+  StoredDisplayOption.Colors[SG.Row-1]:=tmpColor;
+  SG.Cells[2,SG.Row]:=CB.Items[CB.ItemIndex];
 end;
 
 procedure TFormFieldDisplayOption.FormCreate(Sender: TObject);
@@ -221,9 +225,12 @@ var H:word;V:byte;
 
 begin
 
+  StringGrid_ValuesColors.ColCount:=3;
+  StringGrid_ValuesColors.Cells[1,0]:='数值';
+  StringGrid_ValuesColors.Cells[2,0]:='颜色';
+
   CB_List:=TList.Create;
-  CB_List.Add(ColorBox_C1);
-  CB_List.Add(ColorBox_C2);
+  CB_List.Add(ColorBox_Popup);
 
   for tmpCB in CB_List do begin
     TColorBox(tmpCB).Clear;
@@ -240,22 +247,94 @@ begin
             //color_dw:=(HSVToColor((H*20)/1,sqrt_n(pow_n(100)-pow_n(V)),V/1));
             //color_dw:=(HSVToColor((H*20)/1,100/exp(sqr(V-50)/1000),V/1));
             color_dw:=(HSVToColor((H*20)/1,100*sqrt(sin(V*V/1000/PI)),V/1));
-
+            {$ifdef cpu64}
             TColorBox(tmpCB).AddItem('H'+n1+'V'+n2,TObject(qword(color_dw)));
+            {$else}
+              {$error 'TColorBox color only work on cpu64'}
+            {$endif}
           end;
       end;
     TColorBox(tmpCB).AddItem('H00BLK',TObject($00000000));
   end;
   CB_List.Free;
 
+  StoredDisplayOption:=TFieldDisplayOption.Create;
+
 end;
 
-initialization
-  display_reg:=TRegexpr.Create;
+procedure TFormFieldDisplayOption.FormDestroy(Sender: TObject);
+begin
+  StoredDisplayOption.Free;
+end;
 
+procedure TFormFieldDisplayOption.MenuItem_VC_AddClick(Sender: TObject);
+var arow:integer;
+begin
+  arow:=StringGrid_ValuesColors.RowCount;
+  StringGrid_ValuesColors.RowCount:=arow+1;
+  StoredDisplayOption.InsertValue(arow-1,'');
+  StoredDisplayOption.InsertColor(arow-1,clNone);
+end;
 
-finalization
-  display_reg.Free;
+procedure TFormFieldDisplayOption.MenuItem_VC_Custom_ColorClick(Sender: TObject
+  );
+begin
+  //自定义颜色暂时不实现
+end;
+
+procedure TFormFieldDisplayOption.MenuItem_VC_DelClick(Sender: TObject);
+var arow:integer;
+begin
+  arow:=StringGrid_ValuesColors.Row;
+  if arow=0 then exit;
+  StringGrid_ValuesColors.DeleteRow(StringGrid_ValuesColors.Row);
+  StoredDisplayOption.DeleteValue(arow-1);
+  StoredDisplayOption.DeleteColor(arow-1);
+end;
+
+procedure TFormFieldDisplayOption.MenuItem_VC_InsClick(Sender: TObject);
+var arow:integer;
+begin
+  arow:=StringGrid_ValuesColors.Row;
+  StringGrid_ValuesColors.InsertRowWithValues(arow,[]);
+  StoredDisplayOption.InsertValue(arow-1,'');
+  StoredDisplayOption.InsertColor(arow-1,clNone);
+end;
+
+procedure TFormFieldDisplayOption.StringGrid_ValuesColorsDrawCell(Sender: TObject; aCol,
+  aRow: Integer; aRect: TRect; aState: TGridDrawState);
+var SG:TStringGrid;
+begin
+  if aCol*aRow=0 then exit;
+  if aCol=1 then exit;
+  SG:=Sender as TStringGrid;
+  SG.Canvas.Brush.Color:=StoredDisplayOption.Colors[aRow-1];
+  SG.Canvas.FillRect(aRect);
+  SG.DefaultDrawCell(aCol,aRow,aRect,aState);
+end;
+
+procedure TFormFieldDisplayOption.StringGrid_ValuesColorsMouseUp(
+  Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var SG:TStringGrid;
+begin
+  SG:=Sender as TStringGrid;
+  SG.Row:=Y div SG.DefaultRowHeight;
+  SG.Col:=1;
+end;
+
+procedure TFormFieldDisplayOption.StringGrid_ValuesColorsResize(Sender: TObject);
+var w:integer;
+    SG:TStringGrid;
+    cs:boolean;
+begin
+  SG:=Sender as TStringGrid;
+  w:=(SG.Width - 54) div 3;
+  StringGrid_ValuesColors.ColWidths[0]:=40;
+  StringGrid_ValuesColors.ColWidths[1]:=2*w;
+  StringGrid_ValuesColors.ColWidths[2]:=w;
+  cs:=true;
+  StringGrid_ValuesColorsSelectCell(SG,SG.Col,SG.Row,cs);
+end;
 
 end.
 

@@ -130,7 +130,7 @@ begin
         CurrentRTFP.ReTypeField(CurrentField.FieldName,CurrentField.AttrsGroup.Name,new_type,new_size);
     end;
     //再改名
-    CurrentField.FFieldDisplayOption.display_name:=Edit_FieldDisplayName.Caption;
+    CurrentField.FFieldDisplayOption.DispName:=Edit_FieldDisplayName.Caption;
     if CurrentField.FieldDef.Name<>new_name then CurrentRTFP.RenameField(CurrentField.FieldName,new_name,CurrentField.AttrsGroup.Name);
     ModalResult:=mrOK;
     CurrentRTFP.FieldAndRecordChange;
@@ -167,7 +167,7 @@ begin
   if CurrentField is TAttrsField then begin
     Label_FieldName.Caption:='字段名称：';
     Edit_FieldName.Caption:=CurrentField.FieldName;
-    Edit_FieldDisplayName.Caption:=CurrentField.FieldDisplayOption.display_name;
+    Edit_FieldDisplayName.Caption:=CurrentField.FieldDisplayOption.DispName;
     Edit_FieldSize.Enabled:=true;
     Edit_FieldSize.Caption:=IntToStr(CurrentField.FieldDef.Size);
     FieldTypeToComboBox(CurrentField.FieldDef.DataType);

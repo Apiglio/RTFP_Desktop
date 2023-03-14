@@ -9,7 +9,7 @@ unit rtfp_field;
 interface
 
 uses
-  Classes, SysUtils, db, dbf, rtfp_constants, Graphics, BufDataset;
+  Classes, SysUtils, db, dbf, fpjson, rtfp_constants, Graphics, BufDataset;
 
 type
 
@@ -18,16 +18,43 @@ type
   TAttrsGroupList = class;
 
   TColorizeProcess = function(v1,v2:double;c1,c2:TColor;expresion:string;Value:TField):TColor;
+  TFIeldDisplayMode = (fdmDisabled=0, fdmSuccessive=1, fdmIdentical=2, fdmRegexpr=3);
+  TFieldDisplayOption = class
+  public
 
-  TFieldDisplayOption = record
-    v1,v2:double;
-    c1,c2:TColor;
-    expression:string;
-    colorize_process:TColorizeProcess;
-    display_width:integer;
-    display_name:string;
+  private
+    FMode:TFIeldDisplayMode;
+    FDispWidth:integer;
+    FDispName:string;
+    FValues:TStringList;
+    FColors:TList;
+  protected
+    function GetValue(index:integer):string;
+    function GetColor(index:integer):TColor;
+    procedure SetValue(index:integer;value:string);
+    procedure SetColor(index:integer;color:TColor);
+    function GetCount:integer;
+  public
+    procedure InsertValue(index:integer;value:string);
+    procedure InsertColor(index:integer;color:TColor);
+    procedure DeleteValue(index:integer);
+    procedure DeleteColor(index:integer);
+    property Values[index:integer]:string read GetValue write SetValue;
+    property Colors[index:integer]:TColor read GetColor write SetColor;
+    property Mode:TFIeldDisplayMode read FMode write FMode;
+    property Count:integer read GetCount;
+    property DispName:string read FDispName write FDispName;
+    property DispWidth:integer read FDispWidth write FDispWidth;
+  public
+    procedure Assign(source:TFieldDisplayOption);
+    procedure Clear;
+    procedure LoadFromJSON(str:string);
+    function SaveToJSON:string;
+    function GetFieldColor(Value:TField):TColor;
+  public
+    constructor Create;
+    destructor Destroy; override;
   end;
-
 
   TAttrsField = class(TCollectionItem)
   private
@@ -54,7 +81,7 @@ type
     property FieldName:string read FFieldName write FFieldName;
     property AttrsGroup:TAttrsGroup read FAttrsGroup;
     property FieldDisplayOption:TFieldDisplayOption read FFieldDisplayOption{ write FFieldDisplayOption};
-    property DisplayName:string read FFieldDisplayOption.display_name;
+    property DisplayName:string read FFieldDisplayOption.FDispName;
 
   public
     procedure ResetFieldDef(AFieldDef:TFieldDef);
@@ -163,7 +190,252 @@ type
 
 
 implementation
-uses rtfp_files, regexpr;
+uses rtfp_files, RegExpr;
+var display_reg:TRegexpr;
+
+{ TFieldDisplayOption }
+
+function TFieldDisplayOption.GetValue(index:integer):string;
+begin
+  if index<FValues.Count then result:=FValues[index]
+  else result:='';
+end;
+
+function TFieldDisplayOption.GetColor(index:integer):TColor;
+begin
+  if index<FColors.Count then result:=TColor(pdword(FColors[index]))
+  else result:=clNone;
+end;
+
+procedure TFieldDisplayOption.SetValue(index:integer;value:string);
+begin
+  if index<FValues.Count then FValues[index]:=value;
+end;
+
+procedure TFieldDisplayOption.SetColor(index:integer;color:TColor);
+begin
+  if index<FColors.Count then FColors[index]:=pdword(color);
+end;
+
+function TFieldDisplayOption.GetCount:integer;
+var lv,lc:integer;
+begin
+  lv:=FValues.Count;
+  lc:=FColors.Count;
+  if lv<lc then result:=lv
+  else result:=lc;
+end;
+
+procedure TFieldDisplayOption.InsertValue(index:integer;value:string);
+var len:integer;
+begin
+  len:=FValues.Count;
+  if (index<0) or (index>len) then
+    raise Exception.Create('TFieldDisplayOption: InsertValue index('+IntToStr(index)+')下标超界。')
+  else
+    FValues.Insert(index,value);
+end;
+
+procedure TFieldDisplayOption.InsertColor(index:integer;color:TColor);
+var len:integer;
+begin
+  len:=FColors.Count;
+  if (index<0) or (index>len) then
+    raise Exception.Create('TFieldDisplayOption: InsertColor index('+IntToStr(index)+')下标超界。')
+  else
+    FColors.Insert(index,pdword(color));
+end;
+
+procedure TFieldDisplayOption.DeleteValue(index:integer);
+var len:integer;
+begin
+  len:=FValues.Count;
+  if (index<0) or (index>len-1) then begin
+    raise Exception.Create('TFieldDisplayOption: DeleteValue index('+IntToStr(index)+')下标超界。');
+  end else if index=len-1 then begin
+    FValues.Delete(index);
+  end;
+end;
+
+procedure TFieldDisplayOption.DeleteColor(index:integer);
+var len:integer;
+begin
+  len:=FColors.Count;
+  if (index<0) or (index>len-1) then begin
+    raise Exception.Create('TFieldDisplayOption: DeleteColor index('+IntToStr(index)+')下标超界。');
+  end else if index=len-1 then begin
+    FColors.Delete(index);
+  end;
+end;
+
+function ColorToHex(color:TColor):string;
+begin
+  result:=IntToHex(int32(color),8);
+end;
+
+function HexToColor(str:string):TColor;
+var tmp:integer;
+begin
+  tmp:=0;
+  while str<>'' do begin
+    tmp:=tmp shl 4;
+    if str[1] in ['0'..'9'] then begin
+      tmp:=tmp or (ord(str[1])-48)
+    end else if str[1] in ['A'..'F'] then begin
+      tmp:=tmp or (ord(str[1])-55)
+    end else if str[1] in ['a'..'f'] then begin
+      tmp:=tmp or (ord(str[1])-87)
+    end;
+    delete(str,1,1);
+  end;
+  result:=TColor(tmp);
+end;
+
+procedure TFieldDisplayOption.Assign(source:TFieldDisplayOption);
+var pi,len:integer;
+begin
+  Clear;
+  Self.FMode:=source.FMode;
+  len:=source.FValues.Count;
+  for pi:=0 to len-1 do Self.FValues.Add(source.FValues[pi]);
+  len:=source.FColors.Count;
+  for pi:=0 to len-1 do Self.FColors.Add(source.FColors[pi]);
+  Self.FDispName:=source.FDispName;
+  Self.FDispWidth:=source.FDispWidth;
+end;
+
+procedure TFieldDisplayOption.Clear;
+begin
+  Self.FMode:=fdmDisabled;
+  Self.FDispName:='';
+  Self.FDispWidth:=-1;
+  Self.FValues.Clear;
+  Self.FColors.Clear;
+end;
+
+procedure TFieldDisplayOption.LoadFromJSON(str:string);
+var data,tmp:TJSONData;
+    pi,len:integer;
+begin
+  Clear;
+  str:=StringReplace(str,'''','"',[rfReplaceAll]);
+  try
+    data:=GetJSON(str);
+    tmp:=data.FindPath('mode');
+    if tmp=nil then FMode:=fdmDisabled
+    else case uppercase(tmp.AsString) of
+      'DISABLED':FMode:=fdmDisabled;
+      'SUCCESSIVE':FMode:=fdmSuccessive;
+      'IDENTICAL':FMode:=fdmIdentical;
+      'REGEXPR':FMode:=fdmRegexpr;
+      else FMode:=fdmDisabled;
+    end;
+    tmp:=data.FindPath('values');
+    if tmp<>nil then begin
+      len:=tmp.Count;
+      for pi:=0 to len-1 do FValues.Add(tmp.Items[pi].AsString);
+    end;
+    tmp:=data.FindPath('colors');
+    if tmp<>nil then begin
+      len:=tmp.Count;
+      for pi:=0 to len-1 do FColors.Add(pdword(HexToColor(tmp.Items[pi].AsString)));
+    end;
+  except
+    {nop}
+  end;
+  if assigned(data) then FreeAndNil(data);
+end;
+
+function TFieldDisplayOption.SaveToJSON:string;
+var pi:integer;
+    data:TJSONObject;
+    jValues,jColors:TJSONArray;
+begin
+  data:=TJSONObject.Create;
+  try
+    case FMode of
+      fdmDisabled:data.Strings['mode']:='DISABLED';
+      fdmSuccessive:data.Strings['mode']:='SUCCESSIVE';
+      fdmIdentical:data.Strings['mode']:='IDENTICAL';
+      fdmRegexpr:data.Strings['mode']:='REGEXPR';
+      else data.Strings['mode']:='UNKNOWN';
+    end;
+    jValues:=TJSONArray.Create;
+    jColors:=TJSONArray.Create;
+    data.Add('values',jValues);
+    data.Add('colors',jColors);
+    jValues:=data.Arrays['values'];
+    jColors:=data.Arrays['colors'];
+    for pi:=0 to FValues.Count-1 do begin
+      jValues.Add(FValues[pi]);
+      jColors.Add(ColorToHex(dword(FColors[pi])));
+    end;
+    result:=data.AsJSON;
+  finally
+    data.Free;
+  end;
+  result:=StringReplace(result,'"','''',[rfReplaceAll]);
+end;
+
+{
+function Successive_FDOP(v1,v2:double;c1,c2:TColor;expresion:string;Value:TField):TColor;
+var fvalue:double;
+begin
+  if v1=v2 then begin result:=c1;exit;end;
+  result:=clNone;
+  case value.DataType of ftInteger,ftSmallint,ftLargeint,ftFloat:;else exit end;
+  fvalue:=value.AsFloat;
+  fvalue:=(fvalue-v1)/(v2-v1);
+  result:=HSVLinearCombination(c1,c2,fvalue);
+end;
+
+}
+
+function TFieldDisplayOption.GetFieldColor(Value:TField):TColor;
+var pi,len:integer;
+begin
+  len:=Self.Count;
+  case FMode of
+    fdmSuccessive:
+      begin
+        //连续色带重写
+      end;
+    fdmIdentical:
+      begin
+        for pi:=0 to len-1 do begin
+          if Value.AsString=FValues[pi] then begin
+            result:=Self.Colors[pi];
+            exit;
+          end;
+        end;
+      end;
+    fdmRegexpr:
+      begin
+        for pi:=0 to len-1 do begin
+          display_reg.Expression:=FValues[pi];
+          if display_reg.Exec(Value.AsString) then begin
+            result:=Self.Colors[pi];
+            exit;
+          end;
+        end;
+      end;
+  end;
+  result:=clNone;
+end;
+
+constructor TFieldDisplayOption.Create;
+begin
+  inherited Create;
+  FValues:=TStringList.Create;
+  FColors:=TList.Create;
+end;
+
+destructor TFieldDisplayOption.Destroy;
+begin
+  FValues.Free;
+  FColors.Free;
+  inherited Destroy;
+end;
 
 { TAttrsField }
 
@@ -182,15 +454,16 @@ begin
   else raise Exception.Create('TAttrsField.Create: unassigned or wrong ListType');
   FUpdating:=false;
   FOnChangeVisibility:=nil;
-  FFieldDisplayOption.colorize_process:=nil;
-  FFieldDisplayOption.display_width:=90;
-  FFieldDisplayOption.display_name:='';
+  FFieldDisplayOption:=TFieldDisplayOption.Create;
+  FFieldDisplayOption.FDispWidth:=90;
+  FFieldDisplayOption.FDispName:='';
   FComboItem:=TStringList.Create;
   FComboItem.Sorted:=true;
 end;
 destructor TAttrsField.Destroy;
 begin
   FComboItem.Free;
+  FFieldDisplayOption.Free;
   inherited Destroy;
 end;
 
@@ -276,7 +549,7 @@ begin
   Result := inherited Add as TAttrsField;
   Result.FFieldName:=UpperCase(AFieldDef.Name);
   Result.FFieldDef:=AFieldDef;
-  Result.FFieldDisplayOption.display_width:=-1;
+  Result.FFieldDisplayOption.FDispWidth:=-1;
 end;
 
 procedure TAttrsFieldList.Clear;
@@ -497,6 +770,11 @@ begin
 
 end;
 
+initialization
+  display_reg:=TRegexpr.Create;
+
+finalization
+  display_reg.Free;
 
 end.
 
