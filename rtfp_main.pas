@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.5-alpha.1';
+  C_VERSION_NUMBER  = '0.2.5-alpha.2';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -2440,6 +2440,7 @@ var tmpFD:TFieldDef;
 
 begin
   //if Column.Field.FieldName<>_Col_PID_ then exit;
+  if gdSelected in State then exit;
   tmpCL:=$ff000000;
   tmpFD:=Column.Field.FieldDef;
   tmpA:=CurrentRTFP.PaperDSFieldDefs.Items[DataCol];

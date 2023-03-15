@@ -1148,8 +1148,9 @@ begin
         for AF in AG.FieldList do
           begin
             str.Add('option.attrs.set "'+AG.Name+'","'+AF.FieldName+'","visible",'+con(AF.Shown));
-            str.Add('option.attrs.set "'+AG.Name+'","'+AF.FieldName+'","display_width",'+IntToStr(AF.FFieldDisplayOption.DispWidth));
-            str.Add('option.attrs.set "'+AG.Name+'","'+AF.FieldName+'","display_name","'+AF.FFieldDisplayOption.DispName+'"');
+            //0.2.5-alpha.1的字段宽度显示设置加载有问题，直接放弃原本的这个方法改用json
+            //str.Add('option.attrs.set "'+AG.Name+'","'+AF.FieldName+'","display_width",'+IntToStr(AF.FFieldDisplayOption.DispWidth));
+            //str.Add('option.attrs.set "'+AG.Name+'","'+AF.FieldName+'","display_name","'+AF.FFieldDisplayOption.DispName+'"');
             str.Add('option.attrs.set "'+AG.Name+'","'+AF.FieldName+'","display_option","'+AF.FFieldDisplayOption.SaveToJSON+'"');
             if AF.IsCombo then for stmp in AF.ComboItem do
               str.Add('option.attrs.set "'+AG.Name+'","'+AF.FieldName+'","add_combo",'+stmp);

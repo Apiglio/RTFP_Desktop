@@ -1,11 +1,11 @@
 object FormFieldDisplayOption: TFormFieldDisplayOption
-  Left = 1218
-  Height = 417
-  Top = 567
-  Width = 481
+  Left = 794
+  Height = 700
+  Top = 330
+  Width = 540
   Caption = '字段显示设置'
-  ClientHeight = 417
-  ClientWidth = 481
+  ClientHeight = 700
+  ClientWidth = 540
   Constraints.MinHeight = 270
   Constraints.MinWidth = 400
   DesignTimePPI = 144
@@ -41,7 +41,7 @@ object FormFieldDisplayOption: TFormFieldDisplayOption
       '正则表达式'
     )
     OnSelectionChanged = RadioGroup_ColorStyleSelectionChanged
-    TabOrder = 1
+    TabOrder = 0
   end
   object Memo_Tip: TMemo
     AnchorSideLeft.Control = RadioGroup_ColorStyle
@@ -54,14 +54,14 @@ object FormFieldDisplayOption: TFormFieldDisplayOption
     Left = 165
     Height = 142
     Top = 50
-    Width = 306
+    Width = 365
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 5
     BorderSpacing.Top = 10
     BorderSpacing.Right = 10
     Enabled = False
     ParentColor = True
-    TabOrder = 2
+    TabOrder = 1
   end
   object Button_OK: TButton
     AnchorSideLeft.Control = Owner
@@ -69,9 +69,9 @@ object FormFieldDisplayOption: TFormFieldDisplayOption
     AnchorSideTop.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 199
+    Left = 229
     Height = 33
-    Top = 374
+    Top = 657
     Width = 82
     Anchors = [akLeft, akBottom]
     BorderSpacing.Top = 10
@@ -79,9 +79,9 @@ object FormFieldDisplayOption: TFormFieldDisplayOption
     Caption = '确定'
     ModalResult = 1
     OnClick = Button_OKClick
-    TabOrder = 3
+    TabOrder = 2
   end
-  object StringGrid_ValuesColors: TStringGrid
+  object ScrollBox_ValuesColors: TScrollBox
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = RadioGroup_ColorStyle
     AnchorSideTop.Side = asrBottom
@@ -89,42 +89,67 @@ object FormFieldDisplayOption: TFormFieldDisplayOption
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Button_OK
     Left = 10
-    Height = 162
+    Height = 445
     Top = 202
-    Width = 461
+    Width = 520
+    HorzScrollBar.Page = 79
+    VertScrollBar.Page = 225
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 10
     BorderSpacing.Top = 10
     BorderSpacing.Right = 10
     BorderSpacing.Bottom = 10
-    ColCount = 2
-    DefaultRowHeight = 27
-    Flat = True
-    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goEditing, goSmoothScroll]
-    PopupMenu = PopupMenu_ValuesColors
-    RowCount = 1
-    TabOrder = 4
-    OnDrawCell = StringGrid_ValuesColorsDrawCell
-    OnMouseUp = StringGrid_ValuesColorsMouseUp
-    OnResize = StringGrid_ValuesColorsResize
-    OnSelectCell = StringGrid_ValuesColorsSelectCell
-  end
-  object ColorBox_Popup: TColorBox
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Side = asrCenter
-    Left = -184
-    Height = 26
-    Top = 137
-    Width = 125
-    Anchors = []
-    BorderSpacing.Left = 5
-    ItemHeight = 20
-    OnSelect = ColorBox_PopupSelect
-    TabOrder = 0
+    ClientHeight = 441
+    ClientWidth = 516
+    TabOrder = 3
+    object StringGrid_ValuesColors: TStringGrid
+      AnchorSideLeft.Control = ScrollBox_ValuesColors
+      AnchorSideTop.Control = ScrollBox_ValuesColors
+      AnchorSideRight.Control = ScrollBox_ValuesColors
+      AnchorSideRight.Side = asrBottom
+      Left = 2
+      Height = 223
+      Top = 2
+      Width = 512
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Left = 2
+      BorderSpacing.Top = 2
+      BorderSpacing.Right = 2
+      ColCount = 2
+      DefaultRowHeight = 27
+      Flat = True
+      MouseWheelOption = mwGrid
+      Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goEditing, goSmoothScroll]
+      PopupMenu = PopupMenu_ValuesColors
+      RowCount = 1
+      ScrollBars = ssNone
+      TabOrder = 0
+      OnColRowDeleted = StringGrid_ValuesColorsColRowDeleted
+      OnColRowInserted = StringGrid_ValuesColorsColRowInserted
+      OnDrawCell = StringGrid_ValuesColorsDrawCell
+      OnMouseUp = StringGrid_ValuesColorsMouseUp
+      OnMouseWheelDown = StringGrid_ValuesColorsMouseWheelDown
+      OnMouseWheelUp = StringGrid_ValuesColorsMouseWheelUp
+      OnResize = StringGrid_ValuesColorsResize
+      OnSelectCell = StringGrid_ValuesColorsSelectCell
+    end
+    object ColorBox_Popup: TColorBox
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Side = asrCenter
+      Left = 352
+      Height = 26
+      Top = 264
+      Width = 125
+      Anchors = []
+      BorderSpacing.Left = 5
+      ItemHeight = 20
+      OnSelect = ColorBox_PopupSelect
+      TabOrder = 1
+    end
   end
   object PopupMenu_ValuesColors: TPopupMenu
-    left = 96
-    top = 512
+    left = 296
+    top = 536
     object MenuItem_VC_Add: TMenuItem
       Caption = '新增行'
       OnClick = MenuItem_VC_AddClick

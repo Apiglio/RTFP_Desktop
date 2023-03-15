@@ -21,6 +21,7 @@ type
     MenuItem_VC_Add: TMenuItem;
     MenuItem_VC_Del: TMenuItem;
     PopupMenu_ValuesColors: TPopupMenu;
+    ScrollBox_ValuesColors: TScrollBox;
     StringGrid_ValuesColors: TStringGrid;
     Memo_Tip: TMemo;
     RadioGroup_ColorStyle: TRadioGroup;
@@ -33,10 +34,18 @@ type
     procedure MenuItem_VC_Custom_ColorClick(Sender: TObject);
     procedure MenuItem_VC_DelClick(Sender: TObject);
     procedure MenuItem_VC_InsClick(Sender: TObject);
+    procedure StringGrid_ValuesColorsColRowDeleted(Sender: TObject;
+      IsColumn: Boolean; sIndex, tIndex: Integer);
+    procedure StringGrid_ValuesColorsColRowInserted(Sender: TObject;
+      IsColumn: Boolean; sIndex, tIndex: Integer);
     procedure StringGrid_ValuesColorsDrawCell(Sender: TObject; aCol, aRow: Integer;
       aRect: TRect; aState: TGridDrawState);
     procedure StringGrid_ValuesColorsMouseUp(Sender: TObject;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure StringGrid_ValuesColorsMouseWheelDown(Sender: TObject;
+      Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
+    procedure StringGrid_ValuesColorsMouseWheelUp(Sender: TObject;
+      Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
     procedure StringGrid_ValuesColorsResize(Sender: TObject);
     procedure RadioGroup_ColorStyleSelectionChanged(Sender: TObject);
     procedure StringGrid_ValuesColorsSelectCell(Sender: TObject; aCol,
@@ -58,8 +67,22 @@ uses rtfp_dialog, rtfp_misc;
 
 { TFormFieldDisplayOption }
 
+function FindColorBox(CB:TColorBox;color:TColor):integer;
+var pi:integer;
+begin
+  for pi:=0 to CB.Items.Count-1 do begin
+    result:=pi;
+    {$ifdef cpu64}
+    if qword(CB.Items.Objects[pi])=qword(color) then exit;
+    {$else}
+      {$error 'TColorBox color only work on cpu64'}
+    {$endif}
+  end;
+  result:=-1;
+end;
+
 function TFormFieldDisplayOption.Call(AAttrsField:TAttrsField):Integer;
-var pi,len:integer;
+var pi,len,idx:integer;
 begin
   if AAttrsField=nil then begin ShowMsgOK('字段显示设置','默认字段暂不支持单元格设色。');exit;end;//这句真的能达到触发条件吗
   CurrentField:=AAttrsField;
@@ -68,7 +91,12 @@ begin
   StoredDisplayOption.Assign(AAttrsField.FFieldDisplayOption);
   len:=StoredDisplayOption.Count;
   StringGrid_ValuesColors.RowCount:=len+1;
-  for pi:=1 to len do StringGrid_ValuesColors.Cells[1,pi]:=StoredDisplayOption.Values[pi-1];
+  for pi:=1 to len do begin
+    StringGrid_ValuesColors.Cells[1,pi]:=StoredDisplayOption.Values[pi-1];
+    idx:=FindColorBox(ColorBox_Popup,StoredDisplayOption.Colors[pi-1]);
+    if idx<0 then StringGrid_ValuesColors.Cells[2,pi]:=''
+    else StringGrid_ValuesColors.Cells[2,pi]:=ColorBox_Popup.Items[idx];
+  end;
   case StoredDisplayOption.Mode of
     fdmSuccessive:RadioGroup_ColorStyle.ItemIndex:=1;
     fdmIdentical:RadioGroup_ColorStyle.ItemIndex:=2;
@@ -110,20 +138,6 @@ begin
       end
     else ;
   end;
-end;
-
-function FindColorBox(CB:TColorBox;color:TColor):integer;
-var pi:integer;
-begin
-  for pi:=0 to CB.Items.Count-1 do begin
-    result:=pi;
-    {$ifdef cpu64}
-    if qword(CB.Items.Objects[pi])=qword(color) then exit;
-    {$else}
-      {$error 'TColorBox color only work on cpu64'}
-    {$endif}
-  end;
-  result:=-1;
 end;
 
 procedure TFormFieldDisplayOption.StringGrid_ValuesColorsSelectCell(
@@ -234,19 +248,18 @@ begin
 
   for tmpCB in CB_List do begin
     TColorBox(tmpCB).Clear;
-    TColorBox(tmpCB).AddItem('H00VWHT',TObject($00FFFFFF));
     for V:=100 downto 0 do
       begin
         if not (V in [99,97,92,87,75,50]) then continue;
-        for H:=0 to 17 do
+        for H:=0 to 23 do
           begin
-            n1:=IntToStr(H*2);
+            n1:=IntToStr(H);
             while length(n1)<2 do n1:='0'+n1;
             n2:=IntToStr(V);
             while length(n2)<2 do n2:='0'+n2;
             //color_dw:=(HSVToColor((H*20)/1,sqrt_n(pow_n(100)-pow_n(V)),V/1));
             //color_dw:=(HSVToColor((H*20)/1,100/exp(sqr(V-50)/1000),V/1));
-            color_dw:=(HSVToColor((H*20)/1,100*sqrt(sin(V*V/1000/PI)),V/1));
+            color_dw:=(HSVToColor((H*15)/1,100*sqrt(sin(V*V/1000/PI)),V/1));
             {$ifdef cpu64}
             TColorBox(tmpCB).AddItem('H'+n1+'V'+n2,TObject(qword(color_dw)));
             {$else}
@@ -254,7 +267,15 @@ begin
             {$endif}
           end;
       end;
-    TColorBox(tmpCB).AddItem('H00BLK',TObject($00000000));
+    TColorBox(tmpCB).AddItem('SBLACK',TObject($00000000));
+    TColorBox(tmpCB).AddItem('S00V12',TObject($00202020));
+    TColorBox(tmpCB).AddItem('S00V25',TObject($00404040));
+    TColorBox(tmpCB).AddItem('S00V37',TObject($00606060));
+    TColorBox(tmpCB).AddItem('S00V50',TObject($00808080));
+    TColorBox(tmpCB).AddItem('S00V63',TObject($00A0A0A0));
+    TColorBox(tmpCB).AddItem('S00V75',TObject($00C0C0C0));
+    TColorBox(tmpCB).AddItem('S00V88',TObject($00E0E0E0));
+    TColorBox(tmpCB).AddItem('SWHITE',TObject($00FFFFFF));
   end;
   CB_List.Free;
 
@@ -273,7 +294,7 @@ begin
   arow:=StringGrid_ValuesColors.RowCount;
   StringGrid_ValuesColors.RowCount:=arow+1;
   StoredDisplayOption.InsertValue(arow-1,'');
-  StoredDisplayOption.InsertColor(arow-1,clNone);
+  StoredDisplayOption.InsertColor(arow-1,$ff000000);
 end;
 
 procedure TFormFieldDisplayOption.MenuItem_VC_Custom_ColorClick(Sender: TObject
@@ -298,7 +319,23 @@ begin
   arow:=StringGrid_ValuesColors.Row;
   StringGrid_ValuesColors.InsertRowWithValues(arow,[]);
   StoredDisplayOption.InsertValue(arow-1,'');
-  StoredDisplayOption.InsertColor(arow-1,clNone);
+  StoredDisplayOption.InsertColor(arow-1,$ff000000);
+end;
+
+procedure TFormFieldDisplayOption.StringGrid_ValuesColorsColRowDeleted(
+  Sender: TObject; IsColumn: Boolean; sIndex, tIndex: Integer);
+begin
+  with Sender as TStringGrid do begin
+    Height:=RowCount*DefaultRowHeight;
+  end;
+end;
+
+procedure TFormFieldDisplayOption.StringGrid_ValuesColorsColRowInserted(
+  Sender: TObject; IsColumn: Boolean; sIndex, tIndex: Integer);
+begin
+  with Sender as TStringGrid do begin
+    Height:=RowCount*DefaultRowHeight;
+  end;
 end;
 
 procedure TFormFieldDisplayOption.StringGrid_ValuesColorsDrawCell(Sender: TObject; aCol,
@@ -322,13 +359,27 @@ begin
   SG.Col:=1;
 end;
 
+procedure TFormFieldDisplayOption.StringGrid_ValuesColorsMouseWheelDown(
+  Sender: TObject; Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
+begin
+  with ScrollBox_ValuesColors.VertScrollBar do
+    Position:=Position + Page div 2;
+end;
+
+procedure TFormFieldDisplayOption.StringGrid_ValuesColorsMouseWheelUp(
+  Sender: TObject; Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
+begin
+  with ScrollBox_ValuesColors.VertScrollBar do
+    Position:=Position - Page div 2;
+end;
+
 procedure TFormFieldDisplayOption.StringGrid_ValuesColorsResize(Sender: TObject);
 var w:integer;
     SG:TStringGrid;
     cs:boolean;
 begin
   SG:=Sender as TStringGrid;
-  w:=(SG.Width - 54) div 3;
+  w:=(SG.Width - 40) div 3;
   StringGrid_ValuesColors.ColWidths[0]:=40;
   StringGrid_ValuesColors.ColWidths[1]:=2*w;
   StringGrid_ValuesColors.ColWidths[2]:=w;

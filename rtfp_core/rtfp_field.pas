@@ -20,14 +20,15 @@ type
   TColorizeProcess = function(v1,v2:double;c1,c2:TColor;expresion:string;Value:TField):TColor;
   TFIeldDisplayMode = (fdmDisabled=0, fdmSuccessive=1, fdmIdentical=2, fdmRegexpr=3);
   TFieldDisplayOption = class
-  public
-
   private
     FMode:TFIeldDisplayMode;
     FDispWidth:integer;
     FDispName:string;
     FValues:TStringList;
     FColors:TList;
+    FFloats:array of double;//仅用于fdmSuccessive的颜色获取，在CheckSuccessive中更新
+  private
+    function CheckSuccessive:boolean;
   protected
     function GetValue(index:integer):string;
     function GetColor(index:integer):TColor;
@@ -190,10 +191,27 @@ type
 
 
 implementation
-uses rtfp_files, RegExpr;
+uses rtfp_files, rtfp_misc, RegExpr;
 var display_reg:TRegexpr;
 
 { TFieldDisplayOption }
+
+function TFieldDisplayOption.CheckSuccessive:boolean;
+var pi,len:integer;
+begin
+  //这个函数并没有搞得很清楚，没有涉及排序和实时的数据更新
+  //目前只在Assign和LoadFromJSON的末尾进行一次
+  //0.2.5-alpha.2
+  result:=true;
+  SetLength(FFloats,0);
+  len:=FValues.Count;
+  SetLength(FFloats,len);
+  try
+    for pi:=0 to len-1 do FFloats[pi]:=StrToFloat(FValues[pi]);
+  except
+    result:=false;
+  end;
+end;
 
 function TFieldDisplayOption.GetValue(index:integer):string;
 begin
@@ -204,7 +222,7 @@ end;
 function TFieldDisplayOption.GetColor(index:integer):TColor;
 begin
   if index<FColors.Count then result:=TColor(pdword(FColors[index]))
-  else result:=clNone;
+  else result:=$ff000000;
 end;
 
 procedure TFieldDisplayOption.SetValue(index:integer;value:string);
@@ -302,6 +320,7 @@ begin
   for pi:=0 to len-1 do Self.FColors.Add(source.FColors[pi]);
   Self.FDispName:=source.FDispName;
   Self.FDispWidth:=source.FDispWidth;
+  if FMode=fdmSuccessive then CheckSuccessive;
 end;
 
 procedure TFieldDisplayOption.Clear;
@@ -321,6 +340,12 @@ begin
   str:=StringReplace(str,'''','"',[rfReplaceAll]);
   try
     data:=GetJSON(str);
+    tmp:=data.FindPath('disp_name');
+    if tmp=nil then FDispName:=''
+    else FDispName:=tmp.AsString;
+    tmp:=data.FindPath('disp_width');
+    if tmp=nil then FDispWidth:=-1
+    else FDispWidth:=tmp.AsInteger;
     tmp:=data.FindPath('mode');
     if tmp=nil then FMode:=fdmDisabled
     else case uppercase(tmp.AsString) of
@@ -344,6 +369,7 @@ begin
     {nop}
   end;
   if assigned(data) then FreeAndNil(data);
+  if FMode=fdmSuccessive then CheckSuccessive;
 end;
 
 function TFieldDisplayOption.SaveToJSON:string;
@@ -353,6 +379,8 @@ var pi:integer;
 begin
   data:=TJSONObject.Create;
   try
+    data.Add('disp_name',TJSONString.Create(FDispName));
+    data.Add('disp_width',TJSONInt64Number.Create(FDispWidth));
     case FMode of
       fdmDisabled:data.Strings['mode']:='DISABLED';
       fdmSuccessive:data.Strings['mode']:='SUCCESSIVE';
@@ -377,28 +405,29 @@ begin
   result:=StringReplace(result,'"','''',[rfReplaceAll]);
 end;
 
-{
-function Successive_FDOP(v1,v2:double;c1,c2:TColor;expresion:string;Value:TField):TColor;
-var fvalue:double;
-begin
-  if v1=v2 then begin result:=c1;exit;end;
-  result:=clNone;
-  case value.DataType of ftInteger,ftSmallint,ftLargeint,ftFloat:;else exit end;
-  fvalue:=value.AsFloat;
-  fvalue:=(fvalue-v1)/(v2-v1);
-  result:=HSVLinearCombination(c1,c2,fvalue);
-end;
-
-}
-
 function TFieldDisplayOption.GetFieldColor(Value:TField):TColor;
 var pi,len:integer;
+    dtmp,port:double;
 begin
   len:=Self.Count;
   case FMode of
     fdmSuccessive:
       begin
-        //连续色带重写
+        //这个要先实数初始化
+        dtmp:=Value.AsFloat;
+        if dtmp<FFloats[0] then begin
+          result:=Colors[0];
+          exit;
+        end else begin
+          for pi:=1 to len-1 do begin
+            if dtmp<FFloats[pi] then begin
+              port:=(dtmp-FFloats[pi-1])/(FFloats[pi]-FFloats[pi-1]);
+              result:=HSVLinearCombination(Colors[pi-1],Colors[pi],port);
+              exit;
+            end;
+          end;
+          result:=Colors[len-1];
+        end;
       end;
     fdmIdentical:
       begin
@@ -420,7 +449,7 @@ begin
         end;
       end;
   end;
-  result:=clNone;
+  result:=$ff000000;
 end;
 
 constructor TFieldDisplayOption.Create;
@@ -434,6 +463,7 @@ destructor TFieldDisplayOption.Destroy;
 begin
   FValues.Free;
   FColors.Free;
+  SetLength(FFloats,0);
   inherited Destroy;
 end;
 

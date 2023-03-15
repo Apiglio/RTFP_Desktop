@@ -475,6 +475,7 @@ begin
       end;
     'width','w','display_width':
       begin
+        //不再在option.lay.auf中设置，只留作脚本选项
         if not AAuf.TryArgToLong(4,slon) then exit;
         AF:=CurrentRTFP.FindField(NF,NA);
         if AF=nil then begin
@@ -485,6 +486,7 @@ begin
       end;
     'display_name','disp':
       begin
+        //不再在option.lay.auf中设置，只留作脚本选项
         if not AAuf.TryArgToString(4,stmp) then exit;
         if NF='' then begin
           AG:=CurrentRTFP.FieldList.FindItemByName(NA);
