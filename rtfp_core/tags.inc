@@ -43,6 +43,10 @@ end;
 
 procedure TRTFP.SetTag(index:string;str:string);
 begin
+  if FProjectTags.FindTag(index)<0 then begin
+    FProjectTags.AddTag(index,str);
+    exit;
+  end;
   if FProjectTags.Values[index]<>str then
     begin
       FProjectTags.Values[index]:=str;

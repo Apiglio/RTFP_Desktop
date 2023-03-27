@@ -82,11 +82,19 @@ begin
   end;
   }
 end;
+procedure TRTFP.Update_0_2_5_alpha_3;
+begin
+  //新增“引注标识码”Tag
+  Tag['引注标识码']:='';
+  if FOnChange<>nil then FOnChange(Self);
+end;
+
 
 procedure TRTFP.Update(save_version:string);
 begin
   if not TRTFP.VersionCheck(save_version,'0.1.1-alpha.18') then Update_0_1_1_alpha_18;
   //if not TRTFP.VersionCheck(save_version,'0.1.2-alpha.8') then Update_0_1_2_alpha_8;
+  if not TRTFP.VersionCheck(save_version,'0.2.5-alpha.3') then Update_0_2_5_alpha_3;
 
 end;
 

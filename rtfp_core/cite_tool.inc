@@ -46,6 +46,14 @@ begin
   AG.Dbf.Edit;
 end;
 
+function TRTFP.PID_Cite_format(APID:RTFP_ID):string;
+var project_id:string;
+begin
+  project_id:=Tag['引注标识码'];
+  if project_id='' then project_id:=Tag['工程标题'];
+  if project_id='' then result:=APID else result:=project_id+'_'+APID;
+end;
+
 function decodeEStudyRefType(str:string):string;
 begin
   case str of
@@ -602,7 +610,7 @@ begin
       case FieldByName(_Col_basic_RefType_).AsString of
         '期刊论文':
           begin
-            result:='[PID='+PID+']';
+            result:='['+PID_Cite_format(PID)+']';
             result:=result+StringReplace(FieldByName(_Col_basic_Author_).AsString,';',',',[rfReplaceAll]);
             result:=result+'.';
             result:=result+FieldByName(_Col_basic_Title_).AsString;
@@ -620,7 +628,7 @@ begin
           end;
         '学位论文':
           begin
-            result:='[PID='+PID+']';
+            result:='['+PID_Cite_format(PID)+']';
             result:=result+FieldByName(_Col_basic_Author_).AsString;
             result:=result+'.';
             result:=result+FieldByName(_Col_basic_Title_).AsString;
@@ -632,7 +640,7 @@ begin
           end;
         '会议论文':
           begin
-            result:='[PID='+PID+']';
+            result:='['+PID_Cite_format(PID)+']';
             result:=result+StringReplace(FieldByName(_Col_basic_Author_).AsString,';',',',[rfReplaceAll]);
             result:=result+'. ';
             result:=result+FieldByName(_Col_basic_Title_).AsString;
@@ -652,7 +660,7 @@ begin
           end;
         '报纸':
           begin
-            result:='[PID='+PID+']';
+            result:='['+PID_Cite_format(PID)+']';
             result:=result+StringReplace(FieldByName(_Col_basic_Author_).AsString,';',',',[rfReplaceAll]);
             result:=result+'. ';
             result:=result+FieldByName(_Col_basic_Title_).AsString;
@@ -666,7 +674,7 @@ begin
           end;
         '专著':
           begin
-            result:='[PID='+PID+']';
+            result:='['+PID_Cite_format(PID)+']';
             result:=result+StringReplace(FieldByName(_Col_basic_Author_).AsString,';',',',[rfReplaceAll]);
             result:=result+'.';
             result:=result+FieldByName(_Col_basic_Title_).AsString;
@@ -703,7 +711,7 @@ begin
           end;
         '专利':
           begin
-            result:='[PID='+PID+']';
+            result:='['+PID_Cite_format(PID)+']';
             result:=result+StringReplace(FieldByName(_Col_basic_Author_).AsString,';',',',[rfReplaceAll]);
             result:=result+'. ';
             result:=result+FieldByName(_Col_basic_Title_).AsString;
@@ -720,7 +728,7 @@ begin
           end;
         '标准规范':
           begin
-            result:='[PID='+PID+']';
+            result:='['+PID_Cite_format(PID)+']';
             result:=result+StringReplace(FieldByName(_Col_basic_Author_).AsString,';',',',[rfReplaceAll]);
             result:=result+'. ';
             result:=result+FieldByName(_Col_basic_Title_).AsString;
@@ -850,7 +858,7 @@ begin
 end;
 function TRTFP.GetRef_InOrder(PID:RTFP_ID):string;
 begin
-  result:='^[PID='+PID+']';
+  result:='^['+PID_Cite_format(PID)+']';
 end;
 function TRTFP.GetRef_AurYear(PID:RTFP_ID):string;
 var stmp,clip:string;

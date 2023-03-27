@@ -3,22 +3,38 @@
 
 {工程属性列表 Tags}
 procedure TRTFP.ProjectPropertiesValidate(AValueListEditor:TValueListEditor);
+var str:TStringList;
+    stmp:string;
 begin
   AValueListEditor.Values['工程标题']:=Self.Title;
   AValueListEditor.Values['创建用户']:=Self.User;
-  AValueListEditor.Values['创建日期']:=Self.Tag['创建日期'];
-  AValueListEditor.Values['修改日期']:=Self.Tag['修改日期'];
-  AValueListEditor.Values['PDF打开方式']:=Self.Tag['PDF打开方式'];
-  AValueListEditor.Values['CAJ打开方式']:=Self.Tag['CAJ打开方式'];
-  AValueListEditor.Values['最后保存版本']:=Version;
+  str:=TStringList.Create;
+  try
+    Self.FProjectTags.Keys(str);
+    for stmp in str do
+      if stmp<>'属性' then
+        AValueListEditor.Values[stmp]:=Self.Tag[stmp];
+  finally
+    str.Free;
+  end;
+
 end;
 
 procedure TRTFP.ProjectPropertiesDataPost(AValueListEditor:TValueListEditor);
+var str:TStringList;
+    stmp:string;
 begin
   Self.Title:=AValueListEditor.Values['工程标题'];
   Self.User:=AValueListEditor.Values['创建用户'];
-  Self.Tag['PDF打开方式']:=AValueListEditor.Values['PDF打开方式'];
-  Self.Tag['CAJ打开方式']:=AValueListEditor.Values['CAJ打开方式'];
+  str:=TStringList.Create;
+  try
+    Self.FProjectTags.Keys(str);
+    for stmp in str do
+      if FProjectTags.Editable[stmp] then
+        Self.Tag[stmp]:=AValueListEditor.Values[stmp];
+  finally
+    str.Free;
+  end;
 end;
 
 

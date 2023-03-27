@@ -263,6 +263,7 @@ type
     procedure PostBasic;
     procedure EditBasic;
     procedure ReEditBasic;
+    function PID_Cite_format(APID:RTFP_ID):string;
 
   public
     procedure LoadFromEStudy(PID:RTFP_ID;str:TStrings);
@@ -368,6 +369,7 @@ type
   protected
     procedure Update_0_1_1_alpha_18;
     procedure Update_0_1_2_alpha_8;unimplemented;
+    procedure Update_0_2_5_alpha_3;
 
   public
     procedure Update(save_version:string);
@@ -1031,13 +1033,16 @@ begin
   tmpProjectFile.Add('CAJ打开方式,'+DefaultOpenExe);
 
   tmpProjectFile.Add('最后保存版本,'+C_VERSION_NUMBER);
+  tmpProjectFile.Add('引注标识码,'+p_title);
 
   repeat
     retry:=false;
     try
       tmpProjectFile.SaveToFile(FFileFullName);
-      //ProjectFileValue.LoadFromCSVFile(FFileFullName);
       FProjectTags.LoadFromFile(FFileFullName);
+      FProjectTags.Editable['创建日期']:=false;
+      FProjectTags.Editable['修改日期']:=false;
+      FProjectTags.Editable['最后保存版本']:=false;
     except
       case MessageDlg('错误','文件占用导致工程文档创建异常！',mtError,[mbRetry,mbCancel],0) of
         rnmbRetry:retry:=true;
@@ -1052,14 +1057,15 @@ end;
 
 function TRTFP.OpenProjectFile:boolean;
 begin
-  //ProjectFileValue.LoadFromCSVFile(FFileFullName);
   FProjectTags.LoadFromFile(FFileFullName);
+  FProjectTags.Editable['创建日期']:=false;
+  FProjectTags.Editable['修改日期']:=false;
+  FProjectTags.Editable['最后保存版本']:=false;
   result:=true;
 end;
 
 function TRTFP.SaveProjectFile:boolean;
 begin
-  //ProjectFileValue.SaveToCSVFile(FFileFullName);
   Version:=C_VERSION_NUMBER;
   FProjectTags.SaveToFile(FFileFullName);
   result:=true;

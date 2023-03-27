@@ -21,6 +21,8 @@ type
     function GetTag(akey:string):TTag;
     function GetValue(akey:string):string;
     procedure SetValue(akey:string;avalue:string);
+    function GetEditable(akey:string):boolean;
+    procedure SetEditable(akey:string;avalue:boolean);
   public
     function AddTag(akey,avalue:string):integer;
     function FindTag(akey:string):integer;
@@ -28,9 +30,11 @@ type
     procedure Clear;
     property Tags[akey:string]:TTag read GetTag;
     property Values[akey:string]:string read GetValue write SetValue;
+    property Editable[akey:string]:boolean read GetEditable write SetEditable;
   public
     procedure LoadFromFile(filename:string);
     procedure SaveToFile(filename:string);
+    procedure Keys(str:TStrings);
   public
     constructor Create;
     destructor Destroy;
@@ -60,6 +64,20 @@ begin
   if tmpTag<>nil then tmpTag.value:=avalue
   else AddTag(akey,avalue);
 end;
+function TTags.GetEditable(akey:string):boolean;
+var tmpTag:TTag;
+begin
+  tmpTag:=Tags[akey];
+  if tmpTag <> nil then result:=not tmpTag.ReadOnly
+  else result:=false;
+end;
+procedure TTags.SetEditable(akey:string;avalue:boolean);
+var tmpTag:TTag;
+begin
+  tmpTag:=Tags[akey];
+  if tmpTag<>nil then tmpTag.ReadOnly:=not avalue
+  else raise Exception.Create('TTags.SetEditable: 找不到Tag。')
+end;
 function TTags.AddTag(akey,avalue:string):integer;
 var index:integer;
     tmpTag:TTag;
@@ -70,6 +88,7 @@ begin
       tmpTag:=TTag.Create;
       tmpTag.key:=akey;
       tmpTag.value:=avalue;
+      tmpTag.ReadOnly:=false;
       FList.Add(tmpTag);
       index:=FList.Count-1;
     end
@@ -162,6 +181,12 @@ begin
   finally
     str.Free;
   end;
+end;
+procedure TTags.Keys(str:TStrings);
+var pi:integer;
+begin
+  str.Clear;
+  for pi:=0 to FList.Count-1 do str.Add(TTag(FList.Items[pi]).key);
 end;
 constructor TTags.Create;
 begin
