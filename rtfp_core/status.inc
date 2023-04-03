@@ -72,7 +72,7 @@ function TRTFP.ExportDSToCSVOrTSV(sep:char):string;
 var bm:TBookMark;
     idx,len,idx_f,len_f:integer;
     tmpAF:TAttrsField;
-    disp_name:string;
+    disp_name,str_rep:string;
 begin
   result:='';
   if not FPaperDS.Active then exit;
@@ -100,13 +100,18 @@ begin
   //内容
   FPaperDS.First;
   for idx:=0 to len-1 do begin
-    FPaperDS.RecNo:=idx;
+    //FPaperDS.RecNo:=idx;
     for idx_f:=0 to len_f-1 do begin
       tmpAF:=TAttrsField(FPaperDSFieldDefs.Items[idx_f]);
       if tmpAF=nil then continue;
       case tmpAF.FieldDef.DataType of
-        ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo:
-          result:=result+FPaperDS.Fields[idx_f].AsString+sep;
+        ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo:begin
+          str_rep:=FPaperDS.Fields[idx_f].AsString;
+          str_rep:=StringReplace(str_rep,#13,'\r',[rfReplaceAll]);
+          str_rep:=StringReplace(str_rep,#10,'\n',[rfReplaceAll]);
+          str_rep:=StringReplace(str_rep,#9,'\t',[rfReplaceAll]);
+          result:=result+str_rep+sep;
+        end;
         //ftFmtMemo,ftFixedChar,
         //ftBlob,
         ftBoolean:
@@ -121,6 +126,7 @@ begin
     end;
     delete(result,length(result),1);
     result:=result+#13#10;
+    FPaperDS.Next;
   end;
   if FPaperDS.BookmarkValid(bm) then FPaperDS.GotoBookmark(bm);
 end;
@@ -129,7 +135,7 @@ function TRTFP.ExportDSToRubyOrPython(sep:string):string;
 var bm:TBookMark;
     idx,len,idx_f,len_f:integer;
     tmpAF:TAttrsField;
-    disp_name:string;
+    disp_name,str_rep:string;
 begin
   result:='[';
   if not FPaperDS.Active then exit;
@@ -138,15 +144,22 @@ begin
   len:=FPaperDS.RecordCount;
   FPaperDS.First;
   for idx:=0 to len-1 do begin
-    FPaperDS.RecNo:=idx;
+    //FPaperDS.RecNo:=idx;
     result:=result+'{';
     for idx_f:=0 to len_f-1 do begin
       tmpAF:=TAttrsField(FPaperDSFieldDefs.Items[idx_f]);
       if tmpAF=nil then continue;
       if tmpAF.DisplayName='' then disp_name:=tmpAF.FieldName else disp_name:=tmpAF.DisplayName;
       case tmpAF.FieldDef.DataType of
-        ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo:
-          result:=result+'"'+disp_name+'"'+sep+'"'+FPaperDS.Fields[idx_f].AsString+'",';
+        ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo:begin
+          str_rep:=FPaperDS.Fields[idx_f].AsString;
+          str_rep:=StringReplace(str_rep,'\','\\',[rfReplaceAll]);
+          str_rep:=StringReplace(str_rep,'"','\"',[rfReplaceAll]);
+          str_rep:=StringReplace(str_rep,#13,'\r',[rfReplaceAll]);
+          str_rep:=StringReplace(str_rep,#10,'\n',[rfReplaceAll]);
+          str_rep:=StringReplace(str_rep,#9,'\t',[rfReplaceAll]);
+          result:=result+'"'+disp_name+'"'+sep+'"'+str_rep+'",';
+        end;
         //ftFmtMemo,ftFixedChar,
         //ftBlob,
         ftBoolean:
@@ -161,6 +174,7 @@ begin
     end;
     delete(result,length(result),1);
     result:=result+'},';
+    FPaperDS.Next;
   end;
   delete(result,length(result),1);
   result:=result+']';
