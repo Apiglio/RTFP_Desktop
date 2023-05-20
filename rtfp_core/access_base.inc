@@ -246,22 +246,9 @@ end;
 function TRTFP.LocatePID(buf:TDataset;PID:RTFP_ID):boolean;
 begin
   result:=false;
-  case FDataSetType of
-    dstDBF:begin
-      if not (buf is TDbf) then raise Exception.Create('数据库文件非DBF格式');
-      if not buf.Active then buf.Open;
-      with TDbf(buf) do begin
-        IndexName:='Id';
-        result:=SearchKey(PID,stEqual);
-      end;
-    end;
-    dstBUF:begin
-      if not (buf is TBufDataset) then raise Exception.Create('数据库文件非DBF格式');
-      if not buf.Active then buf.Open;
-      with TBufDataset(buf) do begin
-        result:=Locate(_Col_PID_,PID,[]);
-      end;
-    end;
+  if not buf.Active then buf.Open;
+  with buf do begin
+    result:=Locate(_Col_PID_,PID,[]);
   end;
   assert(result,'PID未找到。');
 end;
@@ -270,7 +257,7 @@ function TRTFP.OpenDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet):boolean;
 var dbfpath,datfile,runfile,run_dbt,dat_dbt,name_no_ext:string;
 begin
   result:=false;
-  case FDataSetType of
+  case DataSetType of
     dstDBF:begin
       dbfpath:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext;
       name_no_ext:=ExtractFileName(dbfpath);
@@ -315,7 +302,7 @@ function TRTFP.NewDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet):boolean;
 var dbfpath,datfile,runfile,run_dbt,dat_dbt,name_no_ext:string;
 begin
   result:=false;
-  case FDataSetType of
+  case DataSetType of
     dstDBF:begin
       dbfpath:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext;
       name_no_ext:=ExtractFileName(dbfpath);
@@ -366,7 +353,7 @@ var dbfpath,datfile,runfile,run_dbt,dat_dbt,name_no_ext:string;
     {$endif}
 begin
   result:=false;
-  case FDataSetType of
+  case DataSetType of
     dstDBF:begin
       dbfpath:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext;
       name_no_ext:=ExtractFileName(dbfpath);
@@ -418,7 +405,7 @@ function TRTFP.CloseDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet):boolean;
 var dbfpath,{datfile,}runfile,run_dbt,{dat_dbt,}name_no_ext:string;
 begin
   result:=false;
-  case FDataSetType of
+  case DataSetType of
     dstDBF:begin
       dbfpath:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext;
       name_no_ext:=ExtractFileName(dbfpath);
@@ -463,7 +450,7 @@ var dbfpath,datfile,runfile,run_dbt,dat_dbt,name_no_ext:string;
 begin
 
   result:=false;
-  case FDataSetType of
+  case DataSetType of
     dstDBF:begin
       dbfpath:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext;
       name_no_ext:=ExtractFileName(dbfpath);
@@ -510,7 +497,7 @@ end;
 
 function TRTFP.PackDbf(Dbf:{TDbf}TDataSet):boolean;
 begin
-  case FDataSetType of
+  case DataSetType of
     dstDBF:begin
       with TDbf(Dbf) do begin
         if not Active then Open;

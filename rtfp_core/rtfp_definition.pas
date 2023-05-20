@@ -123,13 +123,14 @@ type
     function FormatID(AFormat:string):integer;
   protected
     function GetCurrentPathFull:string;
+    procedure SetDataSetType(value:TRTFP_DataSetType);
   public
     property IsOpen:boolean read FIsOpen;
     property CurrentFileFull:string read FFileFullName;
     property CurrentPathFull:string read GetCurrentPathFull;
     property UserList:TStringList read FUserList;
     property FormatList:TStringList read FFormatList;
-
+    property DataSetType:TRTFP_DataSetType read FDataSetType write SetDataSetType;
   public
     //这部分设置只与UI设置对接，工程文件本身不存储
     RunPerformance:record
@@ -764,7 +765,7 @@ procedure TRTFP.LoadAttrs;
 var tmpAttrs:TAttrsGroup;
 begin
   //BeginUpdate;
-  case FDataSetType of
+  case DataSetType of
     dstDBF:FFieldList.LoadFromPath('attr\','dbf');
     dstBUF:FFieldList.LoadFromPath('attr\','buf');
     else raise Exception.Create('无效DataSetType。');
@@ -774,7 +775,7 @@ begin
     begin
       if not OpenDbf(tmpAttrs.FullPath,tmpAttrs.Dbf) then
         NewDbf(tmpAttrs.FullPath,tmpAttrs.Dbf);
-      case FDataSetType of
+      case DataSetType of
         dstDBF:TDbf(tmpAttrs.Dbf).Exclusive:=true;
       end;
       tmpAttrs.Dbf.Open;
@@ -831,7 +832,7 @@ procedure TRTFP.LoadKlass;
 var tmpKlass:TKlass;
 begin
   //BeginUpdate;
-  case FDataSetType of
+  case DataSetType of
     dstDBF:FKlassList.LoadFromPath('class\','dbf');
     dstBUF:FKlassList.LoadFromPath('class\','buf');
     else raise Exception.Create('无效DataSetType。');
@@ -1241,29 +1242,6 @@ end;
 
 Procedure TRTFP.Open(filename:ansistring);
 var has_dbf,has_buf:boolean;
-    function change_datasetType:boolean;
-    begin
-      result:=false;
-      if has_dbf then begin
-        FDataSetType:=dstDBF;
-        FPaperDB.Free;
-        FImageDB.Free;
-        FNotesDB.Free;
-        FPaperDB:=TDbf.Create(Self);
-        FImageDB:=TDbf.Create(Self);
-        FNotesDB:=TDbf.Create(Self);
-      end else if has_buf then begin
-        FDataSetType:=dstBUF;
-        FPaperDB.Free;
-        FImageDB.Free;
-        FNotesDB.Free;
-        FPaperDB:=TBufDataset.Create(Self);
-        FImageDB:=TBufDataset.Create(Self);
-        FNotesDB:=TBufDataset.Create(Self);
-      end else exit;
-      result:=true;
-    end;
-
 begin
   if FOnOpen <> nil then FOnOpen(Self);
 
@@ -1272,13 +1250,13 @@ begin
   has_dbf:=FileExists(GetCurrentPathFull+'paper.dbf');
   has_buf:=FileExists(GetCurrentPathFull+'paper.buf');
 
-  if (FDataSetType=dstDBF) and (not has_dbf)
-  or (FDataSetType=dstBUF) and (not has_buf)
-  then begin
-    if not change_datasetType then begin
-      ShowMsgOK('打开工程','找不到合适的文件格式，无法打开工程。');
-      exit
-    end;
+  if has_buf then begin
+    if DataSetType<>dstBUF then DataSetType:=dstBUF;
+  end else if has_dbf then begin
+    if DataSetType<>dstDBF then DataSetType:=dstDBF;
+  end else begin
+    ShowMsgOK('打开工程','找不到合适的文件格式，无法打开工程。');
+    exit
   end;
 
   OpenProjectFile;
@@ -1683,6 +1661,30 @@ begin
   result:=FFilePath+FRootFolder+'\';
 end;
 
+procedure TRTFP.SetDataSetType(value:TRTFP_DataSetType);
+begin
+  if IsOpen then raise Exception.Create('RTFP工程打开时不能修改数据库文件类型。');
+  if FDataSetType=value then exit;
+  case value of
+    dstBUF:begin
+      FPaperDB.Free;
+      FImageDB.Free;
+      FNotesDB.Free;
+      FPaperDB:=TBufDataset.Create(Self);
+      FImageDB:=TBufDataset.Create(Self);
+      FNotesDB:=TBufDataset.Create(Self);
+    end;
+    dstDBF:begin
+      FPaperDB.Free;
+      FImageDB.Free;
+      FNotesDB.Free;
+      FPaperDB:=TDbf.Create(Self);
+      FImageDB:=TDbf.Create(Self);
+      FNotesDB:=TDbf.Create(Self);
+    end;
+  end;
+  FDataSetType:=value;
+end;
 
 class function TRTFP.NumToID(Num:dword):RTFP_ID;
 begin

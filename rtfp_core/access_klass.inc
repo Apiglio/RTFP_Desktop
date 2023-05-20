@@ -7,7 +7,7 @@ begin
   if not TRTFP.IsKlassName(klassname) then exit;
   if FKlassList.FindItemIndexByName(klassname)>=0 then exit;
   if pathname<>'' then pathname:=pathname+'\';
-  case FDataSetType of
+  case DataSetType of
     dstDBF:tmp:=FKlassList.AddEx('class\'+pathname+klassname,klassname,'dbf');
     dstBUF:tmp:=FKlassList.AddEx('class\'+pathname+klassname,klassname,'buf');
   end;
@@ -93,9 +93,6 @@ begin
   finally
     stmp.Free;
   end;
-
-  //FormDesktop.debugline('PID['+PID+']->'+klassname);
-  //RebuildMainGrid;
   DataChange(PID);
   result:=true;
 end;
@@ -124,9 +121,6 @@ begin
   finally
     stmp.Free;
   end;
-
-  //FormDesktop.debugline('PID['+PID+']<-'+klassname);
-  //RebuildMainGrid;
   DataChange(PID);
   result:=true;
 end;

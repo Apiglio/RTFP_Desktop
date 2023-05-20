@@ -6,7 +6,7 @@ begin
   result:=nil;
   if not TRTFP.IsAttrsName(AName) then exit;
   if FFieldList.FindItemIndexByName(AName)>=0 then exit;
-  case FDataSetType of
+  case DataSetType of
     dstDBF:tmp:=FFieldList.AddEx('attr\'+AName,AName,'dbf');
     dstBUF:tmp:=FFieldList.AddEx('attr\'+AName,AName,'buf');
     else raise Exception.Create('无效DataSetType。');
@@ -42,7 +42,7 @@ begin
   tmpAG:=FFieldList.FindItemByName(AName);
   if tmpAG=nil then exit;
   if FFieldList.FindItemByName(ANewName)<>nil then exit;
-  case FDataSetType of
+  case DataSetType of
     dstDBF:
       begin
         ShowMsgOK('重命名字段','DBF格式工程暂不支持重命名属性组，推荐使用BUF格式。');

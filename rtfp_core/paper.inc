@@ -14,7 +14,6 @@ function TRTFP.AddPaper(fullfilename:string;AddPaperMethod:TAddPaperMethod=apmFu
 var PID:RTFP_ID;
     DateDir,TargetDir,FileName:string;
     tmpPDF:TRTFP_PDF;
-    //is_updating:boolean;
 begin
   result:='000000';
   if not (AddPaperMethod in [apmFullBackup,apmCutBackup,apmReference,apmAddress]) then
@@ -57,8 +56,6 @@ begin
       FileName:='';
     END;
 
-    //is_updating:=IsUpdating;
-    //if not is_updating then BeginUpdate;
     BeginUpdate;
 
     PID:=NewPaperID;
@@ -100,7 +97,6 @@ begin
     EditFieldAsString(_Col_metas_CreDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:CreationDate']^,[aeForceEditIfTypeDismatch]);
     EditFieldAsString(_Col_metas_ModDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:ModDate']^,[aeForceEditIfTypeDismatch]);
 
-    //if not is_updating then EndUpdate;
     EndUpdate;
 
     IF fullfilename<>'' THEN BEGIN

@@ -23,7 +23,7 @@ begin
   tmpAG:=FindAttrs(AAttrsName);
   if tmpAG=nil then tmpAG:=AddAttrs(AAttrsName);
   tmpAF:=tmpAG.FieldList.FindItemByName(AName);
-  if tmpAF=nil then case FDataSetType of
+  if tmpAF=nil then case DataSetType of
     dstDBF:begin
       with TDbf(tmpAG.Dbf) do begin
         if not Active then Open;
@@ -82,7 +82,7 @@ begin
   tmpAF:=tmpAG.FieldList.FindItemByName(AName);
   if tmpAF<>nil then begin
     if tmpAF.FieldDef.DataType=ftBlob then DeleteFieldImageFolder(tmpAF);//删除image文件中的关联图片
-    case FDataSetType of
+    case DataSetType of
       dstDBF:begin
         with TDbf(tmpAG.Dbf) do begin
           if not Active then Open;
@@ -125,7 +125,7 @@ begin
   tmpAG:=FindAttrs(AAttrsName);
   if tmpAG=nil then exit;
   tmpAF:=tmpAG.FieldList.FindItemByName(AOldName);
-  if tmpAF<>nil then case FDataSetType of
+  if tmpAF<>nil then case DataSetType of
     dstDBF:begin
       ShowMsgOK('重命名字段','DBF格式工程暂不支持重命名字段，推荐使用BUF格式。');
       exit;
@@ -153,7 +153,7 @@ begin
   tmpAG:=FindAttrs(AAttrsName);
   if tmpAG=nil then exit;
   tmpAF:=tmpAG.FieldList.FindItemByName(AName);
-  if tmpAF<>nil then case FDataSetType of
+  if tmpAF<>nil then case DataSetType of
     dstDBF:begin
       ShowMsgOK('重命名字段','DBF格式工程暂不支持重命名字段，推荐使用BUF格式。');
     end;
@@ -190,39 +190,16 @@ begin
   tmpAF:=FindField(AName,AAttrsName);
   if tmpAF=nil then exit;//所以没有的字段读取就会报错 nil.AsString之类的错误
   tmpAG:=FindAttrs(AAttrsName);
-
-  case FDataSetType of
-    dstDBF:begin
-      with TDbf(tmpAG.Dbf) do
-        begin
-          if not Active then Open;
-          IndexName:='id';
-          if not SearchKey(PID,stEqual) then begin
-            if not NewPidIfNotExists then exit;
-            Append;
-            Edit;
-            FieldByName(_Col_PID_).AsString:=PID;
-            Post;
-          end;
-          result:=FieldByName(AName);
-        end;
+  with tmpAG.Dbf do begin
+    if not Active then Open;
+    if not Locate(_Col_PID_,PID,[]) then begin
+      if not NewPidIfNotExists then exit;
+      Append;
+      Edit;
+      FieldByName(_Col_PID_).AsString:=PID;
+      Post;
     end;
-    dstBUF:begin
-      with TBufDataset(tmpAG.Dbf) do
-        begin
-          if not Active then Open;
-          //IndexName:='id';
-          if not Locate(_Col_PID_,PID,[]) then begin
-            if not NewPidIfNotExists then exit;
-            Append;
-            Edit;
-            FieldByName(_Col_PID_).AsString:=PID;
-            Post;
-          end;
-          result:=FieldByName(AName);
-        end;
-    end;
-    else raise Exception.Create('无效DataSetType。');
+    result:=FieldByName(AName);
   end;
 end;
 

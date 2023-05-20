@@ -661,9 +661,6 @@ begin
     Script.add_func('new.iid',@aufunc_newImageId,'','返回一个可用的IID');
     Script.add_func('new.nid',@aufunc_newNoteId,'','返回一个可用的NID');
 
-    //Script.add_func('dbf.backup',@aufunc_BackupDBF,'AttrNo','备份第AttrNo个属性组');
-    //Script.add_func('dbf.recover',@aufunc_RecoverDBF,'AttrNo','还原第AttrNo个属性组');
-
     Script.add_func('paper.add',@aufunc_AddPaper,'filename,@out_pid,mode="fb"','新建Paper节点');
     Script.add_func('paper.del',@aufunc_DeletePaper,'PID','删除Paper节点');
 

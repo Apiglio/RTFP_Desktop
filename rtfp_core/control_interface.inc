@@ -370,7 +370,6 @@ begin
         delete(fieldname,poss,len);
         delete(attrsname,1,poss);
         delete(attrsname,length(attrsname),1);
-        //FPaperDS.Fields[field_index].AsString:=ReadFieldAsString(fieldname,attrsname,PID,[]);
         case FPaperDS.Fields[field_index].DataType of
           ftInteger,ftLargeint,ftSmallint:
             FPaperDS.Fields[field_index].AsInteger:=ReadFieldAsInteger(fieldname,attrsname,PID,[]);

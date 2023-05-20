@@ -6,13 +6,11 @@ begin
 end;
 procedure TRTFP.BeginUpdate;
 begin
-  //FIsUpdating:=true;
   inc(FUpdatingLevel);
 end;
 
 procedure TRTFP.EndUpdate;
 begin
-  //IsUpdating:=false;
   if FUpdatingLevel>0 then dec(FUpdatingLevel);
 end;
 

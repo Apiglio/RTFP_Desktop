@@ -50,7 +50,7 @@ type
     procedure Assign(source:TFieldDisplayOption);
     procedure Clear;
     procedure LoadFromJSON(str:string);
-    function ExportToJSON:TJSONObject;
+    function ExportToJSON:TJSONData;
     function SaveToJSON:string;
     function GetFieldColor(Value:TField):TColor;
   public
@@ -373,7 +373,7 @@ begin
   if FMode=fdmSuccessive then CheckSuccessive;
 end;
 
-function TFieldDisplayOption.ExportToJSON:TJSONObject;
+function TFieldDisplayOption.ExportToJSON:TJSONData;
 var pi:integer;
     data:TJSONObject;
     jValues,jColors:TJSONArray;

@@ -161,7 +161,7 @@ begin
   jData:=TJSONObject.Create;
   jData.Strings['PID']:=PID;
   tmp:=TJSONObject.Create;
-  case FDataSetType of
+  case DataSetType of
     dstDBF:jData.Add('paper.dbf',tmp);
     else   jData.Add('paper.buf',tmp);
   end;
