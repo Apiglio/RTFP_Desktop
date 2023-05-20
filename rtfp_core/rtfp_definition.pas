@@ -64,7 +64,7 @@ uses
   rtfp_constants, rtfp_type, rtfp_tags, rtfp_format_component, rtfp_dialog, rtfp_misc, rtfp_dataset_sorter,
   {$endif}
   BufDataset, xmldatapacketreader,
-  db, dbf, dbf_common, dbf_fields, sqldb, memds;
+  db, dbf, dbf_common, dbf_fields, sqldb, memds, fpjson;
 
 
 type
@@ -478,10 +478,28 @@ type
     procedure FormatListChange(rename:string='default.fmt');//编辑样式列表修改，也会触发Change事件
     procedure FormatEditChange(fe_new,fe_old:string);//编辑单独的样式，fe_old默认与fe_new一致，不一致是表示为改名，也会触发Change事件
 
-  //PACKED_FORMAT.INC 用于压缩与转换的单文件格式
+  //EXCHANGE_FORMAT.INC 用于压缩与转换的单文件格式
   public
-    procedure ZTFP_Importer(fullfilename:string);unimplemented;//重复性检验之类的问题比较麻烦
+    procedure ZTFP_Importer(fullfilename:string);//重复性检验之类的问题比较麻烦
     procedure ZTFP_Exporter(fullfilename:string);//PID筛选、备份选项未定
+
+    function GetJSON_Project:TJSONObject;
+
+    function GetJSON_TagList:TJSONData;
+    function GetJSON_PaperList:TJSONData;
+    function GetJSON_ImageList:TJSONData;
+    function GetJSON_NotesList:TJSONData;
+    function GetJSON_AttrsList:TJSONData;
+    function GetJSON_UserList:TJSONData;
+    function GetJSON_FormatList:TJSONData;
+
+    function GetJSON_Paper(PID:RTFP_ID):TJSONData;
+    function GetJSON_Image(IID:RTFP_ID):TJSONData;unimplemented;
+    function GetJSON_Notes(NID:RTFP_ID):TJSONData;unimplemented;
+    function GetJSON_Klass(klass:TKlass):TJSONData;
+    function GetJSON_Attrs(attrs:TAttrsGroup):TJSONData;
+    function GetJSON_Field(field:TAttrsField):TJSONData;
+
 
   //STATUS.INC 计数器与状态返回
   protected
@@ -607,7 +625,7 @@ procedure AufScriptFuncDefineRTFP(Auf:TAuf);
 
 
 implementation
-uses RTFP_main, rtfp_field_convert, Zipper;
+uses RTFP_main, rtfp_field_convert, Zipper, base64;
 var rtfp_reg:TRegExpr;
 
 {$I aufunc.inc}
@@ -626,7 +644,7 @@ var rtfp_reg:TRegExpr;
 {$I image.inc}
 {$I notes.inc}
 
-{$I packed_format.inc}
+{$I exchange_format.inc}
 
 {$I cite_tool.inc}
 {$I formatedit_component.inc}

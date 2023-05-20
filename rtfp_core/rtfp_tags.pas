@@ -5,7 +5,7 @@ unit rtfp_tags;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, fpjson;
 
 type
 
@@ -34,6 +34,7 @@ type
   public
     procedure LoadFromFile(filename:string);
     procedure SaveToFile(filename:string);
+    function ExportToJSON:TJSONData;
     procedure Keys(str:TStrings);
   public
     constructor Create;
@@ -181,6 +182,19 @@ begin
   finally
     str.Free;
   end;
+end;
+function TTags.ExportToJSON:TJSONData;
+var jData:TJSONObject;
+    tmpTag:TTag;
+    pi:integer;
+begin
+  result:=nil;
+  jData:=TJSONObject.Create;
+  for pi:=0 to FList.Count-1 do begin
+    tmpTag:=TTag(FList.Items[pi]);
+    jData.Add(tmpTag.key,tmpTag.value);
+  end;
+  result:=jData;
 end;
 procedure TTags.Keys(str:TStrings);
 var pi:integer;

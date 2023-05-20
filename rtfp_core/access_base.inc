@@ -383,20 +383,20 @@ begin
           end;
         TRTFP.FileCopy((dbfpath+runfile),(dbfpath+datfile),false);
         if FileExists(dbfpath+run_dbt) then TRTFP.FileCopy((dbfpath+run_dbt),(dbfpath+dat_dbt),false);
-        {$ifdef save_xml}
-        IF save_xml THEN BEGIN
-          aBuf:=TBufDataset.Create(nil);
-          try
-            CopyDbfToBuf(TDbf(Dbf),aBuf);
-            aBuf.SaveToFile(GetCurrentPathFull+dbf_name_no_ext+'.xml',dfXML);
-          finally
-            aBuf.Free;
-          end;
-        END;
-        {$endif}
       except
         exit;
       end;
+      {$ifdef save_xml}
+      IF save_xml THEN BEGIN
+        aBuf:=TBufDataset.Create(nil);
+        try
+          CopyDbfToBuf(TDbf(Dbf),aBuf);
+          aBuf.SaveToFile(GetCurrentPathFull+dbf_name_no_ext+'.xml',dfXML);
+        finally
+          aBuf.Free;
+        end;
+      END;
+      {$endif}
     end;
     dstBUF:begin
       if Dbf.Active then

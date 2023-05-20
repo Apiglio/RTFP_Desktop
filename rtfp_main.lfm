@@ -1,7 +1,7 @@
 object FormDesktop: TFormDesktop
-  Left = 839
+  Left = 880
   Height = 622
-  Top = 380
+  Top = 412
   Width = 1003
   AllowDropFiles = True
   Caption = 'RTFP Desktop'
@@ -1806,9 +1806,11 @@ object FormDesktop: TFormDesktop
       object MenuItem_project_zip: TMenuItem
         Caption = '压缩导出'
         Enabled = False
+        OnClick = MenuItem_project_zipClick
       end
       object MenuItem_project_unzip: TMenuItem
         Caption = '解压导入'
+        OnClick = MenuItem_project_unzipClick
       end
       object MenuItem_project_div03: TMenuItem
         Caption = '-'
@@ -2077,6 +2079,14 @@ object FormDesktop: TFormDesktop
       Caption = '新建文献节点'
       OnClick = MenuItem_NewPaperClick
     end
+    object MenuItem_CopyPaper: TMenuItem
+      Caption = '复制文献节点'
+      OnClick = MenuItem_CopyPaperClick
+    end
+    object MenuItem_PastePaper: TMenuItem
+      Caption = '粘贴文献节点'
+      OnClick = MenuItem_PastePaperClick
+    end
     object MenuItem_DeletePaper: TMenuItem
       Caption = '删除文献节点'
       OnClick = MenuItem_DeletePaperClick
@@ -2124,6 +2134,10 @@ object FormDesktop: TFormDesktop
     end
     object MenuItem_FieldMgr_div01: TMenuItem
       Caption = '-'
+    end
+    object MenuItem_FieldMgr_Copy: TMenuItem
+      Caption = '复制字段'
+      OnClick = MenuItem_FieldMgr_CopyClick
     end
     object MenuItem_FieldMgr_Del: TMenuItem
       Caption = '删除字段'

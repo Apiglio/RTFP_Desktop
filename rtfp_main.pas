@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.6-alpha.2';
+  C_VERSION_NUMBER  = '0.2.6-alpha.3';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -54,6 +54,9 @@ type
     CheckBox_MainSorterAuto: TCheckBox;
     Edit_DBGridMain_Sorter: TEdit;
     Label_MainSorter: TLabel;
+    MenuItem_FieldMgr_Copy: TMenuItem;
+    MenuItem_PastePaper: TMenuItem;
+    MenuItem_CopyPaper: TMenuItem;
     MenuItem_DBGE_python_dict: TMenuItem;
     MenuItem_DBGE_ruby_hash: TMenuItem;
     MenuItem_DBGE_tsv: TMenuItem;
@@ -252,12 +255,17 @@ type
     procedure Edit_DBGridMain_SorterChange(Sender: TObject);
     procedure Edit_DBGridMain_SorterKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure MenuItem_CopyPaperClick(Sender: TObject);
     procedure MenuItem_DBGC_CalcClick(Sender: TObject);
     procedure MenuItem_DBGC_FieldOptClick(Sender: TObject);
     procedure MenuItem_DBGE_csvClick(Sender: TObject);
     procedure MenuItem_DBGE_python_dictClick(Sender: TObject);
     procedure MenuItem_DBGE_ruby_hashClick(Sender: TObject);
     procedure MenuItem_DBGE_tsvClick(Sender: TObject);
+    procedure MenuItem_FieldMgr_CopyClick(Sender: TObject);
+    procedure MenuItem_PastePaperClick(Sender: TObject);
+    procedure MenuItem_project_unzipClick(Sender: TObject);
+    procedure MenuItem_project_zipClick(Sender: TObject);
     procedure RadioButton_KlassANDClick(Sender: TObject);
     procedure RadioButton_KlassORClick(Sender: TObject);
     procedure CheckBox_MainFilterAutoClick(Sender: TObject);
@@ -459,7 +467,8 @@ implementation
 uses form_new_project, form_cite_trans, form_classmanager, form_import,
      form_appearance, rtfp_field, rtfp_class, form_options, form_report_tool,
      form_repeated_checker, form_project_profile, form_field_display_option,
-     form_formatedit_option, rtfp_dialog, form_field_change, form_calc_field;
+     form_formatedit_option, rtfp_dialog, form_field_change, form_calc_field,
+     fpjson;
 
 {$R *.lfm}
 
@@ -991,6 +1000,9 @@ end;
 
 procedure TFormDesktop.MenuItem_project_saveasClick(Sender: TObject);
 begin
+  SaveDialog_project.Filter:='RTFP工程文件(*.rtfp)|*.rtfp|所有文件|*.*';
+  SaveDialog_project.DefaultExt:='*.rtfp';
+  SaveDialog_Project.Title:='另存为';
   if Self.SaveDialog_Project.Execute then
     CurrentRTFP.SaveAs(Self.SaveDialog_Project.FileName);
 end;
@@ -2339,6 +2351,16 @@ begin
     end;
 end;
 
+procedure TFormDesktop.MenuItem_CopyPaperClick(Sender: TObject);
+begin
+  if ProjectInvalid then exit;
+  with CurrentRTFP.GetJSON_Paper(Selected_PID) do begin
+    ClipBoard.AsText:=FormatJSON;
+    Clear;
+    Free;
+  end;
+end;
+
 procedure TFormDesktop.MenuItem_DBGC_CalcClick(Sender: TObject);
 var tmpAF:TAttrsField;
 begin
@@ -2376,6 +2398,68 @@ end;
 procedure TFormDesktop.MenuItem_DBGE_tsvClick(Sender: TObject);
 begin
   ClipBoard.AsText:=CurrentRTFP.ExportDSToCSVOrTSV(#9);
+end;
+
+procedure TFormDesktop.MenuItem_FieldMgr_CopyClick(Sender: TObject);
+var tmpNode:TACL_TreeNode;
+    tmpJSON:TJSONData;
+begin
+  if ProjectInvalid then exit;
+  tmpNode:=TACL_TreeNode(AListView_Attrs.Selected.Data);
+  if tmpNode=nil then exit;
+  if tmpNode.Data is TAttrsGroup then
+    begin
+      tmpJSON:=CurrentRTFP.GetJSON_Attrs(tmpNode.Data as TAttrsGroup);
+      Clipboard.AsText:=tmpJSON.FormatJSON;
+      tmpJSON.Clear;
+      tmpJSON.Free;
+    end
+  else if tmpNode.Data is TAttrsField then
+    begin
+      tmpJSON:=CurrentRTFP.GetJSON_Field(tmpNode.Data as TAttrsField);
+      Clipboard.AsText:=tmpJSON.FormatJSON;
+      tmpJSON.Clear;
+      tmpJSON.Free;
+    end
+  else assert(false,'ACL_TreeNode中有unexpected的类型对象');
+end;
+
+procedure TFormDesktop.MenuItem_PastePaperClick(Sender: TObject);
+begin
+
+end;
+
+procedure TFormDesktop.MenuItem_project_unzipClick(Sender: TObject);
+begin
+  if assigned(CurrentRTFP) then
+  begin
+    if CurrentRTFP.IsOpen then CurrentRTFP.Close;
+    CurrentRTFP.Free;
+  end;
+  CurrentRTFP:=TRTFP.Create(FormDesktop);
+  CurrentRTFP.SetAuf(Frame_AufScript1.Auf);
+  Self.EventLink(CurrentRTFP);
+  OpenDialog_Project.Filter:='RTFP压缩文件(*.ztfp)|*.ztfp|所有文件|*.*';
+  OpenDialog_Project.DefaultExt:='*.ztfp';
+  OpenDialog_Project.Title:='解压导入';
+  if Self.OpenDialog_Project.Execute then begin
+    CurrentRTFP.ZTFP_Importer(Self.OpenDialog_Project.FileName);
+    CurrentRTFP.RunPerformance.Backup_SaveXml:=OptionMap.Backup_SaveXml;
+    CurrentRTFP.RunPerformance.Fields_ImgFile:=OptionMap.Fields_ImgFile;
+    CurrentRTFP.RunPerformance.Filter_AutoRun:=CheckBox_MainFilterAuto.Checked;
+    CurrentRTFP.RunPerformance.Filter_Command:=Edit_DBGridMain_Filter.Caption;
+  end;
+end;
+
+procedure TFormDesktop.MenuItem_project_zipClick(Sender: TObject);
+begin
+  if ProjectInvalid then exit;
+  SaveDialog_project.Filter:='RTFP压缩文件(*.ztfp)|*.ztfp|所有文件|*.*';
+  SaveDialog_project.DefaultExt:='*.ztfp';
+  SaveDialog_Project.Title:='压缩导出';
+  if Self.SaveDialog_Project.Execute then begin
+    CurrentRTFP.ZTFP_Exporter(Self.SaveDialog_Project.FileName);
+  end;
 end;
 
 procedure TFormDesktop.RadioButton_KlassANDClick(Sender: TObject);

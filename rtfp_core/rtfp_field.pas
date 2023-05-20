@@ -50,6 +50,7 @@ type
     procedure Assign(source:TFieldDisplayOption);
     procedure Clear;
     procedure LoadFromJSON(str:string);
+    function ExportToJSON:TJSONObject;
     function SaveToJSON:string;
     function GetFieldColor(Value:TField):TColor;
   public
@@ -372,37 +373,42 @@ begin
   if FMode=fdmSuccessive then CheckSuccessive;
 end;
 
-function TFieldDisplayOption.SaveToJSON:string;
+function TFieldDisplayOption.ExportToJSON:TJSONObject;
 var pi:integer;
     data:TJSONObject;
     jValues,jColors:TJSONArray;
 begin
   data:=TJSONObject.Create;
-  try
-    data.Add('disp_name',TJSONString.Create(FDispName));
-    data.Add('disp_width',TJSONInt64Number.Create(FDispWidth));
-    case FMode of
-      fdmDisabled:data.Strings['mode']:='DISABLED';
-      fdmSuccessive:data.Strings['mode']:='SUCCESSIVE';
-      fdmIdentical:data.Strings['mode']:='IDENTICAL';
-      fdmRegexpr:data.Strings['mode']:='REGEXPR';
-      else data.Strings['mode']:='UNKNOWN';
-    end;
-    jValues:=TJSONArray.Create;
-    jColors:=TJSONArray.Create;
-    data.Add('values',jValues);
-    data.Add('colors',jColors);
-    jValues:=data.Arrays['values'];
-    jColors:=data.Arrays['colors'];
-    for pi:=0 to FValues.Count-1 do begin
-      jValues.Add(FValues[pi]);
-      jColors.Add(ColorToHex(dword(FColors[pi])));
-    end;
-    result:=data.AsJSON;
-  finally
-    data.Free;
+  data.Add('disp_name',TJSONString.Create(FDispName));
+  data.Add('disp_width',TJSONInt64Number.Create(FDispWidth));
+  case FMode of
+    fdmDisabled:data.Strings['mode']:='DISABLED';
+    fdmSuccessive:data.Strings['mode']:='SUCCESSIVE';
+    fdmIdentical:data.Strings['mode']:='IDENTICAL';
+    fdmRegexpr:data.Strings['mode']:='REGEXPR';
+    else data.Strings['mode']:='UNKNOWN';
   end;
-  result:=StringReplace(result,'"','''',[rfReplaceAll]);
+  jValues:=TJSONArray.Create;
+  jColors:=TJSONArray.Create;
+  data.Add('values',jValues);
+  data.Add('colors',jColors);
+  jValues:=data.Arrays['values'];
+  jColors:=data.Arrays['colors'];
+  for pi:=0 to FValues.Count-1 do begin
+    jValues.Add(FValues[pi]);
+    jColors.Add(ColorToHex(dword(FColors[pi])));
+  end;
+  result:=data;
+end;
+
+function TFieldDisplayOption.SaveToJSON:string;
+begin
+  result:='';
+  with ExportToJSON do begin
+    result:=StringReplace(AsJSON,'"','''',[rfReplaceAll]);
+    Clear;
+    Free;
+  end;
 end;
 
 function TFieldDisplayOption.GetFieldColor(Value:TField):TColor;
