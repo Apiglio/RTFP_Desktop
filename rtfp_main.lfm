@@ -2194,6 +2194,10 @@ object FormDesktop: TFormDesktop
       Caption = '复制为csv'
       OnClick = MenuItem_DBGE_csvClick
     end
+    object MenuItem_DBGE_json: TMenuItem
+      Caption = '复制为json'
+      OnClick = MenuItem_DBGE_jsonClick
+    end
     object MenuItem_DBGE_ruby_hash: TMenuItem
       Caption = '复制为ruby'
       OnClick = MenuItem_DBGE_ruby_hashClick

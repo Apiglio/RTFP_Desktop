@@ -518,6 +518,7 @@ type
     property CountMainGrid:integer read GetMainGridCount;
 
   public
+    function ExportDSToFormatJSON:string;
     function ExportDSToCSVOrTSV(sep:char):string;
     function ExportDSToRubyOrPython(sep:string):string;
 

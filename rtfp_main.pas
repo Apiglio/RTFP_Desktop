@@ -54,6 +54,7 @@ type
     CheckBox_MainSorterAuto: TCheckBox;
     Edit_DBGridMain_Sorter: TEdit;
     Label_MainSorter: TLabel;
+    MenuItem_DBGE_json: TMenuItem;
     MenuItem_FieldMgr_Copy: TMenuItem;
     MenuItem_PastePaper: TMenuItem;
     MenuItem_CopyPaper: TMenuItem;
@@ -259,6 +260,7 @@ type
     procedure MenuItem_DBGC_CalcClick(Sender: TObject);
     procedure MenuItem_DBGC_FieldOptClick(Sender: TObject);
     procedure MenuItem_DBGE_csvClick(Sender: TObject);
+    procedure MenuItem_DBGE_jsonClick(Sender: TObject);
     procedure MenuItem_DBGE_python_dictClick(Sender: TObject);
     procedure MenuItem_DBGE_ruby_hashClick(Sender: TObject);
     procedure MenuItem_DBGE_tsvClick(Sender: TObject);
@@ -2383,6 +2385,11 @@ end;
 procedure TFormDesktop.MenuItem_DBGE_csvClick(Sender: TObject);
 begin
   ClipBoard.AsText:=CurrentRTFP.ExportDSToCSVOrTSV(',');
+end;
+
+procedure TFormDesktop.MenuItem_DBGE_jsonClick(Sender: TObject);
+begin
+  ClipBoard.AsText:=CurrentRTFP.ExportDSToFormatJSON();
 end;
 
 procedure TFormDesktop.MenuItem_DBGE_python_dictClick(Sender: TObject);
