@@ -2,6 +2,7 @@
 //使用zip压缩格式
 
 procedure TRTFP.ZTFP_Importer(fullfilename:string);
+const folder_name:array[0..2] of string = ('paper','image','format');
 begin
   //FDataSetType:=aDataSetType;
   //这里准备把FDataSetType改成property
@@ -9,9 +10,10 @@ begin
 end;
 
 procedure TRTFP.ZTFP_Exporter(fullfilename:string);
+const folder_name:array[0..2] of string = ('paper','image','format');
 var zf:TZipper;
     stmp,path_base,stored_name:string;
-    path_base_len:integer;
+    path_base_len,pi:integer;
     af:text;
     filelist:TStringList;
 begin
@@ -28,24 +30,17 @@ begin
   try
     zf.FileName:=fullfilename;
     zf.Entries.AddFileEntry(Self.CurrentPathFull+'tmp_info.json','info.json');
-    path_base:=GetCurrentPathFull+'paper';
-    path_base_len:=length(path_base)+1;
-    FindAllFiles(filelist,path_base,'',true,faAnyFile);
-    for stmp in filelist do begin
-      stored_name:=stmp;
-      delete(stored_name,1,path_base_len);
-      stored_name:='paper\'+stored_name;
-      zf.Entries.AddFileEntry(stmp,Utf8ToWinCP(stored_name));
-    end;
-    filelist.Clear;
-    path_base:=GetCurrentPathFull+'image';
-    path_base_len:=length(path_base)+1;
-    FindAllFiles(filelist,path_base,'',true,faAnyFile);
-    for stmp in filelist do begin
-      stored_name:=stmp;
-      delete(stored_name,1,path_base_len);
-      stored_name:='image\'+stored_name;
-      zf.Entries.AddFileEntry(stmp,Utf8ToWinCP(stored_name));
+    for pi:=0 to 2 do begin
+      path_base:=GetCurrentPathFull+folder_name[pi];
+      path_base_len:=length(path_base)+1;
+      FindAllFiles(filelist,path_base,'',true,faAnyFile);
+      for stmp in filelist do begin
+        stored_name:=stmp;
+        delete(stored_name,1,path_base_len);
+        stored_name:=folder_name[pi]+'/'+stored_name;
+        zf.Entries.AddFileEntry(stmp,Utf8ToWinCP(stored_name));
+      end;
+      filelist.Clear;
     end;
     zf.SaveToFile(fullfilename);
   finally
@@ -159,7 +154,9 @@ var jData:TJSONObject;
 begin
   result:=nil;
   jData:=TJSONObject.Create;
-  jData.Strings['PID']:=PID;
+  jData.Strings['sys.pid']:=PID;
+  jData.Strings['sys.ref']:=Cite_format;
+  jData.Strings['sys.path']:=CurrentPathFull;
   tmp:=TJSONObject.Create;
   case DataSetType of
     dstDBF:jData.Add('paper.dbf',tmp);
@@ -186,10 +183,12 @@ begin
           ftInteger,ftLargeint,ftSmallint,ftWord:TJSONObject(tmp).Int64s[tmpAF.FieldName]:=tmpAG.Dbf.FieldByName(tmpAF.FieldName).AsLargeInt;
           ftBoolean:TJSONObject(tmp).Booleans[tmpAF.FieldName]:=tmpAG.Dbf.FieldByName(tmpAF.FieldName).AsBoolean;
           ftBlob:begin
-            jBlob:=TJSONObject.Create;
-            jBlob.Add('type','blob');
-            jBlob.Add('value',EncodeStringBase64(TBlobField(tmpAG.Dbf.FieldByName(tmpAF.FieldName)).AsString));
-            TJSONObject(tmp).Add(tmpAF.FieldName,jBlob);
+            //jBlob:=TJSONObject.Create;
+            //jBlob.Add('type','blob');
+            //jBlob.Add('value',EncodeStringBase64(TBlobField(tmpAG.Dbf.FieldByName(tmpAF.FieldName)).AsString));
+            //TJSONObject(tmp).Add(tmpAF.FieldName,jBlob);
+            //图片字段值的粘贴暂时不实现，把图片字段和Image搞清楚再说。
+            TJSONObject(tmp).Strings[tmpAF.FieldName]:='#';
           end;
           else TJSONObject(tmp).Strings[tmpAF.FieldName]:='#';
         end;
@@ -197,6 +196,83 @@ begin
     end;
   end;
   result:=jData;
+end;
+
+procedure TRTFP.SetJSON_Paper(PID:RTFP_ID;data:TJSONData);
+var root,attrs:TJSONObject;
+    tmp:TJSONData;
+    pi,pj:integer;
+    objname,key,value,ori_pid,ori_ref,ori_path,folder,filename:string;
+    is_blob:boolean;
+begin
+  if not (data is TJSONObject) then exit;
+  root:=TJSONObject(data);
+  BeginUpdate;
+  pi:=0;
+  ori_pid:='';
+  ori_ref:='';
+  while pi<root.Count do begin
+    objname:=root.Names[pi];
+    tmp:=root.Elements[objname];
+    case tmp.JSONType of
+      jtString:begin
+        case objname of
+          'sys.pid':ori_pid:=tmp.AsString;
+          'sys.ref':ori_ref:=tmp.AsString;
+          'sys.path':ori_path:=tmp.AsString;
+        end;
+      end;
+      jtObject:begin
+        pj:=0;
+        attrs:=TJSONObject(tmp);
+        while pj<attrs.Count do begin
+          key:=attrs.Names[pj];
+          tmp:=attrs.Elements[key];
+          if tmp.JSONType=jtObject then begin
+            value:=TJSONObject(tmp).Strings['value'];
+            is_blob:=true;
+          end else begin
+            value:=tmp.AsString;
+            is_blob:=false;
+          end;
+          case objname of
+            'paper.buf','paper.dbf':begin
+              case key of
+                _Col_Paper_Folder_  : folder   := value;
+                _Col_Paper_FileName_: filename := value;
+              end;
+              EditFieldAsString(key,'',PID,value,[aeForceEditIfTypeDismatch,aeCreateIfNoField]);
+            end;
+            else begin
+              if is_blob then begin
+                //图片字段值的粘贴暂时不实现，把图片字段和Image搞清楚再说。
+                //没那么简单，还涉及两种图片字段的格式
+              end else begin
+                EditFieldAsString(key,objname,PID,value,[aeForceEditIfTypeDismatch,aeCreateIfNoField]);
+              end;
+            end;
+          end;
+          inc(pj);
+        end;
+      end;
+    end;
+    inc(pi);
+  end;
+  //复制备份文件 apmFullBackup;
+  case lowercase(folder) of
+    '','weblnk','extern':;
+    else begin
+      TRTFP.FileCopy(ori_path+'/paper/'+folder+'/'+filename,CurrentPathFull+'/paper/'+folder+'/'+filename,false);
+    end;
+  end;
+
+  //追加跨工程引用信息
+  if (ori_ref<>'') and (ori_ref<>Cite_format) then begin
+    {zan}objname:=ReadFieldAsString(_Col_notes_FurtherCmt_,_Attrs_Notes_,PID,[]);
+    EditFieldAsString(_Col_notes_FurtherCmt_,_Attrs_Notes_,PID,ori_ref+'_'+ori_pid+#13#10+{zan}objname,[aeForceEditIfTypeDismatch]);
+  end;
+  EndUpdate;
+  DataChange(PID);
 end;
 
 function TRTFP.GetJSON_Image(IID:RTFP_ID):TJSONData;

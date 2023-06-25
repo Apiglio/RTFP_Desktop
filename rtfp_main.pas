@@ -2432,8 +2432,20 @@ begin
 end;
 
 procedure TFormDesktop.MenuItem_PastePaperClick(Sender: TObject);
+var tmpJSON:TJSONData;
+    APID:RTFP_ID;
 begin
-
+  if ProjectInvalid then exit;
+  APID:=Selected_PID;
+  case ShowMsgYesNoAll('覆盖节点属性','文献节点可能包含字段信息，是否覆盖原有属性？') of
+    'No':exit;
+  end;
+  tmpJSON:=GetJSON(ClipBoard.AsText);
+  try
+    CurrentRTFP.SetJSON_Paper(APID,tmpJSON);
+  finally
+    tmpJSON.Free;
+  end;
 end;
 
 procedure TFormDesktop.MenuItem_project_unzipClick(Sender: TObject);
@@ -2446,11 +2458,13 @@ begin
   CurrentRTFP:=TRTFP.Create(FormDesktop);
   CurrentRTFP.SetAuf(Frame_AufScript1.Auf);
   Self.EventLink(CurrentRTFP);
-  OpenDialog_Project.Filter:='RTFP压缩文件(*.ztfp)|*.ztfp|所有文件|*.*';
+  OpenDialog_Project.Filter:='RTFP压缩工程文件(*.ztfp)|*.ztfp|ZIP压缩文件(*.ztfp.zip)|*.ztfp.zip|所有文件|*.*';
   OpenDialog_Project.DefaultExt:='*.ztfp';
   OpenDialog_Project.Title:='解压导入';
   if Self.OpenDialog_Project.Execute then begin
+    if FShowWaitForm then FWaitForm.Show;
     CurrentRTFP.ZTFP_Importer(Self.OpenDialog_Project.FileName);
+    if FShowWaitForm then FWaitForm.Hide;
     CurrentRTFP.RunPerformance.Backup_SaveXml:=OptionMap.Backup_SaveXml;
     CurrentRTFP.RunPerformance.Fields_ImgFile:=OptionMap.Fields_ImgFile;
     CurrentRTFP.RunPerformance.Filter_AutoRun:=CheckBox_MainFilterAuto.Checked;
@@ -2461,11 +2475,13 @@ end;
 procedure TFormDesktop.MenuItem_project_zipClick(Sender: TObject);
 begin
   if ProjectInvalid then exit;
-  SaveDialog_project.Filter:='RTFP压缩文件(*.ztfp)|*.ztfp|所有文件|*.*';
+  SaveDialog_project.Filter:='RTFP压缩工程文件(*.ztfp)|*.ztfp|ZIP压缩文件(*.ztfp.zip)|*.ztfp.zip|所有文件|*.*';
   SaveDialog_project.DefaultExt:='*.ztfp';
   SaveDialog_Project.Title:='压缩导出';
   if Self.SaveDialog_Project.Execute then begin
+    if FShowWaitForm then FWaitForm.Show;
     CurrentRTFP.ZTFP_Exporter(Self.SaveDialog_Project.FileName);
+    if FShowWaitForm then FWaitForm.Hide;
   end;
 end;
 

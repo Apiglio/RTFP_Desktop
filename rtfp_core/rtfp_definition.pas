@@ -264,7 +264,8 @@ type
     procedure PostBasic;
     procedure EditBasic;
     procedure ReEditBasic;
-    function PID_Cite_format(APID:RTFP_ID):string;
+    function Cite_format:string;inline;
+    function PID_Cite_format(APID:RTFP_ID):string;inline;
 
   public
     procedure LoadFromEStudy(PID:RTFP_ID;str:TStrings);
@@ -495,6 +496,7 @@ type
     function GetJSON_FormatList:TJSONData;
 
     function GetJSON_Paper(PID:RTFP_ID):TJSONData;
+    procedure SetJSON_Paper(PID:RTFP_ID;data:TJSONData);
     function GetJSON_Image(IID:RTFP_ID):TJSONData;unimplemented;
     function GetJSON_Notes(NID:RTFP_ID):TJSONData;unimplemented;
     function GetJSON_Klass(klass:TKlass):TJSONData;
