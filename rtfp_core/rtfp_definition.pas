@@ -1193,12 +1193,16 @@ end;
 
 procedure TRTFP.New(filename:ansistring;p_title:string;p_user:string);
 var md:boolean;
+    fpath:string;
 begin
   if FOnNew <> nil then FOnNew(Self);
 
   Self.SetPaths(WinCPToUTF8(filename));
   repeat
     md:=true;
+    fpath:=Self.FFilePath;
+    delete(fpath,length(fpath),1);
+    md:=md and TRTFP.MakeDir(fpath);
     md:=md and TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder);
     md:=md and TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\paper');
     md:=md and TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\class');

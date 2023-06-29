@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.6-alpha.4';
+  C_VERSION_NUMBER  = '0.2.6-alpha.5';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -77,29 +77,21 @@ type
     Button_FormatEditRecover: TButton;
     Button_MainFilter: TButton;
     Button_temp: TButton;
-    Button_FmtCmt_Post: TButton;
-    Button_FmtCmt_Recover: TButton;
     Combo_AddAttrs: TComboBox;
     Edit_AddField: TEdit;
     Edit_AddKlass: TEdit;
-    Image_IsMemo_N: TImage;
-    ComboBox_AttrName: TComboBox;
-    ComboBox_FieldName: TComboBox;
     DataSource_Main: TDataSource;
     DBGrid_Main: TDBGrid;
     Edit_DBGridMain_Filter: TEdit;
     Frame_AufScript1: TFrame_AufScript;
-    Image_IsMemo_Y: TImage;
     Image_PDF_View: TImage;
     Label_FieldType: TLabel;
     Label_AddAttrs: TLabel;
     Label_AddField: TLabel;
     Label_AddKlass: TLabel;
-    Label_FmtCmtPID: TLabel;
     Label_MainFilter: TLabel;
     ListBox_FormatEditMgr: TListBox;
     MainMenu: TMainMenu;
-    Memo_FmtCmt: TMemo;
     MenuItem_field_div01: TMenuItem;
     MenuItem_field_RebuildBlob: TMenuItem;
     MenuItem_FieldMgr_div01: TMenuItem;
@@ -210,8 +202,6 @@ type
     Splitter_PropertiesV: TSplitter;
     Splitter_RightH: TSplitter;
     Splitter_MainV: TSplitter;
-    StaticText_AttrNameCombo: TStaticText;
-    StaticText_FieldNameCombo: TStaticText;
     StatusBar: TStatusBar;
     StringGrid_FormatEditLayout: TStringGrid;
     SynEdit_FEMgr: TSynEdit;
@@ -219,7 +209,6 @@ type
     TabSheet_Node_FormatEdit: TTabSheet;
     TabSheet_Filter_Klass: TTabSheet;
     TabSheet_Filter_Field: TTabSheet;
-    TabSheet_FmtCmt: TTabSheet;
     TabSheet_Project_Properties: TTabSheet;
     TabSheet_Node_PDF: TTabSheet;
     TabSheet_Project_AufScript: TTabSheet;
@@ -234,8 +223,6 @@ type
     procedure Button_AddFieldClick(Sender: TObject);
     procedure Button_AddKlassClick(Sender: TObject);
     procedure Button_FieldTypeClick(Sender: TObject);
-    procedure Button_FmtCmt_PostClick(Sender: TObject);
-    procedure Button_FmtCmt_RecoverClick(Sender: TObject);
     procedure Button_FormatEditLoadClick(Sender: TObject);
     procedure Button_FormatEditPostAndNextClick(Sender: TObject);
     procedure Button_FormatEditPostAndPrevClick(Sender: TObject);
@@ -271,8 +258,6 @@ type
     procedure RadioButton_KlassANDClick(Sender: TObject);
     procedure RadioButton_KlassORClick(Sender: TObject);
     procedure CheckBox_MainFilterAutoClick(Sender: TObject);
-    procedure ComboBox_AttrNameChange(Sender: TObject);
-    procedure ComboBox_FieldNameChange(Sender: TObject);
     procedure ComboBox_FormatEditChange(Sender: TObject);
     procedure DataSource_MainUpdateData(Sender: TObject);
     procedure DBGrid_MainCellClick(Column: TColumn);
@@ -302,7 +287,6 @@ type
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormResize(Sender: TObject);
-    procedure Memo_FmtCmtChange(Sender: TObject);
     procedure MenuItem_AdvOpen_CAJClick(Sender: TObject);
     procedure MenuItem_AdvOpen_DirClick(Sender: TObject);
     procedure MenuItem_AdvOpen_LinkClick(Sender: TObject);
@@ -721,12 +705,8 @@ begin
   Self.PropertiesValueListEditor.Clear;
   AListView_Attrs.Clear;
   AListView_Klass.Clear;
-  ComboBox_AttrName.Clear;
-  ComboBox_FieldName.Clear;
   Combo_AddAttrs.Clear;
   ComboBox_FormatEdit.Clear;
-  Image_IsMemo_Y.Visible:=false;
-  Image_IsMemo_N.Visible:=true;
 end;
 
 procedure TFormDesktop.ProjectOpenDone(Sender:TObject);
@@ -740,11 +720,6 @@ begin
 
   //分类节点选项卡
   ClassListValidate(CurrentRTFP);
-
-  //FmtCmt选项卡
-  Self.ComboBox_AttrName.Clear;
-  Self.Button_FmtCmt_Post.Enabled:=false;
-  CurrentRTFP.AttrNameValidate(ComboBox_AttrName.Items);
 
   Self.Validate(Sender);
   CurrentRTFP.RebuildMainGrid;//Self.MainGridValidate(Sender);
@@ -781,10 +756,6 @@ begin
 
   //分类节点选项卡
   AListView_Klass.Clear;
-
-  //FmtCmt选项卡
-  Self.ComboBox_AttrName.Clear;
-  Self.ComboBox_FieldName.Clear;
 
   Self.MenuItem_project_new.Enabled:=true;
   Self.MenuItem_project_open.Enabled:=true;
@@ -916,22 +887,6 @@ begin
   StatusBar.Panels[1].Text:=ExtractFileName(Selected_FileName);
   CurrentRTFP.UpdatePIDExpr(PID,Self.Frame_AufScript1.Auf.Script);
 
-  //FmtCmt
-  if (ComboBox_AttrName.ItemIndex>=0) and (ComboBox_FieldName.ItemIndex>=0) then begin
-    attrNa:=ComboBox_AttrName.Items[ComboBox_AttrName.ItemIndex];
-    fieldNa:=ComboBox_FieldName.Items[ComboBox_FieldName.ItemIndex];
-    if Button_FmtCmt_Post.Enabled then
-      begin
-        //这表明FmtCmt没有保存
-        case ShowMsgYesNoAll('FmtCmt未保存','更新FmtCmt会覆盖当前的修改，是否先保存此修改？') of
-          'Yes':CurrentRTFP.FmtCmtDataPost(Label_FmtCmtPID.Caption,attrNa,fieldNa,Memo_FmtCmt);
-          else ;
-        end;
-      end;
-    CurrentRTFP.FmtCmtValidate(PID,attrNa,fieldNa,Memo_FmtCmt);
-    Label_FmtCmtPID.Caption:=PID;
-    Button_FmtCmt_Post.Enabled:=false;
-  end;
 
   //FormatEdit
   CurrentRTFP.FormatEditValidate(PID);
@@ -1024,7 +979,7 @@ end;
 
 procedure TFormDesktop.MenuItem_EditReferencesClick(Sender: TObject);
 begin
-  Form_CiteTrans.ShowModal;
+  Form_CiteTrans.Call(false);
   SetFocus;
 end;
 
@@ -1044,11 +999,6 @@ end;
 procedure TFormDesktop.FormResize(Sender: TObject);
 begin
   //Self.Frame_AufScript1.FrameResize(nil);
-end;
-
-procedure TFormDesktop.Memo_FmtCmtChange(Sender: TObject);
-begin
-  Button_FmtCmt_Post.Enabled:=(Sender as TMemo).Modified;
 end;
 
 procedure TFormDesktop.MenuItem_AdvOpen_CAJClick(Sender: TObject);
@@ -1182,7 +1132,7 @@ end;
 procedure TFormDesktop.MenuItem_CiteToolClick(Sender: TObject);
 begin
   if ProjectInvalid then exit;
-  Form_CiteTrans.ShowModal;//Form_CiteTrans.Show;
+  Form_CiteTrans.Call(true);
   SetFocus;
 end;
 
@@ -1882,46 +1832,6 @@ begin
   CurrentRTFP.RebuildMainGrid;//MainGridValidate(CurrentRTFP);
 end;
 }
-procedure TFormDesktop.ComboBox_AttrNameChange(Sender: TObject);
-var str:string;
-begin
-  if ProjectInvalid then exit;
-  ComboBox_FieldName.Clear;
-  with ComboBox_AttrName do begin
-    if ItemIndex<0 then exit;
-    str:=Items[ItemIndex];
-  end;
-  CurrentRTFP.FieldNameValidate(str,ComboBox_FieldName.Items);
-end;
-
-procedure TFormDesktop.ComboBox_FieldNameChange(Sender: TObject);
-var attrName,fieldName:string;
-    ty:TFieldType;
-begin
-  if ProjectInvalid then exit;
-  if ComboBox_AttrName.ItemIndex<0 then exit;
-  attrName:=ComboBox_AttrName.Items[ComboBox_AttrName.ItemIndex];
-  fieldName:=ComboBox_FieldName.Items[ComboBox_FieldName.ItemIndex];
-  ty:=CurrentRTFP.GetFieldType(attrName,fieldName);
-  if ty=ftMemo then begin
-    //Image_IsMemo_N.Picture.LoadFromFile(LocalPath+'Icon\checked_true.png');
-    //Image_IsMemo_N.Hint:='该字段可支持FmtCmt';
-    Image_IsMemo_N.Visible:=false;
-    Image_IsMemo_Y.Visible:=true;
-    Memo_FmtCmt.Enabled:=true;
-    Button_FmtCmt_Post.Enabled:=false;
-  end else begin
-    //Image_IsMemo_N.Picture.LoadFromFile(LocalPath+'Icon\checked_false.png');
-    //Image_IsMemo_N.Hint:='该字段不支持FmtCmt';
-    Image_IsMemo_N.Visible:=true;
-    Image_IsMemo_Y.Visible:=false;
-    Memo_FmtCmt.Clear;
-    Memo_FmtCmt.Enabled:=false;
-    Button_FmtCmt_Post.Enabled:=false;
-  end;
-  Application.ProcessMessages;
-  NodeViewValidate;
-end;
 
 procedure TFormDesktop.ComboBox_FormatEditChange(Sender: TObject);
 var combo:TComboBox;
@@ -2136,39 +2046,6 @@ begin
     '时间　　'+#9+'(DateTime)     '+#9+'记录日期与时刻'+#13#10+
     '图像　　'+#9+'(Blob)         '+#9+'记录图像数据'
   );
-end;
-
-procedure TFormDesktop.Button_FmtCmt_PostClick(Sender: TObject);
-var PID:RTFP_ID;
-    attrNa,fieldNa:string;
-begin
-  if ProjectInvalid then exit;
-  if Image_IsMemo_N.Visible then exit;
-  //PID:=Selected_PID;
-  PID:=Label_FmtCmtPID.Caption;
-  if PID='000000' then exit;
-  if (ComboBox_AttrName.ItemIndex>=0) and (ComboBox_FieldName.ItemIndex>=0) then begin
-    attrNa:=ComboBox_AttrName.Items[ComboBox_AttrName.ItemIndex];
-    fieldNa:=ComboBox_FieldName.Items[ComboBox_FieldName.ItemIndex];
-    CurrentRTFP.FmtCmtDataPost(PID,attrNa,fieldNa,Memo_FmtCmt);
-  end;
-  (Sender as TButton).Enabled:=false;
-end;
-
-procedure TFormDesktop.Button_FmtCmt_RecoverClick(Sender: TObject);
-var PID:RTFP_ID;
-    attrNa,fieldNa:string;
-begin
-  if ProjectInvalid then exit;
-  if Image_IsMemo_N.Visible then exit;
-  //PID:=Selected_PID;
-  PID:=Label_FmtCmtPID.Caption;
-  if PID='000000' then exit;
-  if (ComboBox_AttrName.ItemIndex>=0) and (ComboBox_FieldName.ItemIndex>=0) then begin
-    attrNa:=ComboBox_AttrName.Items[ComboBox_AttrName.ItemIndex];
-    fieldNa:=ComboBox_FieldName.Items[ComboBox_FieldName.ItemIndex];
-    CurrentRTFP.FmtCmtValidate(PID,attrNa,fieldNa,Memo_FmtCmt);
-  end;
 end;
 
 procedure TFormDesktop.Button_FormatEditLoadClick(Sender: TObject);
@@ -2462,6 +2339,12 @@ begin
   OpenDialog_Project.DefaultExt:='*.ztfp';
   OpenDialog_Project.Title:='解压导入';
   if Self.OpenDialog_Project.Execute then begin
+    Form_NewProject.Caption:='选择工程解压位置';
+    Form_NewProject.ShowModal;
+    SetFocus;
+    Form_NewProject.Caption:='新建工程';
+    if not CurrentRTFP.IsOpen then exit;
+
     if FShowWaitForm then FWaitForm.Show;
     CurrentRTFP.ZTFP_Importer(Self.OpenDialog_Project.FileName);
     if FShowWaitForm then FWaitForm.Hide;

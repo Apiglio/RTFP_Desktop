@@ -397,11 +397,11 @@ begin
       inc(index);
     end;
   with FileData do begin
-    PageCount:=StrToInt(ss[index]);
+    try PageCount:=StrToInt(ss[index]) except PageCount:=-1; end;
     inc(index);
-    PageWidth:=StrToFloat(ss[index]);
+    try PageWidth:=StrToFloat(ss[index]) except PageWidth:=-1; end;
     inc(index);
-    PageHeight:=StrToFloat(ss[index]);
+    try PageHeight:=StrToFloat(ss[index]) except PageHeight:=-1; end;
     inc(index);
   end;
   further.CommaText:=StringReplace(ss[index],META_COMMA_REPLACE,',',[rfReplaceAll]);

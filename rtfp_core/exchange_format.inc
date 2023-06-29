@@ -3,10 +3,10 @@
 
 procedure TRTFP.ZTFP_Importer(fullfilename:string);
 const folder_name:array[0..2] of string = ('paper','image','format');
+var zf:TUnZipper;
 begin
-  //FDataSetType:=aDataSetType;
-  //这里准备把FDataSetType改成property
-  //New();
+  //理想状态下是新建空白工程后
+  //
 end;
 
 procedure TRTFP.ZTFP_Exporter(fullfilename:string);

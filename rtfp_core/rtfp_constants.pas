@@ -104,6 +104,12 @@ const
   _Col_relat_Cited_ = '引证文献';
   _Col_relat_References_ = '参考文献';
 
+  {$ifdef WINDOWS}
+  _fsplit_='\';
+  {$else}
+  _fsplit_='/';
+  {$endif}
+
 implementation
 
 end.

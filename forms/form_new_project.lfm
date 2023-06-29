@@ -9,7 +9,7 @@ object Form_NewProject: TForm_NewProject
   ClientWidth = 450
   Constraints.MinHeight = 240
   Constraints.MinWidth = 450
-  DesignTimePPI = 120
+  DesignTimePPI = 144
   OnActivate = FormActivate
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
@@ -21,7 +21,7 @@ object Form_NewProject: TForm_NewProject
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     Left = 90
-    Height = 28
+    Height = 32
     Top = 15
     Width = 345
     Anchors = [akTop, akLeft, akRight]
@@ -37,9 +37,9 @@ object Form_NewProject: TForm_NewProject
     AnchorSideTop.Control = Edit_ProjectName
     AnchorSideTop.Side = asrCenter
     Left = 15
-    Height = 15
-    Top = 22
-    Width = 75
+    Height = 24
+    Top = 19
+    Width = 90
     BorderSpacing.Left = 15
     Caption = '工程名称：'
     ParentColor = False
@@ -49,9 +49,9 @@ object Form_NewProject: TForm_NewProject
     AnchorSideTop.Control = Edit_ProjectPath
     AnchorSideTop.Side = asrCenter
     Left = 15
-    Height = 15
-    Top = 60
-    Width = 75
+    Height = 24
+    Top = 61
+    Width = 90
     BorderSpacing.Left = 15
     Caption = '文件路径：'
     ParentColor = False
@@ -63,8 +63,8 @@ object Form_NewProject: TForm_NewProject
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     Left = 90
-    Height = 28
-    Top = 53
+    Height = 32
+    Top = 57
     Width = 345
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Left = 90
@@ -116,8 +116,8 @@ object Form_NewProject: TForm_NewProject
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 90
-    Height = 134
-    Top = 91
+    Height = 126
+    Top = 99
     Width = 235
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 90
@@ -132,7 +132,7 @@ object Form_NewProject: TForm_NewProject
       '路径长度'
       '磁盘空间(>4Gbytes)'
     )
-    ItemHeight = 21
+    ItemHeight = 25
     TabOrder = 4
     Data = {
       050000000000000000
@@ -142,9 +142,9 @@ object Form_NewProject: TForm_NewProject
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = CheckListBox_CanBuild
     Left = 15
-    Height = 15
-    Top = 95
-    Width = 75
+    Height = 24
+    Top = 103
+    Width = 90
     BorderSpacing.Left = 15
     BorderSpacing.Top = 4
     Caption = '创建要求：'
@@ -157,7 +157,7 @@ object Form_NewProject: TForm_NewProject
     AnchorSideRight.Side = asrBottom
     Left = 336
     Height = 69
-    Top = 91
+    Top = 99
     Width = 99
     Anchors = [akTop, akRight]
     AutoFill = True
@@ -171,7 +171,7 @@ object Form_NewProject: TForm_NewProject
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
-    ClientHeight = 49
+    ClientHeight = 40
     ClientWidth = 95
     ItemIndex = 1
     Items.Strings = (

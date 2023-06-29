@@ -117,6 +117,7 @@ begin
   else RadioGroup_AddPaperMethod.ItemIndex:=1;
   Button_BackToPrev.Enabled:=true;
   ProgressBar_ImportFiles.Position:=0;
+  Button_ImportFileNamesCheck.Caption:='开始导入';
 
   ComboBox_DefaultCl.Clear;
   for tmpKL in CurrentRTFP.KlassList do
@@ -139,6 +140,7 @@ end;
 procedure TForm_ImportFiles.Phase1;
 var newPos:integer;
 begin
+  Button_ImportFileNamesCheck.Caption:='开始导入';
   PageControl_ImportFiles.BeginUpdateBounds;
   repeat
     newPos:=SplitterImportFilesV.Left + AnimationStepLen;
