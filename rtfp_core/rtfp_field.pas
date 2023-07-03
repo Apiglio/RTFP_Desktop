@@ -71,6 +71,7 @@ type
     FFieldDisplayOption:TFieldDisplayOption;
   protected
     procedure SetShown(value:boolean);
+    function GetDisplayName:string;
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
@@ -83,7 +84,7 @@ type
     property FieldName:string read FFieldName write FFieldName;
     property AttrsGroup:TAttrsGroup read FAttrsGroup;
     property FieldDisplayOption:TFieldDisplayOption read FFieldDisplayOption{ write FFieldDisplayOption};
-    property DisplayName:string read FFieldDisplayOption.FDispName;
+    property DisplayName:string read GetDisplayName;
 
   public
     procedure ResetFieldDef(AFieldDef:TFieldDef);
@@ -187,7 +188,7 @@ type
     property Items[Index: integer]: TAttrsGroup read GetItems write SetItems; default;
     property Path:string read FFullPath write FFullPath;
   public
-    procedure LoadFromPath(APath:string='\';data_set_type:string='dbf');//相对地址
+    procedure LoadFromPath(APath:string='/';data_set_type:string='dbf');//相对地址
   end;
 
 
@@ -483,6 +484,11 @@ begin
   end;
 end;
 
+function TAttrsField.GetDisplayName:string;
+begin
+  result:=Self.FFieldDisplayOption.DispName;
+end;
+
 constructor TAttrsField.Create(ACollection: TCollection);
 begin
   if Assigned(ACollection) and (ACollection is TAttrsFieldList) then
@@ -733,8 +739,9 @@ end;
 function TAttrsGroupList.AddEx(AFullPath,AName:string;data_set_type:string='dbf'): TAttrsGroup;
 begin
   Result := inherited Add as TAttrsGroup;
-  AFullPath:=StringReplace(AFullPath,'\\','\',[rfReplaceAll]);//不会吧，不是这里的问题吧
-  AFullPath:=StringReplace(AFullPath,'\\','\',[rfReplaceAll]);//斜杠要整理一下
+  AFullPath:=StringReplace(AFullPath,'\','/',[rfReplaceAll]);//不会吧，不是这里的问题吧
+  AFullPath:=StringReplace(AFullPath,'//','/',[rfReplaceAll]);//不会吧，不是这里的问题吧
+  AFullPath:=StringReplace(AFullPath,'//','/',[rfReplaceAll]);//斜杠要整理一下
   result.FFullPath:=AFullPath;
   result.FName:=AName;
   case data_set_type of
@@ -773,7 +780,7 @@ begin
 end;
 
 
-procedure TAttrsGroupList.LoadFromPath(APath:string='\';data_set_type:string='dbf');
+procedure TAttrsGroupList.LoadFromPath(APath:string='/';data_set_type:string='dbf');
 var tmpFileList:TRTFP_FileList;
     stmp:TCollectionItem;
     pathname,groupname:string;
@@ -797,7 +804,7 @@ begin
         groupname:=ExtractFileName(pathname);
         System.delete(groupname,length(groupname)-3,4);
         System.delete(pathname,length(pathname)-3,4);
-        Self.AddEx(APath+'\'+pathname,groupname,data_set_type);
+        Self.AddEx(APath+'/'+pathname,groupname,data_set_type);
       end;
   finally
     tmpFileList.Free;

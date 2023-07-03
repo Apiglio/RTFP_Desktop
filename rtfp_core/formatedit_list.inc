@@ -18,7 +18,7 @@ begin
     str.Add('check "'+_Attrs_Class_+'","'+_Col_class_Is_Read_+'","是否已读",210,70,2,3,"editable"');
     str.Add('edit "'+_Attrs_Class_+'","'+_Col_class_DefaultCl_+'","分类",210,70,3,4,"uneditable"');
     str.Add('memo "'+_Attrs_Notes_+'","'+_Col_notes_Comment_+'","笔记",280,280,0,4,"editable"');
-    str.SaveToFile(Self.FFilePath+Self.FRootFolder+'\format\default.fmt');
+    str.SaveToFile(Self.FFilePath+Self.FRootFolder+'/format/default.fmt');
   finally
     str.Free;
   end;
@@ -84,7 +84,7 @@ begin
     str.Add('memo "'+_Attrs_Notes_+'","'+_Col_notes_FurtherCmt_+'","其他笔记",560,140,"MR","R","uneditable"');
     str.Add('edit "'+_Attrs_Notes_+'","'+_Col_notes_Format_+'","格式",700,70,"MR","RM","uneditable"');
 
-    str.SaveToFile(Self.FFilePath+Self.FRootFolder+'\format\all.fmt');
+    str.SaveToFile(Self.FFilePath+Self.FRootFolder+'/format/all.fmt');
   finally
     str.Free;
   end;
@@ -107,7 +107,7 @@ begin
     str.Add('edit "'+_Attrs_Notes_+'","'+_Col_notes_CheckTime_+'","最近查询",0,70,"MR","RM","uneditable"');
     str.Add('edit "'+_Attrs_Notes_+'","'+_Col_notes_User_+'","入库用户",0,70,"RM","R","uneditable"');
 
-    str.SaveToFile(Self.FFilePath+Self.FRootFolder+'\format\sys.fmt');
+    str.SaveToFile(Self.FFilePath+Self.FRootFolder+'/format/sys.fmt');
   finally
     str.Free;
   end;
@@ -130,7 +130,7 @@ begin
   if not FFormatList.Find(filename,index) then FFormatList.Add(filename);
   str:=TStringList.Create;
   try
-    str.SaveToFile(Self.FFilePath+Self.FRootFolder+'\format\'+filename);
+    str.SaveToFile(Self.FFilePath+Self.FRootFolder+'/format/'+filename);
   finally
     str.Free;
   end;
@@ -145,7 +145,7 @@ var index:integer;
 begin
   result:=false;
   if not FFormatList.Find(filename,index) then exit;
-  old_f:=FFilePath+FRootFolder+'\format\';
+  old_f:=FFilePath+FRootFolder+'/format/';
   new_f:=old_f+newname;
   old_f:=old_f+filename;
   TRTFP.FileRename(old_f,new_f);
@@ -161,7 +161,7 @@ var index:integer;
 begin
   result:=false;
   if not FFormatList.Find(filename,index) then exit;
-  TRTFP.FileDelete(FFilePath+FRootFolder+'\format\'+filename);
+  TRTFP.FileDelete(FFilePath+FRootFolder+'/format/'+filename);
   FFormatList.Delete(index);
   FormatListChange;
   FormatEditChange('',filename);
@@ -171,13 +171,13 @@ end;
 procedure TRTFP.LoadFromFormatEdit(filename:string;str:TStrings);
 begin
   if not assigned(str) then exit;
-  str.LoadFromFile(CurrentPathFull+'format\'+filename);
+  str.LoadFromFile(CurrentPathFull+'format/'+filename);
 end;
 
 procedure TRTFP.SaveToFormatEdit(filename:string;str:TStrings);
 begin
   if not assigned(str) then exit;
-  str.SaveToFile(CurrentPathFull+'format\'+filename);
+  str.SaveToFile(CurrentPathFull+'format/'+filename);
   FormatEditChange(filename,filename);
 end;
 
@@ -187,17 +187,18 @@ var tmpFileList:TRTFP_FileList;
     clip:string;
     poss:integer;
 begin
-  tmpFileList:=TRTFP_FileList.Create(nil,FFilePath+FRootFolder+'\format\');
+  tmpFileList:=TRTFP_FileList.Create(nil,FFilePath+FRootFolder+'/format/');
   tmpFileList.RunDir;
   FFormatList.Clear;
   for stmp in tmpFileList do
     begin
       clip:=(stmp as TRTFP_FileItem).Name;
-      poss:=pos('\',clip);
+      clip:=StringReplace(clip,'\','/',[rfReplaceAll]);
+      poss:=pos('/',clip);
       while poss>0 do
         begin
           delete(clip,1,poss);
-          poss:=pos('\',clip);
+          poss:=pos('/',clip);
         end;
       FFormatList.Add(clip);
     end;
@@ -212,13 +213,13 @@ begin
   if not FFormatList.Find('default.fmt',index) then AddFormatDefault;
   if not FFormatList.Find('all.fmt',index) then AddFormatDefault_All;
   if not FFormatList.Find('sys.fmt',index) then AddFormatDefault_SysMgr;
-  //FFormatList.SaveToFile(Self.FFilePath+Self.FRootFolder+'\format.dat');
+  //FFormatList.SaveToFile(Self.FFilePath+Self.FRootFolder+'/format.dat');
   FormatListChange;
 end;
 
 function TRTFP.SaveFormatList:boolean;
 begin
-  FFormatList.SaveToFile(Self.FFilePath+Self.FRootFolder+'\format.dat');//这个文件的存在仅为了保持兼容性
+  FFormatList.SaveToFile(Self.FFilePath+Self.FRootFolder+'/format.dat');//这个文件的存在仅为了保持兼容性
   result:=true;
 end;
 

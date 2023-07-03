@@ -29,7 +29,7 @@ type
     procedure SetItems(Index: integer; AValue: TRTFP_FileItem);
   public
     constructor Create(AOwner:TComponent;ABaseDir:string);
-    procedure RunDir(APath:string='\');//APath这个参数用于递归，必须斜杠结尾，设置基地址请使用BaseDir
+    procedure RunDir(APath:string='/');//APath这个参数用于递归，必须斜杠结尾，设置基地址请使用BaseDir
   public
     function Add: TRTFP_FileItem;
     function AddEx(AFileName:string;ASize:int64): TRTFP_FileItem;
@@ -80,7 +80,7 @@ Begin
       With Info do
         begin
           if (Name<>'.') and (Name<>'..') then BEGIN
-            If (Attr and faDirectory) = faDirectory then RunDirRecursion(APath+Name+'\',AInstance)
+            If (Attr and faDirectory) = faDirectory then RunDirRecursion(APath+Name+'/',AInstance)
             else AInstance.AddEx(APath+Name,Size);
           END;
         end;
@@ -88,7 +88,7 @@ Begin
   FindClose(Info);
 End;
 
-procedure TRTFP_FileList.RunDir(APath:string='\');
+procedure TRTFP_FileList.RunDir(APath:string='/');
 Begin
   Self.Clear;
   RunDirRecursion(APath,Self);

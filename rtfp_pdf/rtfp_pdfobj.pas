@@ -5,7 +5,10 @@ unit rtfp_pdfobj;
 interface
 
 uses
-  Classes, SysUtils, rtfp_pdfium, Windows, Dialogs, LazUTF8;
+  {$ifdef WINDOWS}
+  rtfp_pdfium, Windows,
+  {$endif}
+  Classes, SysUtils, Dialogs, LazUTF8;
 
 const
   META_COMMA_REPLACE='&_comma_';
@@ -71,8 +74,10 @@ type
     FFileName:string;
     FHash:string;
     FSize:uint64;
+    {$ifdef WINDOWS}
     fdoc:FPDF_DOCUMENT;
     fpage:FPDF_PAGE;
+    {$endif}
 
   private
     function CalcHash:string;
@@ -91,9 +96,9 @@ type
     function FileEqual(buf:pbyte;buflen:uint64):boolean;
     procedure CopyTo(filename:string);
     procedure DeleteRealFile;//在loadpdf之后用于删除FFileName路径中的文件
-
+    {$ifdef WINDOWS}
     procedure ShowPage(dc:HDC;page:uint64);
-
+    {$endif}
   public
     constructor Create(AOwner:TComponent);
     destructor Destroy;override;
@@ -112,8 +117,10 @@ begin
   FFileName:='';
   FHash:='';
   FSize:=0;
+  {$ifdef WINDOWS}
   fdoc:=nil;
   fpage:=nil;
+  {$endif}
 end;
 
 destructor TRTFP_PDF.Destroy;
@@ -167,6 +174,7 @@ var a:file of byte;
     localpath:string;
 begin
   result:=false;
+  {$ifdef WINDOWS}
   localpath:=ExtractFilePath(ParamStr(0));
   //{
   if not FileExists(localpath+'RTFP_MetaReader.exe') then begin
@@ -185,6 +193,7 @@ begin
   FMeta.LoadFromFile('MetaData.swap');
   DeleteFile('MetaData.swap');
   result:=true;
+  {$endif}
 end;
 
 
@@ -234,7 +243,7 @@ begin
   assignfile(f,UTF8ToWinCP(FFilename));
   erase(f);
 end;
-
+{$ifdef WINDOWS}
 procedure TRTFP_PDF.ShowPage(dc:HDC;page:uint64);
 var a:file of byte;
 begin
@@ -247,7 +256,7 @@ begin
     //sleep(100);
   until not FileExists('MetaData.wait');
 end;
-
+{$endif}
 
 { TPdfMeta }
 

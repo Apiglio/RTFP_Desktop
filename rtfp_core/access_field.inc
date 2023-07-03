@@ -3,7 +3,7 @@
 procedure TRTFP.DeleteFieldImageFolder(AF:TAttrsField);
 var image_folder:string;
 begin
-  image_folder:=CurrentPathFull+'image\'+AF.AttrsGroup.Name+'\'+AF.FieldName+'\';
+  image_folder:=CurrentPathFull+'image/'+AF.AttrsGroup.Name+'/'+AF.FieldName+'/';
   if DirectoryExists(image_folder) then begin
     case ShowMsgYesNoAll('删除图像字段','是否删除image文件夹中对应的图像文件？') of
       'Yes':if not TRTFP.DeleteDir(image_folder,true) then
@@ -134,8 +134,8 @@ begin
        if not RenameFieldInBuf(TBufDataset(tmpAG.Dbf),AOldName,ANewName) then exit;
        tmpAF.FieldName:=ANewName;
        tmpAF.ResetFieldDef(TBufDataset(tmpAG.Dbf).FieldDefs.Find(ANewName));
-       old_image_folder:=CurrentPathFull+'image\'+tmpAG.Name+'\'+AOldName+'\';
-       new_image_folder:=CurrentPathFull+'image\'+tmpAG.Name+'\'+ANewName+'\';
+       old_image_folder:=CurrentPathFull+'image/'+tmpAG.Name+'/'+AOldName+'/';
+       new_image_folder:=CurrentPathFull+'image/'+tmpAG.Name+'/'+ANewName+'/';
        if DirectoryExists(old_image_folder) then begin
          if not RenameFile(old_image_folder,new_image_folder) then
            ShowMsgOK('重命名字段','字段在image文件夹下的同名文件夹重命名失败，请手动修改。');

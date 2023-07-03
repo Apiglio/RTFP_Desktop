@@ -22,14 +22,6 @@ begin
 end;
 }
 
-function intern_aufunc_sort_double(Item1,Item2:Pointer):integer;
-begin
-  sleep(1);
-  if double(Item1)<double(Item2) then result:=-1
-  else if double(Item1)>double(Item2) then result:=1
-  else result:=0;
-end;
-
 procedure aufunc_BeginUpdate(Sender:TObject);
 begin
   CurrentRTFP.BeginUpdate;
@@ -294,7 +286,7 @@ begin
   AAuf:=AufScpt.Auf as TAuf;
   if not AAuf.CheckArgs(2) then exit;
   if not AAuf.TryArgToString(1,filename) then exit;
-  filename:=CurrentRTFP.FFilePath+CurrentRTFP.FRootFolder+'\format\'+filename;
+  filename:=CurrentRTFP.FFilePath+CurrentRTFP.FRootFolder+'/format/'+filename;
   if FileExists(filename) then begin
     str:=TStringList.Create;
     try
@@ -364,10 +356,10 @@ begin
 
   RTFP_PDF:=TRTFP_PDF.Create(nil);
   RTFP_PDF.LoadPdf(filename);
-
+  {$ifdef WINDOWS}
   RTFP_PDF.ShowPage(FormDesktop.Image_PDF_View.Picture.Bitmap.Canvas.Handle,page);
   //AufScpt.writeln(RTFP_PDF.Meta.ToString);
-
+  {$endif}
   RTFP_PDF.ClosePdf;
   RTFP_PDF.Free;
 end;
@@ -583,47 +575,6 @@ begin
     AufScpt.writeln('T') else AufScpt.writeln('F');
 end;
 
-{$define qsort}
-procedure aufunc_sort_test(Sender:TObject);
-var AufScpt:TAufScript;
-    AAuf:TAuf;
-    {$ifdef qsort}
-    AList:TList;
-    {$else}
-    sbt:TSortingBinaryTree;
-    ptr:Pointer;
-    {$endif}
-    pi,len:integer;
-
-begin
-  AufScpt:=Sender as TAufScript;
-  AAuf:=AufScpt.Auf as TAuf;
-  if not AAuf.CheckArgs(1) then exit;
-  if not AAuf.TryArgToLong(1,len) then exit;
-  {$ifdef qsort}
-  AList:=TList.Create;
-  {$else}
-  sbt:=TSortingBinaryTree.Create;
-  {$endif}
-  try
-    Randomize;
-    {$ifdef qsort}
-    for pi:=0 to len-1 do AList.Add(Pointer(random()));
-    AList.Sort(@intern_aufunc_sort_double);
-    {$else}
-    for pi:=0 to len-1 do sbt.Compare(Pointer(random()),@intern_aufunc_sort_double);
-    for ptr in sbt do ;
-    {$endif}
-  finally
-    {$ifdef qsort}
-    AList.Free;
-    {$else}
-    sbt.Free;
-    {$endif}
-  end;
-
-end;
-
 procedure aufunc_maingrid_sort(Sender:TObject);//update.sort field_name
 var AufScpt:TAufScript;
     AAuf:TAuf;
@@ -699,7 +650,6 @@ begin
 
     {$ifdef test}
     Script.add_func('test',@aufunc_test,'*arg','测试');
-    Script.add_func('sort_test',@aufunc_sort_test,'*arg','测试');
 
 
     {$endif}

@@ -34,7 +34,7 @@ begin
     for stmp in filelist do begin
       stored_name:=stmp;
       delete(stored_name,1,path_base_len);
-      stored_name:='paper\'+stored_name;
+      stored_name:='paper/'+stored_name;
       zf.Entries.AddFileEntry(stmp,Utf8ToWinCP(stored_name));
     end;
     filelist.Clear;
@@ -44,7 +44,7 @@ begin
     for stmp in filelist do begin
       stored_name:=stmp;
       delete(stored_name,1,path_base_len);
-      stored_name:='image\'+stored_name;
+      stored_name:='image/'+stored_name;
       zf.Entries.AddFileEntry(stmp,Utf8ToWinCP(stored_name));
     end;
     zf.SaveToFile(fullfilename);

@@ -7,8 +7,8 @@ begin
   if not TRTFP.IsAttrsName(AName) then exit;
   if FFieldList.FindItemIndexByName(AName)>=0 then exit;
   case DataSetType of
-    dstDBF:tmp:=FFieldList.AddEx('attr\'+AName,AName,'dbf');
-    dstBUF:tmp:=FFieldList.AddEx('attr\'+AName,AName,'buf');
+    dstDBF:tmp:=FFieldList.AddEx('attr/'+AName,AName,'dbf');
+    dstBUF:tmp:=FFieldList.AddEx('attr/'+AName,AName,'buf');
     else raise Exception.Create('无效DataSetType。');
   end;
 
@@ -51,8 +51,8 @@ begin
     dstBUF:
       begin
         if tmpAG.Dbf.Active then tmpAG.Dbf.Close;
-        oldname:=CurrentPathFull+'attr\'+AName+'.buf';
-        newname:=CurrentPathFull+'attr\'+ANewName+'.buf';
+        oldname:=CurrentPathFull+'attr/'+AName+'.buf';
+        newname:=CurrentPathFull+'attr/'+ANewName+'.buf';
         if not TRTFP.FileCopy(oldname,newname,true) then begin
           ShowMsgOK('重命名属性组','重命名属性组失败，未能成功创建属性组文件。');
           exit;
@@ -78,7 +78,7 @@ begin
   tmp:=FFieldList.Items[index];
   CloseDbf(tmp.FullPath,tmp.Dbf);
   DeleteDbf(tmp.FullPath,tmp.Dbf);
-  image_folder:=CurrentPathFull+'image\'+tmp.Name+'\';
+  image_folder:=CurrentPathFull+'image/'+tmp.Name+'/';
   if DirectoryExists(image_folder) then
     if not TRTFP.DeleteDir(image_folder,true) then
       ShowMsgOK('删除属性组','image文件夹中属性组文件夹删除失败，请手动删除。');

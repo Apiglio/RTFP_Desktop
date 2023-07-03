@@ -259,7 +259,7 @@ begin
   result:=false;
   case DataSetType of
     dstDBF:begin
-      dbfpath:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext;
+      dbfpath:=Self.FFilePath+Self.FRootFolder+'/'+dbf_name_no_ext;
       name_no_ext:=ExtractFileName(dbfpath);
       dbfpath:=ExtractFilePath(dbfpath);
       datfile:=name_no_ext+'.dbf';
@@ -285,7 +285,7 @@ begin
     end;
     dstBUF:begin
       with TBufDataset(Dbf) do begin
-        FileName:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext+'.buf';
+        FileName:=Self.FFilePath+Self.FRootFolder+'/'+dbf_name_no_ext+'.buf';
         try
           Open;
         except
@@ -304,7 +304,7 @@ begin
   result:=false;
   case DataSetType of
     dstDBF:begin
-      dbfpath:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext;
+      dbfpath:=Self.FFilePath+Self.FRootFolder+'/'+dbf_name_no_ext;
       name_no_ext:=ExtractFileName(dbfpath);
       dbfpath:=ExtractFilePath(dbfpath);
       datfile:=name_no_ext+'.dbf';
@@ -330,7 +330,7 @@ begin
     dstBUF:begin
       //Buf模式不要蹩脚的run备份了
       with TBufDataset(Dbf) do begin
-        FileName:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext+'.buf';
+        FileName:=Self.FFilePath+Self.FRootFolder+'/'+dbf_name_no_ext+'.buf';
         try
           //MaxIndexesCount:=10;
           //AddIndex('Id',FieldDefs.Items[1].Name,[ixPrimary, ixUnique]);
@@ -355,7 +355,7 @@ begin
   result:=false;
   case DataSetType of
     dstDBF:begin
-      dbfpath:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext;
+      dbfpath:=Self.FFilePath+Self.FRootFolder+'/'+dbf_name_no_ext;
       name_no_ext:=ExtractFileName(dbfpath);
       dbfpath:=ExtractFilePath(dbfpath);
       datfile:=name_no_ext+'.dbf';
@@ -407,7 +407,7 @@ begin
   result:=false;
   case DataSetType of
     dstDBF:begin
-      dbfpath:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext;
+      dbfpath:=Self.FFilePath+Self.FRootFolder+'/'+dbf_name_no_ext;
       name_no_ext:=ExtractFileName(dbfpath);
       dbfpath:=ExtractFilePath(dbfpath);
       //datfile:=name_no_ext+'.dbf';
@@ -452,7 +452,7 @@ begin
   result:=false;
   case DataSetType of
     dstDBF:begin
-      dbfpath:=Self.FFilePath+Self.FRootFolder+'\'+dbf_name_no_ext;
+      dbfpath:=Self.FFilePath+Self.FRootFolder+'/'+dbf_name_no_ext;
       name_no_ext:=ExtractFileName(dbfpath);
       dbfpath:=ExtractFilePath(dbfpath);
       datfile:=name_no_ext+'.dbf';

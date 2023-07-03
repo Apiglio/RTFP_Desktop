@@ -83,6 +83,8 @@ begin
           else
             dispAF:=tmpAF.FieldName;
           (AListView as TACL_ListView).AddShellNodeItem(dispAG+'\'+dispAF,tmpAF,tmpAF.Shown);
+          //should not use slash to define tree structure, ACL_TreeView need to be improved.
+          //now ClassViewList shows klass' name with slash and not "class" root.
         end;
       (AListView as TACL_ListView).GetShellNodeItem(dispAG).Data:=tmpAG;
     end;
@@ -91,7 +93,7 @@ begin
     begin
       if tmpAG.GroupShown then (AListView as TACL_ListView).CheckShellNodeItem(tmpAG.Name,true);
       for tmpAF in tmpAG.FieldList do
-        if tmpAF.Shown then (AListView as TACL_ListView).CheckShellNodeItem(tmpAG.Name+'\'+tmpAF.FieldName,true);
+        if tmpAF.Shown then (AListView as TACL_ListView).CheckShellNodeItem(tmpAG.Name+'/'+tmpAF.FieldName,true);
     end;
   //这部分不知道那个地方有问题，条目不能正确勾选。
   AListView.Repaint;
@@ -182,7 +184,6 @@ var tmpDbf:{TDbf}TDataSet;
     end;
 
 begin
-
   if (not IsUpdating) and (FOnMainGridRebuilding<>nil) then FOnMainGridRebuilding(Self);
   BeginUpdate;
   try

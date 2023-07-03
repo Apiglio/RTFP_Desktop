@@ -498,7 +498,7 @@ end;
 
 function TRTFP.GetImgFilePath(AName,AAttrsName:string):string;
 begin
-  result:=CurrentPathFull+'image\'+AAttrsName+'\'+AName;
+  result:=CurrentPathFull+'image/'+AAttrsName+'/'+AName;
 end;
 function TRTFP.GetImgFileName(PID:RTFP_ID):string;
 begin
@@ -525,7 +525,7 @@ begin
       //buf.Picture.Bitmap.LoadFromFile('img_convert_tmp.bmp');
       TBlobField(tmpField).SaveToStream(str);
       if (str.Size=4) and (pdword(str.Memory)^=0) then begin
-        img_name:=GetImgFilePath(AName,AAttrsName)+'\'+GetImgFileName(PID);
+        img_name:=GetImgFilePath(AName,AAttrsName)+'/'+GetImgFileName(PID);
         if FileExists(img_name) then try buf.LoadFromFile(img_name) except end;
       end else begin
         str.Position:=0;
@@ -579,7 +579,7 @@ begin
           img_path:=GetImgFilePath(AName,AAttrsName);
           ForceDirectories(img_path);
           try
-            buf.SaveToFile(img_path+'\'+GetImgFileName(PID));
+            buf.SaveToFile(img_path+'/'+GetImgFileName(PID));
             str.Size:=4;
             str.Position:=0;
             str.WriteDWord(0);

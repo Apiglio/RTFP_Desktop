@@ -75,7 +75,6 @@ type
     Button_FormatEditPost: TButton;
     Button_FormatEditRecover: TButton;
     Button_MainFilter: TButton;
-    Button_temp: TButton;
     Button_FmtCmt_Post: TButton;
     Button_FmtCmt_Recover: TButton;
     Combo_AddAttrs: TComboBox;
@@ -249,7 +248,6 @@ type
     procedure Button_MainSorterClick(Sender: TObject);
 
     procedure Button_NodeViewRecoverClick(Sender: TObject);
-    procedure Button_tempClick(Sender: TObject);
     procedure CheckBox_KlassNotClick(Sender: TObject);
     procedure CheckBox_MainSorterAutoClick(Sender: TObject);
     procedure Edit_DBGridMain_SorterChange(Sender: TObject);
@@ -730,23 +728,23 @@ end;
 procedure TFormDesktop.ProjectOpenDone(Sender:TObject);
 begin
 
-  Self.Frame_AufScript1.OpenDialog.InitialDir:=CurrentRTFP.CurrentPathFull+'script';
-  Self.Frame_AufScript1.SaveDialog.InitialDir:=CurrentRTFP.CurrentPathFull+'script';
+  Self.Frame_AufScript1.OpenDialog.InitialDir:={CurrentRTFP}(Sender as TRTFP).CurrentPathFull+'script';
+  Self.Frame_AufScript1.SaveDialog.InitialDir:={CurrentRTFP}(Sender as TRTFP).CurrentPathFull+'script';
 
   //文献节点选项卡
-  Self.DataSource_Main.DataSet:=CurrentRTFP.PaperDS;
+  Self.DataSource_Main.DataSet:={CurrentRTFP}(Sender as TRTFP).PaperDS;
 
   //分类节点选项卡
-  ClassListValidate(CurrentRTFP);
+  ClassListValidate({CurrentRTFP}Sender as TRTFP);
 
   //FmtCmt选项卡
   Self.ComboBox_AttrName.Clear;
   Self.Button_FmtCmt_Post.Enabled:=false;
-  CurrentRTFP.AttrNameValidate(ComboBox_AttrName.Items);
+  {CurrentRTFP}(Sender as TRTFP).AttrNameValidate(ComboBox_AttrName.Items);
 
   Self.Validate(Sender);
-  CurrentRTFP.RebuildMainGrid;//Self.MainGridValidate(Sender);
-  CurrentRTFP.FormatEditBuild(Self.ScrollBox_Node_FormatEdit,'default.fmt');
+  {CurrentRTFP}(Sender as TRTFP).RebuildMainGrid;//Self.MainGridValidate(Sender);
+  {CurrentRTFP}(Sender as TRTFP).FormatEditBuild(Self.ScrollBox_Node_FormatEdit,'default.fmt');//这个不是这里应该做的事，移到format_component里头。
 
 
   Self.MenuItem_project_new.Enabled:=false;
@@ -2310,11 +2308,6 @@ procedure TFormDesktop.Button_NodeViewRecoverClick(Sender: TObject);
 begin
   if ProjectInvalid then exit;
   NodeViewValidate;
-end;
-
-procedure TFormDesktop.Button_tempClick(Sender: TObject);
-begin
-  LayoutMode:=(LayoutMode+1) mod 3;
 end;
 
 procedure TFormDesktop.CheckBox_KlassNotClick(Sender: TObject);

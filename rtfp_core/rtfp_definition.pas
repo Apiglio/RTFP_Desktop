@@ -748,7 +748,11 @@ var len:integer;
     stmp:string;
 begin
   Self.FFileName:=ExtractFileName(filename);
+  {$ifdef WINDOWS}
   Self.FFilePath:=ExtractFilePath(filename);
+  {$else}
+  Self.FFilePath:=StringReplace(ExtractFilePath(filename),'\','/',[rfReplaceAll]);
+  {$endif}
   Self.FRootFolder:='.'+Self.FFileName;
   Self.FFileFullName:=Self.FFilePath+Self.FFileName;
   len:=length(Self.FRootFolder);
@@ -766,8 +770,8 @@ var tmpAttrs:TAttrsGroup;
 begin
   //BeginUpdate;
   case DataSetType of
-    dstDBF:FFieldList.LoadFromPath('attr\','dbf');
-    dstBUF:FFieldList.LoadFromPath('attr\','buf');
+    dstDBF:FFieldList.LoadFromPath('attr/','dbf');
+    dstBUF:FFieldList.LoadFromPath('attr/','buf');
     else raise Exception.Create('无效DataSetType。');
   end;
 
@@ -833,8 +837,8 @@ var tmpKlass:TKlass;
 begin
   //BeginUpdate;
   case DataSetType of
-    dstDBF:FKlassList.LoadFromPath('class\','dbf');
-    dstBUF:FKlassList.LoadFromPath('class\','buf');
+    dstDBF:FKlassList.LoadFromPath('class/','dbf');
+    dstBUF:FKlassList.LoadFromPath('class/','buf');
     else raise Exception.Create('无效DataSetType。');
   end;
   for tmpKlass in FKlassList do
@@ -1103,7 +1107,7 @@ begin
     begin
       Clear;
       Add(Self.User);
-      SaveToFile(Self.FFilePath+Self.FRootFolder+'\user.dat');
+      SaveToFile(Self.FFilePath+Self.FRootFolder+'/user.dat');
     end;
   result:=true;
 end;
@@ -1114,7 +1118,7 @@ begin
   try with FUserList do
     begin
       Clear;
-      LoadFromFile(Self.FFilePath+Self.FRootFolder+'\user.dat');
+      LoadFromFile(Self.FFilePath+Self.FRootFolder+'/user.dat');
     end;
   except
     exit;
@@ -1124,7 +1128,7 @@ end;
 
 function TRTFP.SaveUserList:boolean;
 begin
-  FUserList.SaveToFile(Self.FFilePath+Self.FRootFolder+'\user.dat');
+  FUserList.SaveToFile(Self.FFilePath+Self.FRootFolder+'/user.dat');
   result:=true;
 end;
 
@@ -1140,7 +1144,7 @@ begin
   str:=TStringList.Create;
   try
     try
-      str.LoadFromFile(GetCurrentPathFull+'\option.lay.auf');
+      str.LoadFromFile(GetCurrentPathFull+'/option.lay.auf');
       //str.Add('option.attrs.rebuild_mg');
       AAuf.Script.command(str);
     except
@@ -1149,6 +1153,7 @@ begin
   finally
     str.Free;
   end;
+  if Self=nil then;
 end;
 
 procedure TRTFP.SaveProjectOption(filename:string='');
@@ -1197,12 +1202,12 @@ begin
   repeat
     md:=true;
     md:=md and TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder);
-    md:=md and TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\paper');
-    md:=md and TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\class');
-    md:=md and TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\note');
-    md:=md and TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\image');
-    md:=md and TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\format');
-    md:=md and TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'\attr');
+    md:=md and TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'/paper');
+    md:=md and TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'/class');
+    md:=md and TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'/note');
+    md:=md and TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'/image');
+    md:=md and TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'/format');
+    md:=md and TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'/attr');
     if not md then begin
       case ShowMsgRetryIgnore('新建工程','工程文件夹创建失败。') of
         'Retry':;
@@ -1283,9 +1288,9 @@ begin
   if FOnOpenDone <> nil then FOnOpenDone(Self);
 
   //以下更新显示需要PaperDS和ACLClassList的链接，所以放在onOpenDone之后
-  RebuildMainGrid;
-  ClassChange(true);
-  FieldAndRecordChange(true);
+  Self.RebuildMainGrid;
+  Self.ClassChange(true);
+  Self.FieldAndRecordChange(true);
 end;
 
 procedure TRTFP.Save;
@@ -1658,7 +1663,7 @@ end;
 
 function TRTFP.GetCurrentPathFull:string;
 begin
-  result:=FFilePath+FRootFolder+'\';
+  result:=FFilePath+FRootFolder+'/';
 end;
 
 procedure TRTFP.SetDataSetType(value:TRTFP_DataSetType);
@@ -1834,7 +1839,13 @@ end;
 class function TRTFP.CanBuildDisc(discchar:char):boolean;
 var d1,d2,d3:qword;
 begin
+  {$if defined(WINDOWS)}
   GetDiskFreeSpaceEx(pchar(discchar+':\'),@d1,@d2,@d3);
+  {$elseif defined(UNIX)}
+  d1:=DiskFree(0);
+  {$else}
+  d1:=0;
+  {$endif}
   if d1<$ffffffff then result:=false
   else result:=true;
 

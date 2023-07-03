@@ -3,11 +3,11 @@ program RTFP_Desktop;
 {$mode objfpc}{$H+}
 
 uses
-  {$IFDEF UNIX}{$IFDEF UseCThreads}
+  {$IFDEF UNIX}
   cthreads,
-  {$ENDIF}{$ENDIF}
+  {$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, {pack_powerpdf, }RTFP_main,{ dbflaz, memdslaz,}
+  Forms, RTFP_main, Apiglio_Useful, auf_ram_image, aufscript_frame,{ dbflaz, memdslaz,}
   form_new_project, form_cite_trans, form_import, lazcontrols,
   tachartlazaruspkg, form_classmanager, form_appearance, form_options,
   form_report_tool, form_repeated_checker, form_project_profile,

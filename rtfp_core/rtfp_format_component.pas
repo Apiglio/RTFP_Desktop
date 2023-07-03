@@ -176,8 +176,10 @@ end;
 
 procedure TFmtImage.PastePicture(Sender:TObject);
 begin
+  {$ifdef WINDOWS}
   if Clipboard.HasFormat(PredefinedClipboardFormat(pcfDelphiBitmap)) then
     FImage.Picture.Bitmap.LoadFromClipboardFormat(PredefinedClipboardFormat(pcfDelphiBitmap));
+  {$endif}
   if Clipboard.HasFormat(PredefinedClipboardFormat(pcfBitmap)) then
     FImage.Picture.Bitmap.LoadFromClipboardFormat(PredefinedClipboardFormat(pcfBitmap));
   TFormatEditPanel(Parent).FmtPanelComponentChange(Self);

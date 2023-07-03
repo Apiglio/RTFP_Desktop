@@ -27,7 +27,7 @@ begin
   str:=TStringList.Create;
   try
     try
-      str.LoadFromFile(Self.FFilePath+Self.FRootFolder+'\format\'+AFormatFile);
+      str.LoadFromFile(Self.FFilePath+Self.FRootFolder+'/format/'+AFormatFile);
       Self.FormatEditBuild(AScrollBox,str);
     except
       assert(false,'Format文件未找到。');

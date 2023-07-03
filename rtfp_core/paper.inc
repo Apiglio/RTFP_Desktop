@@ -31,8 +31,8 @@ begin
           begin
             DateDir:=TRTFP.GetDateDir;
             FileName:=ExtractFileName(fullfilename);
-            TargetDir:=FFilePath+FRootFolder+'\paper\'+DateDir;
-            if FileExists(TargetDir+'\'+FileName) then
+            TargetDir:=FFilePath+FRootFolder+'/paper/'+DateDir;
+            if FileExists(TargetDir+'/'+FileName) then
               case ShowMsgYesNoAll('相同的备份路径','正在导入的文件“'+fullfilename
               +'”的默认备份地址存在重名，覆盖会导致两个文献节点共用一个备份文件。'
               +'若两个文件不相同，会导致旧版本备份文件被覆盖，且难以复原。'
@@ -46,7 +46,7 @@ begin
             DateDir:='extern';
             FileName:=fullfilename;
             if length(FileName)>240 then exit;
-            //TargetDir:=FFilePath+FRootFolder+'\paper\'+DateDir;
+            //TargetDir:=FFilePath+FRootFolder+'/paper/'+DateDir;
           end;
       end;
       tmpPDF.LoadPdf(fullfilename);
@@ -104,15 +104,15 @@ begin
         apmFullBackup:
           begin
             ForceDirectories(TargetDir);
-            //tmpPDF.CopyTo(TargetDir+'\'+FileName);//为什么不用copy？
-            TRTFP.FileCopy(fullfilename,TargetDir+'\'+FileName,false);
+            //tmpPDF.CopyTo(TargetDir+'/'+FileName);//为什么不用copy？
+            TRTFP.FileCopy(fullfilename,TargetDir+'/'+FileName,false);
             //尚未加入长度检验
           end;
         apmCutBackup:
           begin
             ForceDirectories(TargetDir);
-            //tmpPDF.CopyTo(TargetDir+'\'+FileName);//为什么不用copy？
-            TRTFP.FileMove(fullfilename,TargetDir+'\'+FileName,false);
+            //tmpPDF.CopyTo(TargetDir+'/'+FileName);//为什么不用copy？
+            TRTFP.FileMove(fullfilename,TargetDir+'/'+FileName,false);
             //尚未加入长度检验
           end;
 
@@ -149,7 +149,7 @@ begin
           if FieldByName(_Col_Paper_FileHash_).AsString = FHash then
             begin
               if not cps then begin CpStr:=TMemoryStream.Create;cps:=true end;
-              FName:=FFilePath+FRootFolder+'\paper\'+FieldByName(_Col_Paper_Folder_).AsString+'\'+FieldByName(_Col_Paper_FileName_).AsString;
+              FName:=FFilePath+FRootFolder+'/paper/'+FieldByName(_Col_Paper_Folder_).AsString+'/'+FieldByName(_Col_Paper_FileName_).AsString;
               repeat try
                 retry:=false;
                 CpStr.LoadFromFile(FName);
@@ -185,7 +185,7 @@ begin
     if FieldByName(_Col_Paper_Is_Backup_).AsBoolean then
       if not PreserveFileNoAsk then
         case ShowMsgYesNoAll('删除确认','删除文献节点对应的文件可能会导致其他共用此文件的节点失去文件连接，并且操作后无法恢复，是否继续？',true) of
-          'Yes':TRTFP.FileDelete(FFilePath+FRootFolder+'\paper\'+FieldByName(_Col_Paper_Folder_).AsString+'\'+FieldByName(_Col_Paper_FileName_).AsString);
+          'Yes':TRTFP.FileDelete(FFilePath+FRootFolder+'/paper/'+FieldByName(_Col_Paper_Folder_).AsString+'/'+FieldByName(_Col_Paper_FileName_).AsString);
           else ;
         end
       else ;//PreserveFileNoAsk=true时直接不删除
@@ -240,8 +240,8 @@ begin
       begin
         DateDir:=TRTFP.GetDateDir;
         FileName:=ExtractFileName(fullfilename);
-        TargetDir:=FFilePath+FRootFolder+'\paper\'+DateDir;
-        if FileExists(TargetDir+'\'+FileName) then
+        TargetDir:=FFilePath+FRootFolder+'/paper/'+DateDir;
+        if FileExists(TargetDir+'/'+FileName) then
           case ShowMsgYesNoAll('相同的备份路径','正在导入的文件“'+fullfilename
           +'”的默认备份地址存在重名，覆盖会导致两个文献节点共用一个备份文件。'
           +'若两个文件不相同，会导致旧版本备份文件被覆盖，且难以复原。'
@@ -297,20 +297,20 @@ begin
       apmFullBackup:
         begin
           ForceDirectories(TargetDir);
-          tmpPDF.CopyTo(TargetDir+'\'+FileName);//改了，不用这个了
-          TRTFP.FileCopy(fullfilename,TargetDir+'\'+FileName,false);
+          tmpPDF.CopyTo(TargetDir+'/'+FileName);//改了，不用这个了
+          TRTFP.FileCopy(fullfilename,TargetDir+'/'+FileName,false);
           //尚未加入长度检验
         end;
       apmCutBackup:
         begin
           ForceDirectories(TargetDir);
-          tmpPDF.CopyTo(TargetDir+'\'+FileName);//改了，不用这个了
-          TRTFP.FileMove(fullfilename,TargetDir+'\'+FileName,false);
+          tmpPDF.CopyTo(TargetDir+'/'+FileName);//改了，不用这个了
+          TRTFP.FileMove(fullfilename,TargetDir+'/'+FileName,false);
           //尚未加入长度检验
         end;
     end;
     if old_backup then begin
-      TRTFP.FileDelete(FFilePath+FRootFolder+'\paper\'+old_dir+'\'+old_file);
+      TRTFP.FileDelete(FFilePath+FRootFolder+'/paper/'+old_dir+'/'+old_file);
       FPaperDB.FieldByName(_Col_Paper_Is_Backup_).AsBoolean:=true;
     end;
 
@@ -430,8 +430,8 @@ begin
     if not Active then Open;
     if not LocatePID(FPaperDB,PID) then exit;
     if FieldByName(_Col_Paper_Is_Backup_).AsBoolean then
-      filename:=Utf8ToWinCP(FFilePath+FRootFolder+'\paper\'
-        +FieldByName(_Col_Paper_Folder_).AsString+'\'
+      filename:=Utf8ToWinCP(FFilePath+FRootFolder+'/paper/'
+        +FieldByName(_Col_Paper_Folder_).AsString+'/'
         +FieldByName(_Col_Paper_FileName_).AsString)
     else begin
       case FieldByName(_Col_Paper_Folder_).AsString of
@@ -465,8 +465,8 @@ begin
     if not Active then Open;
     if not LocatePID(FPaperDB,PID) then exit;
     if FieldByName(_Col_Paper_Is_Backup_).AsBoolean then
-      filename:=Utf8ToWinCP(FFilePath+FRootFolder+'\paper\'
-        +FieldByName(_Col_Paper_Folder_).AsString+'\'
+      filename:=Utf8ToWinCP(FFilePath+FRootFolder+'/paper/'
+        +FieldByName(_Col_Paper_Folder_).AsString+'/'
         +FieldByName(_Col_Paper_FileName_).AsString)
     else begin
       case FieldByName(_Col_Paper_Folder_).AsString of

@@ -6,12 +6,12 @@ begin
   result:=nil;
   if not TRTFP.IsKlassName(klassname) then exit;
   if FKlassList.FindItemIndexByName(klassname)>=0 then exit;
-  if pathname<>'' then pathname:=pathname+'\';
+  if pathname<>'' then pathname:=pathname+'/';
   case DataSetType of
-    dstDBF:tmp:=FKlassList.AddEx('class\'+pathname+klassname,klassname,'dbf');
-    dstBUF:tmp:=FKlassList.AddEx('class\'+pathname+klassname,klassname,'buf');
+    dstDBF:tmp:=FKlassList.AddEx('class/'+pathname+klassname,klassname,'dbf');
+    dstBUF:tmp:=FKlassList.AddEx('class/'+pathname+klassname,klassname,'buf');
   end;
-  ForceDirectories(FFilePath+FRootFolder+'\class\'+pathname);
+  ForceDirectories(FFilePath+FRootFolder+'/class/'+pathname);
   if not OpenDbf(tmp.FullPath,tmp.Dbf) then begin
     GenAttrDefaultAttribute(tmp.Dbf);
     NewDbf(tmp.FullPath,tmp.Dbf);
