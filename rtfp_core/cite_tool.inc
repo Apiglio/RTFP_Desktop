@@ -46,11 +46,16 @@ begin
   AG.Dbf.Edit;
 end;
 
+function TRTFP.Cite_format:string;
+begin
+  result:=Tag['引注标识码'];
+  if result='' then result:=Tag['工程标题'];
+end;
+
 function TRTFP.PID_Cite_format(APID:RTFP_ID):string;
 var project_id:string;
 begin
-  project_id:=Tag['引注标识码'];
-  if project_id='' then project_id:=Tag['工程标题'];
+  project_id:=Cite_format;
   if project_id='' then result:=APID else result:=project_id+'_'+APID;
 end;
 

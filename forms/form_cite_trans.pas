@@ -38,9 +38,9 @@ type
     procedure FormShow(Sender: TObject);
     procedure PaintBox_ArrowsPaint(Sender: TObject);
   private
-
+    FCloseAfterEdit:boolean;
   public
-
+    procedure Call(PID_Changeable:boolean);
   end;
 
 var
@@ -103,6 +103,7 @@ begin
   end;
   FormDesktop.Validate(CurrentRTFP);
   Memo_Cite.Clear;
+  if FCloseAfterEdit then ModalResult:=mrOK;
 end;
 
 procedure TForm_CiteTrans.Button_ImportPapersClick(Sender: TObject);
@@ -238,6 +239,13 @@ begin
   PaintBox_Arrows.Canvas.Line(button_center-8,8,button_center,16);
   PaintBox_Arrows.Canvas.Line(button_center+8,8,button_center,16);
 
+end;
+
+procedure TForm_CiteTrans.Call(PID_Changeable:boolean);
+begin
+  Panel_DBGrid_Temporary.Enabled:=PID_Changeable;
+  FCloseAfterEdit:=not PID_Changeable;
+  ShowModal;
 end;
 
 end.

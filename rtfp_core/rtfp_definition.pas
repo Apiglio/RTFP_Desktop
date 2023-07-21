@@ -264,7 +264,8 @@ type
     procedure PostBasic;
     procedure EditBasic;
     procedure ReEditBasic;
-    function PID_Cite_format(APID:RTFP_ID):string;
+    function Cite_format:string;inline;
+    function PID_Cite_format(APID:RTFP_ID):string;inline;
 
   public
     procedure LoadFromEStudy(PID:RTFP_ID;str:TStrings);
@@ -495,6 +496,7 @@ type
     function GetJSON_FormatList:TJSONData;
 
     function GetJSON_Paper(PID:RTFP_ID):TJSONData;
+    procedure SetJSON_Paper(PID:RTFP_ID;data:TJSONData);
     function GetJSON_Image(IID:RTFP_ID):TJSONData;unimplemented;
     function GetJSON_Notes(NID:RTFP_ID):TJSONData;unimplemented;
     function GetJSON_Klass(klass:TKlass):TJSONData;
@@ -518,6 +520,7 @@ type
     property CountMainGrid:integer read GetMainGridCount;
 
   public
+    function ExportDSToFormatJSON:string;
     function ExportDSToCSVOrTSV(sep:char):string;
     function ExportDSToRubyOrPython(sep:string):string;
 
@@ -1195,12 +1198,16 @@ end;
 
 procedure TRTFP.New(filename:ansistring;p_title:string;p_user:string);
 var md:boolean;
+    fpath:string;
 begin
   if FOnNew <> nil then FOnNew(Self);
 
   Self.SetPaths(WinCPToUTF8(filename));
   repeat
     md:=true;
+    fpath:=Self.FFilePath;
+    delete(fpath,length(fpath),1);
+    md:=md and TRTFP.MakeDir(fpath);
     md:=md and TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder);
     md:=md and TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'/paper');
     md:=md and TRTFP.MakeDir(Self.FFilePath+Self.FRootFolder+'/class');

@@ -68,6 +68,70 @@ begin
   if boo then result:='True' else result:='False';
 end;
 
+function TRTFP.ExportDSToFormatJSON:string;
+const CRLF=#13#10;
+      TAB='  ';
+var bm:TBookMark;
+    idx,len,idx_f,len_f:integer;
+    tmpAF:TAttrsField;
+    disp_name,str_rep,stmp:string;
+    function string_replacer(str:string):string;
+    begin
+      result:=str;
+      result:=StringReplace(result,'\','\\',[rfReplaceAll]);
+      result:=StringReplace(result,'"','\"',[rfReplaceAll]);
+      result:=StringReplace(result,#13,'\r',[rfReplaceAll]);
+      result:=StringReplace(result,#10,'\n',[rfReplaceAll]);
+      result:=StringReplace(result,#9,'\t',[rfReplaceAll]);
+    end;
+
+begin
+  result:='['+CRLF;
+  if not FPaperDS.Active then exit;
+  bm:=FPaperDS.Bookmark;
+  len_f:=FPaperDSFieldDefs.Count;
+  len:=FPaperDS.RecordCount;
+  FPaperDS.First;
+  for idx:=0 to len-1 do begin
+    result:=result+TAB+'{'+CRLF;
+    for idx_f:=0 to len_f-1 do begin
+      tmpAF:=TAttrsField(FPaperDSFieldDefs.Items[idx_f]);
+      if tmpAF=nil then continue;
+      if tmpAF.DisplayName='' then disp_name:=tmpAF.FieldName else disp_name:=tmpAF.DisplayName;
+      case tmpAF.FieldDef.DataType of
+        ftString,ftWideString,ftFixedWideChar:begin
+          str_rep:=string_replacer(FPaperDS.Fields[idx_f].AsString);
+          result:=result+TAB+TAB+'"'+disp_name+'":"'+str_rep+'",'+CRLF;
+        end;
+        ftMemo,ftWideMemo:begin
+          result:=result+TAB+TAB+'"'+disp_name+'":['+CRLF;
+          for stmp in TMemoEnumeratorField(FPaperDS.Fields[idx_f]) do begin
+            result:=result+TAB+TAB+TAB+'"'+string_replacer(stmp)+'",'+CRLF;
+          end;
+          if FPaperDS.Fields[idx_f].AsString<>'' then delete(result,length(result)-length(CRLF),1);
+          result:=result+TAB+TAB+'],'+CRLF;
+        end;
+        //ftFmtMemo,ftFixedChar,
+        //ftBlob,
+        ftBoolean:
+          result:=result+'"'+disp_name+'":'+export_con_string(FPaperDS.Fields[idx_f].AsBoolean)+',';
+        ftFloat:
+          result:=result+'"'+disp_name+'":'+FloatToStr(FPaperDS.Fields[idx_f].AsFloat)+',';
+        ftInteger,ftLargeint,ftSmallint,ftWord:
+          result:=result+'"'+disp_name+'":'+IntToStr(FPaperDS.Fields[idx_f].AsLargeInt)+',';
+        ftDateTime,ftDate,ftTime:
+          result:=result+'"'+disp_name+'":"'+DateTimeToStr(FPaperDS.Fields[idx_f].AsDateTime)+'",';//可以考虑改成Time.mktime()
+      end;
+    end;
+    delete(result,length(result)-length(CRLF),1);
+    result:=result+TAB+'},'+CRLF;
+    FPaperDS.Next;
+  end;
+  delete(result,length(result)-length(CRLF),1);
+  result:=result+']';
+  if FPaperDS.BookmarkValid(bm) then FPaperDS.GotoBookmark(bm);
+end;
+
 function TRTFP.ExportDSToCSVOrTSV(sep:char):string;
 var bm:TBookMark;
     idx,len,idx_f,len_f:integer;

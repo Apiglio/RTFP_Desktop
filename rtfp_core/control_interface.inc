@@ -103,12 +103,14 @@ end;
 {分类列表显示}
 procedure TRTFP.KlassListValidate(AListView:TListView);
 var tmpKL:TKlass;
+    tmpPath:string;
 begin
   AListView.BeginUpdate;
   (AListView as TACL_ListView).Clear;
   for tmpKL in FKlassList do
     begin
-      (AListView as TACL_ListView).AddShellNodeItem(tmpKL.FullPath,tmpKL,tmpKL.FilterEnabled);
+      tmpPath:=StringReplace(tmpKL.FullPath,'/','\',[rfReplaceAll]);
+      (AListView as TACL_ListView).AddShellNodeItem(tmpPath,tmpKL,tmpKL.FilterEnabled);
     end;
   AListView.EndUpdate;
   (AListView as TACL_ListView).CheckShellNodeItem('class',true);

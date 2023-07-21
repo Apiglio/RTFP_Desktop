@@ -39,7 +39,57 @@ type
     pic_stretch:TPicStretch;
   end;
 
+  TMemoEnumeratorFieldEnumerator = class
+  private
+    FStringList:TStringList;
+    FPosition: Integer;
+  public
+    constructor Create(src:string);
+    destructor Destroy; override;
+    function GetCurrent:string;
+    function MoveNext: Boolean;
+    property Current:string read GetCurrent;
+  end;
+  TMemoEnumeratorField = class(TMemoField)
+  public
+    function GetEnumerator:TMemoEnumeratorFieldEnumerator;
+  end;
+
+
 implementation
+
+{ TMemoEnumeratorField }
+function TMemoEnumeratorField.GetEnumerator:TMemoEnumeratorFieldEnumerator;
+begin
+  result:=TMemoEnumeratorFieldEnumerator.Create(Self.AsString);
+end;
+
+{ TMemoEnumeratorFieldEnumerator }
+constructor TMemoEnumeratorFieldEnumerator.Create(src:string);
+begin
+  inherited Create;
+  FPosition:=-1;
+  FStringList:=TStringList.Create;
+  FStringList.Text:=src;
+end;
+
+destructor TMemoEnumeratorFieldEnumerator.Destroy;
+begin
+  FStringList.Free;
+  inherited Destroy;
+end;
+
+function TMemoEnumeratorFieldEnumerator.GetCurrent:string;
+begin
+  result:=FStringList[FPosition];
+end;
+
+function TMemoEnumeratorFieldEnumerator.MoveNext:Boolean;
+begin
+  FPosition:=FPosition+1;
+  result:=FPosition<FStringList.Count;
+end;
+
 
 end.
 

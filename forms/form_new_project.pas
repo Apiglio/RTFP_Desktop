@@ -50,7 +50,7 @@ var
   Form_NewProject: TForm_NewProject;
 
 implementation
-uses RTFP_main, rtfp_type;
+uses RTFP_main, rtfp_type, rtfp_constants;
 
 {$R *.lfm}
 
@@ -134,7 +134,7 @@ end;
 
 procedure TForm_NewProject.FormCreate(Sender: TObject);
 begin
-  ////////////////CheckListBox_CanBuild;    //那个禁止用户操作的是什么函数？？？
+  Edit_ProjectPath.Caption:=ExtractFilePath(ParamStr(0))+'DefaultDB'+_fsplit_;
 end;
 
 procedure TForm_NewProject.FormDeactivate(Sender: TObject);

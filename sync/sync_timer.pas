@@ -131,7 +131,7 @@ begin
             Select_PID(PID);
             NodeViewValidate;
           end;
-          Form_CiteTrans.ShowModal;
+          Form_CiteTrans.Call(false);
         end;
       end;
     end;
