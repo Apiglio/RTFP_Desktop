@@ -12,12 +12,12 @@ uses
   ValEdit, StdCtrls, DbCtrls, LazUTF8, SynEdit, Clipbrd, LCLType, Buttons,
   Regexpr, SynHighlighterAuf,
 
-  Apiglio_Useful, AufScript_Frame, ACL_ListView,
+  Apiglio_Useful, AufScript_Frame, ListCheck,
 
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.6-alpha.5';
+  C_VERSION_NUMBER  = '0.2.7-alpha.1';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -36,8 +36,8 @@ type
   { TFormDesktop }
 
   TFormDesktop = class(TForm)
-    AListView_Klass: TACL_ListView;
-    AListView_Attrs: TACL_ListView;
+    AListView_Attrs: TListCheck;
+    AListView_Klass: TListCheck;
     Button_MainSorter: TButton;
     Button_FormatEditPostAndNext: TButton;
     Button_FormatEditLoad: TButton;
@@ -214,11 +214,11 @@ type
     TabSheet_Project_AufScript: TTabSheet;
     TabSheet_Project_DataGrid: TTabSheet;
     PropertiesValueListEditor: TValueListEditor;
-    procedure AListView_AttrsNodeChecked(Sender: TObject; Item: TACL_TreeNode);
+    procedure AListView_AttrsItemChecked(Sender: TObject; Item: TListCheckNode);
     procedure AListView_KlassDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure AListView_KlassDragOver(Sender, Source: TObject; X, Y: Integer;
       State: TDragState; var Accept: Boolean);
-    procedure AListView_KlassNodeChecked(Sender: TObject; Item: TACL_TreeNode);
+    procedure AListView_KlassItemChecked(Sender: TObject; Item: TListCheckNode);
     procedure Button_AddAttrsClick(Sender: TObject);
     procedure Button_AddFieldClick(Sender: TObject);
     procedure Button_AddKlassClick(Sender: TObject);
@@ -702,8 +702,8 @@ procedure TFormDesktop.Clear(Sender:TObject);
 begin
   Self.Caption:=C_SOFTWARE_NAME;
   Self.PropertiesValueListEditor.Clear;
-  AListView_Attrs.Clear;
-  AListView_Klass.Clear;
+  AListView_Attrs.Root.Clear;
+  AListView_Klass.Root.Clear;
   Combo_AddAttrs.Clear;
   ComboBox_FormatEdit.Clear;
 end;
@@ -754,7 +754,7 @@ begin
   Self.DataSource_Main.DataSet:=nil;
 
   //分类节点选项卡
-  AListView_Klass.Clear;
+  AListView_Klass.Root.Clear;//but why
 
   Self.MenuItem_project_new.Enabled:=true;
   Self.MenuItem_project_open.Enabled:=true;
@@ -1137,36 +1137,30 @@ end;
 
 procedure TFormDesktop.MenuItem_ClassMgr_CDirClick(Sender: TObject);
 var klassname,newname:string;
-    tmpNode:TACL_TreeNode;
-    tmpLV:TACL_ListView;
+    tmpNode:TListCheckNode;
 begin
   if ProjectInvalid then exit;
-  tmpLV:=AListView_Klass;
-  tmpNode:=TACL_TreeNode(tmpLV.Selected.Data);
+  tmpNode:=TListCheckNode(AListView_Klass.Selected);
   if tmpNode<>nil then
-  klassname:=TKlass(tmpNode.Data).FullPath;
-  newname:=InputBox('分类移动','分类组：',klassname);
+  ShowMsgOK('分类重命名','暂不支持分类移动。');
+  //klassname:=TKlass(tmpNode.Data).FullPath;
+  //newname:=InputBox('分类移动','分类组：',klassname);
   //if (newname<>'') and (newname<>klassname) then CurrentRTFP.ChangeKlassDir(klassname);
 end;
 
 procedure TFormDesktop.MenuItem_ClassMgr_DelClick(Sender: TObject);
-var klassname:string;
-    tmpNode:TACL_TreeNode;
-    tmpLV:TACL_ListView;
+var tmpNode:TListCheckNode;
     tmpKL:TKlass;
     filter:boolean;
 begin
   if ProjectInvalid then exit;
-  tmpLV:=AListView_Klass;
-  if tmpLV.SelCount<>1 then exit;
-  tmpNode:=TACL_TreeNode(tmpLV.Selected.Data);
-  if tmpNode<>nil then
-  klassname:=tmpNode.Name;
-  tmpKL:=CurrentRTFP.KlassList.FindItemByName(klassname);
+  tmpNode:=AListView_Klass.Selected;
+  if tmpNode=nil then exit;
+  tmpKL:=TKlass(tmpNode.Data);
   if tmpKL=nil then exit;
   filter:=tmpKL.FilterEnabled;
-  case ShowMsgYesNoAll('删除分类','是否删除“'+klassname+'”分类？') of
-    'Yes':CurrentRTFP.DeleteKlass(klassname);
+  case ShowMsgYesNoAll('删除分类','是否删除“'+tmpKL.Name+'”分类？') of
+    'Yes':CurrentRTFP.DeleteKlass(tmpKL.Name);
     else exit;
   end;
   if filter then CurrentRTFP.RebuildMainGrid;
@@ -1174,42 +1168,39 @@ end;
 
 procedure TFormDesktop.MenuItem_ClassMgr_RenClick(Sender: TObject);
 var klassname,newname:string;
-    tmpNode:TACL_TreeNode;
-    tmpLV:TACL_ListView;
+    tmpNode:TListCheckNode;
 begin
   if ProjectInvalid then exit;
-  tmpLV:=AListView_Klass;
-  tmpNode:=TACL_TreeNode(tmpLV.Selected.Data);
-  if tmpNode<>nil then
-  klassname:=tmpNode.Name;
-  newname:=InputBox('分类重命名','新名称：',klassname);
+  tmpNode:=AListView_Klass.Selected;
+  if tmpNode=nil then exit;
+  ShowMsgOK('分类重命名','暂不支持分类重命名。');
+  //klassname:=TKlass(tmpNode.Data).Name;
+  //newname:=InputBox('分类重命名','新名称：',klassname);
   //if (newname<>'') and (newname<>klassname) then CurrentRTFP.RenameKlass(klassname);
 end;
 
 procedure TFormDesktop.MenuItem_ClassMgr_CheckAllClick(Sender: TObject);
-var tmpNode:TACL_TreeNode;
+var tmpNode:TListCheckNode;
 begin
   if ProjectInvalid then exit;
-  if AListView_Klass.SelCount<>1 then exit;
-  tmpNode:=TACL_TreeNode(AListView_Klass.Selected.Data);
+  tmpNode:=AListView_Klass.Selected;
   CurrentRTFP.BeginUpdate;
-  tmpNode.CheckAll;
+  tmpNode.CheckAllSubordinates;
   CurrentRTFP.EndUpdate;
-  AListView_Klass.RePaint;
-  CurrentRTFP.RebuildMainGrid;//MainGridValidate(CurrentRTFP);
+  AListView_Klass.Refresh;
+  CurrentRTFP.RebuildMainGrid;
 end;
 
 procedure TFormDesktop.MenuItem_ClassMgr_UnCheckAllClick(Sender: TObject);
-var tmpNode:TACL_TreeNode;
+var tmpNode:TListCheckNode;
 begin
   if ProjectInvalid then exit;
-  if AListView_Klass.SelCount<>1 then exit;
-  tmpNode:=TACL_TreeNode(AListView_Klass.Selected.Data);
+  tmpNode:=AListView_Klass.Selected;
   CurrentRTFP.BeginUpdate;
-  tmpNode.UnCheckAll;
+  tmpNode.UnCheckAllSubordinates;
   CurrentRTFP.EndUpdate;
-  AListView_Klass.RePaint;
-  CurrentRTFP.RebuildMainGrid;//MainGridValidate(CurrentRTFP);
+  AListView_Klass.Refresh;
+  CurrentRTFP.RebuildMainGrid;
 end;
 
 procedure TFormDesktop.MenuItem_ClassToolClick(Sender: TObject);
@@ -1285,11 +1276,11 @@ end;
 
 procedure TFormDesktop.MenuItem_FieldMgr_DelClick(Sender: TObject);
 var tmpA:Pointer;
-    tmpNode:TACL_TreeNode;
+    tmpNode:TListCheckNode;
     target_name,group_name:string;
 begin
   if ProjectInvalid then exit;
-  tmpNode:=TACL_TreeNode(AListView_Attrs.Selected.Data);
+  tmpNode:=AListView_Attrs.Selected;
   if tmpNode=nil then exit;
   if tmpNode.Data is TAttrsGroup then
     begin
@@ -1312,10 +1303,10 @@ begin
 end;
 
 procedure TFormDesktop.MenuItem_FieldMgr_EditClick(Sender: TObject);
-var tmpNode:TACL_TreeNode;
+var tmpNode:TListCheckNode;
 begin
   if ProjectInvalid then exit;
-  tmpNode:=TACL_TreeNode(AListView_Attrs.Selected.Data);
+  tmpNode:=AListView_Attrs.Selected;
   if tmpNode=nil then exit;
   if tmpNode.Data is TAttrsGroup then begin
     if Form_FieldChange.Call(TAttrsField(tmpNode.Data))=mrOK then
@@ -1330,10 +1321,10 @@ begin
 end;
 
 procedure TFormDesktop.MenuItem_FieldMgr_DisplayOptionClick(Sender: TObject);
-var tmpNode:TACL_TreeNode;
+var tmpNode:TListCheckNode;
 begin
   if ProjectInvalid then exit;
-  tmpNode:=TACL_TreeNode(AListView_Attrs.Selected.Data);
+  tmpNode:=AListView_Attrs.Selected;
   if tmpNode=nil then exit;
   if tmpNode.Data is TAttrsGroup then
     exit
@@ -1851,7 +1842,7 @@ begin
 end;
 
 
-
+{
 procedure TFormDesktop.AListView_AttrsNodeChecked(Sender: TObject;
   Item: TACL_TreeNode);
 var tmpA:TObject;
@@ -1869,39 +1860,59 @@ begin
     end
   else ;
 end;
+}
+
+procedure TFormDesktop.AListView_AttrsItemChecked(Sender: TObject;
+  Item: TListCheckNode);
+var tmpA:TObject;
+begin
+  tmpA:=Item.Data;
+  if tmpA=nil then exit;
+  if tmpA is TAttrsField then
+    begin
+      (tmpA as TAttrsField).Shown:=Item.Checked;
+      CurrentRTFP.RebuildMainGrid;
+    end
+  else if tmpA is TAttrsGroup then
+    begin
+      (tmpA as TAttrsGroup).GroupShown:=Item.Unfold;
+    end
+  else ;
+end;
 
 procedure TFormDesktop.AListView_KlassDragDrop(Sender, Source: TObject; X,
   Y: Integer);
-var tmpListItem:TListItem;
-    tmpNode:TACL_TreeNode;
+var tmpNode:TListCheckNode;
+    tmpKL:TKlass;
 begin
-  tmpListItem:=(Sender as TACL_ListView).GetItemAt(X,Y);
-  if tmpListItem=nil then exit;
-  tmpNode:=TACL_TreeNode(tmpListItem.Data);
-  if tmpNode.Data=nil then exit;
+  tmpNode:=(Sender as TListCheck).PickItem(X,Y);
+  if tmpNode=nil then exit;
+  tmpKL:=TKlass(tmpNode.Data);
+  if tmpKL=nil then exit;
   if ssShift in UIState.DragShift then
-    CurrentRTFP.KlassExclude((tmpNode.Data as TKlass).Name,Selected_PID)
+    CurrentRTFP.KlassExclude(tmpKL.Name,Selected_PID)
   else
-    CurrentRTFP.KlassInclude((tmpNode.Data as TKlass).Name,Selected_PID);
+    CurrentRTFP.KlassInclude(tmpKL.Name,Selected_PID);
 end;
 
 procedure TFormDesktop.AListView_KlassDragOver(Sender, Source: TObject; X,
   Y: Integer; State: TDragState; var Accept: Boolean);
-var tmpListItem:TListItem;
+var tmpNode:TListCheckNode;
 begin
-  tmpListItem:=(Sender as TACL_ListView).GetItemAt(X,Y);
-  Accept:=tmpListItem<>nil;
-  if Accept then (Sender as TACL_ListView).ItemIndex:=tmpListItem.Index;
+  tmpNode:=(Sender as TListCheck).PickItem(X,Y);
+  Accept:=tmpNode<>nil;
+  if Accept then (Sender as TListCheck).Selected:=tmpNode;
+  (Sender as TListCheck).Refresh;
 end;
 
-procedure TFormDesktop.AListView_KlassNodeChecked(Sender: TObject;
-  Item: TACL_TreeNode);
+procedure TFormDesktop.AListView_KlassItemChecked(Sender: TObject;
+  Item: TListCheckNode);
 var tmpKL:TKlass;
 begin
   tmpKL:=TKlass(Item.Data);
   if tmpKL<>nil then begin
     tmpKL.FilterEnabled:=Item.Checked;
-    CurrentRTFP.RebuildMainGrid;//MainGridValidate(CurrentRTFP);//CurrentRTFP.DataChange;
+    CurrentRTFP.RebuildMainGrid;
   end;
 end;
 
@@ -2279,11 +2290,11 @@ begin
 end;
 
 procedure TFormDesktop.MenuItem_FieldMgr_CopyClick(Sender: TObject);
-var tmpNode:TACL_TreeNode;
+var tmpNode:TListCheckNode;
     tmpJSON:TJSONData;
 begin
   if ProjectInvalid then exit;
-  tmpNode:=TACL_TreeNode(AListView_Attrs.Selected.Data);
+  tmpNode:=AListView_Attrs.Selected;
   if tmpNode=nil then exit;
   if tmpNode.Data is TAttrsGroup then
     begin

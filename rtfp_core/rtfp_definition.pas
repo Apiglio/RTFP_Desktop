@@ -53,7 +53,7 @@ interface
 
 uses
   Classes, SysUtils, Dialogs, ValEdit, LazUTF8, StdCtrls, ComCtrls, ExtCtrls, Forms, FileUtil,
-  ACL_ListView, Controls, Graphics, RegExpr,
+  ACL_ListView, ListCheck, Controls, Graphics, RegExpr,
 
   {$ifdef Windows}
   Windows,
@@ -395,11 +395,11 @@ type
     procedure TableFilter;
     procedure TableSorter;
 
-    procedure FieldListValidate(AListView:TListView);
-    procedure KlassListValidate(AListView:TListView);
+    procedure FieldListValidate(AListView:TListCheck);
+    procedure KlassListValidate(AListView:TListCheck);
 
-    procedure FmtCmtValidate(PID:RTFP_ID;AttrName,FieldName:string;Memo:TMemo);
-    procedure FmtCmtDataPost(PID:RTFP_ID;AttrName,FieldName:string;Memo:TMemo);
+    //procedure FmtCmtValidate(PID:RTFP_ID;AttrName,FieldName:string;Memo:TMemo);
+    //procedure FmtCmtDataPost(PID:RTFP_ID;AttrName,FieldName:string;Memo:TMemo);
     procedure AttrNameValidate(AItems:TStrings);
     procedure FieldNameValidate(AAttrName:string;AItems:TStrings);
 
