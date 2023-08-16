@@ -995,7 +995,11 @@ object FormDesktop: TFormDesktop
           AnchorSideLeft.Control = Frame_AufScript1
           Height = 194
           Width = 249
+          Gutter.Width = 57
           inherited SynLeftGutterPartList1: TSynGutterPartList
+            inherited SynGutterLineNumber1: TSynGutterLineNumber
+              Width = 17
+            end
             inherited SynGutterCodeFolding1: TSynGutterCodeFolding
               AutoSize = False
             end
@@ -1056,9 +1060,9 @@ object FormDesktop: TFormDesktop
     Height = 174
     Top = 343
     Width = 865
-    ActivePage = TabSheet_Node_PDF
+    ActivePage = TabSheet_Node_FormatEdit
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 4
     OnChange = PageControl_NodeChange
     object TabSheet_Node_PDF: TTabSheet
@@ -1215,14 +1219,14 @@ object FormDesktop: TFormDesktop
     Height = 512
     Top = 5
     Width = 207
-    ActivePage = TabSheet_Filter_Klass
+    ActivePage = TabSheet_Filter_Field
     Anchors = [akTop, akLeft, akRight, akBottom]
     Constraints.MinWidth = 167
     Font.CharSet = ANSI_CHARSET
     Font.Pitch = fpFixed
     Font.Quality = fqDraft
     ParentFont = False
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 6
     object TabSheet_Filter_Klass: TTabSheet
       Caption = '分类节点'
@@ -1928,9 +1932,15 @@ object FormDesktop: TFormDesktop
     end
     object MenuItem_DBGC_AS: TMenuItem
       Caption = '升序排序'
+      OnClick = MenuItem_DBGC_ASClick
     end
     object MenuItem_DBGC_DS: TMenuItem
       Caption = '降序排序'
+      OnClick = MenuItem_DBGC_DSClick
+    end
+    object MenuItem_DBGC_CR: TMenuItem
+      Caption = '清除排序'
+      OnClick = MenuItem_DBGC_CRClick
     end
     object MenuItem_DBGC_div02: TMenuItem
       Caption = '-'

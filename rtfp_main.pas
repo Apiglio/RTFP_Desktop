@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.7-alpha.1';
+  C_VERSION_NUMBER  = '0.2.7-alpha.2';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -54,6 +54,7 @@ type
     CheckBox_MainSorterAuto: TCheckBox;
     Edit_DBGridMain_Sorter: TEdit;
     Label_MainSorter: TLabel;
+    MenuItem_DBGC_CR: TMenuItem;
     MenuItem_DBGE_json: TMenuItem;
     MenuItem_FieldMgr_Copy: TMenuItem;
     MenuItem_PastePaper: TMenuItem;
@@ -243,7 +244,10 @@ type
     procedure Edit_DBGridMain_SorterKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure MenuItem_CopyPaperClick(Sender: TObject);
+    procedure MenuItem_DBGC_ASClick(Sender: TObject);
     procedure MenuItem_DBGC_CalcClick(Sender: TObject);
+    procedure MenuItem_DBGC_CRClick(Sender: TObject);
+    procedure MenuItem_DBGC_DSClick(Sender: TObject);
     procedure MenuItem_DBGC_FieldOptClick(Sender: TObject);
     procedure MenuItem_DBGE_csvClick(Sender: TObject);
     procedure MenuItem_DBGE_jsonClick(Sender: TObject);
@@ -2245,14 +2249,44 @@ begin
   end;
 end;
 
+procedure TFormDesktop.MenuItem_DBGC_ASClick(Sender: TObject);
+var sort_syntax,field_name:string;
+begin
+  if ProjectInvalid then exit;
+  field_name:=DBGrid_Main.DataSource.DataSet.Fields[LastDBGridPos.x-1].FieldName;
+  sort_syntax:=Edit_DBGridMain_Sorter.Caption;
+  Edit_DBGridMain_Sorter.Caption:='+ "'+field_name+'" '+sort_syntax;
+  Application.ProcessMessages;
+  CurrentRTFP.TableSorter;
+end;
+
 procedure TFormDesktop.MenuItem_DBGC_CalcClick(Sender: TObject);
 var tmpAF:TAttrsField;
 begin
   if ProjectInvalid then exit;
-  tmpAF:=TAttrsField(CurrentRTFP.PaperDSFieldDefs.Items[LastDBGridPos.x-1]);
+  tmpAF:=TAttrsField(CurrentRTFP.PaperDSFieldDefs[LastDBGridPos.x-1]);
   if tmpAF=nil then begin ShowMsgOK('编辑字段值','该字段不支持编辑。');exit end;
   Form_CalcField.Call(tmpAF);
   SetFocus;
+end;
+
+procedure TFormDesktop.MenuItem_DBGC_CRClick(Sender: TObject);
+begin
+  if ProjectInvalid then exit;
+  Edit_DBGridMain_Sorter.Caption:='"PID"';
+  Application.ProcessMessages;
+  CurrentRTFP.TableSorter;
+end;
+
+procedure TFormDesktop.MenuItem_DBGC_DSClick(Sender: TObject);
+var sort_syntax,field_name:string;
+begin
+  if ProjectInvalid then exit;
+  field_name:=DBGrid_Main.DataSource.DataSet.Fields[LastDBGridPos.x-1].FieldName;
+  sort_syntax:=Edit_DBGridMain_Sorter.Caption;
+  Edit_DBGridMain_Sorter.Caption:='- "'+field_name+'" '+sort_syntax;
+  Application.ProcessMessages;
+  CurrentRTFP.TableSorter;
 end;
 
 procedure TFormDesktop.MenuItem_DBGC_FieldOptClick(Sender: TObject);
