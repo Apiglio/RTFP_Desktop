@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.7-alpha.2';
+  C_VERSION_NUMBER  = '0.2.7-alpha.3';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -387,6 +387,12 @@ type
       Fields_ImgFile:boolean;
       ForceSaveField:boolean;
       Shortcut_CtrlR:TMGSC_CR_Option;
+      CopyMainGridWithDispName:boolean;  //在主表的信息复制中使用显示名
+      CopyMainGridWithHeadLine:boolean;  //在主表的信息复制中增加表头行
+      ExportImagePicStretch:TPicStretch; //导出图片报表的裁切选项
+      ExportImageFontSize:integer;       //导出图片报表的字体大小
+      ExportImageCellWidth:integer;      //导出图片报表的单元格宽
+      ExportImageCellHeight:integer;     //导出图片报表的单元格高
     end;//这些设置需要同步到RTFP对象中，打开工程时需要赋值，同时在软件打开时从注册表中读取，关闭是保存到注册表
     RunOption:record
       Filter_AutoRun:boolean;
@@ -514,6 +520,12 @@ begin
     CurrentRTFP.RunPerformance.Fields_ImgFile:=OptionMap.Fields_ImgFile;
     CurrentRTFP.RunPerformance.Filter_AutoRun:=CheckBox_MainFilterAuto.Checked;
     CurrentRTFP.RunPerformance.Filter_Command:=Edit_DBGridMain_Filter.Caption;
+    CurrentRTFP.RunPerformance.CopyMainGridWithDispName:=OptionMap.CopyMainGridWithDispName;
+    CurrentRTFP.RunPerformance.CopyMainGridWithHeadLine:=OptionMap.CopyMainGridWithHeadLine;
+    CurrentRTFP.RunPerformance.ExportImagePicStretch:=OptionMap.ExportImagePicStretch;
+    CurrentRTFP.RunPerformance.ExportImageFontSize:=OptionMap.ExportImageFontSize;
+    CurrentRTFP.RunPerformance.ExportImageCellWidth:=OptionMap.ExportImageCellWidth;
+    CurrentRTFP.RunPerformance.ExportImageCellHeight:=OptionMap.ExportImageCellHeight;
   end else ShowMsgOK('未找到工程','工程文件未找到！');
 end;
 
@@ -947,6 +959,12 @@ begin
     CurrentRTFP.RunPerformance.Fields_ImgFile:=OptionMap.Fields_ImgFile;
     CurrentRTFP.RunPerformance.Filter_AutoRun:=CheckBox_MainFilterAuto.Checked;
     CurrentRTFP.RunPerformance.Filter_Command:=Edit_DBGridMain_Filter.Caption;
+    CurrentRTFP.RunPerformance.CopyMainGridWithDispName:=OptionMap.CopyMainGridWithDispName;
+    CurrentRTFP.RunPerformance.CopyMainGridWithHeadLine:=OptionMap.CopyMainGridWithHeadLine;
+    CurrentRTFP.RunPerformance.ExportImagePicStretch:=OptionMap.ExportImagePicStretch;
+    CurrentRTFP.RunPerformance.ExportImageFontSize:=OptionMap.ExportImageFontSize;
+    CurrentRTFP.RunPerformance.ExportImageCellWidth:=OptionMap.ExportImageCellWidth;
+    CurrentRTFP.RunPerformance.ExportImageCellHeight:=OptionMap.ExportImageCellHeight;
   end;
 
 end;
@@ -1784,6 +1802,12 @@ begin
       CurrentRTFP.RunPerformance.Fields_ImgFile:=OptionMap.Fields_ImgFile;
       CurrentRTFP.RunPerformance.Filter_AutoRun:=CheckBox_MainFilterAuto.Checked;
       CurrentRTFP.RunPerformance.Filter_Command:=Edit_DBGridMain_Filter.Caption;
+      CurrentRTFP.RunPerformance.CopyMainGridWithDispName:=OptionMap.CopyMainGridWithDispName;
+      CurrentRTFP.RunPerformance.CopyMainGridWithHeadLine:=OptionMap.CopyMainGridWithHeadLine;
+      CurrentRTFP.RunPerformance.ExportImagePicStretch:=OptionMap.ExportImagePicStretch;
+      CurrentRTFP.RunPerformance.ExportImageFontSize:=OptionMap.ExportImageFontSize;
+      CurrentRTFP.RunPerformance.ExportImageCellWidth:=OptionMap.ExportImageCellWidth;
+      CurrentRTFP.RunPerformance.ExportImageCellHeight:=OptionMap.ExportImageCellHeight;
       SetFocus;
     end
   else
@@ -2391,6 +2415,12 @@ begin
     CurrentRTFP.RunPerformance.Fields_ImgFile:=OptionMap.Fields_ImgFile;
     CurrentRTFP.RunPerformance.Filter_AutoRun:=CheckBox_MainFilterAuto.Checked;
     CurrentRTFP.RunPerformance.Filter_Command:=Edit_DBGridMain_Filter.Caption;
+    CurrentRTFP.RunPerformance.CopyMainGridWithDispName:=OptionMap.CopyMainGridWithDispName;
+    CurrentRTFP.RunPerformance.CopyMainGridWithHeadLine:=OptionMap.CopyMainGridWithHeadLine;
+    CurrentRTFP.RunPerformance.ExportImagePicStretch:=OptionMap.ExportImagePicStretch;
+    CurrentRTFP.RunPerformance.ExportImageFontSize:=OptionMap.ExportImageFontSize;
+    CurrentRTFP.RunPerformance.ExportImageCellWidth:=OptionMap.ExportImageCellWidth;
+    CurrentRTFP.RunPerformance.ExportImageCellHeight:=OptionMap.ExportImageCellHeight;
   end;
 end;
 

@@ -138,6 +138,13 @@ type
       Fields_ImgFile:boolean;//将FormatEdit的图像保存在image文件夹中
       ForceSaveField:boolean;//在Saved的状态也保存字段属性
 
+      CopyMainGridWithDispName:boolean;  //在主表的信息复制中使用显示名
+      CopyMainGridWithHeadLine:boolean;  //在主表的信息复制中增加表头行
+      ExportImagePicStretch:TPicStretch; //导出图片报表的裁切选项
+      ExportImageFontSize:integer;       //导出图片报表的字体大小
+      ExportImageCellWidth:integer;      //导出图片报表的单元格宽
+      ExportImageCellHeight:integer;     //导出图片报表的单元格高
+
       Filter_Command:string;
       Filter_AutoRun:boolean;
       Sorter_Command:string;

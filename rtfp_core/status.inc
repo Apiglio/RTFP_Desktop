@@ -97,7 +97,10 @@ begin
     for idx_f:=0 to len_f-1 do begin
       tmpAF:=TAttrsField(FPaperDSFieldDefs.Items[idx_f]);
       if tmpAF=nil then continue;
-      if tmpAF.DisplayName='' then disp_name:=tmpAF.FieldName else disp_name:=tmpAF.DisplayName;
+      if (tmpAF.DisplayName='') or (not RunPerformance.CopyMainGridWithDispName) then
+        disp_name:=tmpAF.FieldName
+      else
+        disp_name:=tmpAF.DisplayName;
       case tmpAF.FieldDef.DataType of
         ftString,ftWideString,ftFixedWideChar:begin
           str_rep:=string_replacer(FPaperDS.Fields[idx_f].AsString);
@@ -144,23 +147,28 @@ begin
   len_f:=FPaperDSFieldDefs.Count;
   len:=FPaperDS.RecordCount;
   //标题
-  for idx_f:=0 to len_f-1 do begin
-    tmpAF:=TAttrsField(FPaperDSFieldDefs.Items[idx_f]);
-    if tmpAF=nil then continue;
-    if tmpAF.DisplayName='' then disp_name:=tmpAF.FieldName else disp_name:=tmpAF.DisplayName;
-    case tmpAF.FieldDef.DataType of
-      ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo,
-      //ftFmtMemo,ftFixedChar,
-      //ftBlob,
-      ftBoolean,
-      ftFloat,
-      ftInteger,ftLargeint,ftSmallint,ftWord,
-      ftDateTime,ftDate,ftTime:
-        result:=result+disp_name+sep;
+  if RunPerformance.CopyMainGridWithHeadLine then begin
+    for idx_f:=0 to len_f-1 do begin
+      tmpAF:=TAttrsField(FPaperDSFieldDefs.Items[idx_f]);
+      if tmpAF=nil then continue;
+      if (tmpAF.DisplayName='') or (not RunPerformance.CopyMainGridWithDispName) then
+        disp_name:=tmpAF.FieldName
+      else
+        disp_name:=tmpAF.DisplayName;
+      case tmpAF.FieldDef.DataType of
+        ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo,
+        //ftFmtMemo,ftFixedChar,
+        //ftBlob,
+        ftBoolean,
+        ftFloat,
+        ftInteger,ftLargeint,ftSmallint,ftWord,
+        ftDateTime,ftDate,ftTime:
+          result:=result+disp_name+sep;
+      end;
     end;
+    delete(result,length(result),1);
+    result:=result+#13#10;
   end;
-  delete(result,length(result),1);
-  result:=result+#13#10;
   //内容
   FPaperDS.First;
   for idx:=0 to len-1 do begin
@@ -213,7 +221,10 @@ begin
     for idx_f:=0 to len_f-1 do begin
       tmpAF:=TAttrsField(FPaperDSFieldDefs.Items[idx_f]);
       if tmpAF=nil then continue;
-      if tmpAF.DisplayName='' then disp_name:=tmpAF.FieldName else disp_name:=tmpAF.DisplayName;
+      if (tmpAF.DisplayName='') or (not RunPerformance.CopyMainGridWithDispName) then
+        disp_name:=tmpAF.FieldName
+      else
+        disp_name:=tmpAF.DisplayName;
       case tmpAF.FieldDef.DataType of
         ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo:begin
           str_rep:=FPaperDS.Fields[idx_f].AsString;
