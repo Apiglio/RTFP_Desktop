@@ -23,6 +23,15 @@ begin
   Self.FIsChanged:=true;
 end;
 
+procedure TRTFP.TagChange(key,value:string);
+begin
+  if not IsUpdating then
+    begin
+      if FOnTagChange<>nil then FOnTagChange(Self,key,value);
+    end;
+  Change;
+end;
+
 procedure TRTFP.DataChange(PID:RTFP_ID);
 begin
   if not IsUpdating then

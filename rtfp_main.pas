@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, Types;
 
 const
-  C_VERSION_NUMBER  = '0.2.7-alpha.3';
+  C_VERSION_NUMBER  = '0.2.8-alpha.1';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -422,6 +422,7 @@ type
     procedure MainGridUpdateRec(Sender:TObject;PID:RTFP_ID);
     procedure FormatListValidate(Sender:TObject;rename:string='default.fmt');
     procedure FormatEditValidate(Sender:TObject;fe_new,fe_old:string);
+    procedure ProjectTagChange(Sender:TObject;akey,avalue:string);
 
     procedure FirstEdit(Sender:TObject);//工程第一次编辑
     procedure Clear(Sender:TObject);//清空
@@ -492,6 +493,7 @@ begin
   Sender.onClose:=@ProjectClose;
 
   Sender.onChange:=@Validate;
+  Sender.onTagChange:=@ProjectTagChange;
   Sender.OnMainGridRebuilding:=@MainGridRebuilding;
   Sender.OnMainGridRebuildDone:=@MainGridRebuildDone;
   Sender.onClassChange:=@ClassListValidate;
@@ -707,6 +709,22 @@ begin
   CurrentRTFP.FormatEditValidate(Selected_PID);
 end;
 
+procedure TFormDesktop.ProjectTagChange(Sender:TObject;akey,avalue:string);
+var combo:TComboBox;
+    filename:string;
+begin
+  case akey of
+    '字段关联路径':with Sender as TRTFP do
+      begin
+        combo:=ComboBox_FormatEdit;
+        if combo.ItemIndex>=0 then filename:=combo.Items[combo.ItemIndex]
+        else filename:='';
+        FormatEditClear(Self.ScrollBox_Node_FormatEdit);
+        FormatEditBuild(Self.ScrollBox_Node_FormatEdit,filename);
+      end;
+  end;
+end;
+
 procedure TFormDesktop.FirstEdit(Sender:TObject);
 begin
   Self.Caption:=C_SOFTWARE_NAME+' - '+(Sender as TRTFP).Title + ' *';
@@ -725,6 +743,8 @@ begin
 end;
 
 procedure TFormDesktop.ProjectOpenDone(Sender:TObject);
+var fmt_file:string;
+    oidx:integer;
 begin
 
   Self.Frame_AufScript1.OpenDialog.InitialDir:={CurrentRTFP}(Sender as TRTFP).CurrentPathFull+'script';
@@ -738,7 +758,9 @@ begin
 
   Self.Validate(Sender);
   {CurrentRTFP}(Sender as TRTFP).RebuildMainGrid;//Self.MainGridValidate(Sender);
-  {CurrentRTFP}(Sender as TRTFP).FormatEditBuild(Self.ScrollBox_Node_FormatEdit,'default.fmt');//这个不是这里应该做的事，移到format_component里头。
+  fmt_file:=CurrentRTFP.Tag['编辑属性布局'];
+  if not (Sender as TRTFP).FormatList.Find(fmt_file,oidx) then fmt_file:='default.fmt';
+  {CurrentRTFP}(Sender as TRTFP).FormatEditBuild(Self.ScrollBox_Node_FormatEdit,fmt_file);//这个不是这里应该做的事，移到format_component里头。
 
 
   Self.MenuItem_project_new.Enabled:=false;
@@ -1859,6 +1881,7 @@ begin
   combo:=Sender as TComboBox;
   if combo.ItemIndex>=0 then filename:=combo.Items[combo.ItemIndex]
   else filename:='';
+  CurrentRTFP.Tag['编辑属性布局']:=filename;
   CurrentRTFP.FormatEditClear(nil);
   CurrentRTFP.FormatEditBuild(Self.ScrollBox_Node_FormatEdit,filename);
   CurrentRTFP.FormatEditValidate(Selected_PID);

@@ -333,7 +333,7 @@
     </Linking>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="13">
+    <Exceptions Count="15">
       <Item1>
         <Name Value="EAbort"/>
       </Item1>
@@ -373,6 +373,12 @@
       <Item13>
         <Name Value="EFCreateError"/>
       </Item13>
+      <Item14>
+        <Name Value="AttrsTypeDismatchErr"/>
+      </Item14>
+      <Item15>
+        <Name Value="FPImageException"/>
+      </Item15>
     </Exceptions>
   </Debugging>
 </CONFIG>

@@ -379,6 +379,7 @@ type
     procedure Update_0_1_1_alpha_18;
     procedure Update_0_1_2_alpha_8;unimplemented;
     procedure Update_0_2_5_alpha_3;
+    procedure Update_0_2_7_alpha_4;
 
   public
     procedure Update(save_version:string);
@@ -431,6 +432,7 @@ type
 
     FOnFirstEdit             :TRTFPChangeEvent;
     FOnChange                :TRTFPChangeEvent;
+    FOnTagChange             :TRTFPTwoStrEvent;
     FOnDataChange            :TRTFPChangeEvent;
     FOnFieldChange           :TRTFPChangeEvent;
     FOnRecordChange          :TRTFPChangeEvent;
@@ -468,6 +470,7 @@ type
     property onFirstEdit          :TRTFPChangeEvent  read FOnFirstEdit            write FOnFirstEdit;
     property onChange             :TRTFPChangeEvent  read FOnChange               write FOnChange;
     //以下On*Change事件会触发OnChange
+    property onTagChange          :TRTFPTwoStrEvent  read FOnTagChange            write FOnTagChange;
     property onDataChange         :TRTFPChangeEvent  read FOnDataChange           write FOnDataChange;
     property onFieldChange        :TRTFPChangeEvent  read FOnFieldChange          write FOnFieldChange;
     property onRecordChange       :TRTFPChangeEvent  read FOnRecordChange         write FOnRecordChange;
@@ -478,6 +481,7 @@ type
 
   public
     procedure Change;//用于标记工程已经发生改变，如果之前未改变，会触发OnFirstEdit
+    procedure TagChange(key,value:string);//工程属性修改，也会触发Change事件
     procedure DataChange(PID:RTFP_ID);//数据修改，也会触发Change事件
     procedure FieldChange;//字段修改，也会触发DataChange和Change事件
     procedure RecordChange;//记录修改，也会触发DataChange和Change事件
@@ -1067,6 +1071,10 @@ begin
 
   tmpProjectFile.Add('最后保存版本,'+C_VERSION_NUMBER);
   tmpProjectFile.Add('引注标识码,'+p_title);
+  tmpProjectFile.Add('字段关联路径,'+'');
+  tmpProjectFile.Add('字段关联后缀,'+'');
+  tmpProjectFile.Add('编辑属性布局,'+'default.fmt');
+
 
   repeat
     retry:=false;

@@ -91,6 +91,8 @@ begin
       FormatPanel.AttrsName:=Auf.nargs[1].arg;
       FormatPanel.FieldName:=Auf.nargs[2].arg;
       FormatPanel.DisplayName:=Auf.nargs[3].arg;
+      FormatPanel.RelatedPath:=Tag['字段关联路径'];
+      FormatPanel.RelatedExt:=Tag['字段关联后缀'];
       FormatPanel.TitleLabel.Caption:=Auf.nargs[3].arg+str_editable+': ';
 
       if FormatPanel.ComponentType=TComboBox then begin
@@ -208,7 +210,14 @@ begin
           'TMemo':ReadFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[aeFailIfNoPID,aeFailIfNoField]);
           'TCheckBox':AsBoolean:=ReadFieldAsBoolean(FieldName,AttrsName,PID,[aeFailIfNoPID,aeFailIfNoField]);
           'TComboBox':AsString:=ReadFieldAsString(FieldName,AttrsName,PID,[aeFailIfNoPID,aeFailIfNoField]);
-          'TFmtImage':ReadFieldAsBitmap(FieldName,AttrsName,PID,AsBitmap,[aeFailIfNoPID,aeFailIfNoField]);
+          'TFmtImage':
+            begin
+              case GetFieldType(AttrsName,FieldName) of
+                ftMemo,ftString:AsString:=ReadFieldAsString(FieldName,AttrsName,PID,[aeFailIfNoPID,aeFailIfNoField]);
+                ftBlob:ReadFieldAsBitmap(FieldName,AttrsName,PID,AsBitmap,[aeFailIfNoPID,aeFailIfNoField]);
+                else raise AttrsTypeDismatchErr.Create('对TFmtImage无效的字段类型。');
+              end;
+            end;
           'TListBox':ReadFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[aeFailIfNoPID,aeFailIfNoField]);
         end;
         RestoreState;
@@ -249,6 +258,12 @@ begin
             State:=fesNodata;
           end;
         end;
+        on E:AttrsTypeDismatchErr do case ComponentClass.ClassName of
+          'TFmtImage':begin
+            AsBitmap.Clear;
+            State:=fesNodata;
+          end;
+        end;
       end;
     end;
   end;
@@ -268,7 +283,14 @@ begin
             'TMemo':EditFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[]);
             'TCheckBox':EditFieldAsBoolean(FieldName,AttrsName,PID,AsBoolean,[]);
             'TComboBox':EditFieldAsString(FieldName,AttrsName,PID,AsString,[aeForceEditIfTypeDismatch]);
-            'TFmtImage':EditFieldAsBitmap(FieldName,AttrsName,PID,AsBitmap,[]);
+            'TFmtImage':
+              begin
+                case GetFieldType(AttrsName,FieldName) of
+                  ftMemo,ftString:AsBitmap.SaveToFile(RelatedPath+ReadFieldAsString(FieldName,AttrsName,PID,[aeFailIfNoPID,aeFailIfNoField])+RelatedExt);
+                  ftBlob:EditFieldAsBitmap(FieldName,AttrsName,PID,AsBitmap,[]);
+                  else raise AttrsTypeDismatchErr.Create('对TFmtImage无效的字段类型。');
+                end;
+              end;
             'TListBox':EditFieldAsMemo(FieldName,AttrsName,PID,AsMemo,[]);
           end;
         except

@@ -22,7 +22,7 @@ end;
 
 procedure TRTFP.ProjectPropertiesDataPost(AValueListEditor:TValueListEditor);
 var str:TStringList;
-    stmp:string;
+    stmp,old_value,new_value:string;
 begin
   Self.Title:=AValueListEditor.Values['工程标题'];
   Self.User:=AValueListEditor.Values['创建用户'];
@@ -30,8 +30,14 @@ begin
   try
     Self.FProjectTags.Keys(str);
     for stmp in str do
-      if FProjectTags.Editable[stmp] then
-        Self.Tag[stmp]:=AValueListEditor.Values[stmp];
+      if FProjectTags.Editable[stmp] then begin
+        old_value:=Self.Tag[stmp];
+        new_value:=AValueListEditor.Values[stmp];
+        if old_value<>new_value then begin
+          Self.Tag[stmp]:=new_value;
+          TagChange(stmp,new_value);
+        end;
+      end;
   finally
     str.Free;
   end;
