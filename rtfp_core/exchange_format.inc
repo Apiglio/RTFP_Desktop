@@ -248,7 +248,12 @@ begin
                 //图片字段值的粘贴暂时不实现，把图片字段和Image搞清楚再说。
                 //没那么简单，还涉及两种图片字段的格式
               end else begin
-                EditFieldAsString(key,objname,PID,value,[aeForceEditIfTypeDismatch,aeCreateIfNoField]);
+                case GetFieldType(objname,key) of
+                  ftInteger,ftLargeint,ftSmallint,ftWord,ftFloat:
+                    if not (value='#') then
+                      EditFieldAsString(key,objname,PID,value,[aeForceEditIfTypeDismatch,aeCreateIfNoField]);
+                  else EditFieldAsString(key,objname,PID,value,[aeForceEditIfTypeDismatch,aeCreateIfNoField]);
+                end;
               end;
             end;
           end;
