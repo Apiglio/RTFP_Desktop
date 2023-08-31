@@ -2382,7 +2382,11 @@ begin
   end;
   tmpJSON:=GetJSON(ClipBoard.AsText);
   try
-    CurrentRTFP.SetJSON_Paper(APID,tmpJSON);
+    try
+      CurrentRTFP.SetJSON_Paper(APID,tmpJSON);
+    except
+      ShowMsgOK('粘贴文献节点','节点属性数据出错，属性粘贴未完成，请手动检查粘贴结果。');
+    end;
   finally
     tmpJSON.Free;
   end;
