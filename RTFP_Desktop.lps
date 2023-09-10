@@ -2,7 +2,7 @@
 <CONFIG>
   <ProjectSession>
     <PathDelim Value="\"/>
-    <Version Value="10"/>
+    <Version Value="12"/>
     <BuildModes Active="Default"/>
     <Units Count="136">
       <Unit0>
@@ -351,8 +351,8 @@
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="28"/>
-        <TopLine Value="86"/>
-        <CursorPos X="69" Y="112"/>
+        <TopLine Value="89"/>
+        <CursorPos X="94" Y="98"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
       </Unit32>
@@ -487,7 +487,7 @@
         <EditorIndex Value="4"/>
         <TopLine Value="157"/>
         <CursorPos X="30" Y="167"/>
-        <UsageCount Value="150"/>
+        <UsageCount Value="151"/>
         <Loaded Value="True"/>
       </Unit47>
       <Unit48>
@@ -495,7 +495,7 @@
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="20"/>
         <CursorPos X="27" Y="294"/>
-        <UsageCount Value="58"/>
+        <UsageCount Value="59"/>
         <Loaded Value="True"/>
       </Unit48>
       <Unit49>
@@ -507,7 +507,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="531"/>
         <CursorPos X="55" Y="560"/>
-        <UsageCount Value="193"/>
+        <UsageCount Value="194"/>
       </Unit49>
       <Unit50>
         <Filename Value="..\AufScript\apiglio_useful.pas"/>
@@ -516,7 +516,7 @@
         <EditorIndex Value="9"/>
         <TopLine Value="5103"/>
         <CursorPos X="67" Y="5115"/>
-        <UsageCount Value="187"/>
+        <UsageCount Value="188"/>
         <Loaded Value="True"/>
       </Unit50>
       <Unit51>
@@ -526,7 +526,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="40"/>
+        <UsageCount Value="41"/>
       </Unit51>
       <Unit52>
         <Filename Value="rtfp_core\packed_format.inc"/>
@@ -1280,5 +1280,9 @@
         <Caret Line="200" Column="47" TopLine="150"/>
       </Position29>
     </JumpHistory>
+    <RunParams>
+      <FormatVersion Value="2"/>
+      <Modes ActiveMode="default"/>
+    </RunParams>
   </ProjectSession>
 </CONFIG>
