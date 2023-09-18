@@ -243,12 +243,12 @@ begin
               is_last_summary:=false;
               FieldByName(_Col_basic_Source_).AsString:=attr;
             end;
-          'Year-年','Year-年鉴年份':
+          'Year-年','Year-年鉴年份','年':
             begin
               is_last_summary:=false;
               FieldByName(_Col_basic_Year_).AsString:=attr;
             end;
-          'PubTime-出版时间','PubTime-发表时间':
+          'PubTime-出版时间','PubTime-发表时间','发表时间':
             begin
               is_last_summary:=false;
               {zan}poss:=pos(' ',attr);
@@ -280,7 +280,7 @@ begin
               is_last_summary:=true;
               FieldByName(_Col_basic_Summary_).AsString:=attr;
             end;
-          'PageCount-页数':
+          'PageCount-页数','页数':
             begin
               is_last_summary:=false;
               FieldByName(_Col_basic_PageCount_).AsString:=attr;
@@ -290,7 +290,7 @@ begin
               is_last_summary:=false;
               FieldByName(_Col_basic_Page_).AsString:=attr;
             end;
-          //'SrcDatabase-来源库':FieldByName(_Col_basic_来源库_).AsString:=attr;
+          //'SrcDatabase-来源库','来源库':FieldByName(_Col_basic_来源库_).AsString:=attr;
           'Organ-机构','Organ-大学','Organ-出版社','文献来源'{专利},'Organ-出版者'{年鉴}:
             begin
               is_last_summary:=false;
@@ -325,6 +325,11 @@ begin
             begin
               is_last_summary:=false;
               FieldByName(_Col_basic_ISBN_ISSN_).AsString:=attr;
+            end;
+          'ESummary-主权项'{专利}:
+            begin
+              is_last_summary:=false;
+              FieldByName(_Col_basic_Sponsor_).AsString:=attr;
             end
           else if is_last_summary then
             begin
@@ -724,8 +729,12 @@ begin
             stmp:=FieldByName(_Col_basic_ISBN_ISSN_).AsString;
             if stmp<>'' then result:=result+': '+stmp;
             result:=result+'[P].';
-            stmp:=FieldByName(_Col_basic_PubTime_).AsString;
-            if stmp<>'' then result:=' '+result+stmp+'.';
+            tmpDateTime:=FieldByName(_Col_basic_PubTime_).AsDateTime;
+            if tmpDateTime<>0 then
+              begin
+                DateTimeToString(stmp,'yyyy-mm-dd',tmpDateTime,[]);
+                if length(stmp)=10 then result:=' '+result+stmp+'.';
+              end;
           end;
         '其它文献':
           begin
