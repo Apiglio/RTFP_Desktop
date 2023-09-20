@@ -53,7 +53,7 @@ interface
 
 uses
   Classes, SysUtils, Dialogs, ValEdit, LazUTF8, StdCtrls, ComCtrls, ExtCtrls, Forms, FileUtil,
-  ACL_ListView, Controls, Graphics, RegExpr,
+  ACL_ListView, ListCheck, Controls, Graphics, RegExpr,
 
   {$ifdef Windows}
   Windows,
@@ -137,6 +137,13 @@ type
       Backup_SaveXml:boolean;//是否在保存数据库是额外保存xml格式备份
       Fields_ImgFile:boolean;//将FormatEdit的图像保存在image文件夹中
       ForceSaveField:boolean;//在Saved的状态也保存字段属性
+
+      CopyMainGridWithDispName:boolean;  //在主表的信息复制中使用显示名
+      CopyMainGridWithHeadLine:boolean;  //在主表的信息复制中增加表头行
+      ExportImagePicStretch:TPicStretch; //导出图片报表的裁切选项
+      ExportImageFontSize:integer;       //导出图片报表的字体大小
+      ExportImageCellWidth:integer;      //导出图片报表的单元格宽
+      ExportImageCellHeight:integer;     //导出图片报表的单元格高
 
       Filter_Command:string;
       Filter_AutoRun:boolean;
@@ -372,6 +379,7 @@ type
     procedure Update_0_1_1_alpha_18;
     procedure Update_0_1_2_alpha_8;unimplemented;
     procedure Update_0_2_5_alpha_3;
+    procedure Update_0_2_7_alpha_4;
 
   public
     procedure Update(save_version:string);
@@ -395,11 +403,11 @@ type
     procedure TableFilter;
     procedure TableSorter;
 
-    procedure FieldListValidate(AListView:TListView);
-    procedure KlassListValidate(AListView:TListView);
+    procedure FieldListValidate(AListView:TListCheck);
+    procedure KlassListValidate(AListView:TListCheck);
 
-    procedure FmtCmtValidate(PID:RTFP_ID;AttrName,FieldName:string;Memo:TMemo);
-    procedure FmtCmtDataPost(PID:RTFP_ID;AttrName,FieldName:string;Memo:TMemo);
+    //procedure FmtCmtValidate(PID:RTFP_ID;AttrName,FieldName:string;Memo:TMemo);
+    //procedure FmtCmtDataPost(PID:RTFP_ID;AttrName,FieldName:string;Memo:TMemo);
     procedure AttrNameValidate(AItems:TStrings);
     procedure FieldNameValidate(AAttrName:string;AItems:TStrings);
 
@@ -424,6 +432,7 @@ type
 
     FOnFirstEdit             :TRTFPChangeEvent;
     FOnChange                :TRTFPChangeEvent;
+    FOnTagChange             :TRTFPTwoStrEvent;
     FOnDataChange            :TRTFPChangeEvent;
     FOnFieldChange           :TRTFPChangeEvent;
     FOnRecordChange          :TRTFPChangeEvent;
@@ -461,6 +470,7 @@ type
     property onFirstEdit          :TRTFPChangeEvent  read FOnFirstEdit            write FOnFirstEdit;
     property onChange             :TRTFPChangeEvent  read FOnChange               write FOnChange;
     //以下On*Change事件会触发OnChange
+    property onTagChange          :TRTFPTwoStrEvent  read FOnTagChange            write FOnTagChange;
     property onDataChange         :TRTFPChangeEvent  read FOnDataChange           write FOnDataChange;
     property onFieldChange        :TRTFPChangeEvent  read FOnFieldChange          write FOnFieldChange;
     property onRecordChange       :TRTFPChangeEvent  read FOnRecordChange         write FOnRecordChange;
@@ -471,6 +481,7 @@ type
 
   public
     procedure Change;//用于标记工程已经发生改变，如果之前未改变，会触发OnFirstEdit
+    procedure TagChange(key,value:string);//工程属性修改，也会触发Change事件
     procedure DataChange(PID:RTFP_ID);//数据修改，也会触发Change事件
     procedure FieldChange;//字段修改，也会触发DataChange和Change事件
     procedure RecordChange;//记录修改，也会触发DataChange和Change事件
@@ -1060,6 +1071,10 @@ begin
 
   tmpProjectFile.Add('最后保存版本,'+C_VERSION_NUMBER);
   tmpProjectFile.Add('引注标识码,'+p_title);
+  tmpProjectFile.Add('字段关联路径,'+'');
+  tmpProjectFile.Add('字段关联后缀,'+'');
+  tmpProjectFile.Add('编辑属性布局,'+'default.fmt');
+
 
   repeat
     retry:=false;

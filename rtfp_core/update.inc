@@ -88,6 +88,16 @@ begin
   Tag['引注标识码']:='';
   if FOnChange<>nil then FOnChange(Self);
 end;
+procedure TRTFP.Update_0_2_7_alpha_4;
+begin
+  //新增“字段关联路径”Tag
+  Tag['字段关联路径']:='';
+  Tag['字段关联后缀']:='';
+  Tag['编辑属性布局']:='default.fmt';
+  if FOnChange<>nil then FOnChange(Self);
+  //实际上并不会在打开旧文件后有修改星号
+  //这是因为触发OnOpenDone之后会复原成未修改状态
+end;
 
 
 procedure TRTFP.Update(save_version:string);
@@ -95,6 +105,7 @@ begin
   if not TRTFP.VersionCheck(save_version,'0.1.1-alpha.18') then Update_0_1_1_alpha_18;
   //if not TRTFP.VersionCheck(save_version,'0.1.2-alpha.8') then Update_0_1_2_alpha_8;
   if not TRTFP.VersionCheck(save_version,'0.2.5-alpha.3') then Update_0_2_5_alpha_3;
+  if not TRTFP.VersionCheck(save_version,'0.2.7-alpha.4') then Update_0_2_7_alpha_4;
 
 end;
 

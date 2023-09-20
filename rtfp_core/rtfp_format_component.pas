@@ -16,9 +16,10 @@ type
   TLine = array[0..0] of TFColor;
   PLine = ^TLine;
 
-  TFmtEditState = (fesUnknown=0, fesReadOnly=1, fesSaved=2, fesModified=3, fesNodata=4, fesNoField=5);
+  TFmtEditState = (fesUnknown=0, fesReadOnly=1, fesSaved=2, fesModified=3, fesNodata=4, fesNoField=5, fesTypeDismatch=6);
   //Unknown为意外情况，ReadOnly为只读模式，Saved为可编辑且未修改
   //Modifify为可编辑且未保存，Nodata为可编辑但无数据，NoField为没有字段
+  //TypeDismatch为字段类型不符合要求
 
   TFmtImage = class(TScrollBox)
   private
@@ -50,6 +51,7 @@ type
     FClass:TClass;
 
     FDisplayName,FAttrsName,FFieldName:string;
+    FRelatedPath,FRelatedExt:string;
     FEditable:boolean;
     FState:TFmtEditState;
   public
@@ -58,6 +60,7 @@ type
 
   protected
     procedure SetEditable(inp:boolean);
+    procedure SetRelatedPath(rpath:string);
 
   public
     property TitleLabel:TLabel read FLabel;
@@ -67,6 +70,8 @@ type
     property DisplayName:string read FDisplayName write FDisplayName;
     property AttrsName:string read FAttrsName write FAttrsName;
     property FieldName:string read FFieldName write FFieldName;
+    property RelatedPath:string read FRelatedPath write SetRelatedPath;
+    property RelatedExt:string read FRelatedExt write FRelatedExt;
 
     property Editable:boolean read FEditable write SetEditable;
 
@@ -412,6 +417,16 @@ begin
   FEditable:=inp;
 end;
 
+procedure TFormatEditPanel.SetRelatedPath(rpath:string);
+begin
+  FRelatedPath:=rpath;
+  if rpath='' then exit;
+  {$ifdef WINDOWS}
+  FRelatedPath:=StringReplace(FRelatedPath,'\','/',[rfReplaceAll]);
+  {$endif}
+  if FRelatedPath[length(FRelatedPath)]<>'/' then FRelatedPath:=FRelatedPath+'/';
+end;
+
 function TFormatEditPanel.GetBool:boolean;
 begin
   case FClass.ClassName of
@@ -446,6 +461,7 @@ begin
   case FClass.ClassName of
     'TEdit':result:=TEdit(FComponent).Caption;
     'TComboBox':result:=TComboBox(FComponent).Caption;
+    'TFmtImage':raise Exception.Create('即使是基于文本字段的TFmtImage，导出同样需要使用AsBitMap。');
     else result:='';
   end;
 end;
@@ -499,6 +515,7 @@ begin
 end;
 procedure TFormatEditPanel.SetString(value:string);
 var index:integer;
+    image_path:string;
 begin
   case FClass.ClassName of
     'TEdit':TEdit(FComponent).Caption:=value;
@@ -511,14 +528,34 @@ begin
           TComboBox(FComponent).ItemIndex:=index;
         end;
       end;
+    'TFmtImage':
+      begin
+        image_path:=FRelatedPath+value+FRelatedExt;
+        if FileExists(image_path) then begin
+          try
+            TFmtImage(FComponent).FImage.Picture.LoadFromFile(image_path);
+          except
+            TFmtImage(FComponent).FImage.Picture.Clear;
+            FState:=fesTypeDismatch;
+            exit;
+          end;
+        end else begin
+          TFmtImage(FComponent).FImage.Picture.Clear;
+          FState:=fesNodata;
+          exit;
+        end;
+      end;
   end;
   FState:=fesSaved;
 end;
 
 procedure TFormatEditPanel.RestoreState;
 begin
-  if Self.FEditable then Self.FState:=fesSaved
-  else Self.FState:=fesReadOnly;
+  if Self.FEditable then begin
+    if Self.FState=fesModified then Self.FState:=fesSaved;
+  end else begin
+    Self.FState:=fesReadOnly;
+  end;
   Self.Paint;
 end;
 
@@ -534,6 +571,7 @@ begin
     fesModified:state_color:=$7F7FFFFF;//Yellow
     fesNodata:state_color:=$7F7F7F7F;//Grey
     fesNoField:state_color:=$7FFF7FFF;//Purple
+    fesTypeDismatch:state_color:=$7F7FBFFF;//Orange
   end;
   Canvas.Brush.Color:=state_color;
   Canvas.Pen.Color:=state_color;

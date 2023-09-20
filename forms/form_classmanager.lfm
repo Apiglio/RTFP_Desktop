@@ -9,7 +9,7 @@ object ClassManagerForm: TClassManagerForm
   ClientWidth = 847
   Constraints.MinHeight = 300
   Constraints.MinWidth = 600
-  DesignTimePPI = 120
+  DesignTimePPI = 144
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   OnHide = FormHide

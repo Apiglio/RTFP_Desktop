@@ -22,7 +22,7 @@ end;
 
 procedure TRTFP.ProjectPropertiesDataPost(AValueListEditor:TValueListEditor);
 var str:TStringList;
-    stmp:string;
+    stmp,old_value,new_value:string;
 begin
   Self.Title:=AValueListEditor.Values['工程标题'];
   Self.User:=AValueListEditor.Values['创建用户'];
@@ -30,14 +30,20 @@ begin
   try
     Self.FProjectTags.Keys(str);
     for stmp in str do
-      if FProjectTags.Editable[stmp] then
-        Self.Tag[stmp]:=AValueListEditor.Values[stmp];
+      if FProjectTags.Editable[stmp] then begin
+        old_value:=Self.Tag[stmp];
+        new_value:=AValueListEditor.Values[stmp];
+        if old_value<>new_value then begin
+          Self.Tag[stmp]:=new_value;
+          TagChange(stmp,new_value);
+        end;
+      end;
   finally
     str.Free;
   end;
 end;
 
-
+{
 {段落查看控件 FmtCmt}
 procedure TRTFP.FmtCmtValidate(PID:RTFP_ID;AttrName,FieldName:string;Memo:TMemo);
 begin
@@ -60,61 +66,57 @@ begin
   EndUpdate;
   ReNewModifyTime(PID);
 end;
-
+}
 
 {字段列表显示}
-procedure TRTFP.FieldListValidate(AListView:TListView);
+procedure TRTFP.FieldListValidate(AListView:TListCheck);
 var tmpAG:TAttrsGroup;
     tmpAF:TAttrsField;
     dispAG,dispAF:string;
+    tmpNode:TListCheckNode;
 begin
-  AListView.BeginUpdate;
-  (AListView as TACL_ListView).Clear;
+  //AListView.BeginUpdate;
+  AListView.Root.Clear;
   for tmpAG in FFieldList do
     begin
       if (tmpAG.DisplayName<>'') and (tmpAG.DisplayName<>tmpAG.Name) then
         dispAG:=tmpAG.DisplayName+' ('+tmpAG.Name+')'
       else
         dispAG:=tmpAG.Name;
+      tmpNode:=AListView.Root.AddItem(tmpAG.Name,tmpAG);
+      tmpNode.Unfold:=tmpAG.GroupShown;
+      tmpNode.DisplayName:=dispAG;
       for tmpAF in tmpAG.FieldList do
         begin
           if (tmpAF.DisplayName<>'') and (tmpAF.DisplayName<>tmpAF.FieldName) then
             dispAF:=tmpAF.DisplayName+' ('+tmpAF.FieldName+')'
           else
             dispAF:=tmpAF.FieldName;
-          (AListView as TACL_ListView).AddShellNodeItem(dispAG+'\'+dispAF,tmpAF,tmpAF.Shown);
-          //should not use slash to define tree structure, ACL_TreeView need to be improved.
-          //now ClassViewList shows klass' name with slash and not "class" root.
+          with tmpNode.AddItem(tmpAF.FieldName,tmpAF) do begin
+            DisplayName:=dispAF;
+            Checked:=tmpAF.Shown;
+          end;
         end;
-      (AListView as TACL_ListView).GetShellNodeItem(dispAG).Data:=tmpAG;
     end;
-  AListView.EndUpdate;
-  for tmpAG in FFieldList do
-    begin
-      if tmpAG.GroupShown then (AListView as TACL_ListView).CheckShellNodeItem(tmpAG.Name,true);
-      for tmpAF in tmpAG.FieldList do
-        if tmpAF.Shown then (AListView as TACL_ListView).CheckShellNodeItem(tmpAG.Name+'/'+tmpAF.FieldName,true);
-    end;
-  //这部分不知道那个地方有问题，条目不能正确勾选。
-  AListView.Repaint;
+  //AListView.EndUpdate;
+  AListView.Refresh;
 end;
 
 
 {分类列表显示}
-procedure TRTFP.KlassListValidate(AListView:TListView);
+procedure TRTFP.KlassListValidate(AListView:TListCheck);
 var tmpKL:TKlass;
     tmpPath:string;
 begin
-  AListView.BeginUpdate;
-  (AListView as TACL_ListView).Clear;
+  //AListView.BeginUpdate;
+  AListView.Root.Clear;
   for tmpKL in FKlassList do
     begin
       tmpPath:=StringReplace(tmpKL.FullPath,'/','\',[rfReplaceAll]);
-      (AListView as TACL_ListView).AddShellNodeItem(tmpPath,tmpKL,tmpKL.FilterEnabled);
+      AListView.Root.AddItem(tmpKL.Name,tmpKL).Checked:=tmpKL.FilterEnabled;
     end;
-  AListView.EndUpdate;
-  (AListView as TACL_ListView).CheckShellNodeItem('class',true);
-  AListView.Repaint;
+  //AListView.EndUpdate;
+  AListView.Refresh;
 end;
 
 

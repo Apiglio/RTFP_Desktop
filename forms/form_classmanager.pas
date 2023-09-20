@@ -42,7 +42,7 @@ var
 
 implementation
 uses RTFP_main, RTFP_definition, RTFP_constants, rtfp_type, rtfp_class, rtfp_dialog,
-  DBGrids, db, ACL_ListView;
+  DBGrids, db, ListCheck;
 
 {$R *.lfm}
 
@@ -69,9 +69,9 @@ var tmpKL:TKlass;
     PID:RTFP_ID;
 begin
   if ProjectInvalid then exit;
-  tmpKL:=TKlass(TACL_TreeNode(FormDesktop.AListView_Klass.Selected.Data).Data);
+  tmpKL:=TKlass(FormDesktop.AListView_Klass.Selected.Data);
   if tmpKL=nil then begin
-    ShowMsgOK('纳入分组','无效的分类，无法执行操作。');
+    ShowMsgOK('排除分组','无效的分类，无法执行操作。');
     exit;
   end;
   FormDesktop.DBGrid_Main.Visible:=false;
@@ -104,7 +104,7 @@ var tmpKL:TKlass;
     PID:RTFP_ID;
 begin
   if ProjectInvalid then exit;
-  tmpKL:=TKlass(TACL_TreeNode(FormDesktop.AListView_Klass.Selected.Data).Data);
+  tmpKL:=TKlass(FormDesktop.AListView_Klass.Selected.Data);
   if tmpKL=nil then begin
     ShowMsgOK('纳入分组','无效的分类，无法执行操作。');
     exit;

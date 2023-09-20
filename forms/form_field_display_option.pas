@@ -147,7 +147,10 @@ var cell_rect:TRect;
     vc_color:TColor;
 begin
   //这里ColorBox为什么总是没办法初始化就在正确的位置上？？？
-  if aRow=0 then exit;
+  if aRow=0 then begin
+    ColorBox_Popup.Visible:=false;
+    exit;
+  end;
   SG:=Sender as TStringGrid;
   ColorBox_Popup.Parent:=SG;
   ColorBox_Popup.Visible:=true;
@@ -307,7 +310,7 @@ procedure TFormFieldDisplayOption.MenuItem_VC_DelClick(Sender: TObject);
 var arow:integer;
 begin
   arow:=StringGrid_ValuesColors.Row;
-  if arow=0 then exit;
+  if arow<=0 then exit;
   StringGrid_ValuesColors.DeleteRow(StringGrid_ValuesColors.Row);
   StoredDisplayOption.DeleteValue(arow-1);
   StoredDisplayOption.DeleteColor(arow-1);
@@ -317,6 +320,7 @@ procedure TFormFieldDisplayOption.MenuItem_VC_InsClick(Sender: TObject);
 var arow:integer;
 begin
   arow:=StringGrid_ValuesColors.Row;
+  if arow<=0 then exit;
   StringGrid_ValuesColors.InsertRowWithValues(arow,[]);
   StoredDisplayOption.InsertValue(arow-1,'');
   StoredDisplayOption.InsertColor(arow-1,$ff000000);

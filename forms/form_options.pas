@@ -14,13 +14,17 @@ type
 
   TFormOptions = class(TForm)
     Button_SyncPath: TButton;
+    CheckBox_MGCopy_DispName: TCheckBox;
     CheckBox_Fields_img: TCheckBox;
     CheckBox_AutoSave: TCheckBox;
     CheckBox_Backup_xml: TCheckBox;
     CheckBox_FormatEditOpt_AllowBasicFormatEdit: TCheckBox;
     CheckBox_FormatEditOpt_ForceSave: TCheckBox;
     CheckBox_FormatEditOpt_F9_To_Save: TCheckBox;
+    CheckBox_MGCopy_HeadLine: TCheckBox;
     Edit_SyncPath: TEdit;
+    GroupBox_Export_ImgExport: TGroupBox;
+    GroupBox_Export_MGCopy: TGroupBox;
     GroupBox_FormatEdit: TGroupBox;
     GroupBox_SyncPath: TGroupBox;
     GroupBox_SyncFilter: TGroupBox;
@@ -31,8 +35,10 @@ type
     CheckBox_SyncEnabled: TCheckBox;
     RadioGroup_MGSC_CR: TRadioGroup;
     RadioGroup_BackupMode: TRadioGroup;
+    ScrollBox_Export: TScrollBox;
     ScrollBox_Sync: TScrollBox;
     SelectDirectoryDialog: TSelectDirectoryDialog;
+    TabSheet_Export: TTabSheet;
     TabSheet_Backup: TTabSheet;
     TabSheet_Format: TTabSheet;
     TabSheet_MaingridShortcut: TTabSheet;
@@ -42,6 +48,8 @@ type
     procedure CheckBox_Backup_xmlChange(Sender: TObject);
     procedure CheckBox_Fields_imgChange(Sender: TObject);
     procedure CheckBox_FormatEditOpt_ForceSaveChange(Sender: TObject);
+    procedure CheckBox_MGCopy_DispNameChange(Sender: TObject);
+    procedure CheckBox_MGCopy_HeadLineChange(Sender: TObject);
     procedure Edit_SyncPathChange(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormHide(Sender: TObject);
@@ -124,6 +132,9 @@ begin
     mgsc_cc_auyear:RadioGroup_MGSC_CR.ItemIndex:=7;
     else RadioGroup_MGSC_CR.ItemIndex:=-1;
   end;
+  CheckBox_MGCopy_HeadLine.Checked:=FormDesktop.OptionMap.CopyMainGridWithHeadLine;
+  CheckBox_MGCopy_DispName.Checked:=FormDesktop.OptionMap.CopyMainGridWithDispName;
+
 end;
 
 procedure TFormOptions.FormHide(Sender: TObject);
@@ -176,6 +187,22 @@ begin
   status:=(Sender as TCheckBox).Checked;
   FormDesktop.OptionMap.ForceSaveField:=status;
   if not ProjectInvalid then CurrentRTFP.RunPerformance.ForceSaveField:=status;
+end;
+
+procedure TFormOptions.CheckBox_MGCopy_DispNameChange(Sender: TObject);
+var status:boolean;
+begin
+  status:=(Sender as TCheckBox).Checked;
+  FormDesktop.OptionMap.CopyMainGridWithDispName:=status;
+  if not ProjectInvalid then CurrentRTFP.RunPerformance.CopyMainGridWithDispName:=status;
+end;
+
+procedure TFormOptions.CheckBox_MGCopy_HeadLineChange(Sender: TObject);
+var status:boolean;
+begin
+  status:=(Sender as TCheckBox).Checked;
+  FormDesktop.OptionMap.CopyMainGridWithHeadLine:=status;
+  if not ProjectInvalid then CurrentRTFP.RunPerformance.CopyMainGridWithHeadLine:=status;
 end;
 
 procedure TFormOptions.RadioGroup_BackupModeClick(Sender: TObject);
@@ -263,6 +290,25 @@ begin
       begin
         FormDesktop.OptionMap.Fields_ImgFile:=false;
       end;
+    if Reg.OpenKey('Software\ApiglioToolBox\RTFP_Desktop\ExportOption',false) then
+      begin
+        FormDesktop.OptionMap.ExportImagePicStretch:=TPicStretch(Reg.ReadInteger('PicsClip'));
+        FormDesktop.OptionMap.ExportImageFontSize:=Reg.ReadInteger('FontSize');
+        FormDesktop.OptionMap.ExportImageCellWidth:=Reg.ReadInteger('CellWidth');
+        FormDesktop.OptionMap.ExportImageCellHeight:=Reg.ReadInteger('CellHeight');
+        FormDesktop.OptionMap.CopyMainGridWithDispName:=Reg.ReadBool('DispName');
+        FormDesktop.OptionMap.CopyMainGridWithHeadLine:=Reg.ReadBool('HeadLine');
+        Reg.CloseKey;
+      end
+    else
+      begin
+        FormDesktop.OptionMap.ExportImagePicStretch:=psch_clip;
+        FormDesktop.OptionMap.ExportImageFontSize:=8;
+        FormDesktop.OptionMap.ExportImageCellWidth:=200;
+        FormDesktop.OptionMap.ExportImageCellHeight:=200;
+        FormDesktop.OptionMap.CopyMainGridWithDispName:=true;
+        FormDesktop.OptionMap.CopyMainGridWithHeadLine:=true;
+      end;
 
   finally
     Reg.Free;
@@ -294,6 +340,15 @@ begin
     Reg.OpenKey('Software\ApiglioToolBox\RTFP_Desktop\FieldsOption',true);
     Reg.WriteBool('ImgFile',FormDesktop.OptionMap.Fields_ImgFile);
     Reg.WriteBool('ForceEdit',FormDesktop.OptionMap.ForceSaveField);
+    Reg.CloseKey;
+
+    Reg.OpenKey('Software\ApiglioToolBox\RTFP_Desktop\ExportOption',true);
+    Reg.WriteInteger('PicsClip',integer(FormDesktop.OptionMap.ExportImagePicStretch));
+    Reg.WriteInteger('FontSize',FormDesktop.OptionMap.ExportImageFontSize);
+    Reg.WriteInteger('CellWidth',FormDesktop.OptionMap.ExportImageCellWidth);
+    Reg.WriteInteger('CellHeight',FormDesktop.OptionMap.ExportImageCellHeight);
+    Reg.WriteBool('DispName',FormDesktop.OptionMap.CopyMainGridWithDispName);
+    Reg.WriteBool('HeadLine',FormDesktop.OptionMap.CopyMainGridWithHeadLine);
     Reg.CloseKey;
 
   finally
