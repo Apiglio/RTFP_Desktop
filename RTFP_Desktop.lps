@@ -2,7 +2,7 @@
 <CONFIG>
   <ProjectSession>
     <PathDelim Value="\"/>
-    <Version Value="10"/>
+    <Version Value="12"/>
     <BuildModes Active="Default"/>
     <Units Count="134">
       <Unit0>
@@ -22,8 +22,8 @@
         <UnitName Value="RTFP_main"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="694"/>
-        <CursorPos Y="717"/>
+        <TopLine Value="712"/>
+        <CursorPos X="61" Y="730"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -34,7 +34,7 @@
         <ComponentName Value="Form_FileSource"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="50"/>
+        <EditorIndex Value="49"/>
         <TopLine Value="129"/>
         <CursorPos X="53" Y="149"/>
         <UsageCount Value="202"/>
@@ -44,7 +44,7 @@
       <Unit3>
         <Filename Value="sync\sync_timer.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="51"/>
+        <EditorIndex Value="50"/>
         <TopLine Value="7"/>
         <CursorPos X="16" Y="25"/>
         <UsageCount Value="200"/>
@@ -223,7 +223,7 @@
       <Unit18>
         <Filename Value="rtfp_core\rtfp_dialog.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="52"/>
+        <EditorIndex Value="51"/>
         <TopLine Value="87"/>
         <CursorPos X="28" Y="90"/>
         <UsageCount Value="201"/>
@@ -487,7 +487,7 @@
         <EditorIndex Value="5"/>
         <TopLine Value="225"/>
         <CursorPos X="52" Y="138"/>
-        <UsageCount Value="186"/>
+        <UsageCount Value="187"/>
         <Loaded Value="True"/>
       </Unit47>
       <Unit48>
@@ -495,7 +495,7 @@
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="21"/>
         <CursorPos X="67" Y="5"/>
-        <UsageCount Value="94"/>
+        <UsageCount Value="95"/>
         <Loaded Value="True"/>
       </Unit48>
       <Unit49>
@@ -526,7 +526,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="76"/>
+        <UsageCount Value="77"/>
       </Unit51>
       <Unit52>
         <Filename Value="rtfp_core\packed_format.inc"/>
@@ -1004,11 +1004,10 @@
       <Unit114>
         <Filename Value="C:\lazarus\lcl\dbgrids.pas"/>
         <UnitName Value="DBGrids"/>
-        <EditorIndex Value="49"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="4377"/>
         <CursorPos Y="4396"/>
         <UsageCount Value="16"/>
-        <Loaded Value="True"/>
       </Unit114>
       <Unit115>
         <Filename Value="C:\lazarus\fpc\3.0.4\source\packages\fcl-json\src\fpjson.pp"/>
@@ -1271,16 +1270,9 @@
         <Caret Line="94" Column="26" TopLine="79"/>
       </Position30>
     </JumpHistory>
+    <RunParams>
+      <FormatVersion Value="2"/>
+      <Modes ActiveMode="default"/>
+    </RunParams>
   </ProjectSession>
-  <Debugging>
-    <BreakPoints Count="1">
-      <Item1>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="rtfp_main.pas"/>
-        <Line Value="717"/>
-      </Item1>
-    </BreakPoints>
-  </Debugging>
 </CONFIG>
