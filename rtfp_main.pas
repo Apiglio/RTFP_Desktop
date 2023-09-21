@@ -1319,8 +1319,7 @@ begin
 end;
 
 procedure TFormDesktop.MenuItem_FieldMgr_DelClick(Sender: TObject);
-var tmpA:Pointer;
-    tmpNode:TListCheckNode;
+var tmpNode:TListCheckNode;
     target_name,group_name:string;
 begin
   if ProjectInvalid then exit;
@@ -1343,7 +1342,7 @@ begin
         else exit;
       end;
     end
-  else assert(false,'ACL_TreeNode中有unexpected的类型对象');
+  else assert(false,'TListCheckNode中有unexpected的类型对象');
 end;
 
 procedure TFormDesktop.MenuItem_FieldMgr_EditClick(Sender: TObject);
@@ -1360,7 +1359,7 @@ begin
     if Form_FieldChange.Call(TAttrsField(tmpNode.Data))=mrOK then
       CurrentRTFP.RebuildMainGrid;
     SetFocus;
-  end else assert(false,'ACL_TreeNode中有unexpected的类型对象');
+  end else assert(false,'TListCheckNode中有unexpected的类型对象');
 
 end;
 
@@ -1378,7 +1377,7 @@ begin
         //DBGrid_MainDrawColumnCell(DBGrid_Main,)
       SetFocus;
     end
-  else assert(false,'ACL_TreeNode中有unexpected的类型对象');
+  else assert(false,'TListCheckNode中有unexpected的类型对象');
 end;
 
 procedure TFormDesktop.MenuItem_EditKlassClick(Sender: TObject);

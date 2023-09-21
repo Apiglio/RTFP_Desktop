@@ -1,6 +1,5 @@
 //访问存档数据库文件的基础方法
 
-{$ifdef save_xml}
 procedure CopyDbfToBuf(ADbf:TDbf;ABuf:TBufDataset);
 var field_count,pi:integer;
     dbname:string;
@@ -22,9 +21,6 @@ begin
       ADbf.Next;
     end;
 end;
-{$endif}
-
-
 
 function AddFieldInBuf(buf:TBufDataset;FieldName:string;ADataType:TFieldType;ASize:word=0):TFieldDef;
 var tmpBuf:TBufDataset;
@@ -348,9 +344,7 @@ end;
 
 function TRTFP.SaveDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet;save_xml:boolean=false):boolean;
 var dbfpath,datfile,runfile,run_dbt,dat_dbt,name_no_ext:string;
-    {$ifdef save_xml}
     aBuf:TBufDataset;
-    {$endif}
 begin
   result:=false;
   case DataSetType of
@@ -373,7 +367,6 @@ begin
       except
         exit;
       end;
-      {$ifdef save_xml}
       IF save_xml THEN BEGIN
         aBuf:=TBufDataset.Create(nil);
         try
@@ -383,7 +376,6 @@ begin
           aBuf.Free;
         end;
       END;
-      {$endif}
     end;
     dstBUF:begin
       if Dbf.Active then
@@ -391,9 +383,7 @@ begin
           Dbf.Close;
           Dbf.Open;
         end;
-      {$ifdef save_xml}
       IF save_xml THEN TBufDataset(Dbf).SaveToFile(GetCurrentPathFull+dbf_name_no_ext+'.xml',dfXML);
-      {$endif}
     end;
     else raise Exception.Create('无效DataSetType。');
   end;

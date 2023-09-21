@@ -3,7 +3,7 @@
 //字段更新日志(有必要吗)
 //Memo字段的搜索
 //尽快将所有弹窗统一样式（在做了，有点小问题，按键中文或者自动布局还没有处理好）
-//【真的有难度】TKlass准备增加一个TKlassGroup类，和Attrs一样格式，这样才能保证ACL_ListView可以不重新折叠
+//TKlass嵌套结构
 //增加替换URL的加载模式用以适用不同的webvpn
 //FWaitForm加进度条
 //“待注脚知识元”
@@ -27,7 +27,7 @@
 //  为什么AufScriptFrame的两个Dialog初始地址不能改？在projectOpenDone里头。
 
 //KNOWN BUGS
-//  在主表中显示的字段不能直接删除，否则报错，出自RebuildMainGrid
+//  在主表中显示的字段不能直接删除，否则报错，出自RebuildMainGrid。这个问题不仅是显示的字段，不显示的字段也存在删除后报错的问题。
 //  【FATAL】TableFilter中使用无效的正则表达式会导致崩溃，并且主窗体中try except不能解决问题
 //  属性组和字段改名后FormatEdit没有一起修改
 
@@ -37,7 +37,6 @@
 
 
 //{$define insert}
-{$define save_xml}
 {$define test}
 
 unit RTFP_definition;
@@ -51,7 +50,7 @@ interface
 
 uses
   Classes, SysUtils, Dialogs, ValEdit, LazUTF8, StdCtrls, ComCtrls, ExtCtrls, Forms, FileUtil,
-  ACL_ListView, ListCheck, Controls, Graphics, RegExpr,
+  ListCheck, Controls, Graphics, RegExpr,
 
   {$ifdef Windows}
   Windows,
