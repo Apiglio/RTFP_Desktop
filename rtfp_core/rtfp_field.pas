@@ -664,9 +664,20 @@ end;
 
 procedure TAttrsGroup.DelField(AName:string);
 var idx:integer;
+    tmpAF:TAttrsField;
 begin
   idx:=FFieldList.FindItemIndexByName(AName);
-  if idx>=0 then FFieldList.Delete(idx);
+  if idx>=0 then begin
+    tmpAF:=TAttrsField(FFieldList.Items[idx]);
+    FFieldList.Delete(idx);
+    //update fielddef
+    if Dbf.Active then Dbf.Close;
+    Dbf.Open;
+    for idx:=0 to FFieldList.Count-1 do begin
+      tmpAF:=TAttrsField(FFieldList.Items[idx]);
+      tmpAF.ResetFieldDef(Dbf.FieldDefs.Find(tmpAF.FieldName))
+    end;
+  end;
 end;
 
 procedure TAttrsGroup.AddField(AFieldDef:TFieldDef);

@@ -78,7 +78,7 @@ object FormDesktop: TFormDesktop
         )
         ColWidths = (
           167
-          681
+          655
         )
       end
       object Splitter_PropertiesV: TSplitter

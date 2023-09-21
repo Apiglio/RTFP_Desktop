@@ -9,7 +9,6 @@
 //“待注脚知识元”
 //FormatEdit快捷键提交
 //截图转文字想想办法，试试内嵌python
-//单元格设色属性、分类与属性组折叠等界面属性需要储存
 //【快别说了，整个功能用不了了】FormatEdit中的Image通道化不能立刻更新！！！//procedure TFmtImage.BandSolo(band:byte);
 //分类字段清除后字段数据还在dbf中，没有pack
 //我他妈服了，DBF的文件错误也太多了吧？？？？
@@ -27,7 +26,6 @@
 //  为什么AufScriptFrame的两个Dialog初始地址不能改？在projectOpenDone里头。
 
 //KNOWN BUGS
-//  在主表中显示的字段不能直接删除，否则报错，出自RebuildMainGrid。这个问题不仅是显示的字段，不显示的字段也存在删除后报错的问题。
 //  【FATAL】TableFilter中使用无效的正则表达式会导致崩溃，并且主窗体中try except不能解决问题
 //  属性组和字段改名后FormatEdit没有一起修改
 
