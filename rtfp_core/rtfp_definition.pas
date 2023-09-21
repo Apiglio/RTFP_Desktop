@@ -29,10 +29,8 @@
 //KNOWN BUGS
 //  在主表中显示的字段不能直接删除，否则报错，出自RebuildMainGrid
 //  【FATAL】TableFilter中使用无效的正则表达式会导致崩溃，并且主窗体中try except不能解决问题
-//  文献节点主表的tab括号内的数量在直接连接dbf时，数量有可能是错误的，值比较小时会减一，还不知道哪里的问题。
 //  属性组和字段改名后FormatEdit没有一起修改
 
-//AG和AF的DisplayName
 //FieldCalc的主表模式
 //FieldMatch的正则模式
 //FormatEdit界面右键增加项，替换原本的样式管理

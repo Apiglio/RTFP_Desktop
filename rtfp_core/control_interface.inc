@@ -255,6 +255,7 @@ begin
               else assert(false,'FPaperDS.Fields[pi].DataType未预设。');
             end;
           end;
+        FPaperDS.Post;
         tmpDbf.Next;
       until tmpDbf.EOF;
     END ELSE BEGIN
