@@ -69,7 +69,8 @@ type
 
 
   TRTFP_PDF=class
-    FMem:TMemoryStream;
+    //FMem:TMemoryStream;
+    FMem:TFileStream;
     FMeta:TPdfMeta;
     FFileName:string;
     FHash:string;
@@ -80,16 +81,15 @@ type
     {$endif}
 
   private
-    function CalcHash:string;
     function CalcMeta:boolean;
 
   public
     property Hash:string read FHash;
-    property Size:uint64 read FSize;
+    property Size:uint64 read FSize write FSize;
     property Meta:TPdfMeta read FMeta;
 
   public
-    function LoadPdf(filename:string):boolean;
+    //function LoadPdf(filename:string):boolean;
     function ClosePdf:boolean;
 
   public
@@ -100,27 +100,89 @@ type
     procedure ShowPage(dc:HDC;page:uint64);
     {$endif}
   public
-    constructor Create(AOwner:TComponent);
+    constructor Create(AOwner:TComponent;FileName:string);
     destructor Destroy;override;
-
+    class function CalcHash(AStream:TStream):string;
   end;
 
 
 implementation
 
-constructor TRTFP_PDF.Create(AOwner:TComponent);
+class function TRTFP_PDF.CalcHash(AStream:TStream):string;
+var index:byte;
+    byt:byte;
+    arr:array [0..238] of byte;
+    skip_byte:byte;
+begin
+  for index:=0 to 238 do arr[index]:=0;
+  with AStream do
+    begin
+      //2MiB以内不跳过
+      skip_byte:=Size div $200000;
+      if skip_byte<1 then skip_byte:=1;
+
+      if Size<$20000000 then begin
+        //256MiB以内的按原本的方法跳转扫描
+        index:=0;
+        Position:=0;
+        while Position<Size do begin
+          byt:=ReadByte;
+          arr[index]:=arr[index]+byt;
+          inc(index);
+          if index>238 then index:=0;
+          Seek(byt mod skip_byte,soFromCurrent);
+        end;
+      end else begin
+        //256MiB以上的按开始的非零位作为初始值扫描
+        index:=0;
+        Position:=0;
+        while Position<Size do begin
+          byt:=ReadByte;
+          if byt<>0 then begin
+            arr[index]:=byt;
+            inc(index);
+            if index>239 then break;
+          end;
+          Seek(1,soFromCurrent);
+        end;
+        for index:=0 to 238 do begin
+          Seek(Size * index div 239, soFromBeginning);
+          Seek(arr[index],soFromCurrent);
+          if Position>=Size then break;
+          byt:=ReadByte;
+          arr[index]:=arr[index]+byt;
+        end;
+      end;
+    end;
+  result:='';
+  for index:=0 to 238 do
+    begin
+      arr[index]:=arr[index] and $3f;
+      if (arr[index] and $30 = $30) then
+        arr[index]:=arr[index] and $bf
+      else
+        arr[index]:=arr[index] or $40;
+      result:=result+chr(arr[index]);
+    end;
+end;
+
+constructor TRTFP_PDF.Create(AOwner:TComponent;FileName:string);
 begin
   inherited Create;
-  FMem:=TMemoryStream.Create;
-  FMeta:=TLastPdfData.Create;
-
-  FFileName:='';
   FHash:='';
   FSize:=0;
   {$ifdef WINDOWS}
   fdoc:=nil;
   fpage:=nil;
   {$endif}
+  FMeta:=TLastPdfData.Create;
+  FFileName:=FileName;
+  if FileExists(FileName) then begin
+    FMem:=TFileStream.Create(FFileName,fmOpenRead);
+    FSize:=FMem.Size;
+    FHash:=TRTFP_PDF.CalcHash(FMem);
+    CalcMeta;
+  end;
 end;
 
 destructor TRTFP_PDF.Destroy;
@@ -128,45 +190,6 @@ begin
   FMem.Free;
   FMeta.Free;
   inherited Destroy;
-end;
-
-function TRTFP_PDF.CalcHash:string;
-var index:byte;
-    byt:byte;
-    arr:array [0..238] of byte;
-    skip_byte:byte;
-begin
-  for index:=0 to 238 do arr[index]:=0;
-  index:=0;
-  with FMem do
-    begin
-      if Size<$200000 then skip_byte:=1
-      else if Size<$400000 then skip_byte:=2
-      else if Size<$800000 then skip_byte:=4
-      else if Size<$1000000 then skip_byte:=8
-      else if Size<$2000000 then skip_byte:=16
-      else if Size<$4000000 then skip_byte:=32
-      else if Size<$8000000 then skip_byte:=64
-      else skip_byte:=128;
-
-      Position:=0;
-      while Position<Size do
-        begin
-          byt:=ReadByte;
-          arr[index]:=arr[index]+byt;
-          inc(index);
-          if index>238 then index:=0;
-          Seek(byt mod skip_byte,soFromCurrent);
-        end;
-    end;
-  result:='';
-  for index:=0 to 238 do
-    begin
-      arr[index]:=arr[index] and $3f;
-      if (arr[index] and $30 = $30) then arr[index]:=arr[index] and $bf else
-      arr[index]:=arr[index] or $40;
-      result:=result+chr(arr[index]);
-    end;
 end;
 
 function TRTFP_PDF.CalcMeta:boolean;
@@ -196,20 +219,21 @@ begin
   {$endif}
 end;
 
-
+{
 function TRTFP_PDF.LoadPdf(filename:string):boolean;
 begin
   FFileName:=filename;
   FMem.LoadFromFile(filename);
   FSize:=FMem.Size;
-  FHash:=CalcHash;
+  FHash:=TRTFP_PDF.CalcHash(FMem);
   CalcMeta;
   result:=true;
 end;
+}
 
 function TRTFP_PDF.ClosePdf:boolean;
 begin
-  FMem.SetSize(0);
+  //FMem.SetSize(0);
   result:=true;
 end;
 
@@ -233,8 +257,14 @@ begin
 end;
 
 procedure TRTFP_PDF.CopyTo(filename:string);
+var f:file of byte;
 begin
-  FMem.SaveToFile(filename);
+  //FMem.SaveToFile(filename);
+  assignfile(f,filename);
+  rewrite(f);
+  FMem.Position:=0;
+  FMem.WriteBuffer(f,FMem.Size);
+  closefile(f);
 end;
 
 procedure TRTFP_PDF.DeleteRealFile;

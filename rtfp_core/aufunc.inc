@@ -45,7 +45,7 @@ begin
   FileStream:=TMemoryStream.Create;
   FileStream.LoadFromFile(filename);
 
-  AufScpt.writeln(TRTFP.FileHash(FileStream));
+  AufScpt.writeln(TRTFP_PDF.CalcHash(FileStream));
   FileStream.Free;
 end;
 
@@ -332,8 +332,7 @@ begin
   if not AAuf.CheckArgs(2) then exit;
   if not AAuf.TryArgToString(1,filename) then exit;
 
-  RTFP_PDF:=TRTFP_PDF.Create(nil);
-  RTFP_PDF.LoadPdf(filename);
+  RTFP_PDF:=TRTFP_PDF.Create(nil,filename);
 
   AufScpt.writeln(RTFP_PDF.Meta.ToString);
 
@@ -354,8 +353,7 @@ begin
   if not AAuf.CheckArgs(2) then exit;
   if not AAuf.TryArgToString(1,filename) then exit;
 
-  RTFP_PDF:=TRTFP_PDF.Create(nil);
-  RTFP_PDF.LoadPdf(filename);
+  RTFP_PDF:=TRTFP_PDF.Create(nil,filename);
   {$ifdef WINDOWS}
   RTFP_PDF.ShowPage(FormDesktop.Image_PDF_View.Picture.Bitmap.Canvas.Handle,page);
   //AufScpt.writeln(RTFP_PDF.Meta.ToString);
@@ -544,7 +542,7 @@ begin
   AufScpt:=Sender as TAufScript;
   AAuf:=AufScpt.Auf as TAuf;
   if not AAuf.CheckArgs(2) then exit;
-  if not AAuf.TryArgToString(1,stmp) then exit;
+  if not AAuf.TryArgToStrParam(1,['rebuild_mg','update_cur','change','datachange','fieldchange','recordchange','classchange'],false,stmp) then exit;
   if not AAuf.TryArgToString(2,ppid) then ppid:='000000';
   case lowercase(stmp) of
     'rebuild_mg':CurrentRTFP.RebuildMainGrid;

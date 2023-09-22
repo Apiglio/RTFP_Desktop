@@ -22,9 +22,7 @@ begin
       exit;
     end;
 
-  tmpPDF:=TRTFP_PDF.Create(nil);
   TRY
-
     IF fullfilename<>'' THEN BEGIN
       case AddPaperMethod of
         apmFullBackup,apmCutBackup:
@@ -40,6 +38,7 @@ begin
                 'Yes':{do nothing};
                 'No':exit;
             end;
+            tmpPDF:=TRTFP_PDF.Create(nil,fullfilename);
           end;
         apmAddress:
           begin
@@ -47,13 +46,16 @@ begin
             FileName:=fullfilename;
             if length(FileName)>240 then exit;
             //TargetDir:=FFilePath+FRootFolder+'/paper/'+DateDir;
+            tmpPDF:=TRTFP_PDF.Create(nil,'');
+            tmpPDF.Size:=FileSize(fullfilename);
           end;
       end;
-      tmpPDF.LoadPdf(fullfilename);
+      //tmpPDF.LoadPdf(fullfilename);
     END ELSE BEGIN
       if AddPaperMethod in [apmFullBackup,apmCutBackup,apmAddress] then exit;
       DateDir:='';
       FileName:='';
+      tmpPDF:=TRTFP_PDF.Create(nil,'');
     END;
 
     BeginUpdate;
@@ -130,30 +132,37 @@ end;
 function TRTFP.FindPaper(fullfilename:string):RTFP_ID;//查找具体文件在工程中的PID，未找到返回000000
 var PID:RTFP_ID;
     FHash,FName:string;
-    FileStream,CpStr:TMemoryStream;
-    retry,cps:boolean;
+    FileStream,CpStr:TFileStream;
+    retry:boolean;
 begin
   FHash:='';
   PID:='';
-  cps:=false;
 
-  FileStream:=TMemoryStream.Create;
-  FileStream.LoadFromFile(fullfilename);
+  FileStream:=TFileStream.Create(fullfilename,fmOpenRead);
+  //FileStream.LoadFromFile(fullfilename);
 
   with FPaperDB do begin
     First;
     repeat
       if FieldByName(_Col_Paper_FileSize_).AsLongint = FileStream.Size then
         begin
-          if FHash='' then FHash:=TRTFP.FileHash(FileStream);
+          if FHash='' then FHash:=TRTFP_PDF.CalcHash(FileStream);
           if FieldByName(_Col_Paper_FileHash_).AsString = FHash then
             begin
-              if not cps then begin CpStr:=TMemoryStream.Create;cps:=true end;
               FName:=FFilePath+FRootFolder+'/paper/'+FieldByName(_Col_Paper_Folder_).AsString+'/'+FieldByName(_Col_Paper_FileName_).AsString;
               repeat try
                 retry:=false;
-                CpStr.LoadFromFile(FName);
-                if CompareMem(FileStream.Memory,CpStr.Memory,FileStream.Size) then PID:=FieldByName(_Col_PID_).AsString;
+                //CpStr.LoadFromFile(FName);
+                CpStr:=TFileStream.Create(FName,fmOpenRead);
+                if FileStream.Size<>CpStr.Size then break;
+                FileStream.Position:=0;
+                CpStr.Position:=0;
+                while FileStream.Position<FileStream.Size do begin
+                  if FileStream.ReadByte<>CpStr.ReadByte then break;
+                  FileStream.Seek(1,soFromCurrent);
+                  CpStr.Seek(1,soFromCurrent);
+                end;
+                PID:=FieldByName(_Col_PID_).AsString;
               except
                 case ShowMsgRetryIgnore('错误','疑似相同文件被占用！') of
                   'Retry':retry:=true;
@@ -165,8 +174,6 @@ begin
       Next;
     until EOF or (PID<>'');
   end;
-
-  if cps then CpStr.Free;
 
   if PID='' then result:='000000' else result:=PID;
 
@@ -258,9 +265,8 @@ begin
       end;
   end;
 
-  tmpPDF:=TRTFP_PDF.Create(nil);
   TRY
-    tmpPDF.LoadPdf(fullfilename);
+    tmpPDF:=TRTFP_PDF.Create(nil,fullfilename);
 
     BeginUpdate;
 

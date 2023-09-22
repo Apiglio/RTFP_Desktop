@@ -612,7 +612,6 @@ type
     class function CanBuildFile(fullname:string):boolean;
     class function CanBuildDisc(discchar:char):boolean;
 
-    class function FileHash(AFileStream:TStream):string;//返回一个239长度的文件Hash
     class function FileCopy(source,dest:string;bFailIfExist:boolean):boolean;//utf8的string版本
     class function FileDelete(source:string):boolean;//utf8的string版本
     class function FileMove(source,dest:string;bFailIfExist:boolean):boolean;
@@ -1866,46 +1865,6 @@ begin
   if d1<$ffffffff then result:=false
   else result:=true;
 
-end;
-
-class function TRTFP.FileHash(AFileStream:TStream):string;
-var index:byte;
-    byt:byte;
-    arr:array [0..238] of byte;
-    skip_byte:byte;
-begin
-  for index:=0 to 238 do arr[index]:=0;
-  index:=0;
-  with AFileStream do
-    begin
-
-      if Size<$200000 then skip_byte:=1
-      else if Size<$400000 then skip_byte:=2
-      else if Size<$800000 then skip_byte:=4
-      else if Size<$1000000 then skip_byte:=8
-      else if Size<$2000000 then skip_byte:=16
-      else if Size<$4000000 then skip_byte:=32
-      else if Size<$8000000 then skip_byte:=64
-      else skip_byte:=128;
-
-      Position:=0;
-      while Position<Size do
-        begin
-          byt:=ReadByte;
-          arr[index]:=arr[index]+byt;
-          inc(index);
-          if index>238 then index:=0;
-          Seek(byt mod skip_byte,soFromCurrent);
-        end;
-    end;
-  result:='';
-  for index:=0 to 238 do
-    begin
-      arr[index]:=arr[index] and $3f;
-      if (arr[index] and $30 = $30) then arr[index]:=arr[index] and $bf else
-      arr[index]:=arr[index] or $40;
-      result:=result+chr(arr[index]);
-    end;
 end;
 
 class function TRTFP.FileCopy(source,dest:string;bFailIfExist:boolean):boolean;
