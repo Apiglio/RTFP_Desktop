@@ -16,6 +16,8 @@ type
     FName,FFullPath:string;
     FDbf:{TDbf}TDataSet;
     FFilterEnabled:boolean;
+    FKlassList:TKlassList;
+    FParent:TKlass;//如果为nil表示就在class目录之下
   public
     property Name:string read FName;
     property FullPath:string read FFullPath;
@@ -29,7 +31,7 @@ type
 
   TKlassEnumerator = class(TCollectionEnumerator)
   private
-    FCollection: TKlassList;
+    FCollection: TList;
     FPosition: Integer;
   public
     constructor Create(ACollection: TCollection);
@@ -79,32 +81,54 @@ begin
   if Assigned(ACollection) then
     inherited Create(ACollection)
   else raise Exception.Create('TKlass.Create: unassigned');
+  FKlassList:=TKlassList.Create(nil);//why?
   //FDbf:=TDbf.Create(nil);//同样不在此处创建，改到addEx中
 end;
 
 destructor TKlass.Destroy;
 begin
   FDbf.Free;
+  FKlassList.Free;
   Inherited Destroy;
 end;
 
 { TKlassEnumerator }
 
+procedure RecurKlassList(dst:TList;src:TKlassList);
+var pi:integer;
+begin
+  pi:=0;
+  while pi<src.Count do begin
+    dst.Add(src.Items[pi]);
+    RecurKlassList(dst,src.Items[pi].FKlassList);
+    inc(pi);
+  end;
+end;
+
 constructor TKlassEnumerator.Create(ACollection: TCollection);
 begin
-  if Assigned(ACollection) then
-    inherited Create(ACollection)
-  else raise Exception.Create('TKlassEnumerator.Create: unassigned');
+  //if Assigned(ACollection) then
+  //  inherited Create(ACollection)
+  //else raise Exception.Create('TKlassEnumerator.Create: unassigned');
+  if not (ACollection is TKlassList) then
+    raise Exception.Create('TKlassEnumerator.Create: ACollection is not TKlassList');
+  FCollection:=TList.Create;
+  RecurKlassList(FCollection, ACollection as TKlassList);
+  FPosition:=-1;
 end;
 
 function TKlassEnumerator.GetCurrent:TKlass;
 begin
-  result:=inherited GetCurrent as TKlass;
+  //result:=inherited GetCurrent as TKlass;
+  result:=TKlass(FCollection.Items[FPosition]);
 end;
 
 function TKlassEnumerator.MoveNext: Boolean;
 begin
-  result:=inherited MoveNext;
+  //result:=inherited MoveNext;
+  inc(FPosition);
+  result:=FPosition<FCollection.Count;
+  if not result then FCollection.Free;
 end;
 
 { TKlassList }
