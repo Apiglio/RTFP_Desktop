@@ -89,10 +89,6 @@ type
     property Meta:TPdfMeta read FMeta;
 
   public
-    //function LoadPdf(filename:string):boolean;
-    function ClosePdf:boolean;
-
-  public
     function FileEqual(buf:pbyte;buflen:uint64):boolean;
     procedure CopyTo(filename:string);
     procedure DeleteRealFile;//在loadpdf之后用于删除FFileName路径中的文件
@@ -219,24 +215,6 @@ begin
   DeleteFile('MetaData.swap');
   result:=true;
   {$endif}
-end;
-
-{
-function TRTFP_PDF.LoadPdf(filename:string):boolean;
-begin
-  FFileName:=filename;
-  FMem.LoadFromFile(filename);
-  FSize:=FMem.Size;
-  FHash:=TRTFP_PDF.CalcHash(FMem);
-  CalcMeta;
-  result:=true;
-end;
-}
-
-function TRTFP_PDF.ClosePdf:boolean;
-begin
-  //FMem.SetSize(0);
-  result:=true;
 end;
 
 function TRTFP_PDF.FileEqual(buf:pbyte;buflen:uint64):boolean;

@@ -101,30 +101,27 @@ begin
 
     EndUpdate;
 
-    IF fullfilename<>'' THEN BEGIN
-      case AddPaperMethod of
-        apmFullBackup:
-          begin
-            ForceDirectories(TargetDir);
-            //tmpPDF.CopyTo(TargetDir+'/'+FileName);//为什么不用copy？
-            TRTFP.FileCopy(fullfilename,TargetDir+'/'+FileName,false);
-            //尚未加入长度检验
-          end;
-        apmCutBackup:
-          begin
-            ForceDirectories(TargetDir);
-            //tmpPDF.CopyTo(TargetDir+'/'+FileName);//为什么不用copy？
-            TRTFP.FileMove(fullfilename,TargetDir+'/'+FileName,false);
-            //尚未加入长度检验
-          end;
-
-      end;
-      tmpPDF.ClosePdf;
-    END;
-
   FINALLY
     tmpPDF.Free;
   END;
+
+  IF fullfilename<>'' THEN BEGIN
+    case AddPaperMethod of
+      apmFullBackup:
+        begin
+          ForceDirectories(TargetDir);
+          TRTFP.FileCopy(fullfilename,TargetDir+'/'+FileName,false);
+          //尚未加入长度检验
+        end;
+      apmCutBackup:
+        begin
+          ForceDirectories(TargetDir);
+          TRTFP.FileMove(fullfilename,TargetDir+'/'+FileName,false);
+          //尚未加入长度检验
+        end;
+    end;
+  END;
+
   RecordChange;
   result:=PID;
 end;
@@ -211,119 +208,6 @@ begin
       if LocatePID(AG.Dbf,PID) then AG.Dbf.Delete;
       AG.Modified:=true;
     end;
-  RecordChange;
-  result:=true;
-end;
-
-function TRTFP.UpdatePaper(PID:RTFP_ID;fullfilename:string;AddPaperMethod:TAddPaperMethod):boolean;//更新指定PID的文件
-var old_dir,old_file:string;
-    old_backup:boolean;
-    DateDir,FileName,TargetDir:string;
-    tmpPDF:TRTFP_PDF;
-begin
-  result:=false;
-  if not TRTFP.IsRTFPID(PID) then exit;
-  case AddPaperMethod of
-    apmFullBackup,apmCutBackup,apmAddress:;
-    else begin
-      assert(false,'不接受apmFullBackup、apmCutBackup和apmAddress以外的方式');
-      exit
-    end;
-  end;
-  if not LocatePID(FPaperDB,PID) then begin
-    ShowMsgOK('未找到记录','没有找到PID为'+PID+'的文献节点');
-    exit;
-  end;
-  with FPaperDB do begin
-    old_backup:=FieldByName(_Col_Paper_Is_Backup_).AsBoolean;
-    if old_backup then begin
-      old_file:=FieldByName(_Col_Paper_FileName_).AsString;
-      old_dir:=FieldByName(_Col_Paper_Folder_).AsString;
-    end;
-  end;
-
-  case AddPaperMethod of
-    apmFullBackup,apmCutBackup:
-      begin
-        DateDir:=TRTFP.GetDateDir;
-        FileName:=ExtractFileName(fullfilename);
-        TargetDir:=FFilePath+FRootFolder+'/paper/'+DateDir;
-        if FileExists(TargetDir+'/'+FileName) then
-          case ShowMsgYesNoAll('相同的备份路径','正在导入的文件“'+fullfilename
-          +'”的默认备份地址存在重名，覆盖会导致两个文献节点共用一个备份文件。'
-          +'若两个文件不相同，会导致旧版本备份文件被覆盖，且难以复原。'
-          +'是否覆盖？',true) of
-            'Yes':{do nothing};
-            else exit;
-        end;
-      end;
-    apmAddress:
-      begin
-        DateDir:='extern';
-        FileName:=fullfilename;
-        TargetDir:=fullfilename;
-      end;
-  end;
-
-  TRY
-    tmpPDF:=TRTFP_PDF.Create(nil,fullfilename);
-
-    BeginUpdate;
-
-    //此时游标已经在PID位置
-    with FPaperDB do begin
-      Edit;
-      FieldByName(_Col_Paper_Is_Backup_).AsBoolean:=AddPaperMethod=apmFullBackup;
-      FieldByName(_Col_Paper_Folder_).AsString:=DateDir;
-      FieldByName(_Col_Paper_FileName_).AsString:=FileName;
-      FieldByName(_Col_Paper_FileSize_).AsLargeInt:=tmpPDF.Size;
-      FieldByName(_Col_Paper_FileHash_).AsString:=tmpPDF.Hash;
-      Post;
-    end;
-
-    //2-注解
-    EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now,[]);
-
-    //3-元数据
-    //这里之后要考虑不是pdf或者pdf读取错误的情况
-    //这不是一个好做法，会大量浪费算力，但是现在先让他爬起来吧，再优化
-    EditFieldAsString(_Col_metas_Title_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Title']^,[]);
-    EditFieldAsString(_Col_metas_Authors_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Author']^,[]);
-    EditFieldAsString(_Col_metas_Subject_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Subject']^,[]);
-    EditFieldAsString(_Col_metas_Keyword_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Keywords']^,[]);
-    EditFieldAsString(_Col_metas_Creator_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Creator']^,[]);
-    EditFieldAsString(_Col_metas_Produce_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Producer']^,[]);
-    EditFieldAsString(_Col_metas_CreDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:CreationDate']^,[]);
-    EditFieldAsString(_Col_metas_ModDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:ModDate']^,[]);
-
-    EndUpdate;
-
-    //这里有个大问题，如果更新之前有文件，那么替换的时候又不在同一个文件夹，怎么处理
-    case AddPaperMethod of
-      apmFullBackup:
-        begin
-          ForceDirectories(TargetDir);
-          tmpPDF.CopyTo(TargetDir+'/'+FileName);//改了，不用这个了
-          TRTFP.FileCopy(fullfilename,TargetDir+'/'+FileName,false);
-          //尚未加入长度检验
-        end;
-      apmCutBackup:
-        begin
-          ForceDirectories(TargetDir);
-          tmpPDF.CopyTo(TargetDir+'/'+FileName);//改了，不用这个了
-          TRTFP.FileMove(fullfilename,TargetDir+'/'+FileName,false);
-          //尚未加入长度检验
-        end;
-    end;
-    if old_backup then begin
-      TRTFP.FileDelete(FFilePath+FRootFolder+'/paper/'+old_dir+'/'+old_file);
-      FPaperDB.FieldByName(_Col_Paper_Is_Backup_).AsBoolean:=true;
-    end;
-
-    tmpPDF.ClosePdf;
-  FINALLY
-    tmpPDF.Free;
-  END;
   RecordChange;
   result:=true;
 end;

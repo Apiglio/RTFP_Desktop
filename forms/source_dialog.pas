@@ -42,7 +42,7 @@ var
   Form_FileSource: TForm_FileSource;
 
 implementation
-uses RTFP_definition, rtfp_dialog, RTFP_main, rtfp_constants, rtfp_type;
+uses RTFP_definition, rtfp_dialog, RTFP_main, rtfp_constants, rtfp_type, rtfp_pdfobj;
 {$R *.lfm}
 
 { TForm_FileSource }
@@ -63,6 +63,7 @@ begin
 end;
 function TForm_FileSource.SetNewBackup(backup:string):boolean;
 var pathn,filen:string;
+    tmpFS:TFileStream;
 begin
   result:=false;
   pathn:=TRTFP.GetDateDir;
@@ -77,6 +78,13 @@ begin
   CurrentRTFP.EditBasicString(_Col_Paper_Folder_,Current_PID,pathn);
   CurrentRTFP.EditBasicString(_Col_Paper_FileName_,Current_PID,filen);
   CurrentRTFP.EditBasicBool(_Col_Paper_Is_Backup_,Current_PID,true);
+  CurrentRTFP.EditBasicInteger(_Col_Paper_FileSize_,Current_PID,FileSize(backup));
+  try
+    tmpFS:=TFileStream.Create(backup,fmOpenRead);
+    CurrentRTFP.EditBasicString(_Col_Paper_FileHash_,Current_PID,TRTFP_PDF.CalcHash(tmpFS));
+  finally
+    tmpFS.Free;
+  end;
   CurrentRTFP.DataChange(Current_PID);
   result:=true;
 end;

@@ -314,7 +314,6 @@ type
     function AddPaper(fullfilename:string;AddPaperMethod:TAddPaperMethod=apmFullBackup):RTFP_ID;//新增一个文献到工程
     function FindPaper(fullfilename:string):RTFP_ID;//查找具体文件在工程中的PID，未找到返回000000
     function DeletePaper(PID:RTFP_ID;PreserveFileNoAsk:boolean=false):boolean;//移除指定PID的文献，第二参数true在MergePaper中使用
-    function UpdatePaper(PID:RTFP_ID;fullfilename:string;AddPaperMethod:TAddPaperMethod):boolean;//更新指定PID的文件
     function MergePaper(PID_Main,PID_Vice:RTFP_ID;AFieldSelectOption:TFieldSelectOptions):boolean;//合并两个文献节点
 
     procedure OpenPaper(PID:RTFP_ID;exename:string='');
@@ -1924,7 +1923,7 @@ end;
 class function TRTFP.OpenDir(filename:string):boolean;
 begin
   {$ifdef Windows}
-  ShellExecute(0,'open','explorer',pchar('/select,"'+filename+'"'),nil,SW_NORMAL);
+  ShellExecute(0,'open','explorer',pchar('/select,"'+StringReplace(filename,'/','\',[rfReplaceAll])+'"'),nil,SW_NORMAL);
   {$endif}
 end;
 

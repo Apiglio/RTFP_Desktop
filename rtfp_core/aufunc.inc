@@ -336,7 +336,6 @@ begin
 
   AufScpt.writeln(RTFP_PDF.Meta.ToString);
 
-  RTFP_PDF.ClosePdf;
   RTFP_PDF.Free;
 
 end;
@@ -358,7 +357,6 @@ begin
   RTFP_PDF.ShowPage(FormDesktop.Image_PDF_View.Picture.Bitmap.Canvas.Handle,page);
   //AufScpt.writeln(RTFP_PDF.Meta.ToString);
   {$endif}
-  RTFP_PDF.ClosePdf;
   RTFP_PDF.Free;
 end;
 
