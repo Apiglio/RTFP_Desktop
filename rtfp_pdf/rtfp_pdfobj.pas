@@ -107,6 +107,7 @@ type
 
 
 implementation
+uses math;
 
 class function TRTFP_PDF.CalcHash(AStream:TStream):string;
 var index:byte;
@@ -119,7 +120,8 @@ begin
     begin
       //2MiB以内不跳过
       skip_byte:=Size div $200000;
-      if skip_byte<1 then skip_byte:=1;
+      if skip_byte<1 then skip_byte:=1
+      else skip_byte:=1+round(exp(ln(2)*math.ceil(ln(skip_byte)/ln(2))));
 
       if Size<$20000000 then begin
         //256MiB以内的按原本的方法跳转扫描
@@ -257,14 +259,15 @@ begin
 end;
 
 procedure TRTFP_PDF.CopyTo(filename:string);
-var f:file of byte;
+var f:TFileStream;
 begin
-  //FMem.SaveToFile(filename);
-  assignfile(f,filename);
-  rewrite(f);
-  FMem.Position:=0;
-  FMem.WriteBuffer(f,FMem.Size);
-  closefile(f);
+  try
+    f:=TFileStream.Create(filename,fmOpenWrite);
+    f.Position:=0;
+    f.CopyFrom(FMem,FMem.Size);
+  finally
+    f.Free;
+  end;
 end;
 
 procedure TRTFP_PDF.DeleteRealFile;
