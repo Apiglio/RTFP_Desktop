@@ -238,9 +238,6 @@ begin
     AllState.Enable;
 
     CurrentRTFP.BeginUpdate;
-    //tmpProc:=CurrentRTFP.onChange;
-    //CurrentRTFP.onChange:=nil;
-    //真离谱出此下策(现在还需要吗)
     for pi:=0 to FFileNames.Count-1 do
       begin
         if FHaltoff then exit;
@@ -284,7 +281,6 @@ begin
           end;
       end;
   finally
-    //CurrentRTFP.onChange:=tmpProc;
     CurrentRTFP.EndUpdate;
 
     FormDesktop.ShowWaitForm:=true;
