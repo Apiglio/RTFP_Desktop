@@ -3,7 +3,6 @@
 //字段更新日志(有必要吗)
 //Memo字段的搜索
 //尽快将所有弹窗统一样式（在做了，有点小问题，按键中文或者自动布局还没有处理好）
-//TKlass嵌套结构
 //增加替换URL的加载模式用以适用不同的webvpn
 //FWaitForm加进度条
 //“待注脚知识元”
@@ -250,9 +249,11 @@ type
 
   //ACCESS_KLASS.INC 分类
   public
-    function AddKlass(klassname:string;pathname:string=''):TKlass;
-    function FindKlass(klassname:string):TKlass;
-    procedure DeleteKlass(klassname:string);
+    function AddKlass(klassname:string;parentklass:TKlass=nil):TKlass;
+    function AddKlass(KlassnameSeries:string;Delimiter:Char):TKlass;
+    function FindKlass(KlassnameSeries:string;Delimiter:Char):TKlass;
+    procedure DeleteKlass(klass:TKlass);
+    procedure DeleteKlass(KlassnameSeries:string;Delimiter:Char);
 
     function KlassInclude(klassname:string;PID:RTFP_ID):boolean;
     function KlassExclude(klassname:string;PID:RTFP_ID):boolean;
@@ -687,7 +688,7 @@ begin
     else raise Exception.Create('无效DataSetType。');
   end;
 
-  FKlassList:=TKlassList.Create(Self);
+  FKlassList:=TKlassList.Create(nil,FDataSetType);
   FFileList:=TRTFP_FileList.Create(Self,'');
   FFieldList:=TAttrsGroupList.Create(Self);
 
@@ -768,7 +769,7 @@ begin
     delete(stmp,1,len-5);
     if stmp='.rtfp' then delete(Self.FRootFolder,len-4,5);
   end;
-  FKlassList.Path:=FFilePath+FRootFolder;
+  FKlassList.KlassDir:=FFilePath+FRootFolder+'/class';
   FFieldList.Path:=FFilePath+FRootFolder;
 end;
 
@@ -776,11 +777,7 @@ procedure TRTFP.LoadAttrs;
 var tmpAttrs:TAttrsGroup;
 begin
   //BeginUpdate;
-  case DataSetType of
-    dstDBF:FFieldList.LoadFromPath('attr/','dbf');
-    dstBUF:FFieldList.LoadFromPath('attr/','buf');
-    else raise Exception.Create('无效DataSetType。');
-  end;
+  FFieldList.LoadFromPath('attr/',DataSetType);
 
   for tmpAttrs in FFieldList do
     begin
@@ -843,16 +840,13 @@ procedure TRTFP.LoadKlass;
 var tmpKlass:TKlass;
 begin
   //BeginUpdate;
-  case DataSetType of
-    dstDBF:FKlassList.LoadFromPath('class/','dbf');
-    dstBUF:FKlassList.LoadFromPath('class/','buf');
-    else raise Exception.Create('无效DataSetType。');
-  end;
-  for tmpKlass in FKlassList do
-    begin
-      if not OpenDbf(tmpKlass.FullPath,tmpKlass.Dbf) then
-        NewDbf(tmpKlass.FullPath,tmpKlass.Dbf);
+  FKlassList.LoadFromPath;
+  for tmpKlass in FKlassList do begin
+    if not OpenDbf(tmpKlass.FullPath(CurrentPathFull),tmpKlass.Dbf) then begin
+      GenAttrDefaultAttribute(tmpKlass.Dbf);
+      NewDbf(tmpKlass.FullPath(CurrentPathFull),tmpKlass.Dbf);
     end;
+  end;
   //EndUpdate;
   //ClassChange;
 end;
@@ -862,7 +856,7 @@ var tmpKlass:TKlass;
 begin
   for tmpKlass in FKlassList do
     begin
-      while not SaveDbf(tmpKlass.FullPath,tmpKlass.Dbf,RunPerformance.Backup_SaveXml) do
+      while not SaveDbf(tmpKlass.FullPath(CurrentPathFull),tmpKlass.Dbf,RunPerformance.Backup_SaveXml) do
         case ShowMsgRetryIgnore('错误','分类文件保存失败！') of
           'Retry':;
           'Ignore':break;
@@ -875,7 +869,7 @@ var tmpKlass:TKlass;
 begin
   for tmpKlass in FKlassList do
     begin
-      while not CloseDbf(tmpKlass.FullPath,tmpKlass.Dbf) do
+      while not CloseDbf(tmpKlass.FullPath(CurrentPathFull),tmpKlass.Dbf) do
         case ShowMsgRetryIgnore('错误','分类文件关闭失败！') of
           'Retry':;
           'Ignore':break;
@@ -1682,6 +1676,7 @@ begin
 end;
 
 procedure TRTFP.SetDataSetType(value:TRTFP_DataSetType);
+var tmpKlassListDir:string;
 begin
   if IsOpen then raise Exception.Create('RTFP工程打开时不能修改数据库文件类型。');
   if FDataSetType=value then exit;
@@ -1693,6 +1688,10 @@ begin
       FPaperDB:=TBufDataset.Create(Self);
       FImageDB:=TBufDataset.Create(Self);
       FNotesDB:=TBufDataset.Create(Self);
+      tmpKlassListDir:=FKlassList.KlassDir;
+      FKlassList.Free;
+      FKlassList:=TKlassList.Create(nil,dstBUF);
+      FKlassList.KlassDir:=tmpKlassListDir;
     end;
     dstDBF:begin
       FPaperDB.Free;
@@ -1701,6 +1700,10 @@ begin
       FPaperDB:=TDbf.Create(Self);
       FImageDB:=TDbf.Create(Self);
       FNotesDB:=TDbf.Create(Self);
+      tmpKlassListDir:=FKlassList.KlassDir;
+      FKlassList.Free;
+      FKlassList:=TKlassList.Create(nil,dstDBF);
+      FKlassList.KlassDir:=tmpKlassListDir;
     end;
   end;
   FDataSetType:=value;

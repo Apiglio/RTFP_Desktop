@@ -327,7 +327,7 @@ begin
       for tmpKL in KlassList do
         begin
            Add('分类名称：'+tmpKL.Name);
-           Add('分类路径：'+tmpKL.FullPath);
+           Add('分类路径：'+tmpKL.FullPath(CurrentPathFull));
            with tmpKL.Dbf do
              begin
                if not Active then Open;

@@ -87,7 +87,7 @@ begin
           PID:=PaperDS.FieldByName(_Col_PID_).AsString;
           arr[index]:=PID;
         end;
-      for index:=0 to max-1 do KlassExclude(tmpKL.Name,arr[index]);
+      for index:=0 to max-1 do KlassExclude(tmpKL.KlassNameWithDelimiter('.'),arr[index]);
 
     end;
   CurrentRTFP.EndUpdate;
@@ -122,7 +122,7 @@ begin
           PID:=PaperDS.FieldByName(_Col_PID_).AsString;
           arr[index]:=PID;
         end;
-      for index:=0 to max-1 do KlassInclude(tmpKL.Name,arr[index]);
+      for index:=0 to max-1 do KlassInclude(tmpKL.KlassNameWithDelimiter('.'),arr[index]);
 
     end;
   CurrentRTFP.EndUpdate;

@@ -1,47 +1,106 @@
 //与分类相关的方法
 
-function TRTFP.AddKlass(klassname:string;pathname:string=''):TKlass;
-var tmp:TKlass;
+function TRTFP.AddKlass(klassname:string;parentklass:TKlass=nil):TKlass;
+var tmpKL:TKlass;
+    tmpKlassList:TKlassList;
+    mkdir_path:string;
 begin
   result:=nil;
   if not TRTFP.IsKlassName(klassname) then exit;
-  if FKlassList.FindItemIndexByName(klassname)>=0 then exit;
-  if pathname<>'' then pathname:=pathname+'/';
-  case DataSetType of
-    dstDBF:tmp:=FKlassList.AddEx('class/'+pathname+klassname,klassname,'dbf');
-    dstBUF:tmp:=FKlassList.AddEx('class/'+pathname+klassname,klassname,'buf');
+  if parentklass=nil then tmpKlassList:=FKlassList else tmpKlassList:=parentklass.KlassList;
+  if tmpKlassList.FindItemIndexByName(klassname)>=0 then exit;
+  if parentklass<>nil then begin
+    mkdir_path:=FKlassList.KlassDir;
+    if parentklass.Path<>'' then mkdir_path:=mkdir_path+'\'+parentklass.Path;
+    mkdir_path:=mkdir_path+'\'+parentklass.Name;
+    ForceDirectories(mkdir_path);
   end;
-  ForceDirectories(FFilePath+FRootFolder+'/class/'+pathname);
-  if not OpenDbf(tmp.FullPath,tmp.Dbf) then begin
-    GenAttrDefaultAttribute(tmp.Dbf);
-    NewDbf(tmp.FullPath,tmp.Dbf);
+  tmpKL:=tmpKlassList.Add(klassname,DataSetType);
+  if not OpenDbf(tmpKL.FullPath(CurrentPathFull),tmpKL.Dbf) then begin
+    GenAttrDefaultAttribute(tmpKL.Dbf);
+    NewDbf(tmpKL.FullPath(CurrentPathFull),tmpKL.Dbf);
   end;
   ClassChange;
-  result:=tmp;
+  result:=tmpKL;
 end;
 
-function TRTFP.FindKlass(klassname:string):TKlass;
+function StringSplit(Source,Delimiter:string):TStringList;
+var stmp,segm:string;
+    dlen,posi:Integer;
 begin
-  result:=FKlassList.FindItemByName(klassname);
+  stmp:=Source;
+  dlen:=Length(Delimiter);
+  result:=TStringList.Create;
+  repeat
+    posi:=pos(Delimiter,stmp);
+    if posi>0 then begin
+      segm:=stmp;
+      System.Delete(segm,posi,length(segm));
+      System.Delete(stmp,1,posi+dlen-1);
+      result.Add(segm);
+    end;
+  until posi<=0;
+  result.Add(stmp);
 end;
 
-procedure TRTFP.DeleteKlass(klassname:string);
-var index,recNumber:integer;
-    tmp:TKlass;
+function TRTFP.AddKlass(KlassnameSeries:string;Delimiter:Char):TKlass;
+var kNAME:string;
+    tmpKL,nxtKL:TKlass;
+    tmpKlassList:TKlassList;
+    pi:Integer;
+
+begin
+  result:=nil;
+  with StringSplit(KlassnameSeries,delimiter) do begin
+    tmpKL:=nil;
+    for pi:=0 to Count-1 do begin
+      kNAME:=Strings[pi];
+      if kNAME='' then continue;
+      if tmpKL=nil then tmpKlassList:=FKlassList else tmpKlassList:=tmpKL.KlassList;
+      nxtKL:=tmpKlassList.FindItemByName(kNAME);
+      if nxtKL=nil then nxtKL:=AddKlass(kNAME,tmpKL);
+      tmpKL:=nxtKL;
+    end;
+    Free;
+  end;
+  result:=tmpKL;
+end;
+
+function TRTFP.FindKlass(KlassnameSeries:string;Delimiter:Char):TKlass;
+var kNAME:string;
+    tmpKL,nxtKL:TKlass;
+    tmpKlassList:TKlassList;
+    pi:Integer;
+
+begin
+  result:=nil;
+  with StringSplit(KlassnameSeries,delimiter) do begin
+    tmpKL:=nil;
+    for pi:=0 to Count-1 do begin
+      kNAME:=Strings[pi];
+      if kNAME='' then continue;
+      if tmpKL=nil then tmpKlassList:=FKlassList else tmpKlassList:=tmpKL.KlassList;
+      nxtKL:=tmpKlassList.FindItemByName(kNAME);
+      tmpKL:=nxtKL;
+      if tmpKL=nil then break;
+    end;
+    Free;
+  end;
+  result:=tmpKL;
+end;
+
+procedure TRTFP.DeleteKlass(klass:TKlass);
+var recNumber:integer;
     PID:RTFP_ID;
     str:TStringList;
     attrs_modified:boolean;
 begin
-  index:=FKlassList.FindItemIndexByName(klassname);
-  if index<0 then exit;
-  tmp:=FKlassList.Items[index];
-
   str:=TStringList.Create;
   str.Sorted:=true;
   attrs_modified:=false;
   BeginUpdate;
   try
-    with tmp.Dbf do begin
+    with klass.Dbf do begin
       if not Active then Open;
       First;
       if not EOF then attrs_modified:=true;
@@ -49,7 +108,7 @@ begin
         begin
           PID:=FieldByName(_Col_PID_).AsString;
           ReadFieldAsMemo(_Col_class_DefaultCl_,_Attrs_Class_,PID,str,[]);
-          if str.Find(tmp.Name,recNumber) then str.Delete(recNumber);
+          if str.Find(klass.Name,recNumber) then str.Delete(recNumber);
           EditFieldAsMemo(_Col_class_DefaultCl_,_Attrs_Class_,PID,str,[]);
           Next;
         end;
@@ -58,23 +117,33 @@ begin
     str.Free;
   end;
   EndUpdate;
-  CloseDbf(tmp.FullPath,tmp.Dbf);
-  DeleteDbf(tmp.FullPath,tmp.Dbf);
-  FKlassList.Delete(index);
+  CloseDbf(klass.FullPath(CurrentPathFull),klass.Dbf);
+  DeleteDbf(klass.FullPath(CurrentPathFull),klass.Dbf);
+
   ClassChange;
   if attrs_modified then RebuildMainGrid{DataChange};
+end;
+
+procedure TRTFP.DeleteKlass(KlassnameSeries:string;Delimiter:Char);
+var tmpKL:TKlass;
+begin
+  tmpKL:=FindKlass(KlassnameSeries,Delimiter);
+  if tmpKL=nil then exit;
+  DeleteKlass(tmpKL);
 end;
 
 function TRTFP.KlassInclude(klassname:string;PID:RTFP_ID):boolean;
 var index:integer;
     stmp:TStringList;
     tmpDbf:TDataSet;
+    tmpKL:TKlass;
 begin
   result:=false;
   //索引文件更新
-  index:=FKlassList.FindItemIndexByName(klassname);
-  if index<0 then exit;
-  tmpDbf:=FKlassList[index].Dbf;
+  tmpKL:=FindKlass(klassname,'.');
+  if tmpKL=nil then exit;
+  tmpDbf:=tmpKL.Dbf;
+
   with tmpDbf do begin
     if not Active then Open;
     if not LocatePID(tmpDbf,PID) then begin
@@ -101,12 +170,14 @@ function TRTFP.KlassExclude(klassname:string;PID:RTFP_ID):boolean;
 var index:integer;
     stmp:TStringList;
     tmpDbf:TDataSet;
+    tmpKL:TKlass;
 begin
   result:=false;
   //索引文件更新
-  index:=FKlassList.FindItemIndexByName(klassname);
-  if index<0 then exit;
-  tmpDbf:=FKlassList[index].Dbf;
+  tmpKL:=FindKlass(klassname,'.');
+  if tmpKL=nil then exit;
+  tmpDbf:=tmpKL.Dbf;
+
   with tmpDbf do begin
     if not Active then Open;
     if LocatePID(tmpDbf,PID) then Delete;

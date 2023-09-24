@@ -5,64 +5,80 @@ unit rtfp_class;
 interface
 
 uses
-  Classes, SysUtils, dbf, rtfp_constants, db, BufDataset;
+  Classes, SysUtils, FileUtil, dbf, db, BufDataset,
+  rtfp_constants, rtfp_type;
 
 type
 
   TKlassList = class;
 
-  TKlass = class(TCollectionItem)
+  TKlass = class
   private
-    FName,FFullPath:string;
-    FDbf:{TDbf}TDataSet;
+    FName,FPath,FKlassDir:string;
+    FDbf:TDataSet;
     FFilterEnabled:boolean;
+    FSubKlassShown:boolean;
     FKlassList:TKlassList;
-    FParent:TKlass;//如果为nil表示就在class目录之下
+    FParentKlass:TKlass;//如果为nil表示就在class目录之下
+    FDataSetType:TRTFP_DataSetType;
+  public
+    function FullPath(ProjectPath:string):string;
   public
     property Name:string read FName;
-    property FullPath:string read FFullPath;
-    property Dbf:{Tdbf}TDataSet read FDbf;
+    property Path:string read FPath;
+    property KlassDir:string read FKlassDir write FKlassDir;
+    property Dbf:TDataSet read FDbf;
     property FilterEnabled:boolean read FFilterEnabled write FFilterEnabled;//如果为true，RecordFilter会以此为筛选条件
+    property SubKlassShown:boolean read FSubKlassShown write FSubKlassShown;//如果为true，在分类列表中会显示下属的分类
+    property KlassList:TKlassList read FKlassList;
+    property ParentKlass:TKlass read FParentKlass;
   public
-    constructor Create(ACollection:TCollection);override;
+    function KlassNameWithDelimiter(Delimiter:Char):string;
+    function AllUnChecked:boolean;
+  public
+    constructor Create(data_set_type:TRTFP_DataSetType);
     destructor Destroy;override;
   end;
 
 
-  TKlassEnumerator = class(TCollectionEnumerator)
+  TKlassEnumerator = class
   private
     FCollection: TList;
     FPosition: Integer;
   public
-    constructor Create(ACollection: TCollection);
+    constructor Create(AKlassList: TKlassList);
     function GetCurrent:TKlass;
     function MoveNext: Boolean;
     property Current:TKlass read GetCurrent;
   end;
 
-  TKlassList = class(TCollection)
+  TKlassList = class
   private
-    FOwner:TComponent;
-    FFullPath:string;
+    FList:TList;
+    FOwner:TKlass;
+    FKlassDir:string;
     FFiltersEnabled:boolean;
+    FDataSetType:TRTFP_DataSetType;
   private
     function GetItems(Index: integer):TKlass;
     procedure SetItems(Index: integer;AValue: TKlass);
+    function GetCount:Integer;
   public
-    constructor Create(AOwner:TComponent);
+    constructor Create(AOwner:TKlass;data_set_type:TRTFP_DataSetType);
+    destructor Destroy; override;
   public
-    function Add:TKlass;
-    function AddEx(AFullPath,AName:string;data_set_type:string='dbf'):TKlass;
+    function Add(AName:string;data_set_type:TRTFP_DataSetType):TKlass;
     procedure Clear;
     function GetEnumerator:TKlassEnumerator;
     function FindItemIndexByName(AName:string):integer;
     function FindItemByName(AName:string):TKlass;
     function AllUnChecked:boolean;
     property Items[Index:integer]:TKlass read GetItems write SetItems; default;
-    property Path:string read FFullPath write FFullPath;
+    property Count:Integer read GetCount;
+    property KlassDir:string read FKlassDir write FKlassDir;
+    property Owner:TKlass read FOwner;
   public
-    procedure LoadFromPath(APath:string='/';data_set_type:string='dbf');//相对地址
-    //procedure SaveToPath(APath:string='/');//暂未发现此方法的必要性
+    procedure LoadFromPath;
 
   public
     property FiltersEnabled:boolean read FFiltersEnabled write FFiltersEnabled;//如果为true，RecordFilter会以此为筛选条件（列表总开关）
@@ -76,13 +92,41 @@ uses rtfp_files, RegExpr;
 
 { TKlass }
 
-constructor TKlass.Create(ACollection: TCollection);
+function TKlass.FullPath(ProjectPath:string):string;
 begin
-  if Assigned(ACollection) then
-    inherited Create(ACollection)
-  else raise Exception.Create('TKlass.Create: unassigned');
-  FKlassList:=TKlassList.Create(nil);//why?
-  //FDbf:=TDbf.Create(nil);//同样不在此处创建，改到addEx中
+  result:=FKlassDir;
+  if FPath<>'' then result:=result+'/'+FPath;
+  result:=result+'/'+FName;
+  System.Delete(result,1,Length(ProjectPath));
+end;
+
+function TKlass.KlassNameWithDelimiter(Delimiter:Char):string;
+begin
+  result:=Name;
+  if FParentKlass<>nil then result:=FParentKlass.KlassNameWithDelimiter(Delimiter)+Delimiter+result;
+end;
+
+function TKlass.AllUnChecked:boolean;
+var tmpKL:TKlass;
+begin
+  result:=false;
+  for tmpKL in FKlassList do begin
+    if tmpKL.FilterEnabled then exit;
+  end;
+  result:=true;
+end;
+
+constructor TKlass.Create(data_set_type:TRTFP_DataSetType);
+begin
+  inherited Create;
+  FKlassList:=TKlassList.Create(Self,data_set_type);
+  FKlassList.KlassDir:=FKlassDir;
+  FParentKlass:=nil;
+  case data_set_type of
+    dstDBF:FDbf:=TDbf.Create(nil);
+    dstBUF:FDbf:=TBufDataset.Create(nil);
+    else raise Exception.Create('TKlass.Create: invalid data_set_type.')
+  end;
 end;
 
 destructor TKlass.Destroy;
@@ -105,27 +149,20 @@ begin
   end;
 end;
 
-constructor TKlassEnumerator.Create(ACollection: TCollection);
+constructor TKlassEnumerator.Create(AKlassList: TKlassList);
 begin
-  //if Assigned(ACollection) then
-  //  inherited Create(ACollection)
-  //else raise Exception.Create('TKlassEnumerator.Create: unassigned');
-  if not (ACollection is TKlassList) then
-    raise Exception.Create('TKlassEnumerator.Create: ACollection is not TKlassList');
   FCollection:=TList.Create;
-  RecurKlassList(FCollection, ACollection as TKlassList);
+  RecurKlassList(FCollection, AKlassList);
   FPosition:=-1;
 end;
 
 function TKlassEnumerator.GetCurrent:TKlass;
 begin
-  //result:=inherited GetCurrent as TKlass;
   result:=TKlass(FCollection.Items[FPosition]);
 end;
 
 function TKlassEnumerator.MoveNext: Boolean;
 begin
-  //result:=inherited MoveNext;
   inc(FPosition);
   result:=FPosition<FCollection.Count;
   if not result then FCollection.Free;
@@ -135,50 +172,72 @@ end;
 
 function TKlassList.GetItems(Index: integer): TKlass;
 begin
-  Result := TKlass(inherited Items[Index]);
+  result:=TKlass(FList.Items[Index]);
 end;
 
 procedure TKlassList.SetItems(Index: integer; AValue: TKlass);
 begin
-  Items[Index].Assign(AValue);
+  TKlass(FList.Items[Index]).Free;
+  FList.Items[Index]:=AValue;
+  //会用到吗？
 end;
 
-constructor TKlassList.Create(AOwner:TComponent);
+function TKlassList.GetCount:Integer;
 begin
-  inherited Create(TKlass);//why???
+  result:=FList.Count;
 end;
 
-function TKlassList.Add: TKlass;
+constructor TKlassList.Create(AOwner:TKlass;data_set_type:TRTFP_DataSetType);
 begin
-  Result := inherited Add as TKlass;
+  inherited Create;
+  FList:=TList.Create;
+  FKlassDir:='';
+  FOwner:=AOwner;
+  FDataSetType:=data_set_type;
 end;
 
-function TKlassList.AddEx(AFullPath,AName:string;data_set_type:string='dbf'): TKlass;
+destructor TKlassList.Destroy;
 begin
-  Result := inherited Add as TKlass;
-  result.FFullPath:=AFullPath;
-  result.FName:=AName;
-  case data_set_type of
-    'dbf':result.FDbf:=TDbf.Create(Self.FOwner);
-    'buf':result.FDbf:=TBufDataset.Create(Self.FOwner);
+  Clear;
+  FList.Free;
+  inherited Destroy;
+end;
+
+function TKlassList.Add(AName:string;data_set_type:TRTFP_DataSetType): TKlass;
+begin
+  result:=TKlass.Create(data_set_type);
+  result.FKlassDir:=FKlassDir;
+  result.FKlassList.FKlassDir:=FKlassDir;
+  if FOwner=nil then begin
+    result.FPath:='';
+  end else begin
+    result.FPath:=FOwner.FName;
+    if FOwner.FPath<>'' then result.FPath:=FOwner.FPath+'/'+result.FPath;
   end;
+  result.FParentKlass:=FOwner;
+  result.FName:=AName;
+  result.FParentKlass:=FOwner;
+  FList.Add(result);
 end;
 
 procedure TKlassList.Clear;
 begin
-  inherited Clear;
+  while FList.Count>0 do begin
+    TKlass(FList.Items[0]).Free;
+    FList.Delete(0);
+  end;
 end;
 
 function TKlassList.GetEnumerator:TKlassEnumerator;
 begin
-  Result := TKlassEnumerator.Create(Self);
+  result:=TKlassEnumerator.Create(Self);
 end;
 
 function TKlassList.FindItemIndexByName(AName:string):integer;
 begin
   result:=0;
-  while result<Count do begin
-    if Items[result].Name=AName then exit;
+  while result<FList.Count do begin
+    if TKlass(FList.Items[result]).Name=AName then exit;
     inc(result);
   end;
   result:=-1;
@@ -189,68 +248,64 @@ var index:integer;
 begin
   index:=FindItemIndexByName(AName);
   if index<0 then result:=nil
-  else result:=Items[index];
+  else result:=TKlass(FList.Items[index]);
 end;
 
 function TKlassList.AllUnChecked:boolean;
 var pi:integer;
+    tmpKL:TKlass;
 begin
+  result:=false;
+  for pi:=0 to FList.Count-1 do begin
+    tmpKL:=TKlass(FList.Items[pi]);
+    if tmpKL.FilterEnabled then exit;
+    if not tmpKL.AllUnChecked then exit;
+  end;
   result:=true;
-  for pi:=0 to Count-1 do
-    begin
-      if Items[pi].FilterEnabled then
-        begin
-          result:=false;
-          exit;
-        end;
-    end;
 end;
 
-procedure TKlassList.LoadFromPath(APath:string='/';data_set_type:string='dbf');
-var tmpFileList:TRTFP_FileList;
-    stmp:TCollectionItem;
-    pathname,klassname:string;
+procedure TKlassList.LoadFromPath;
+var search_path,file_path,pathname,klassname:string;
     regexp:TRegExpr;
+    FileList:TStringList;
+    tmpKL:TKlass;
 begin
-  assert(APath<>'','TAttrsGroupList.LoadFromPath: APath=""');
-  if APath='' then exit;
   Clear;
-  tmpFileList:=TRTFP_FileList.Create(nil,FFullPath+'/'+APath);
-  regexp:=TRegExpr.Create;
-  case data_set_type of
-    'dbf':regexp.Expression:='[^_run]\.dbf$';
-    'buf':regexp.Expression:='\S\.buf$';
+  search_path:=FKlassDir;
+  if FOwner<>nil then begin
+    if FOwner.FPath<>'' then search_path:=search_path+'/'+FOwner.FPath;
+    search_path:=search_path+'/'+FOwner.FName;
   end;
+
+  regexp:=TRegExpr.Create;
+  case FDataSetType of
+    dstDBF:regexp.Expression:='[^_run]\.dbf$';
+    dstBUF:regexp.Expression:='\S\.buf$';
+  end;
+  FileList:=TStringList.Create;
   try
-    {}tmpFileList.BaseDir:=FFullPath+'/'+APath;
-    tmpFileList.RunDir;
-    for stmp in tmpFileList do
-      begin
-        pathname:=(stmp as TRTFP_FileItem).Name;
-        if not regexp.Exec(pathname) then continue;
-        klassname:=ExtractFilename(pathname);
-
-        System.delete(klassname,length(klassname)-3,4);
-        System.delete(pathname,length(pathname)-3,4);
-        Self.AddEx(APath+'/'+pathname,klassname,data_set_type);
-
-      end;
+    FindAllFiles(FileList,search_path,'',false,faAnyFile);
+    for file_path in FileList do begin
+      if not regexp.Exec(file_path) then continue;
+      klassname:=ExtractFilename(file_path);
+      System.delete(klassname,length(klassname)-3,4);
+      Self.Add(klassname,FDataSetType);
+    end;
+    FileList.Clear;
+    FindAllDirectories(FileList,search_path,false);
+    for file_path in FileList do begin
+      klassname:=ExtractFilename(file_path);
+      if pos('.',klassname)>0 then continue;
+      tmpKL:=FindItemByName(klassname);
+      if tmpKL=nil then tmpKL:=Self.Add(klassname,FDataSetType);
+      tmpKL.FKlassList.LoadFromPath;
+    end;
   finally
-    tmpFileList.Free;
+    FileList.Free;
     regexp.Free;
   end;
 
 end;
-
-
-{
-procedure TKlassList.SaveToPath(APath:string='/');
-begin
-  assert(APath<>'','TRTFP_ClassList.SaveToPath: APath=""');
-  if APath='' then exit;
-
-end;
-}
 
 end.
 

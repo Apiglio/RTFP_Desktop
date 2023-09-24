@@ -102,14 +102,13 @@ end;
 procedure aufunc_addKlass(Sender:TObject);//class.add KlassName,Path
 var AufScpt:TAufScript;
     AAuf:TAuf;
-    s1,s2:string;
+    s1:string;
 begin
   AufScpt:=Sender as TAufScript;
   AAuf:=AufScpt.Auf as TAuf;
   if not AAuf.CheckArgs(3) then exit;
   if not AAuf.TryArgToString(1,s1) then exit;
-  if not AAuf.TryArgToString(2,s2) then exit;
-  CurrentRTFP.AddKlass(s1,s2);
+  CurrentRTFP.AddKlass(s1,'.');
   AufScpt.writeln('成功');
 end;
 
@@ -122,7 +121,7 @@ begin
   AAuf:=AufScpt.Auf as TAuf;
   if not AAuf.CheckArgs(2) then exit;
   if not AAuf.TryArgToString(1,s1) then exit;
-  CurrentRTFP.DeleteKlass(s1);
+  CurrentRTFP.DeleteKlass(s1,'.');
   AufScpt.writeln('成功');
 end;
 

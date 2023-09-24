@@ -9,7 +9,8 @@ unit rtfp_field;
 interface
 
 uses
-  Classes, SysUtils, db, dbf, fpjson, rtfp_constants, Graphics, BufDataset;
+  Classes, SysUtils, db, dbf, fpjson, Graphics, BufDataset,
+  rtfp_constants, rtfp_type;
 
 type
 
@@ -180,7 +181,7 @@ type
     constructor Create(AOwner:TComponent);
   public
     function Add: TAttrsGroup;
-    function AddEx(AFullPath,AName:string;data_set_type:string='dbf'): TAttrsGroup;
+    function AddEx(AFullPath,AName:string;data_set_type:TRTFP_DataSetType=dstDBF): TAttrsGroup;
     procedure Clear;
     function GetEnumerator: TAttrsGroupEnumerator;
     function FindItemIndexByName(AName:string):integer;
@@ -188,7 +189,7 @@ type
     property Items[Index: integer]: TAttrsGroup read GetItems write SetItems; default;
     property Path:string read FFullPath write FFullPath;
   public
-    procedure LoadFromPath(APath:string='/';data_set_type:string='dbf');//相对地址
+    procedure LoadFromPath(APath:string='/';data_set_type:TRTFP_DataSetType=dstDBF);//相对地址
   end;
 
 
@@ -747,7 +748,7 @@ begin
   Result := inherited Add as TAttrsGroup;
 end;
 
-function TAttrsGroupList.AddEx(AFullPath,AName:string;data_set_type:string='dbf'): TAttrsGroup;
+function TAttrsGroupList.AddEx(AFullPath,AName:string;data_set_type:TRTFP_DataSetType=dstDBF): TAttrsGroup;
 begin
   Result := inherited Add as TAttrsGroup;
   AFullPath:=StringReplace(AFullPath,'\','/',[rfReplaceAll]);//不会吧，不是这里的问题吧
@@ -756,8 +757,8 @@ begin
   result.FFullPath:=AFullPath;
   result.FName:=AName;
   case data_set_type of
-    'dbf':result.FDbf:=TDbf.Create(Self.FOwner);
-    'buf':result.FDbf:=TBufDataset.Create(Self.FOwner);
+    dstDBF:result.FDbf:=TDbf.Create(Self.FOwner);
+    dstBUF:result.FDbf:=TBufDataset.Create(Self.FOwner);
   end;
 
 end;
@@ -791,7 +792,7 @@ begin
 end;
 
 
-procedure TAttrsGroupList.LoadFromPath(APath:string='/';data_set_type:string='dbf');
+procedure TAttrsGroupList.LoadFromPath(APath:string='/';data_set_type:TRTFP_DataSetType=dstDBF);
 var tmpFileList:TRTFP_FileList;
     stmp:TCollectionItem;
     pathname,groupname:string;
@@ -803,8 +804,8 @@ begin
   tmpFileList:=TRTFP_FileList.Create(nil,FFullPath+'\'+APath);
   regexp:=TRegExpr.Create;
   case data_set_type of
-    'dbf':regexp.Expression:='[^_run]\.dbf$';
-    'buf':regexp.Expression:='\S\.buf$';
+    dstDBF:regexp.Expression:='[^_run]\.dbf$';
+    dstBUF:regexp.Expression:='\S\.buf$';
   end;
   try
     tmpFileList.RunDir;

@@ -6,12 +6,7 @@ begin
   result:=nil;
   if not TRTFP.IsAttrsName(AName) then exit;
   if FFieldList.FindItemIndexByName(AName)>=0 then exit;
-  case DataSetType of
-    dstDBF:tmp:=FFieldList.AddEx('attr/'+AName,AName,'dbf');
-    dstBUF:tmp:=FFieldList.AddEx('attr/'+AName,AName,'buf');
-    else raise Exception.Create('无效DataSetType。');
-  end;
-
+  tmp:=FFieldList.AddEx('attr/'+AName,AName,DataSetType);
   if not OpenDbf(tmp.FullPath,tmp.Dbf) then begin
     case AName of
       _Attrs_Basic_:GenAttrBasicAttribute(tmp.Dbf);

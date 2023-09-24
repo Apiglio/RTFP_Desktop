@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, Types;
 
 const
-  C_VERSION_NUMBER  = '0.3.1-alpha.1';
+  C_VERSION_NUMBER  = '0.3.2-alpha.1';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -54,6 +54,7 @@ type
     CheckBox_MainSorterAuto: TCheckBox;
     Edit_DBGridMain_Sorter: TEdit;
     Label_MainSorter: TLabel;
+    MenuItem_ClassMgr_AddSub: TMenuItem;
     MenuItem_DBGC_CR: TMenuItem;
     MenuItem_DBGE_json: TMenuItem;
     MenuItem_FieldMgr_Copy: TMenuItem;
@@ -243,6 +244,7 @@ type
     procedure Edit_DBGridMain_SorterChange(Sender: TObject);
     procedure Edit_DBGridMain_SorterKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure MenuItem_ClassMgr_AddSubClick(Sender: TObject);
     procedure MenuItem_CopyPaperClick(Sender: TObject);
     procedure MenuItem_DBGC_ASClick(Sender: TObject);
     procedure MenuItem_DBGC_CalcClick(Sender: TObject);
@@ -1204,7 +1206,7 @@ begin
   if tmpKL=nil then exit;
   filter:=tmpKL.FilterEnabled;
   case ShowMsgYesNoAll('删除分类','是否删除“'+tmpKL.Name+'”分类？') of
-    'Yes':CurrentRTFP.DeleteKlass(tmpKL.Name);
+    'Yes':CurrentRTFP.DeleteKlass(tmpKL);
     else exit;
   end;
   if filter then CurrentRTFP.RebuildMainGrid;
@@ -1462,7 +1464,7 @@ begin
     begin
       pathname:=ExtractFilePath(klassname);
       klassname:=ExtractFileName(klassname);
-      CurrentRTFP.AddKlass(klassname,pathname);
+      CurrentRTFP.AddKlass(klassname,nil);
     end;
 end;
 
@@ -1487,7 +1489,7 @@ begin
       begin
         with tmpKL.Dbf do
           begin
-            klassname:=tmpKL.Name;
+            klassname:=tmpKL.KlassNameWithDelimiter('.');
             if not Active then Open;
             First;
             while not EOF do
@@ -1522,9 +1524,9 @@ begin
   if ProjectInvalid then exit;
   str:=TStringList.Create;
   try
-    for tmpKL in CurrentRTFP.KlassList do str.Add(tmpKL.Name);
+    for tmpKL in CurrentRTFP.KlassList do str.Add(tmpKL.KlassNameWithDelimiter('.'));
     klassname:=ShowMsgList('删除分类','选择需要删除的分类：',str);
-    if klassname<>'' then CurrentRTFP.DeleteKlass(klassname);
+    if klassname<>'' then CurrentRTFP.DeleteKlass(klassname,'.');
   finally
     str.Free;
   end;
@@ -1548,7 +1550,7 @@ begin
         if source<>'' then
           begin
             klassname:='《'+source+'》';
-            CurrentRTFP.AddKlass(klassname,'\来源库\');
+            CurrentRTFP.AddKlass('来源库.'+klassname,'.');
             CurrentRTFP.KlassInclude(klassname,PID);
           end;
       end;
@@ -1940,9 +1942,9 @@ begin
   tmpKL:=TKlass(tmpNode.Data);
   if tmpKL=nil then exit;
   if ssShift in UIState.DragShift then
-    CurrentRTFP.KlassExclude(tmpKL.Name,Selected_PID)
+    CurrentRTFP.KlassExclude(tmpKL.KlassNameWithDelimiter('.'),Selected_PID)
   else
-    CurrentRTFP.KlassInclude(tmpKL.Name,Selected_PID);
+    CurrentRTFP.KlassInclude(tmpKL.KlassNameWithDelimiter('.'),Selected_PID);
 end;
 
 procedure TFormDesktop.AListView_KlassDragOver(Sender, Source: TObject; X,
@@ -1961,7 +1963,17 @@ var tmpKL:TKlass;
 begin
   tmpKL:=TKlass(Item.Data);
   if tmpKL<>nil then begin
-    tmpKL.FilterEnabled:=Item.Checked;
+    //可展开分类的设置
+    if Item.Name='.' then begin
+      tmpKL.FilterEnabled:=Item.Checked;
+    end;
+    if tmpKL.KlassList.Count=0 then begin
+      tmpKL.FilterEnabled:=Item.Checked;
+      //tmpKL.SubKlassShown:=false;
+    end else begin
+      tmpKL.SubKlassShown:=Item.Unfold;
+      //tmpKL.FilterEnabled:=false;
+    end;
     CurrentRTFP.RebuildMainGrid;
   end;
 end;
@@ -2069,6 +2081,7 @@ var klasspath,klassname:string;
 begin
   if ProjectInvalid then exit;
   if Edit_AddKlass.Caption='' then exit;
+  {
   klassname:=ExtractFileName(Edit_AddKlass.Caption);
   klasspath:=ExtractFilePath(Edit_AddKlass.Caption);
   klasspath:=StringReplace(klasspath,'/','\',[rfReplaceAll]);
@@ -2080,13 +2093,15 @@ begin
     ShowMsgOK('警告','分类路径长度不能大于60个字节');
     exit;
   end;
-  if CurrentRTFP.FindKlass(klassname)<>nil then
+  if CurrentRTFP.FindKlass(klassname,'.')<>nil then
     begin
       ShowMsgOK('警告','分类“'+klassname+'”已存在。');
       exit;
     end;
+  }
+
   case ShowMsgYesNoAll('创建分类','是否创建名为“'+Edit_AddKlass.Caption+'”的分类？') of
-    'Yes':if CurrentRTFP.AddKlass(klassname,klasspath)=nil then ShowMsgOK('警告','分组创建失败');
+    'Yes':if CurrentRTFP.AddKlass(Edit_AddKlass.Caption,'.')=nil then ShowMsgOK('警告','分组创建失败');
     else exit;
   end;
 end;
@@ -2283,6 +2298,33 @@ begin
     begin
       Button_MainSorterClick(nil);
     end;
+end;
+
+procedure TFormDesktop.MenuItem_ClassMgr_AddSubClick(Sender: TObject);
+var tmpNode:TListCheckNode;
+    tmpKL:TKlass;
+    filter:boolean;
+    klassname:string;
+begin
+  if ProjectInvalid then exit;
+  tmpNode:=AListView_Klass.Selected;
+  if tmpNode=nil then exit;
+  tmpKL:=TKlass(tmpNode.Data);
+  if tmpKL=nil then exit;
+  {
+  filter:=tmpKL.FilterEnabled;
+  case ShowMsgYesNoAll('删除分类','是否删除“'+tmpKL.Name+'”分类？') of
+    'Yes':CurrentRTFP.DeleteKlass(tmpKL.Name);
+    else exit;
+  end;
+  if filter then CurrentRTFP.RebuildMainGrid;
+  }
+  klassname:={InputBox}ShowMsgEdit('新建分类','分类名称：','');
+  if klassname<>'' then begin
+    //pathname:=tmpKL.FullPath+''+ExtractFilePath(klassname);
+    //klassname:=ExtractFileName(klassname);
+    CurrentRTFP.AddKlass(klassname,tmpKL);
+  end;
 end;
 
 procedure TFormDesktop.MenuItem_CopyPaperClick(Sender: TObject);

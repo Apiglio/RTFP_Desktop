@@ -43,31 +43,6 @@ begin
   end;
 end;
 
-{
-{段落查看控件 FmtCmt}
-procedure TRTFP.FmtCmtValidate(PID:RTFP_ID;AttrName,FieldName:string;Memo:TMemo);
-begin
-  Memo.Clear;
-  if CheckField(FieldName,AttrName,[ftMemo,ftWideMemo,ftFmtMemo]) then begin
-    //Memo.Lines.CommaText:=StringReplace(ReadFieldAsString(FieldName,AttrName,PID,[]),Comma_Symbol,#13#10,[rfReplaceAll]);
-    ReadFieldAsMemo(FieldName,AttrName,PID,Memo.Lines,[]);
-  end;
-  ReNewCheckTimeWithoutChange(PID);//如果Change会导致Validate更新，这个需要重构以下UI逻辑，暂时先不管
-  //ReNewCheckTime(PID);
-end;
-
-procedure TRTFP.FmtCmtDataPost(PID:RTFP_ID;AttrName,FieldName:string;Memo:TMemo);
-begin
-  BeginUpdate;
-  if CheckField(FieldName,AttrName,[ftMemo,ftWideMemo,ftFmtMemo]) then begin
-    //EditFieldAsString(FieldName,AttrName,PID,StringReplace(Memo.Lines.CommaText,#13#10,Comma_Symbol,[rfReplaceAll]),[]);
-    EditFieldAsMemo(FieldName,AttrName,PID,Memo.Lines,[]);
-  end;
-  EndUpdate;
-  ReNewModifyTime(PID);
-end;
-}
-
 {字段列表显示}
 procedure TRTFP.FieldListValidate(AListView:TListCheck);
 var tmpAG:TAttrsGroup;
@@ -102,19 +77,32 @@ begin
   AListView.Refresh;
 end;
 
+procedure RecurKlassListValidate(ANode:TListCheckNode;AKlassList:TKlassList);
+var tmpKL:TKlass;
+    tmpNode:TListCheckNode;
+    pi:integer;
+begin
+  //追加一个可展开分类的filter开关
+  if AKlassList.Owner<>nil then begin
+    tmpNode:=ANode.AddItem('.',AKlassList.Owner);
+    tmpNode.Checked:=AKlassList.Owner.FilterEnabled;
+  end;
+  for pi:=0 to AKlassList.Count-1 do begin
+    //GetEnumerator已经是递归的了，所以不能使用for-in
+    tmpKL:=AKlassList.Items[pi];
+    tmpNode:=ANode.AddItem(tmpKL.Name,tmpKL);
+    tmpNode.Checked:=tmpKL.FilterEnabled;
+    tmpNode.Unfold:=tmpKL.SubKlassShown;
+    if tmpKL.KlassList.Count>0 then RecurKlassListValidate(tmpNode,tmpKL.KlassList);
+  end;
+end;
 
 {分类列表显示}
 procedure TRTFP.KlassListValidate(AListView:TListCheck);
-var tmpKL:TKlass;
-    tmpPath:string;
 begin
   //AListView.BeginUpdate;
   AListView.Root.Clear;
-  for tmpKL in FKlassList do
-    begin
-      tmpPath:=StringReplace(tmpKL.FullPath,'/','\',[rfReplaceAll]);
-      AListView.Root.AddItem(tmpKL.Name,tmpKL).Checked:=tmpKL.FilterEnabled;
-    end;
+  RecurKlassListValidate(AListView.Root,FKlassList);
   //AListView.EndUpdate;
   AListView.Refresh;
 end;

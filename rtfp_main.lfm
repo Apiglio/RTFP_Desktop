@@ -1218,18 +1218,18 @@ object FormDesktop: TFormDesktop
     Height = 518
     Top = 5
     Width = 207
-    ActivePage = TabSheet_Filter_Field
+    ActivePage = TabSheet_Filter_Klass
     Anchors = [akTop, akLeft, akRight, akBottom]
     Constraints.MinWidth = 167
     Font.CharSet = ANSI_CHARSET
     Font.Pitch = fpFixed
     Font.Quality = fqDraft
     ParentFont = False
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 6
     object TabSheet_Filter_Klass: TTabSheet
       Caption = '分类节点'
-      ClientHeight = 475
+      ClientHeight = 481
       ClientWidth = 199
       Font.CharSet = ANSI_CHARSET
       Font.Pitch = fpFixed
@@ -1243,7 +1243,7 @@ object FormDesktop: TFormDesktop
         Left = 177
         Height = 22
         Hint = '长度限制在40个字节（约13个汉字），'#13#10'可使用的特殊符号包括：()_-+&"'':'
-        Top = 449
+        Top = 455
         Width = 22
         Anchors = [akRight, akBottom]
         BorderSpacing.Bottom = 4
@@ -1261,7 +1261,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrBottom
         Left = 56
         Height = 32
-        Top = 439
+        Top = 445
         Width = 121
         Anchors = [akLeft, akRight, akBottom]
         BorderSpacing.Bottom = 4
@@ -1273,7 +1273,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrCenter
         Left = 2
         Height = 24
-        Top = 448
+        Top = 454
         Width = 54
         Anchors = [akLeft, akBottom]
         BorderSpacing.Left = 2
@@ -1288,7 +1288,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrCenter
         Left = 131
         Height = 28
-        Top = 411
+        Top = 417
         Width = 64
         Anchors = [akLeft, akBottom]
         Caption = '取反'
@@ -1301,7 +1301,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrCenter
         Left = 3
         Height = 28
-        Top = 411
+        Top = 417
         Width = 64
         Anchors = [akRight, akBottom]
         Caption = '交集'
@@ -1315,7 +1315,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Control = Edit_AddKlass
         Left = 67
         Height = 28
-        Top = 411
+        Top = 417
         Width = 64
         Anchors = [akLeft, akBottom]
         Caption = '并集'
@@ -1333,7 +1333,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Control = RadioButton_KlassOR
         AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 409
+        Height = 415
         Top = 0
         Width = 199
         Anchors = [akTop, akLeft, akRight, akBottom]
@@ -1886,6 +1886,10 @@ object FormDesktop: TFormDesktop
     end
     object MenuItem_ClassMgr_div01: TMenuItem
       Caption = '-'
+    end
+    object MenuItem_ClassMgr_AddSub: TMenuItem
+      Caption = '新建分类子项'
+      OnClick = MenuItem_ClassMgr_AddSubClick
     end
     object MenuItem_ClassMgr_CheckAll: TMenuItem
       Caption = '勾选全部子项'
