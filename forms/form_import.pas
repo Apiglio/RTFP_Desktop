@@ -244,24 +244,11 @@ begin
         CheckListBox_ImportFileNames.ItemIndex:=pi;
         if CurrentRTFP.FindPaper(FFileNames[pi]) = '000000' then
           begin
-            {
-            if CheckBox_UpdatePaper.Checked then begin
-              if pi=0 then newPID:=FormDesktop.Selected_PID else newPID:='000000';
-              if newPID<>'000000' then begin
-                case RadioGroup_AddPaperMethod.ItemIndex of
-                  0:CurrentRTFP.UpdatePaper(newPID,FFileNames[pi],apmFullBackup);
-                  1:CurrentRTFP.UpdatePaper(newPID,FFileNames[pi],apmCutBackup);
-                  2:CurrentRTFP.UpdatePaper(newPID,FFileNames[pi],apmAddress);
-                end;
-              end;
-            end else begin
-            }
-              case RadioGroup_AddPaperMethod.ItemIndex of
-                0:newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmFullBackup);
-                1:newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmCutBackup);
-                2:newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmAddress);
-              end;
-            //end;
+            case RadioGroup_AddPaperMethod.ItemIndex of
+              0:newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmFullBackup);
+              1:newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmCutBackup);
+              2:newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmAddress);
+            end;
             if newPID<>'000000' then begin
               CheckListBox_ImportFileNames.Items[pi].SubItems[0]:='导入成功';
               index:=ComboBox_DefaultCl.ItemIndex;
