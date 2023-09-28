@@ -252,7 +252,8 @@ type
     function AddKlass(klassname:string;parentklass:TKlass=nil):TKlass;
     function AddKlass(KlassnameSeries:string;Delimiter:Char):TKlass;
     function FindKlass(KlassnameSeries:string;Delimiter:Char):TKlass;
-    procedure DeleteKlass(klass:TKlass);
+    procedure DeleteKlass(klass:TKlass;out NeedToUpdate:boolean);
+    procedure DeleteKlass(klass:TKlass);inline;
     procedure DeleteKlass(KlassnameSeries:string;Delimiter:Char);
 
     function KlassInclude(klassname:string;PID:RTFP_ID):boolean;

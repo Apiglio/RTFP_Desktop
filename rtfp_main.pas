@@ -1202,8 +1202,20 @@ begin
   if ProjectInvalid then exit;
   tmpNode:=AListView_Klass.Selected;
   if tmpNode=nil then exit;
+  if tmpNode.Name='.' then begin
+    case ShowMsgOK('删除分类','“.”分类即上一层的可展开分类，请直接删除上一层分类。') of
+      'Yes':;
+      else exit;
+    end;
+  end;
   tmpKL:=TKlass(tmpNode.Data);
   if tmpKL=nil then exit;
+  if tmpKL.KlassList.Count<>0 then begin
+    case ShowMsgYesNoAll('删除分类','删除'+tmpKL.Name+'将同时删除其下的所有分类，是否确认删除？') of
+      'Yes':;
+      else exit;
+    end;
+  end;
   filter:=tmpKL.FilterEnabled;
   case ShowMsgYesNoAll('删除分类','是否删除“'+tmpKL.Name+'”分类？') of
     'Yes':CurrentRTFP.DeleteKlass(tmpKL);
@@ -1805,16 +1817,41 @@ end;
 
 procedure TFormDesktop.FormDropFiles(Sender: TObject;
   const FileNames: array of String);
-var len:integer;
+var len,pi:integer;
+    filelist:TStringList;
+    filenames_in_dir:array of String;
 begin
   len:=Length(FileNames);
-  if (len=1) and (TRTFP.IsProjectFile(FileNames[0])) then
+  if (len=1) then
+  begin
+    if DirectoryExists(FileNames[0]) then
+    begin
+      filelist:=TStringList.Create;
+      try
+        FindAllFiles(filelist,FileNames[0],'',true,faAnyFile or faDirectory);
+        SetLength(filenames_in_dir,filelist.Count);
+        for pi:=0 to filelist.Count-1 do begin
+          filenames_in_dir[pi]:=filelist[pi];
+        end;
+        if not ProjectInvalid then
+        begin
+          Form_ImportFiles.IsBackup:=not (ssShift in FMainForm_ShiftState);
+          Form_ImportFiles.Call(filenames_in_dir);
+        end;
+      finally
+        filelist.Free;
+        SetLength(filenames_in_dir,0);
+      end;
+      SetFocus;
+      exit;
+    end;
+    if TRTFP.IsProjectFile(FileNames[0]) then
     begin
       if assigned(CurrentRTFP) then
-        begin
-          if CurrentRTFP.IsOpen then exit
-          else CurrentRTFP.Free;
-        end;
+      begin
+        if CurrentRTFP.IsOpen then exit
+        else CurrentRTFP.Free;
+      end;
       CurrentRTFP:=TRTFP.Create(FormDesktop);
       CurrentRTFP.SetAuf(Frame_AufScript1.Auf);
       Self.EventLink(CurrentRTFP);
@@ -1832,17 +1869,15 @@ begin
       CurrentRTFP.RunPerformance.ExportImageCellWidth:=OptionMap.ExportImageCellWidth;
       CurrentRTFP.RunPerformance.ExportImageCellHeight:=OptionMap.ExportImageCellHeight;
       SetFocus;
-    end
-  else
-    begin
-      if not ProjectInvalid then
-        begin
-          Form_ImportFiles.IsBackup:=not (ssShift in FMainForm_ShiftState);
-          Form_ImportFiles.Call(FileNames);
-        end;
-      SetFocus;
+      exit;
     end;
-
+  end;
+  if not ProjectInvalid then
+  begin
+    Form_ImportFiles.IsBackup:=not (ssShift in FMainForm_ShiftState);
+    Form_ImportFiles.Call(FileNames);
+  end;
+  SetFocus;
 end;
 
 procedure TFormDesktop.FormKeyDown(Sender: TObject; var Key: Word;
@@ -1973,6 +2008,7 @@ begin
     end else begin
       tmpKL.SubKlassShown:=Item.Unfold;
       //tmpKL.FilterEnabled:=false;
+      exit;//折叠展开时不刷新主表
     end;
     CurrentRTFP.RebuildMainGrid;
   end;

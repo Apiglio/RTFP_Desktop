@@ -89,21 +89,29 @@ begin
   result:=tmpKL;
 end;
 
-procedure TRTFP.DeleteKlass(klass:TKlass);
+procedure TRTFP.DeleteKlass(klass:TKlass;out NeedToUpdate:boolean);
 var recNumber:integer;
     PID:RTFP_ID;
     str:TStringList;
-    attrs_modified:boolean;
+    attrs_modified,sub_need_update:boolean;
+    rmdir_path:string;
 begin
+  BeginUpdate;
+  attrs_modified:=false;
+  while klass.KlassList.Count>0 do begin
+    DeleteKlass(klass.KlassList[0],sub_need_update);
+    attrs_modified:=attrs_modified or sub_need_update;
+  end;
+  rmdir_path:=klass.FullPath('');
+  if DirectoryExists(rmdir_path) then DeleteDirectory(rmdir_path,false);
   str:=TStringList.Create;
   str.Sorted:=true;
-  attrs_modified:=false;
-  BeginUpdate;
+
   try
     with klass.Dbf do begin
       if not Active then Open;
       First;
-      if not EOF then attrs_modified:=true;
+      if (not EOF) and (klass.FilterEnabled) then attrs_modified:=true;
       while not EOF do
         begin
           PID:=FieldByName(_Col_PID_).AsString;
@@ -119,9 +127,20 @@ begin
   EndUpdate;
   CloseDbf(klass.FullPath(CurrentPathFull),klass.Dbf);
   DeleteDbf(klass.FullPath(CurrentPathFull),klass.Dbf);
+  if klass.ParentKlass=nil then
+    FKlassList.Remove(klass)
+  else
+    klass.ParentKlass.KlassList.Remove(klass);
 
   ClassChange;
-  if attrs_modified then RebuildMainGrid{DataChange};
+  if attrs_modified then RebuildMainGrid;
+  NeedToUpdate:=attrs_modified;
+end;
+
+procedure TRTFP.DeleteKlass(klass:TKlass);
+var tmpBO:boolean;
+begin
+  DeleteKlass(klass,tmpBO);
 end;
 
 procedure TRTFP.DeleteKlass(KlassnameSeries:string;Delimiter:Char);

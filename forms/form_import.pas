@@ -230,6 +230,7 @@ var pi:integer;
     tmpProc:TNotifyEvent;
     index:integer;
     tmpKL:TKlass;
+    tmpAddPaperMethod:TAddPaperMethod;
 begin
   ProgressBar_ImportFiles.Max:=FFileNames.Count;
   all_success:=true;
@@ -245,10 +246,11 @@ begin
         if CurrentRTFP.FindPaper(FFileNames[pi]) = '000000' then
           begin
             case RadioGroup_AddPaperMethod.ItemIndex of
-              0:newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmFullBackup);
-              1:newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmCutBackup);
-              2:newPID:=CurrentRTFP.AddPaper(FFileNames[pi],apmAddress);
+              0:tmpAddPaperMethod:=apmFullBackup;
+              1:tmpAddPaperMethod:=apmCutBackup;
+              2:tmpAddPaperMethod:=apmAddress;
             end;
+            CurrentRTFP.AddPaper(FFileNames[pi],tmpAddPaperMethod);
             if newPID<>'000000' then begin
               CheckListBox_ImportFileNames.Items[pi].SubItems[0]:='导入成功';
               index:=ComboBox_DefaultCl.ItemIndex;

@@ -438,7 +438,6 @@ end;
 function TRTFP.DeleteDbf(dbf_name_no_ext:string;Dbf:{TDbf}TDataSet):boolean;
 var dbfpath,datfile,runfile,run_dbt,dat_dbt,name_no_ext:string;
 begin
-
   result:=false;
   case DataSetType of
     dstDBF:begin
@@ -473,6 +472,10 @@ begin
           end;
           ClearIndexes;
           TRTFP.FileDelete(FileName);
+          {xml}datfile:=FileName;
+          System.Delete({xml}datfile,length({xml}datfile)-3,4);
+          {xml}datfile:={xml}datfile+'.xml';
+          if FileExists({xml}datfile) then TRTFP.FileDelete({xml}datfile);
         except
           exit;
         end;

@@ -68,6 +68,7 @@ type
     destructor Destroy; override;
   public
     function Add(AName:string;data_set_type:TRTFP_DataSetType):TKlass;
+    function Remove(AKlass:TKlass):boolean;
     procedure Clear;
     function GetEnumerator:TKlassEnumerator;
     function FindItemIndexByName(AName:string):integer;
@@ -218,6 +219,11 @@ begin
   result.FName:=AName;
   result.FParentKlass:=FOwner;
   FList.Add(result);
+end;
+
+function TKlassList.Remove(AKlass:TKlass):boolean;
+begin
+  result:=FList.Remove(AKlass)>=0;
 end;
 
 procedure TKlassList.Clear;
