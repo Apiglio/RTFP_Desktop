@@ -934,7 +934,7 @@ begin
           'Link-链接','Link','链接':
             begin
               PID:=AddPaper('',apmReference);
-              if DefaultCl<>nil then KlassInclude(DefaultCl.Name,PID);
+              if DefaultCl<>nil then KlassInclude(DefaultCl,PID);
               LoadFromEStudy(PID,stmp);
               stmp.Clear;
             end;
@@ -979,7 +979,7 @@ begin
           'ER':
             begin
               PID:=AddPaper('',apmReference);
-              if DefaultCl<>nil then KlassInclude(DefaultCl.Name,PID);
+              if DefaultCl<>nil then KlassInclude(DefaultCl,PID);
               LoadFromRIS(PID,stmp);
               stmp.Clear;
             end;

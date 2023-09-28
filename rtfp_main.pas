@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, Types;
 
 const
-  C_VERSION_NUMBER  = '0.3.2-alpha.2';
+  C_VERSION_NUMBER  = '0.3.2-alpha.3';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -918,7 +918,6 @@ end;
 
 procedure TFormDesktop.NodeViewValidate;
 var PID:RTFP_ID;
-    attrNa,fieldNa:string;
 begin
   PID:=Selected_PID;
   if PID='000000' then exit;
@@ -938,9 +937,9 @@ end;
 //快捷键命令
 
 function TFormDesktop.Action_NewPaper:boolean;
-var node_name:string;
-    _pid:RTFP_ID;
+var _pid:RTFP_ID;
 begin
+  result:=false;
   if ProjectInvalid then exit;
   CurrentRTFP.BeginUpdate;//这里不禁用会触发修改分组时的UpdateCurrentRec，应该重新考虑各个Change事件的时机
   _pid:=CurrentRTFP.AddPaper('',apmReference);
@@ -949,6 +948,7 @@ begin
   CurrentRTFP.RecordChange;
   Select_PID(_pid);
   NodeViewValidate;
+  result:=true;
 end;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1468,13 +1468,12 @@ begin
 end;
 
 procedure TFormDesktop.MenuItem_klass_AddKlassClick(Sender: TObject);
-var klassname,pathname:string;
+var klassname:string;
 begin
   if ProjectInvalid then exit;
   klassname:={InputBox}ShowMsgEdit('新建分类','分类名称：','');
   if klassname<>'' then
     begin
-      pathname:=ExtractFilePath(klassname);
       klassname:=ExtractFileName(klassname);
       CurrentRTFP.AddKlass(klassname,nil);
     end;
@@ -1548,6 +1547,7 @@ procedure TFormDesktop.MenuItem_klass_SourceClassClick(Sender: TObject);
 var PID:RTFP_ID;
     source,klassname:string;
     PIDList:TStringList;
+    tmpKL:TKlass;
 begin
   //太慢了，要点其他操作缓解一下，或者做进度条和耗时提示
   if ProjectInvalid then exit;
@@ -1562,8 +1562,8 @@ begin
         if source<>'' then
           begin
             klassname:='《'+source+'》';
-            CurrentRTFP.AddKlass('来源库.'+klassname,'.');
-            CurrentRTFP.KlassInclude(klassname,PID);
+            tmpKL:=CurrentRTFP.AddKlass('来源库.'+klassname,'.');
+            CurrentRTFP.KlassInclude(tmpKL,PID);
           end;
       end;
   finally
@@ -1977,9 +1977,9 @@ begin
   tmpKL:=TKlass(tmpNode.Data);
   if tmpKL=nil then exit;
   if ssShift in UIState.DragShift then
-    CurrentRTFP.KlassExclude(tmpKL.KlassNameWithDelimiter('.'),Selected_PID)
+    CurrentRTFP.KlassExclude(tmpKL,Selected_PID)
   else
-    CurrentRTFP.KlassInclude(tmpKL.KlassNameWithDelimiter('.'),Selected_PID);
+    CurrentRTFP.KlassInclude(tmpKL,Selected_PID);
 end;
 
 procedure TFormDesktop.AListView_KlassDragOver(Sender, Source: TObject; X,
@@ -2113,29 +2113,9 @@ begin
 end;
 
 procedure TFormDesktop.Button_AddKlassClick(Sender: TObject);
-var klasspath,klassname:string;
 begin
   if ProjectInvalid then exit;
   if Edit_AddKlass.Caption='' then exit;
-  {
-  klassname:=ExtractFileName(Edit_AddKlass.Caption);
-  klasspath:=ExtractFilePath(Edit_AddKlass.Caption);
-  klasspath:=StringReplace(klasspath,'/','\',[rfReplaceAll]);
-  if length(klassname)>40 then begin
-    ShowMsgOK('警告','分类名称长度不能大于40个字节');
-    exit;
-  end;
-  if length(klasspath)>60 then begin
-    ShowMsgOK('警告','分类路径长度不能大于60个字节');
-    exit;
-  end;
-  if CurrentRTFP.FindKlass(klassname,'.')<>nil then
-    begin
-      ShowMsgOK('警告','分类“'+klassname+'”已存在。');
-      exit;
-    end;
-  }
-
   case ShowMsgYesNoAll('创建分类','是否创建名为“'+Edit_AddKlass.Caption+'”的分类？') of
     'Yes':if CurrentRTFP.AddKlass(Edit_AddKlass.Caption,'.')=nil then ShowMsgOK('警告','分组创建失败');
     else exit;

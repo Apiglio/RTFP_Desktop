@@ -137,7 +137,7 @@ begin
   NeedToUpdate:=attrs_modified;
 end;
 
-procedure TRTFP.DeleteKlass(klass:TKlass);
+procedure TRTFP.DeleteKlass(klass:TKlass);inline;
 var tmpBO:boolean;
 begin
   DeleteKlass(klass,tmpBO);
@@ -151,21 +151,18 @@ begin
   DeleteKlass(tmpKL);
 end;
 
-function TRTFP.KlassInclude(klassname:string;PID:RTFP_ID):boolean;
+function TRTFP.KlassInclude(klass:TKlass;PID:RTFP_ID):boolean;
 var index:integer;
     stmp:TStringList;
-    tmpDbf:TDataSet;
-    tmpKL:TKlass;
+    klassname:string;
 begin
   result:=false;
   //索引文件更新
-  tmpKL:=FindKlass(klassname,'.');
-  if tmpKL=nil then exit;
-  tmpDbf:=tmpKL.Dbf;
 
-  with tmpDbf do begin
+  if klass=nil then exit;
+  with klass.Dbf do begin
     if not Active then Open;
-    if not LocatePID(tmpDbf,PID) then begin
+    if not LocatePID(klass.Dbf,PID) then begin
       Append;
       FieldByName(_Col_PID_).AsString:=PID;
       Post;
@@ -176,6 +173,7 @@ begin
   stmp.Sorted:=true;
   try
     ReadFieldAsMemo(_Col_class_DefaultCl_,_Attrs_Class_,PID,stmp,[]);
+    klassname:=klass.KlassNameWithDelimiter('.');
     if not stmp.Find(klassname,index) then stmp.Add(klassname);
     EditFieldAsMemo(_Col_class_DefaultCl_,_Attrs_Class_,PID,stmp,[]);
   finally
@@ -185,27 +183,24 @@ begin
   result:=true;
 end;
 
-function TRTFP.KlassExclude(klassname:string;PID:RTFP_ID):boolean;
+function TRTFP.KlassExclude(klass:TKlass;PID:RTFP_ID):boolean;
 var index:integer;
     stmp:TStringList;
-    tmpDbf:TDataSet;
-    tmpKL:TKlass;
+    klassname:string;
 begin
   result:=false;
   //索引文件更新
-  tmpKL:=FindKlass(klassname,'.');
-  if tmpKL=nil then exit;
-  tmpDbf:=tmpKL.Dbf;
-
-  with tmpDbf do begin
+  if klass=nil then exit;
+  with klass.Dbf do begin
     if not Active then Open;
-    if LocatePID(tmpDbf,PID) then Delete;
+    if LocatePID(klass.Dbf,PID) then Delete;
   end;
   //修改字段
   stmp:=TStringList.Create;
   stmp.Sorted:=true;
   try
     ReadFieldAsMemo(_Col_class_DefaultCl_,_Attrs_Class_,PID,stmp,[]);
+    klassname:=klass.KlassNameWithDelimiter('.');
     if stmp.Find(klassname,index) then stmp.Delete(index);
     EditFieldAsMemo(_Col_class_DefaultCl_,_Attrs_Class_,PID,stmp,[]);
   finally
@@ -225,15 +220,15 @@ begin
     for KL in FKlassList do
       if KL.FilterEnabled or not active then
         begin
-          CL.Add(KL.Name);
+          CL.Add(KL.KlassNameWithDelimiter('.'));
           CL.Objects[CL.Count-1]:=KL;
         end;
     if CL.Count>0 then
       begin
-        if CL.Count=1 then KlassInclude(CL[0],PID)
+        if CL.Count=1 then KlassInclude(CL.Objects[0] as TKlass,PID)
         else begin
           stmp:=ShowMsgCombo('纳入分类','选择文件拟纳入的分类',CL);
-          if stmp<>'' then KlassInclude(stmp,PID);
+          if stmp<>'' then KlassInclude(FindKlass(stmp,'.'),PID);
         end;
       end;
   finally

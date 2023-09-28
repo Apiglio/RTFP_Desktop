@@ -181,6 +181,7 @@ function TRTFP.DeletePaper(PID:RTFP_ID;PreserveFileNoAsk:boolean=false):boolean;
 var AG:TAttrsGroup;
     klass_list:TStringList;
     klass_name:string;
+    tmpKL:TKlass;
 begin
   result:=false;
   if not TRTFP.IsRTFPID(PID) then exit;
@@ -198,7 +199,10 @@ begin
   klass_list:=TStringList.Create;
   try
     GetPaperKlass(PID,klass_list);
-    for klass_name in klass_list do KlassExclude(klass_name,PID);
+    for klass_name in klass_list do begin
+      tmpKL:=FindKlass(klass_name,'.');
+      KlassExclude(tmpKL,PID);
+    end;
   finally
     klass_list.Free;
   end;
@@ -222,6 +226,7 @@ var b1,b2:boolean;
     tmpOpt:PFieldSelectOption;
     stmp:string;
     klass_list:TStringList;
+    tmpKL:TKlass;
     function FindFieldOpt(AField:TAttrsField):PFieldSelectOption;
     var index:integer;
     begin
@@ -304,7 +309,11 @@ begin
   klass_list:=TStringList.Create;
   try
     GetPaperKlass(PID_Vice,klass_list);
-    for stmp in klass_list do KlassInclude(stmp,PID_Main);
+    for stmp in klass_list do begin
+      tmpKL:=FindKlass(stmp,'.');
+      KlassInclude(tmpKL,PID_Main);
+
+    end;
   finally
     klass_list.Free;
   end;

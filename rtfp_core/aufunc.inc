@@ -135,7 +135,7 @@ begin
   if not AAuf.CheckArgs(3) then exit;
   if not AAuf.TryArgToString(1,s1) then exit;
   if not AAuf.TryArgToString(2,s2) then exit;
-  CurrentRTFP.KlassInclude(s1,s2);
+  CurrentRTFP.KlassInclude(CurrentRTFP.FindKlass(s1,'.'),s2);
   AufScpt.writeln('成功');
 end;
 
@@ -149,7 +149,7 @@ begin
   if not AAuf.CheckArgs(3) then exit;
   if not AAuf.TryArgToString(1,s1) then exit;
   if not AAuf.TryArgToString(2,s2) then exit;
-  CurrentRTFP.KlassExclude(s1,s2);
+  CurrentRTFP.KlassExclude(CurrentRTFP.FindKlass(s1,'.'),s2);
   AufScpt.writeln('成功');
 end;
 

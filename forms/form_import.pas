@@ -255,7 +255,7 @@ begin
               CheckListBox_ImportFileNames.Items[pi].SubItems[0]:='导入成功';
               index:=ComboBox_DefaultCl.ItemIndex;
               if index>=0 then tmpKL:=TKlass(ComboBox_DefaultCl.Items.Objects[index]) else tmpKL:=nil;
-              if tmpKL<>nil then CurrentRTFP.KlassInclude(tmpKL.Name,newPID);
+              if tmpKL<>nil then CurrentRTFP.KlassInclude(tmpKL,newPID);
             end else begin
               all_success:=false;
               CheckListBox_ImportFileNames.Items[pi].SubItems[0]:='导入失败';

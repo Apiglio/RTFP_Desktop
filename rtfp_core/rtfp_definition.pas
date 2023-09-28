@@ -256,8 +256,8 @@ type
     procedure DeleteKlass(klass:TKlass);inline;
     procedure DeleteKlass(KlassnameSeries:string;Delimiter:Char);
 
-    function KlassInclude(klassname:string;PID:RTFP_ID):boolean;
-    function KlassExclude(klassname:string;PID:RTFP_ID):boolean;
+    function KlassInclude(klass:TKlass;PID:RTFP_ID):boolean;
+    function KlassExclude(klass:TKlass;PID:RTFP_ID):boolean;
     function KlassIncludeFromCombo(PID:RTFP_ID;active:boolean):boolean;//若显示不止一个分类，弹出选项由用户选择分类
 
     property KlassList:TKlassList read FKlassList;
@@ -625,7 +625,7 @@ type
 
   {构造与析构}
   public
-    constructor Create(AOwner:TComponent;ADatasetType:TRTFP_DataSetType=dstDBF);virtual;
+    constructor Create(AOwner:TComponent;ADatasetType:TRTFP_DataSetType=dstDBF);reintroduce;
     destructor Destroy;override;
 
   end;
