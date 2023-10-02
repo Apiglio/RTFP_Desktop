@@ -1239,11 +1239,13 @@ end;
 
 procedure TFormDesktop.MenuItem_ClassMgr_CheckAllClick(Sender: TObject);
 var tmpNode:TListCheckNode;
+    tmpKL:TKlass;
 begin
   if ProjectInvalid then exit;
   tmpNode:=AListView_Klass.Selected;
   CurrentRTFP.BeginUpdate;
   tmpNode.CheckAllSubordinates;
+  for tmpKL in TKlass(tmpNode.Data).KlassList do tmpKL.FilterEnabled:=true;
   CurrentRTFP.EndUpdate;
   AListView_Klass.Refresh;
   CurrentRTFP.RebuildMainGrid;
@@ -1251,11 +1253,13 @@ end;
 
 procedure TFormDesktop.MenuItem_ClassMgr_UnCheckAllClick(Sender: TObject);
 var tmpNode:TListCheckNode;
+    tmpKL:TKlass;
 begin
   if ProjectInvalid then exit;
   tmpNode:=AListView_Klass.Selected;
   CurrentRTFP.BeginUpdate;
   tmpNode.UnCheckAllSubordinates;
+  for tmpKL in TKlass(tmpNode.Data).KlassList do tmpKL.FilterEnabled:=false;
   CurrentRTFP.EndUpdate;
   AListView_Klass.Refresh;
   CurrentRTFP.RebuildMainGrid;
