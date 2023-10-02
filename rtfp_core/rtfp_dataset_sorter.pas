@@ -50,7 +50,7 @@ type
   public
     constructor Create;
     destructor Destroy;override;
-    procedure Compare(AItem:Pointer;ASortMethod:PDataSetSortFunc;ds:TDataSet=nil;AOptions:TDataSetSortOption=nil);
+    procedure AddItem(AItem:Pointer;ASortMethod:PDataSetSortFunc;ds:TDataSet=nil;AOptions:TDataSetSortOption=nil);
     function ExportToString(AMethod:PFuncPtrStr):string;
   public
     function GetEnumerator:TSortingBinaryTreeEnumerator;
@@ -152,7 +152,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TSortingBinaryTree.Compare(AItem:Pointer;ASortMethod:PDataSetSortFunc;ds:TDataSet=nil;AOptions:TDataSetSortOption=nil);
+procedure TSortingBinaryTree.AddItem(AItem:Pointer;ASortMethod:PDataSetSortFunc;ds:TDataSet=nil;AOptions:TDataSetSortOption=nil);
 begin
   if Item=nil then begin
     Item:=AItem;
@@ -164,14 +164,14 @@ begin
         Right:=TSortingBinaryTree.Create;
         (Right as TSortingBinaryTree).Item:=AItem;
       end
-      else (Right as TSortingBinaryTree).Compare(AItem,ASortMethod,ds,AOptions);
+      else (Right as TSortingBinaryTree).AddItem(AItem,ASortMethod,ds,AOptions);
     end;
     else begin
       if Left=nil then begin
         Left:=TSortingBinaryTree.Create;
         (Left as TSortingBinaryTree).Item:=AItem;
       end
-      else (Left as TSortingBinaryTree).Compare(AItem,ASortMethod,ds,AOptions);
+      else (Left as TSortingBinaryTree).AddItem(AItem,ASortMethod,ds,AOptions);
     end;
   end;
 end;
@@ -251,7 +251,7 @@ begin
   for index:=0 to dssize-1 do fixed_order[index]:=index;//0就是nil，nil就相当于没有，还得整这一出。
   try
     for index:=0 to dssize-1 do begin
-      binary_tree_sort.Compare(@(fixed_order[index]),@Intern_DSSortMethod,ds,DSSOption);
+      binary_tree_sort.AddItem(@(fixed_order[index]),@Intern_DSSortMethod,ds,DSSOption);
     end;
     index:=0;
     for ptr in binary_tree_sort do begin
