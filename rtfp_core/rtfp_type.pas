@@ -9,6 +9,7 @@ uses
 
 type
   RTFP_ID=string;//六位64进制数
+  RTFP_ID_Array=array of dword;
   TPIDNotifyEvent = procedure(Sender:TObject;PID:RTFP_ID) of object;
 
   TFieldTypeSet = set of TFieldType;
