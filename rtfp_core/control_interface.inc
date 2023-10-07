@@ -174,6 +174,18 @@ var tmpDbf:{TDbf}TDataSet;
         DoInsertPaperDS(PID);
       END;
     end;
+    procedure CopyFieldValue(dst,src:TField);
+    begin
+      case dst.DataType of
+        ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo{,ftFmtMemo,ftFixedChar}:dst.AsString:=src.AsString;
+        ftBoolean:dst.AsBoolean:=src.AsBoolean;
+        ftFloat:dst.AsFloat:=src.AsFloat;
+        ftInteger,ftLargeint,ftSmallint,ftWord:dst.AsLargeInt:=src.AsLargeInt;
+        ftDateTime,ftDate,ftTime:dst.AsDateTime:=src.AsDateTime;
+        ftBlob:dst.Assign(src);
+        else assert(false,'FPaperDS.Fields[pi].DataType未预设。');
+      end;
+    end;
 
 begin
   if (not IsUpdating) and (FOnMainGridRebuilding<>nil) then FOnMainGridRebuilding(Self);
@@ -233,15 +245,7 @@ begin
         FPaperDS.Append;
         for pi:=0 to paperDB_cnt-1 do
           begin
-            with FPaperDS.Fields[pi] do case DataType of
-              ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo{,ftFmtMemo,ftFixedChar}:FPaperDS.Fields[pi].AsString:=tmpDbf.Fields[fields_ref[pi].FI].AsString;
-              ftBoolean:FPaperDS.Fields[pi].AsBoolean:=tmpDbf.Fields[fields_ref[pi].FI].AsBoolean;
-              ftFloat:FPaperDS.Fields[pi].AsFloat:=tmpDbf.Fields[fields_ref[pi].FI].AsFloat;
-              ftInteger,ftLargeint,ftSmallint,ftWord:FPaperDS.Fields[pi].AsLargeInt:=tmpDbf.Fields[fields_ref[pi].FI].AsLargeInt;
-              ftDateTime,ftDate,ftTime:FPaperDS.Fields[pi].AsDateTime:=tmpDbf.Fields[fields_ref[pi].FI].AsDateTime;
-              ftBlob:FPaperDS.Fields[pi].Assign(tmpDbf.Fields[fields_ref[pi].FI]);
-              else assert(false,'FPaperDS.Fields[pi].DataType未预设。');
-            end;
+            CopyFieldValue(FPaperDS.Fields[pi],tmpDbf.Fields[fields_ref[pi].FI]);
           end;
         FPaperDS.Post;
         tmpDbf.Next;
@@ -249,6 +253,7 @@ begin
     END ELSE BEGIN
       for klass in FKlassList do
         begin
+          //旧分类筛选方法
           with klass.Dbf do begin
             if not RunPerformance.Klass_Filter_NOT xor klass.FilterEnabled then continue;
             if not Active then Open;
@@ -268,15 +273,7 @@ begin
             FPaperDS.Edit;
             for pi:=0 to paperDB_cnt-1 do
               begin
-                with FPaperDS.Fields[pi] do case DataType of
-                  ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo{,ftFmtMemo,ftFixedChar}:FPaperDS.Fields[pi].AsString:=tmpDbf.Fields[fields_ref[pi].FI].AsString;
-                  ftBoolean:FPaperDS.Fields[pi].AsBoolean:=tmpDbf.Fields[fields_ref[pi].FI].AsBoolean;
-                  ftFloat:FPaperDS.Fields[pi].AsFloat:=tmpDbf.Fields[fields_ref[pi].FI].AsFloat;
-                  ftInteger,ftLargeint,ftSmallint,ftWord:FPaperDS.Fields[pi].AsLargeInt:=tmpDbf.Fields[fields_ref[pi].FI].AsLargeInt;
-                  ftDateTime,ftDate,ftTime:FPaperDS.Fields[pi].AsDateTime:=tmpDbf.Fields[fields_ref[pi].FI].AsDateTime;
-                  ftBlob:FPaperDS.Fields[pi].Assign(tmpDbf.Fields[fields_ref[pi].FI]);
-                  else assert(false,'FPaperDS.Fields[pi].DataType未预设。');
-                end;
+                CopyFieldValue(FPaperDS.Fields[pi],tmpDbf.Fields[fields_ref[pi].FI])
               end;
             FPaperDS.Post;
           end;
@@ -297,21 +294,7 @@ begin
             if LocatePID(tmpDbf,PID) then begin
               FPaperDS.Edit;
               for pi:=attr_range[pj].min to attr_range[pj].max do begin
-                case FPaperDS.Fields[pi].DataType of
-                  ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo{,ftFmtMemo,ftFixedChar}:
-                    FPaperDS.Fields[pi].AsString:=tmpDbf.Fields[fields_ref[pi].FI].AsString;
-                  ftBoolean:
-                    FPaperDS.Fields[pi].AsBoolean:=tmpDbf.Fields[fields_ref[pi].FI].AsBoolean;
-                  ftFloat:
-                    FPaperDS.Fields[pi].AsFloat:=tmpDbf.Fields[fields_ref[pi].FI].AsFloat;
-                  ftInteger,ftLargeint,ftSmallint,ftWord:
-                    FPaperDS.Fields[pi].AsLargeInt:=tmpDbf.Fields[fields_ref[pi].FI].AsLargeInt;
-                  ftDateTime,ftDate,ftTime:
-                    FPaperDS.Fields[pi].AsDateTime:=tmpDbf.Fields[fields_ref[pi].FI].AsDateTime;
-                  ftBlob:
-                    FPaperDS.Fields[pi].Assign(tmpDbf.Fields[fields_ref[pi].FI]);
-                  else assert(false,'FPaperDS.Fields[pi].DataType未预设。');
-                end;
+                CopyFieldValue(FPaperDS.Fields[pi],tmpDbf.Fields[fields_ref[pi].FI]);
               end;
               FPaperDS.Post;
             end;
