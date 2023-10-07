@@ -63,6 +63,7 @@ type
     function GetItems(Index: integer):TKlass;
     procedure SetItems(Index: integer;AValue: TKlass);
     function GetCount:Integer;
+    function GetRecursiveCount:Integer;
   public
     constructor Create(AOwner:TKlass;data_set_type:TRTFP_DataSetType);
     destructor Destroy; override;
@@ -76,6 +77,7 @@ type
     function AllUnChecked:boolean;
     property Items[Index:integer]:TKlass read GetItems write SetItems; default;
     property Count:Integer read GetCount;
+    property RecursiveCount:Integer read GetRecursiveCount;
     property KlassDir:string read FKlassDir write FKlassDir;
     property Owner:TKlass read FOwner;
   public
@@ -186,6 +188,17 @@ end;
 function TKlassList.GetCount:Integer;
 begin
   result:=FList.Count;
+end;
+
+function TKlassList.GetRecursiveCount:Integer;
+var idx:integer;
+begin
+  result:=FList.Count;
+  idx:=0;
+  while idx<FList.Count do begin
+    result:=result+TKlass(FList[idx]).FKlassList.RecursiveCount;
+    inc(idx);
+  end;
 end;
 
 constructor TKlassList.Create(AOwner:TKlass;data_set_type:TRTFP_DataSetType);

@@ -1218,14 +1218,14 @@ object FormDesktop: TFormDesktop
     Height = 518
     Top = 5
     Width = 207
-    ActivePage = TabSheet_Filter_Field
+    ActivePage = TabSheet_Filter_Klass
     Anchors = [akTop, akLeft, akRight, akBottom]
     Constraints.MinWidth = 167
     Font.CharSet = ANSI_CHARSET
     Font.Pitch = fpFixed
     Font.Quality = fqDraft
     ParentFont = False
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 6
     object TabSheet_Filter_Klass: TTabSheet
       Caption = '分类节点'
@@ -1305,7 +1305,6 @@ object FormDesktop: TFormDesktop
         Width = 64
         Anchors = [akRight, akBottom]
         Caption = '交集'
-        Enabled = False
         OnClick = RadioButton_KlassANDClick
         TabOrder = 3
       end
@@ -1320,7 +1319,6 @@ object FormDesktop: TFormDesktop
         Anchors = [akLeft, akBottom]
         Caption = '并集'
         Checked = True
-        Enabled = False
         OnClick = RadioButton_KlassORClick
         TabOrder = 4
         TabStop = True

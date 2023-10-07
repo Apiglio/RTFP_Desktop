@@ -109,6 +109,8 @@ end;
 
 
 {主表显示}
+//很显然InsertPaperDS的方法之后还需要再sort一遍，这样性能会非常差
+//应该要兼顾Filter和Sorter重构
 procedure TRTFP.RebuildMainGrid;
 var tmpDbf:{TDbf}TDataSet;
     tmpFieldDef:TFieldDef;
@@ -186,6 +188,127 @@ var tmpDbf:{TDbf}TDataSet;
         else assert(false,'FPaperDS.Fields[pi].DataType未预设。');
       end;
     end;
+    procedure GenerateFields_WithoutKlassFilter;
+    //从FPaperDB中直接照抄所有PID到FPaperDS
+    var ppi:integer;
+    begin
+      FPaperDB.First;
+      if not FPaperDB.EOF then repeat
+        FPaperDS.Append;
+        for ppi:=0 to paperDB_cnt-1 do CopyFieldValue(FPaperDS.Fields[ppi],FPaperDB.Fields[fields_ref[ppi].FI]);
+        FPaperDS.Post;
+        FPaperDB.Next;
+      until FPaperDB.EOF;
+    end;
+    procedure GenerateFields_WithKlassFilter;
+    //根据分类勾选情况筛选PID到FPaperDS
+    //这是临时的一个实现方式，用PID的效率显然不如整型数
+    type TCombineMethod = (smNOR,smOR,smAND,smNAND);
+    var ppi,itmp:integer;
+        pid_list,pop_list:TStringList;
+        pid_exists:boolean;
+        comb_method:TCombineMethod;
+        stmp:string;
+    begin
+      with RunPerformance do
+        if Klass_Filter_AND then begin
+          if Klass_Filter_NOT then comb_method:=smNAND
+          else comb_method:=smAND;
+        end else begin
+          if Klass_Filter_NOT then comb_method:=smNOR
+          else comb_method:=smOR;
+        end;
+
+      //ins为真时初始为0，使用插入方法；为假时初始为全集，使用移除方法。
+      //sub为真时最后额外进行补集操作。
+      //..
+      //     | CombMtd |  OpAND     OpNOT   |  Init       Method    Value
+      //     +---------+--------------------+-----------------------------------
+      //     | smNOR   |  False     True    |  Complete   Remove    Result
+      //     | smOR    |  False     False   |  Empty      Insert    Result
+      //     | smNAND  |  True      True    |  Empty      Insert    1 - Result
+      //     | smAND   |  True      False   |  Complete   Remove    1 - Result
+      //..
+
+      pid_list:=TStringList.Create;
+      pop_list:=TStringList.Create;
+      pid_list.Sorted:=true;
+      pop_list.Sorted:=true;
+      pid_list.CaseSensitive:=true;
+      pop_list.CaseSensitive:=true;
+      try
+        case comb_method of
+          smNOR,smAND:GetPIDList(pid_list);
+        end;
+        for klass in FKlassList do begin
+          if not klass.FilterEnabled then continue;
+          with klass.Dbf do begin
+            if not Active then Open;
+            First;
+            if EOF then continue;
+            case comb_method of smAND,smNAND:
+              begin
+                //AND和NAND每一个Klass需要新建一个列表用于排除
+                pop_list.Clear;
+                GetPIDList(pop_list);
+              end;
+            end;
+            while not EOF do begin
+              stmp:=FieldByName(_Col_PID_).AsString;
+              case comb_method of
+                smNOR:begin
+                  pid_exists:=pid_list.Find(stmp,itmp);
+                  if pid_exists then pid_list.Delete(itmp);
+                  if pid_list.Count=0 then break;
+                end;
+                smOR:begin
+                  pid_exists:=pid_list.Find(stmp,itmp);
+                  if not pid_exists then pid_list.Add(stmp);
+                end;
+                smAND,smNAND:begin
+                  pid_exists:=pop_list.Find(stmp,itmp);
+                  if pid_exists then pop_list.Delete(itmp);
+                  if pop_list.Count=0 then break;
+                end;
+              end;
+              Next;
+            end;
+            case comb_method of
+              smAND:
+              begin
+                for stmp in pop_list do begin
+                  if pid_list.Find(stmp,itmp) then pid_list.Delete(itmp);
+                  if pid_list.Count=0 then break;
+                end;
+              end;
+              smNAND:
+              begin
+                for stmp in pop_list do begin
+                  if not pid_list.Find(stmp,itmp) then pid_list.Add(stmp);
+                end;
+              end;
+            end;
+          end;
+        end;
+        for stmp in pid_list do begin
+          InsertPaperDS(stmp);
+        end;
+      finally
+        pid_list.Free;
+        pop_list.Free;
+      end;
+      FPaperDS.First;
+      if not FPaperDS.Active then FPaperDB.Open;
+      while not FPaperDS.EOF do begin
+        if LocatePID(FPaperDB,FPaperDS.FieldByName(_Col_PID_).AsString) then
+          begin
+            FPaperDS.Edit;
+            for ppi:=0 to paperDB_cnt-1 do CopyFieldValue(FPaperDS.Fields[ppi],tmpDbf.Fields[fields_ref[ppi].FI]);
+            FPaperDS.Post;
+          end;
+        FPaperDS.Next;
+      end;
+    end;
 
 begin
   if (not IsUpdating) and (FOnMainGridRebuilding<>nil) then FOnMainGridRebuilding(Self);
@@ -239,46 +362,9 @@ begin
     FPaperDS.Last;
 
     IF (FKlassList.Count=0) or (FKlassList.AllUnChecked) THEN BEGIN
-      tmpDbf:=FPaperDB;
-      tmpDbf.First;
-      if not tmpDbf.EOF then repeat
-        FPaperDS.Append;
-        for pi:=0 to paperDB_cnt-1 do
-          begin
-            CopyFieldValue(FPaperDS.Fields[pi],tmpDbf.Fields[fields_ref[pi].FI]);
-          end;
-        FPaperDS.Post;
-        tmpDbf.Next;
-      until tmpDbf.EOF;
+      GenerateFields_WithoutKlassFilter;
     END ELSE BEGIN
-      for klass in FKlassList do
-        begin
-          //旧分类筛选方法
-          with klass.Dbf do begin
-            if not RunPerformance.Klass_Filter_NOT xor klass.FilterEnabled then continue;
-            if not Active then Open;
-            First;
-            while not EOF do
-              begin
-                InsertPaperDS(FieldByName(_Col_PID_).AsString);
-                Next;
-              end;
-          end;
-        end;
-      FPaperDS.First;
-      if not FPaperDS.Active then FPaperDB.Open;
-      while not FPaperDS.EOF do begin
-        if LocatePID(FPaperDB,FPaperDS.FieldByName(_Col_PID_).AsString) then
-          begin
-            FPaperDS.Edit;
-            for pi:=0 to paperDB_cnt-1 do
-              begin
-                CopyFieldValue(FPaperDS.Fields[pi],tmpDbf.Fields[fields_ref[pi].FI])
-              end;
-            FPaperDS.Post;
-          end;
-        FPaperDS.Next;
-      end;
+      GenerateFields_WithKlassFilter;
     END;
 
     IF FPaperDS.EOF and FPaperDS.BOF THEN ELSE BEGIN

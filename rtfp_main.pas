@@ -2526,16 +2526,22 @@ begin
 end;
 
 procedure TFormDesktop.RadioButton_KlassANDClick(Sender: TObject);
+var is_and:boolean;
 begin
   if ProjectInvalid then exit;
-  RadioButton_KlassOR.Checked:=not (Sender as TRadioButton).Checked;
+  is_and:=(Sender as TRadioButton).Checked;
+  RadioButton_KlassOR.Checked:=not is_and;
+  CurrentRTFP.RunPerformance.Klass_Filter_AND:=is_and;
   CurrentRTFP.RebuildMainGrid;
 end;
 
 procedure TFormDesktop.RadioButton_KlassORClick(Sender: TObject);
+var is_and:boolean;
 begin
   if ProjectInvalid then exit;
-  RadioButton_KlassAND.Checked:=not (Sender as TRadioButton).Checked;
+  is_and:=not (Sender as TRadioButton).Checked;
+  RadioButton_KlassAND.Checked:=is_and;
+  CurrentRTFP.RunPerformance.Klass_Filter_AND:=is_and;
   CurrentRTFP.RebuildMainGrid;
 end;
 
@@ -2586,13 +2592,12 @@ var tmpFD:TFieldDef;
   end;
 
 begin
-  //if Column.Field.FieldName<>_Col_PID_ then exit;
   if gdSelected in State then exit;
-  tmpCL:=$ff000000;
   tmpFD:=Column.Field.FieldDef;
   tmpA:=CurrentRTFP.PaperDSFieldDefs.Items[DataCol];
   if tmpA=nil then exit;
-  //if (Sender as TDBGrid).SelectedRows.Items[0]=(Sender as TDBGrid).DataSource.DataSet.RecNo then exit;
+
+  tmpCL:=$ff000000;
   if TObject(tmpA) is TAttrsField then
     tmpCL:=TAttrsField(tmpA).FieldDisplayOption.GetFieldColor(Column.Field);
   if tmpCL and $ff000000 <> $ff000000 then begin
@@ -2603,6 +2608,10 @@ begin
   //这里不错，或许可以把PaperDS中的ftString改回ftMemo，
   //同时可以在主表显示图片
   case tmpFD.DataType of
+    //ftMemo:
+    //  begin
+    //    Canvas.TextRect(Rect,Rect.Left,Rect.Top,Column.Field.AsString);
+    //  end;
     ftBlob:
       begin
         //啥没改，图片字段转成文件形式以后这么做的意义也不大了
