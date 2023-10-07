@@ -28,25 +28,27 @@ type
   PDataSetSortFunc = function(Item1,Item2:Pointer;ds:TDataSet=nil;AOptions:TDataSetSortOption=nil):integer;
   PFuncPtrStr = function(ptr:Pointer):string;
 
+  TSortingBinaryTree = class;
   TSortingBinaryTreeEnumerator = class
   private
-    FRoot:TObject;
-    FList:TList;
-    FPosition:integer;
+    FCursor:TSortingBinaryTree;
   private
-    procedure Recursion(ANode:TObject);
+    procedure DownToLeftest;        //在初始化枚举和枚举右子节点时查找最小的节点
+    function UpToFirstRight:boolean;//在没有右节点时向上查找第一个右边的节点
   public
-    constructor Create(ARoot:TObject);
+    constructor Create(ARoot:TSortingBinaryTree);
     function GetCurrent:Pointer;
     function MoveNext:Boolean;
     property Current:Pointer read GetCurrent;
   end;
 
   TSortingBinaryTree = class
-  public
-    Item:Pointer;
-    Left:TObject;
-    Right:TObject;
+  private
+    FItem:Pointer;
+    FLeft:TSortingBinaryTree;
+    FRight:TSortingBinaryTree;
+    FParent:TSortingBinaryTree;
+    FKind:Integer; //0表示是根节点 -1表示为父节点的左支 +1表示为父节点的右支
   public
     constructor Create;
     destructor Destroy;override;
@@ -90,7 +92,6 @@ begin
 end;
 
 procedure TDataSetSortOption.Clear;
-var tmpDataSetSortOption:TDataSetSortOption;
 begin
   if not Assigned(NextOption) then begin
     SortMode:=smUnassigned;
@@ -102,36 +103,49 @@ end;
 
 { TSortingBinaryTreeEnumerator }
 
-procedure TSortingBinaryTreeEnumerator.Recursion(ANode:TObject);
+procedure TSortingBinaryTreeEnumerator.DownToLeftest;
 var tmpNode:TSortingBinaryTree;
 begin
-  tmpNode:=ANode as TSortingBinaryTree;
-  if tmpNode.Left<>nil then Recursion(tmpNode.Left);
-  FList.Add(tmpNode.Item);
-  if tmpNode.Right<>nil then Recursion(tmpNode.Right);
+  tmpNode := FCursor;
+  while tmpNode.FLeft <> nil do tmpNode := tmpNode.FLeft;
+  FCursor := tmpNode;
 end;
 
-constructor TSortingBinaryTreeEnumerator.Create(ARoot:TObject);
+function TSortingBinaryTreeEnumerator.UpToFirstRight:boolean;
+var tmpNode:TSortingBinaryTree;
+begin
+  result  := false;
+  tmpNode := FCursor;
+  while tmpNode.FKind>0 do begin
+    tmpNode := tmpNode.FParent;
+    if tmpNode = nil then exit;
+  end;
+  if tmpNode.FKind = 0 then exit;
+  FCursor := tmpNode.FParent;
+  result  := true;
+end;
+
+constructor TSortingBinaryTreeEnumerator.Create(ARoot:TSortingBinaryTree);
 begin
   inherited Create;
-  FList:=TList.Create;
-  FRoot:=ARoot;
-  Recursion(ARoot);
-  FPosition:=-1;
+  FCursor  := ARoot;
+  DownToLeftest;
 end;
 
 function TSortingBinaryTreeEnumerator.GetCurrent:Pointer;
 begin
-  result:=FList.Items[FPosition]
+  result := FCursor.FItem;
 end;
 
 function TSortingBinaryTreeEnumerator.MoveNext:Boolean;
 begin
-  result:=true;
-  inc(FPosition);
-  if FPosition<FList.Count then exit;
-  FList.Free;//返回false时释放FList内存
-  result:=false;
+  if FCursor.FRight = nil then begin
+    result := UpToFirstRight;
+  end else begin
+    FCursor := FCursor.FRight;
+    DownToLeftest;
+    result  := true;
+  end;
 end;
 
 
@@ -140,38 +154,44 @@ end;
 constructor TSortingBinaryTree.Create;
 begin
   inherited Create;
-  Left:=nil;
-  Right:=nil;
-  Item:=nil;
+  FLeft:=nil;
+  FRight:=nil;
+  FItem:=nil;
+  FParent:=nil;
+  FKind:=0;
 end;
 
 destructor TSortingBinaryTree.Destroy;
 begin
-  if Left<>nil then FreeAndNil(Left);
-  if Right<>nil then FreeAndNil(Right);
+  if FLeft<>nil then FreeAndNil(FLeft);
+  if FRight<>nil then FreeAndNil(FRight);
   inherited Destroy;
 end;
 
 procedure TSortingBinaryTree.AddItem(AItem:Pointer;ASortMethod:PDataSetSortFunc;ds:TDataSet=nil;AOptions:TDataSetSortOption=nil);
 begin
-  if Item=nil then begin
-    Item:=AItem;
+  if FItem=nil then begin
+    FItem:=AItem;
     exit;
   end;
-  case ASortMethod(AItem,Item,ds,AOptions) of
+  case ASortMethod(AItem,FItem,ds,AOptions) of
     -1:begin
-      if Right=nil then begin
-        Right:=TSortingBinaryTree.Create;
-        (Right as TSortingBinaryTree).Item:=AItem;
+      if FRight=nil then begin
+        FRight:=TSortingBinaryTree.Create;
+        (FRight as TSortingBinaryTree).FItem:=AItem;
+        (FRight as TSortingBinaryTree).FKind:=+1;
+        (FRight as TSortingBinaryTree).FParent:=Self;
       end
-      else (Right as TSortingBinaryTree).AddItem(AItem,ASortMethod,ds,AOptions);
+      else (FRight as TSortingBinaryTree).AddItem(AItem,ASortMethod,ds,AOptions);
     end;
     else begin
-      if Left=nil then begin
-        Left:=TSortingBinaryTree.Create;
-        (Left as TSortingBinaryTree).Item:=AItem;
+      if FLeft=nil then begin
+        FLeft:=TSortingBinaryTree.Create;
+        (FLeft as TSortingBinaryTree).FItem:=AItem;
+        (FLeft as TSortingBinaryTree).FKind:=-1;
+        (FLeft as TSortingBinaryTree).FParent:=Self;
       end
-      else (Left as TSortingBinaryTree).AddItem(AItem,ASortMethod,ds,AOptions);
+      else (FLeft as TSortingBinaryTree).AddItem(AItem,ASortMethod,ds,AOptions);
     end;
   end;
 end;
@@ -181,12 +201,12 @@ var s1,s2:string;
 begin
   s1:='null';
   s2:='null';
-  if Left<>nil then
-    s1:=TSortingBinaryTree(Left).ExportToString(AMethod);
-  if Right<>nil then
-    s2:=TSortingBinaryTree(Right).ExportToString(AMethod);
-  if (s1=s2) and (s1='null') then result:=AMethod(Item)
-  else result:='{'+AMethod(Item)+':['+s1+','+s2+']}';
+  if FLeft<>nil then
+    s1:=TSortingBinaryTree(FLeft).ExportToString(AMethod);
+  if FRight<>nil then
+    s2:=TSortingBinaryTree(FRight).ExportToString(AMethod);
+  if (s1=s2) and (s1='null') then result:=AMethod(FItem)
+  else result:='{'+AMethod(FItem)+':['+s1+','+s2+']}';
 end;
 
 function TSortingBinaryTree.GetEnumerator:TSortingBinaryTreeEnumerator;
