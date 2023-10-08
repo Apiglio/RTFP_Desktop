@@ -99,14 +99,14 @@ begin
   else AufScpt.writeln('节点['+PID+']删除失败！');
 end;
 
-procedure aufunc_addKlass(Sender:TObject);//class.add KlassName,Path
+procedure aufunc_addKlass(Sender:TObject);//class.add KlassName
 var AufScpt:TAufScript;
     AAuf:TAuf;
     s1:string;
 begin
   AufScpt:=Sender as TAufScript;
   AAuf:=AufScpt.Auf as TAuf;
-  if not AAuf.CheckArgs(3) then exit;
+  if not AAuf.CheckArgs(2) then exit;
   if not AAuf.TryArgToString(1,s1) then exit;
   CurrentRTFP.AddKlass(s1,'.');
   AufScpt.writeln('成功');
@@ -129,28 +129,90 @@ procedure aufunc_KlassInclude(Sender:TObject);//class.include KlassName, PID
 var AufScpt:TAufScript;
     AAuf:TAuf;
     s1,s2:string;
+    tmpKL:TKlass;
 begin
   AufScpt:=Sender as TAufScript;
   AAuf:=AufScpt.Auf as TAuf;
   if not AAuf.CheckArgs(3) then exit;
   if not AAuf.TryArgToString(1,s1) then exit;
   if not AAuf.TryArgToString(2,s2) then exit;
-  CurrentRTFP.KlassInclude(CurrentRTFP.FindKlass(s1,'.'),s2);
-  AufScpt.writeln('成功');
+  tmpKL:=CurrentRTFP.FindKlass(s1,'.');
+  if tmpKL=nil then begin
+    AufScpt.send_error('警告：未找到分类【'+s1+'】，未执行纳入。');
+    exit;
+  end;
+  if CurrentRTFP.KlassInclude(tmpKL,s2) then AufScpt.writeln('成功将节点【'+s2+'】纳入【'+s1+'】分类');
 end;
 
 procedure aufunc_KlassExclude(Sender:TObject);//class.exclude KlassName, PID
 var AufScpt:TAufScript;
     AAuf:TAuf;
     s1,s2:string;
+    tmpKL:TKlass;
 begin
   AufScpt:=Sender as TAufScript;
   AAuf:=AufScpt.Auf as TAuf;
   if not AAuf.CheckArgs(3) then exit;
   if not AAuf.TryArgToString(1,s1) then exit;
   if not AAuf.TryArgToString(2,s2) then exit;
-  CurrentRTFP.KlassExclude(CurrentRTFP.FindKlass(s1,'.'),s2);
-  AufScpt.writeln('成功');
+  tmpKL:=CurrentRTFP.FindKlass(s1,'.');
+  if tmpKL=nil then begin
+    AufScpt.send_error('警告：未找到分类【'+s1+'】，未执行移出。');
+    exit;
+  end;
+  if CurrentRTFP.KlassExclude(tmpKL,s2) then AufScpt.writeln('成功将节点【'+s2+'】移出【'+s1+'】分类');
+end;
+
+procedure aufunc_KlassIncludeDS(Sender:TObject);//class.include_ds KlassName
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    s1,pid:string;
+    pids:TStringList;
+    tmpKL:TKlass;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(2) then exit;
+  if not AAuf.TryArgToString(1,s1) then exit;
+  tmpKL:=CurrentRTFP.FindKlass(s1,'.');
+  if tmpKL=nil then begin
+    AufScpt.send_error('警告：未找到分类【'+s1+'】，未执行纳入。');
+    exit;
+  end;
+  pids:=TStringList.Create;
+  try
+    CurrentRTFP.GetPIDList_DS(pids);
+    for pid in pids do CurrentRTFP.KlassInclude(tmpKL,pid);
+    AufScpt.writeln('成功将'+IntToStr(pids.Count)+'个节点纳入【'+s1+'】分类');
+  finally
+    pids.Free;
+  end;
+end;
+
+procedure aufunc_KlassExcludeDS(Sender:TObject);//class.exclude_ds KlassName
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    s1,pid:string;
+    pids:TStringList;
+    tmpKL:TKlass;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(2) then exit;
+  if not AAuf.TryArgToString(1,s1) then exit;
+  tmpKL:=CurrentRTFP.FindKlass(s1,'.');
+  if tmpKL=nil then begin
+    AufScpt.send_error('警告：未找到分类【'+s1+'】，未执行移出。');
+    exit;
+  end;
+  pids:=TStringList.Create;
+  try
+    CurrentRTFP.GetPIDList_DS(pids);
+    for pid in pids do CurrentRTFP.KlassExclude(tmpKL,pid);
+    AufScpt.writeln('成功将'+IntToStr(pids.Count)+'个节点移出【'+s1+'】分类');
+  finally
+    pids.Free;
+  end;
 end;
 
 procedure aufunc_EditAttr(Sender:TObject);//attr.edit PID,AttrName,FieldName,"memo"
@@ -553,6 +615,34 @@ begin
   end;
 end;
 
+procedure aufunc_maingrid_filter(Sender:TObject);
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    criterion:string;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(2) then exit;
+  if not AAuf.TryArgToString(1,criterion) then exit;
+  CurrentRTFP.RunPerformance.Filter_Command:=criterion;
+  CurrentRTFP.TableFilter;
+end;
+
+procedure aufunc_maingrid_sorter(Sender:TObject);
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    criterion:string;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(2) then exit;
+  if not AAuf.TryArgToString(1,criterion) then exit;
+  CurrentRTFP.RunPerformance.Sorter_Command:=criterion;
+  CurrentRTFP.TableSorter;
+end;
+
+
+
 {$ifdef test}
 
 procedure aufunc_test(Sender:TObject);
@@ -568,34 +658,6 @@ begin
 
   if TRTFP.VersionCheck(check,target) then
     AufScpt.writeln('T') else AufScpt.writeln('F');
-end;
-
-procedure aufunc_maingrid_sort(Sender:TObject);//update.sort field_name
-var AufScpt:TAufScript;
-    AAuf:TAuf;
-    arg_count,argi:byte;
-    fieldnames:array of string;
-    opt:TDataSetSortOption;
-begin
-  AufScpt:=Sender as TAufScript;
-  AAuf:=AufScpt.Auf as TAuf;
-  if not AAuf.CheckArgs(2) then exit;
-  arg_count:=AAuf.ArgsCount;
-  SetLength(fieldnames,arg_count-1);
-  try
-    for argi:=1 to arg_count-1 do
-      if not AAuf.TryArgToString(argi,fieldnames[argi-1]) then exit;
-    opt:=TDataSetSortOption.Create;
-    try
-      for argi:=1 to arg_count-1 do opt.Assign(fieldnames[argi-1],smAscending);
-      SortDataSet(CurrentRTFP.PaperDS,opt);
-    finally
-      opt.Free;
-    end;
-  finally
-    SetLength(fieldnames,0);
-  end;
-
 end;
 
 {$endif}
@@ -619,18 +681,23 @@ begin
     Script.add_func('attrs.af.add',@aufunc_AddAttrField,'AttrName,FieldName','在AttrName属性组中创建FieldName字段');
     Script.add_func('attrs.af.del',@aufunc_DelAttrField,'AttrName,FieldName','在AttrName属性组中创建FieldName字段');
 
-    Script.add_func('class.add',@aufunc_addKlass,'KlassName, Path','创建分类表');
-    Script.add_func('class.del',@aufunc_DeleteKlass,'KlassName','删除分类表');
+    Script.add_func('class.add',@aufunc_addKlass,'KlassName','创建分类表');
+    Script.add_func('class.del',@aufunc_deleteKlass,'KlassName','删除分类表');
     Script.add_func('class.include',@aufunc_KlassInclude,'KlassName, PID','将PID节点加入分类');
-    Script.add_func('class.exclude',@aufunc_KlassExclude,'KlassName, PID','将PID节点移除分类');
+    Script.add_func('class.exclude',@aufunc_KlassExclude,'KlassName, PID','将PID节点移出分类');
+    Script.add_func('class.include_ds',@aufunc_KlassIncludeDS,'KlassName','将主表中所有节点加入分类');
+    Script.add_func('class.exclude_ds',@aufunc_KlassExcludeDS,'KlassName','将主表中所有节点移出分类');
 
     Script.add_func('pdf.meta',@aufunc_ShowMeta,'filename','检查pdf文件的meta数据');
     Script.add_func('pdf.view',@aufunc_ShowView,'filename,page','预览pdf的page页');
 
     Script.add_func('update.begin',@aufunc_BeginUpdate,'','开始更新模式');
     Script.add_func('update.end',@aufunc_EndUpdate,'','结束更新模式');
-    Script.add_func('update.mg.sort',@aufunc_maingrid_sort,'*arg','主表按字段排序');
     Script.add_func('update.apply',@aufunc_update_case,'mode','触发更新过程');
+
+    Script.add_func('mg.filter',@aufunc_maingrid_filter,'criterion','修改主表筛选条件');
+    Script.add_func('mg.sorter',@aufunc_maingrid_sorter,'criterion','修改主表排序条件');
+
 
     Script.add_func('fmt.rebuild',@aufunc_RebuildFormatEdit,'filename','从filename中加载FormatEdit布局');
     //把FmtCmp改掉，取消泛型
