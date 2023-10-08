@@ -531,6 +531,11 @@ type
     function ExportDSToCSVOrTSV(sep:char):string;
     function ExportDSToRubyOrPython(sep:string):string;
 
+    function ExportDSFieldToLines(field_title:string):string;
+    function ExportDSFieldToArray(field_title:string):string;
+    function ExportDSFieldToLinesSet(field_title:string):string;
+
+
 
   //未分类
   private

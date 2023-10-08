@@ -1928,6 +1928,21 @@ object FormDesktop: TFormDesktop
       Caption = '<字段名称>'
       OnClick = MenuItem_DBGC_TitleClick
     end
+    object MenuItem_DBGC_Export: TMenuItem
+      Caption = '字段信息导出'
+      object MenuItem_DBGC_Export_lines: TMenuItem
+        Caption = 'csv / tsv'
+        OnClick = MenuItem_DBGC_Export_linesClick
+      end
+      object MenuItem_DBGC_Export_array: TMenuItem
+        Caption = 'array / list / json'
+        OnClick = MenuItem_DBGC_Export_arrayClick
+      end
+      object MenuItem_DBGC_Export_set: TMenuItem
+        Caption = 'set'
+        OnClick = MenuItem_DBGC_Export_setClick
+      end
+    end
     object MenuItem_DBGC_div01: TMenuItem
       Caption = '-'
     end

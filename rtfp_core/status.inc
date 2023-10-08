@@ -256,6 +256,82 @@ begin
   if FPaperDS.BookmarkValid(bm) then FPaperDS.GotoBookmark(bm);
 end;
 
+function TRTFP.ExportDSFieldToLines(field_title:string):string;
+const CRLF=#13#10;
+var bm:TBookMark;
+    tmpField:TField;
+    stmp:string;
+begin
+  result:='';
+  if not FPaperDS.Active then exit;
+  bm:=FPaperDS.Bookmark;
+  tmpField:=FPaperDS.FieldByName(field_title);
+  if tmpField=nil then exit;
+  FPaperDS.First;
+  while not FPaperDS.EOF do begin
+    stmp:=tmpField.AsString;
+    result:=result+CRLF+stmp;
+    FPaperDS.Next;
+  end;
+  if FPaperDS.BookmarkValid(bm) then FPaperDS.GotoBookmark(bm);
+end;
+
+function TRTFP.ExportDSFieldToArray(field_title:string):string;
+var bm:TBookMark;
+    tmpField:TField;
+    stmp:string;
+begin
+  result:='';
+  if not FPaperDS.Active then exit;
+  bm:=FPaperDS.Bookmark;
+  tmpField:=FPaperDS.FieldByName(field_title);
+  if tmpField=nil then exit;
+  FPaperDS.First;
+  while not FPaperDS.EOF do begin
+    stmp:=tmpField.AsString;
+    case tmpField.DataType of
+      ftInteger,ftLargeint,ftWord,ftSmallint,ftFloat,ftBoolean:result:=result+','+stmp;
+      ftDateTime,ftDate,ftTime:result:=result+',"'+stmp+'"';
+      ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo:result:=result+',"'+stmp+'"';
+    end;
+    FPaperDS.Next;
+  end;
+  if FPaperDS.BookmarkValid(bm) then FPaperDS.GotoBookmark(bm);
+  if length(result)>0 then System.Delete(result,1,1);
+  result:='['+result+']';
+end;
+
+function TRTFP.ExportDSFieldToLinesSet(field_title:string):string;
+const CRLF=#13#10;
+var bm:TBookMark;
+    tmpField:TField;
+    stmp:string;
+    itmp:integer;
+    tmpSL:TStringList;
+begin
+  result:='';
+  if not FPaperDS.Active then exit;
+  bm:=FPaperDS.Bookmark;
+  tmpField:=FPaperDS.FieldByName(field_title);
+  if tmpField=nil then exit;
+  tmpSL:=TStringList.Create;
+  tmpSL.Sorted:=true;
+  tmpSL.CaseSensitive:=True;
+  try
+    FPaperDS.First;
+    while not FPaperDS.EOF do begin
+      stmp:=tmpField.AsString;
+      if not tmpSL.Find(stmp,itmp) then begin;
+        tmpSL.Add(stmp);
+        result:=result+CRLF+stmp;
+      end;
+      FPaperDS.Next;
+    end;
+  finally
+    tmpSL.Free;
+  end;
+  if FPaperDS.BookmarkValid(bm) then FPaperDS.GotoBookmark(bm);
+end;
 
 
 

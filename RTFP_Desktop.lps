@@ -21,8 +21,8 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="RTFP_main"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="621"/>
-        <CursorPos Y="630"/>
+        <TopLine Value="2404"/>
+        <CursorPos X="63" Y="2425"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -213,8 +213,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="RTFP_definition"/>
         <EditorIndex Value="19"/>
-        <TopLine Value="382"/>
-        <CursorPos X="15" Y="400"/>
+        <TopLine Value="516"/>
+        <CursorPos X="30" Y="535"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
       </Unit17>
@@ -364,7 +364,7 @@
         <Filename Value="rtfp_core\cite_tool.inc"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="3"/>
-        <TopLine Value="957"/>
+        <TopLine Value="822"/>
         <CursorPos X="34" Y="980"/>
         <UsageCount Value="203"/>
         <Loaded Value="True"/>
@@ -372,7 +372,6 @@
       <Unit35>
         <Filename Value="rtfp_core\aufunc.inc"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="9"/>
         <TopLine Value="616"/>
         <CursorPos X="13" Y="644"/>
@@ -480,9 +479,10 @@
       <Unit47>
         <Filename Value="rtfp_core\status.inc"/>
         <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="5"/>
-        <TopLine Value="97"/>
-        <CursorPos X="16" Y="61"/>
+        <TopLine Value="301"/>
+        <CursorPos X="9" Y="329"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
       </Unit47>
@@ -523,7 +523,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="183"/>
+        <UsageCount Value="184"/>
       </Unit51>
       <Unit52>
         <Filename Value="sync\sync_thread.pas"/>
@@ -531,7 +531,7 @@
         <EditorIndex Value="2"/>
         <TopLine Value="20"/>
         <CursorPos X="11" Y="43"/>
-        <UsageCount Value="69"/>
+        <UsageCount Value="70"/>
         <Loaded Value="True"/>
       </Unit52>
       <Unit53>
@@ -541,7 +541,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="55"/>
+        <UsageCount Value="56"/>
       </Unit53>
       <Unit54>
         <Filename Value="..\AufScript\auftype\auf_type_base.pas"/>
@@ -550,7 +550,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="55"/>
+        <UsageCount Value="56"/>
       </Unit54>
       <Unit55>
         <Filename Value="rtfp_core\packed_format.inc"/>
@@ -1097,7 +1097,7 @@
         <EditorIndex Value="48"/>
         <TopLine Value="423"/>
         <CursorPos Y="441"/>
-        <UsageCount Value="56"/>
+        <UsageCount Value="57"/>
         <Loaded Value="True"/>
       </Unit127>
       <Unit128>
@@ -1147,7 +1147,7 @@
         <Filename Value="C:\lazarus\lcl\include\buttoncontrol.inc"/>
         <EditorIndex Value="45"/>
         <CursorPos Y="19"/>
-        <UsageCount Value="39"/>
+        <UsageCount Value="40"/>
         <Loaded Value="True"/>
       </Unit134>
       <Unit135>
@@ -1175,124 +1175,124 @@
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="rtfp_core\control_interface.inc"/>
-        <Caret Line="245" TopLine="221"/>
+        <Filename Value="rtfp_core\aufunc.inc"/>
+        <Caret Line="623" TopLine="606"/>
       </Position1>
       <Position2>
-        <Filename Value="rtfp_core\control_interface.inc"/>
-        <Caret Line="246" TopLine="224"/>
+        <Filename Value="rtfp_core\aufunc.inc"/>
+        <Caret Line="624" TopLine="606"/>
       </Position2>
       <Position3>
-        <Filename Value="rtfp_core\control_interface.inc"/>
-        <Caret Line="247" TopLine="224"/>
+        <Filename Value="rtfp_core\aufunc.inc"/>
+        <Caret Line="625" TopLine="606"/>
       </Position3>
       <Position4>
-        <Filename Value="rtfp_core\control_interface.inc"/>
-        <Caret Line="248" TopLine="224"/>
+        <Filename Value="rtfp_core\aufunc.inc"/>
+        <Caret Line="626" TopLine="606"/>
       </Position4>
       <Position5>
-        <Filename Value="rtfp_core\control_interface.inc"/>
-        <Caret Line="252" TopLine="227"/>
+        <Filename Value="rtfp_core\aufunc.inc"/>
+        <Caret Line="727" Column="30" TopLine="716"/>
       </Position5>
       <Position6>
-        <Filename Value="rtfp_core\control_interface.inc"/>
-        <Caret Line="253" TopLine="227"/>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="2718" Column="44" TopLine="2714"/>
       </Position6>
       <Position7>
-        <Filename Value="rtfp_core\control_interface.inc"/>
-        <Caret Line="256" TopLine="228"/>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="2316" Column="71" TopLine="2307"/>
       </Position7>
       <Position8>
         <Filename Value="rtfp_core\control_interface.inc"/>
-        <Caret Line="257" TopLine="229"/>
+        <Caret Line="255" Column="26" TopLine="237"/>
       </Position8>
       <Position9>
         <Filename Value="rtfp_core\control_interface.inc"/>
-        <Caret Line="258" TopLine="230"/>
+        <Caret Line="396" Column="36" TopLine="382"/>
       </Position9>
       <Position10>
-        <Filename Value="rtfp_core\control_interface.inc"/>
-        <Caret Line="269" TopLine="252"/>
+        <Filename Value="rtfp_core\rtfp_definition.pas"/>
+        <Caret Line="400" Column="15" TopLine="382"/>
       </Position10>
       <Position11>
-        <Filename Value="rtfp_core\control_interface.inc"/>
-        <Caret Line="270" TopLine="252"/>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="76" Column="64" TopLine="53"/>
       </Position11>
       <Position12>
-        <Filename Value="rtfp_core\control_interface.inc"/>
-        <Caret Line="271" TopLine="252"/>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="77" Column="64" TopLine="53"/>
       </Position12>
       <Position13>
-        <Filename Value="rtfp_core\control_interface.inc"/>
-        <Caret Line="270" Column="22" TopLine="249"/>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="78" Column="64" TopLine="53"/>
       </Position13>
       <Position14>
-        <Filename Value="rtfp_core\aufunc.inc"/>
-        <Caret Line="684" Column="44" TopLine="664"/>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="79" Column="64" TopLine="53"/>
       </Position14>
       <Position15>
-        <Filename Value="rtfp_core\aufunc.inc"/>
-        <Caret Line="685" Column="42" TopLine="664"/>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="80" Column="64" TopLine="53"/>
       </Position15>
       <Position16>
-        <Filename Value="rtfp_core\aufunc.inc"/>
-        <Caret Line="697" Column="50" TopLine="676"/>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="2413" Column="3" TopLine="2411"/>
       </Position16>
       <Position17>
         <Filename Value="rtfp_main.pas"/>
-        <Caret Line="28" Column="34"/>
+        <Caret Line="2414" Column="3" TopLine="2412"/>
       </Position17>
       <Position18>
         <Filename Value="rtfp_main.pas"/>
-        <Caret Line="2718" Column="44" TopLine="2714"/>
+        <Caret Line="2410" Column="3" TopLine="2408"/>
       </Position18>
       <Position19>
-        <Filename Value="rtfp_core\aufunc.inc"/>
-        <Caret Line="623" TopLine="606"/>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="2407" TopLine="2399"/>
       </Position19>
       <Position20>
-        <Filename Value="rtfp_core\aufunc.inc"/>
-        <Caret Line="624" TopLine="606"/>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="249" Column="15" TopLine="240"/>
       </Position20>
       <Position21>
-        <Filename Value="rtfp_core\aufunc.inc"/>
-        <Caret Line="625" TopLine="606"/>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="2453" Column="40" TopLine="2445"/>
       </Position21>
       <Position22>
-        <Filename Value="rtfp_core\aufunc.inc"/>
-        <Caret Line="626" TopLine="606"/>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="1320" Column="45" TopLine="1309"/>
       </Position22>
       <Position23>
-        <Filename Value="rtfp_core\aufunc.inc"/>
-        <Caret Line="727" Column="30" TopLine="716"/>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="2714" Column="63" TopLine="2695"/>
       </Position23>
       <Position24>
-        <Filename Value="rtfp_main.pas"/>
-        <Caret Line="2718" Column="44" TopLine="2714"/>
+        <Filename Value="rtfp_core\status.inc"/>
+        <Caret Line="61" Column="16" TopLine="96"/>
       </Position24>
       <Position25>
-        <Filename Value="rtfp_main.pas"/>
-        <Caret Line="2316" Column="71" TopLine="2307"/>
+        <Filename Value="rtfp_core\status.inc"/>
+        <Caret Line="71" Column="31" TopLine="65"/>
       </Position25>
       <Position26>
-        <Filename Value="rtfp_core\control_interface.inc"/>
-        <Caret Line="255" Column="26" TopLine="237"/>
+        <Filename Value="rtfp_core\rtfp_definition.pas"/>
+        <Caret Line="532" Column="23" TopLine="512"/>
       </Position26>
       <Position27>
-        <Filename Value="rtfp_core\control_interface.inc"/>
-        <Caret Line="396" Column="36" TopLine="382"/>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="2410" Column="61" TopLine="2400"/>
       </Position27>
       <Position28>
-        <Filename Value="rtfp_core\rtfp_definition.pas"/>
-        <Caret Line="400" Column="15" TopLine="382"/>
+        <Filename Value="rtfp_main.pas"/>
+        <Caret Line="2425" Column="63" TopLine="2404"/>
       </Position28>
       <Position29>
-        <Filename Value="rtfp_core\aufunc.inc"/>
-        <Caret Line="673" Column="23" TopLine="713"/>
+        <Filename Value="rtfp_core\rtfp_definition.pas"/>
+        <Caret Line="535" Column="30" TopLine="516"/>
       </Position29>
       <Position30>
-        <Filename Value="rtfp_core\aufunc.inc"/>
-        <Caret Line="681" Column="18" TopLine="716"/>
+        <Filename Value="rtfp_core\status.inc"/>
+        <Caret Line="317" Column="8" TopLine="290"/>
       </Position30>
     </JumpHistory>
   </ProjectSession>

@@ -54,6 +54,10 @@ type
     CheckBox_MainSorterAuto: TCheckBox;
     Edit_DBGridMain_Sorter: TEdit;
     Label_MainSorter: TLabel;
+    MenuItem_DBGC_Export_set: TMenuItem;
+    MenuItem_DBGC_Export_array: TMenuItem;
+    MenuItem_DBGC_Export_lines: TMenuItem;
+    MenuItem_DBGC_Export: TMenuItem;
     MenuItem_ClassMgr_AddSub: TMenuItem;
     MenuItem_DBGC_CR: TMenuItem;
     MenuItem_DBGE_json: TMenuItem;
@@ -250,6 +254,9 @@ type
     procedure MenuItem_DBGC_CalcClick(Sender: TObject);
     procedure MenuItem_DBGC_CRClick(Sender: TObject);
     procedure MenuItem_DBGC_DSClick(Sender: TObject);
+    procedure MenuItem_DBGC_Export_arrayClick(Sender: TObject);
+    procedure MenuItem_DBGC_Export_linesClick(Sender: TObject);
+    procedure MenuItem_DBGC_Export_setClick(Sender: TObject);
     procedure MenuItem_DBGC_FieldOptClick(Sender: TObject);
     procedure MenuItem_DBGE_csvClick(Sender: TObject);
     procedure MenuItem_DBGE_jsonClick(Sender: TObject);
@@ -2395,6 +2402,27 @@ begin
   Edit_DBGridMain_Sorter.Caption:='- "'+field_name+'" '+sort_syntax;
   Application.ProcessMessages;
   CurrentRTFP.TableSorter;
+end;
+
+procedure TFormDesktop.MenuItem_DBGC_Export_arrayClick(Sender: TObject);
+var FieldTitle:string;
+begin
+  FieldTitle:=PopupMenu_MainDBGrid_Column.Items[0].Caption;
+  ClipBoard.AsText:=CurrentRTFP.ExportDSFieldToArray(FieldTitle);
+end;
+
+procedure TFormDesktop.MenuItem_DBGC_Export_linesClick(Sender: TObject);
+var FieldTitle:string;
+begin
+  FieldTitle:=PopupMenu_MainDBGrid_Column.Items[0].Caption;
+  ClipBoard.AsText:=CurrentRTFP.ExportDSFieldToLines(FieldTitle);
+end;
+
+procedure TFormDesktop.MenuItem_DBGC_Export_setClick(Sender: TObject);
+var FieldTitle:string;
+begin
+  FieldTitle:=PopupMenu_MainDBGrid_Column.Items[0].Caption;
+  ClipBoard.AsText:=CurrentRTFP.ExportDSFieldToLinesSet(FieldTitle);
 end;
 
 procedure TFormDesktop.MenuItem_DBGC_FieldOptClick(Sender: TObject);
