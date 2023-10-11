@@ -23,12 +23,18 @@ end;
 }
 
 procedure aufunc_BeginUpdate(Sender:TObject);
+var AufScpt:TAufScript;
 begin
+  AufScpt:=Sender as TAufScript;
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
   CurrentRTFP.BeginUpdate;
 end;
 
 procedure aufunc_EndUpdate(Sender:TObject);
+var AufScpt:TAufScript;
 begin
+  AufScpt:=Sender as TAufScript;
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
   CurrentRTFP.EndUpdate;
 end;
 
@@ -70,6 +76,7 @@ begin
       if not AAuf.TryArgToString(3,mode) then exit;
     end
   else mode:='fb';
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
   case lowercase(mode) of
     'fullbackup','full','fb':PID:=CurrentRTFP.AddPaper(filename,apmFullBackup);
     'cutbackup','cut','cb':PID:=CurrentRTFP.AddPaper(filename,apmCutBackup);
@@ -95,8 +102,9 @@ begin
   AAuf:=AufScpt.Auf as TAuf;
   if not AAuf.CheckArgs(2) then exit;
   if not AAuf.TryArgToString(1,PID) then exit;
-  if CurrentRTFP.DeletePaper(PID) then AufScpt.writeln('节点['+PID+']删除成功。')
-  else AufScpt.writeln('节点['+PID+']删除失败！');
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
+  if CurrentRTFP.DeletePaper(PID) then AufScpt.writeln('节点【'+PID+'】删除成功。')
+  else AufScpt.send_error('节点【'+PID+'】删除失败！');
 end;
 
 procedure aufunc_addKlass(Sender:TObject);//class.add KlassName
@@ -108,8 +116,9 @@ begin
   AAuf:=AufScpt.Auf as TAuf;
   if not AAuf.CheckArgs(2) then exit;
   if not AAuf.TryArgToString(1,s1) then exit;
-  CurrentRTFP.AddKlass(s1,'.');
-  AufScpt.writeln('成功');
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
+  if CurrentRTFP.AddKlass(s1,'.')<>nil then AufScpt.writeln('成功创建【'+s1+'】分类。');
+  CurrentRTFP.ClassChange;
 end;
 
 procedure aufunc_deleteKlass(Sender:TObject);//class.delete KlassName
@@ -121,8 +130,100 @@ begin
   AAuf:=AufScpt.Auf as TAuf;
   if not AAuf.CheckArgs(2) then exit;
   if not AAuf.TryArgToString(1,s1) then exit;
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
   CurrentRTFP.DeleteKlass(s1,'.');
-  AufScpt.writeln('成功');
+  AufScpt.writeln('成功删除【'+s1+'】分类。');
+  CurrentRTFP.ClassChange;
+end;
+
+procedure aufunc_enableKlass(Sender:TObject);//class.enable KlassName
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    s1:string;
+    tmpKL:TKlass;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(2) then exit;
+  if not AAuf.TryArgToString(1,s1) then exit;
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
+  tmpKL:=CurrentRTFP.FindKlass(s1,'.');
+  if tmpKL<>nil then begin
+    tmpKL.FilterEnabled:=true;
+    CurrentRTFP.ClassChange;
+  end else AufScpt.send_error('未找到【'+s1+'】分类，代码未执行。');
+end;
+
+procedure aufunc_disableKlass(Sender:TObject);//class.disable KlassName
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    s1:string;
+    tmpKL:TKlass;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(2) then exit;
+  if not AAuf.TryArgToString(1,s1) then exit;
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
+  tmpKL:=CurrentRTFP.FindKlass(s1,'.');
+  if tmpKL<>nil then begin
+    tmpKL.FilterEnabled:=false;
+    CurrentRTFP.ClassChange;
+  end else AufScpt.send_error('未找到【'+s1+'】分类，代码未执行。');
+end;
+
+procedure aufunc_KlassFilterMode(Sender:TObject);//class.filtermode and | or | not
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    s1,s2:string;
+    mode:set of (mdAND, mdOR, mdNOT);
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(2) then exit;
+  if not AAuf.TryArgToStrParam(1,['and','or','not'],false,s1) then exit;
+  if AAuf.ArgsCount>=3 then begin
+    if not AAuf.TryArgToStrParam(2,['and','or','not'],false,s2) then exit;
+  end else begin
+    s2:='so';
+  end;
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
+  mode:=[];
+  case lowercase(s1) of
+    'and': mode:=mode+[mdAND];
+    'or' : mode:=mode+[mdOR];
+    'not': mode:=mode+[mdNOT];
+  end;
+  case lowercase(s2) of
+    'and': mode:=mode+[mdAND];
+    'or' : mode:=mode+[mdOR];
+    'not': mode:=mode+[mdNOT];
+  end;
+  if (mdAND in mode) and (not (mdOR in mode)) then begin
+    CurrentRTFP.RunPerformance.Klass_Filter_AND := true;
+  end else if (not (mdAND in mode)) and (mdOR in mode) then begin
+    CurrentRTFP.RunPerformance.Klass_Filter_AND := false;
+  end else begin
+      AufScpt.send_error('不支持同时选择and和or模式。');
+      exit;
+  end;
+  CurrentRTFP.RunPerformance.Klass_Filter_NOT := mdNOT in mode;
+  FormDesktop.RadioButton_KlassAND.Checked:=CurrentRTFP.RunPerformance.Klass_Filter_AND;
+  FormDesktop.RadioButton_KlassOR.Checked:=not CurrentRTFP.RunPerformance.Klass_Filter_AND;
+  FormDesktop.CheckBox_KlassNot.Checked:=CurrentRTFP.RunPerformance.Klass_Filter_NOT;
+  CurrentRTFP.ClassChange;
+end;
+
+procedure aufunc_KlassFilterClear(Sender:TObject);
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    tmpKL:TKlass;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
+  for tmpKL in CurrentRTFP.FKlassList do tmpKL.AllUnChecked:=true;
+  CurrentRTFP.ClassChange;
 end;
 
 procedure aufunc_KlassInclude(Sender:TObject);//class.include KlassName, PID
@@ -136,6 +237,7 @@ begin
   if not AAuf.CheckArgs(3) then exit;
   if not AAuf.TryArgToString(1,s1) then exit;
   if not AAuf.TryArgToString(2,s2) then exit;
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
   tmpKL:=CurrentRTFP.FindKlass(s1,'.');
   if tmpKL=nil then begin
     AufScpt.send_error('警告：未找到分类【'+s1+'】，未执行纳入。');
@@ -155,6 +257,7 @@ begin
   if not AAuf.CheckArgs(3) then exit;
   if not AAuf.TryArgToString(1,s1) then exit;
   if not AAuf.TryArgToString(2,s2) then exit;
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
   tmpKL:=CurrentRTFP.FindKlass(s1,'.');
   if tmpKL=nil then begin
     AufScpt.send_error('警告：未找到分类【'+s1+'】，未执行移出。');
@@ -174,17 +277,21 @@ begin
   AAuf:=AufScpt.Auf as TAuf;
   if not AAuf.CheckArgs(2) then exit;
   if not AAuf.TryArgToString(1,s1) then exit;
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
   tmpKL:=CurrentRTFP.FindKlass(s1,'.');
   if tmpKL=nil then begin
     AufScpt.send_error('警告：未找到分类【'+s1+'】，未执行纳入。');
     exit;
   end;
   pids:=TStringList.Create;
+  CurrentRTFP.BeginUpdate;
   try
     CurrentRTFP.GetPIDList_DS(pids);
     for pid in pids do CurrentRTFP.KlassInclude(tmpKL,pid);
     AufScpt.writeln('成功将'+IntToStr(pids.Count)+'个节点纳入【'+s1+'】分类');
   finally
+    CurrentRTFP.EndUpdate;
+    CurrentRTFP.ClassChange;
     pids.Free;
   end;
 end;
@@ -200,17 +307,21 @@ begin
   AAuf:=AufScpt.Auf as TAuf;
   if not AAuf.CheckArgs(2) then exit;
   if not AAuf.TryArgToString(1,s1) then exit;
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
   tmpKL:=CurrentRTFP.FindKlass(s1,'.');
   if tmpKL=nil then begin
     AufScpt.send_error('警告：未找到分类【'+s1+'】，未执行移出。');
     exit;
   end;
   pids:=TStringList.Create;
+  CurrentRTFP.BeginUpdate;
   try
     CurrentRTFP.GetPIDList_DS(pids);
     for pid in pids do CurrentRTFP.KlassExclude(tmpKL,pid);
     AufScpt.writeln('成功将'+IntToStr(pids.Count)+'个节点移出【'+s1+'】分类');
   finally
+    CurrentRTFP.EndUpdate;
+    CurrentRTFP.ClassChange;
     pids.Free;
   end;
 end;
@@ -227,7 +338,7 @@ begin
   if not AAuf.TryArgToString(2,AAttrName) then exit;
   if not AAuf.TryArgToString(3,AFieldName) then exit;
   if not AAuf.TryArgToString(4,AMEMO) then exit;
-
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
   CurrentRTFP.EditFieldAsString(AFieldName,AAttrName,APID,AMEMO,[aeCreateIfNoField,aeForceEditIfTypeDismatch]);
 end;
 procedure aufunc_EditImage(Sender:TObject);//attr.edit_image PID,AttrName,FieldName,filename
@@ -248,6 +359,7 @@ begin
     AufScpt.writeln('警告：找不到 '+filename+' 文件，'+Auf.args[0]+'未执行。');
     exit
   end;
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
   APicture:=TPicture.Create;
   try
     APicture.LoadFromFile(filename);
@@ -275,7 +387,7 @@ begin
       show_message:=false;
     end
   else show_message:=true;
-
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
   try
     AValue:=CurrentRTFP.ReadFieldAsString(AFieldName,AAttrName,APID,[aeFailIfNoPID,aeFailIfNoField]);
   except
@@ -313,16 +425,15 @@ begin
     'time':dt:=ftTime;
     'datetime':dt:=ftDateTime;
     else begin
-      AufScpt.writeln('无效的字段类型，字段未创建。');
+      AufScpt.send_error('无效的字段类型，字段未创建。');
       exit;
     end;
   end;
-
-  CurrentRTFP.AddField(AFieldName,AAttrName,dt{,AFieldSize});
-  AufScpt.writeln('字段创建成功。');
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
+  if CurrentRTFP.AddField(AFieldName,AAttrName,dt{,AFieldSize})<>nil then AufScpt.writeln('成功创建【'+AAttrName+'.'+AFieldName+'】字段。');
 end;
 
-procedure aufunc_DelAttrField(Sender:TObject);//attrs.field.drop AttrNo,FieldName
+procedure aufunc_DelAttrField(Sender:TObject);//attrs.field.del AttrNo,FieldName
 var AufScpt:TAufScript;
     AAuf:TAuf;
     AFieldName,AAttrName:string;
@@ -332,10 +443,49 @@ begin
   if not AAuf.CheckArgs(3) then exit;
   if not AAuf.TryArgToString(1,AAttrName) then exit;
   if not AAuf.TryArgToString(2,AFieldName) then exit;
-
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
   CurrentRTFP.DeleteField(AFieldName,AAttrName);
-  AufScpt.writeln('字段删除成功。');
+  AufScpt.writeln('成功删除【'+AAttrName+'.'+AFieldName+'】字段。');
 end;
+
+procedure aufunc_EnableAttrField(Sender:TObject);//field.enable AttrNo,FieldName
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    AFieldName,AAttrName:string;
+    tmpAF:TAttrsField;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(3) then exit;
+  if not AAuf.TryArgToString(1,AAttrName) then exit;
+  if not AAuf.TryArgToString(2,AFieldName) then exit;
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
+  tmpAF:=CurrentRTFP.FindField(AFieldName,AAttrName);
+  if tmpAF<>nil then begin
+    tmpAF.Shown:=true;
+    CurrentRTFP.FieldAndRecordChange;
+  end else AufScpt.send_error('未能找到【'+AAttrName+'.'+AFieldName+'】字段。');
+end;
+
+procedure aufunc_DisableAttrField(Sender:TObject);//field.disable AttrNo,FieldName
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    AFieldName,AAttrName:string;
+    tmpAF:TAttrsField;
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(3) then exit;
+  if not AAuf.TryArgToString(1,AAttrName) then exit;
+  if not AAuf.TryArgToString(2,AFieldName) then exit;
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
+  tmpAF:=CurrentRTFP.FindField(AFieldName,AAttrName);
+  if tmpAF<>nil then begin
+    tmpAF.Shown:=false;
+    CurrentRTFP.FieldAndRecordChange;
+  end else AufScpt.send_error('未能找到【'+AAttrName+'.'+AFieldName+'】字段。');
+end;
+
 
 procedure aufunc_RebuildFormatEdit(Sender:TObject);
 var AufScpt:TAufScript;
@@ -347,6 +497,7 @@ begin
   AAuf:=AufScpt.Auf as TAuf;
   if not AAuf.CheckArgs(2) then exit;
   if not AAuf.TryArgToString(1,filename) then exit;
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
   filename:=CurrentRTFP.FFilePath+CurrentRTFP.FRootFolder+'/format/'+filename;
   if FileExists(filename) then begin
     str:=TStringList.Create;
@@ -358,13 +509,14 @@ begin
     finally
       str.Free;
     end;
-  end else AufScpt.writeln('未找到'+filename+'布局文件！');
+  end else AufScpt.send_error('未找到'+filename+'布局文件！');
 end;
 
 procedure aufunc_newPaperId(Sender:TObject);
 var AufScpt:TAufScript;
 begin
   AufScpt:=Sender as TAufScript;
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
   AufScpt.writeln(CurrentRTFP.NewPaperID);
 end;
 
@@ -372,6 +524,7 @@ procedure aufunc_newImageId(Sender:TObject);
 var AufScpt:TAufScript;
 begin
   AufScpt:=Sender as TAufScript;
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
   AufScpt.writeln(CurrentRTFP.NewImageID);
 end;
 
@@ -379,6 +532,7 @@ procedure aufunc_newNoteId(Sender:TObject);
 var AufScpt:TAufScript;
 begin
   AufScpt:=Sender as TAufScript;
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
   AufScpt.writeln(CurrentRTFP.NewNoteID);
 end;
 
@@ -425,8 +579,7 @@ procedure aufunc_save(Sender:TObject);
 var AufScpt:TAufScript;
 begin
   AufScpt:=Sender as TAufScript;
-  if not assigned(CurrentRTFP) then begin AufScpt.writeln('工程对象未指派！');exit end;
-  if not CurrentRTFP.IsOpen then begin AufScpt.writeln('工程未打开！');exit end;
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
   CurrentRTFP.Save;
   AufScpt.writeln('强制保存成功。');
 end;
@@ -441,6 +594,7 @@ begin
   AAuf:=AufScpt.Auf as TAuf;
   if not AAuf.CheckArgs(2) then exit;
   if not AAuf.TryArgToARV(1,6,6,[ARV_Char],arv) then exit;
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
   with CurrentRTFP.FPaperDB do begin
     if not Active then Open;
     First;
@@ -462,6 +616,7 @@ begin
   if not AAuf.TryArgToARV(1,6,6,[ARV_Char],arv) then exit;
   if not AAuf.TryArgToAddr(2,addr) then exit;
   PID:=arv_to_s(arv);
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
   with CurrentRTFP.FPaperDB do begin
     if not Active then Open;
     First;
@@ -501,6 +656,7 @@ begin
   if not AAuf.TryArgToString(1,NA) then exit;
   if not AAuf.TryArgToString(2,NF) then exit;
   if not AAuf.TryArgToString(3,NO) then exit;
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
   case lowercase(NO) of
     'visible','checked','folded':
       begin
@@ -603,6 +759,7 @@ begin
   if not AAuf.CheckArgs(2) then exit;
   if not AAuf.TryArgToStrParam(1,['rebuild_mg','update_cur','change','datachange','fieldchange','recordchange','classchange'],false,stmp) then exit;
   if not AAuf.TryArgToString(2,ppid) then ppid:='000000';
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
   case lowercase(stmp) of
     'rebuild_mg':CurrentRTFP.RebuildMainGrid;
     'update_cur':CurrentRTFP.UpdateCurrentRec(ppid);
@@ -624,6 +781,7 @@ begin
   AAuf:=AufScpt.Auf as TAuf;
   if not AAuf.CheckArgs(2) then exit;
   if not AAuf.TryArgToString(1,criterion) then exit;
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
   CurrentRTFP.RunPerformance.Filter_Command:=criterion;
   CurrentRTFP.TableFilter;
 end;
@@ -637,6 +795,7 @@ begin
   AAuf:=AufScpt.Auf as TAuf;
   if not AAuf.CheckArgs(2) then exit;
   if not AAuf.TryArgToString(1,criterion) then exit;
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
   CurrentRTFP.RunPerformance.Sorter_Command:=criterion;
   CurrentRTFP.TableSorter;
 end;
@@ -672,17 +831,24 @@ begin
     Script.add_func('paper.add',@aufunc_AddPaper,'filename,@out_pid,mode="fb"','新建Paper节点');
     Script.add_func('paper.del',@aufunc_DeletePaper,'PID','删除Paper节点');
 
-    Script.add_func('attrs.rec.edit',@aufunc_EditAttr,'PID,AttrName,FieldName,Memo','修改PID节点中AttrName属性组的FieldName字段为Memo');
-    Script.add_func('attrs.rec.edit_image',@aufunc_EditImage,'PID,AttrName,FieldName,filename','修改PID节点中AttrName属性组的FieldName图像字段为filename图像');
-    Script.add_func('attrs.rec.read',@aufunc_ReadAttr,'PID,AttrName,FieldName,arv','修改PID节点中AttrName属性组的FieldName字段为Memo');
+    Script.add_func('paper.edit',@aufunc_EditAttr,'PID,AttrName,FieldName,Memo','修改PID节点中AttrName属性组的FieldName字段为Memo');
+    Script.add_func('paper.edit_image',@aufunc_EditImage,'PID,AttrName,FieldName,filename','修改PID节点中AttrName属性组的FieldName图像字段为filename图像');
+    Script.add_func('paper.read',@aufunc_ReadAttr,'PID,AttrName,FieldName,arv','修改PID节点中AttrName属性组的FieldName字段为Memo');
 
     //Script.add_func('attrs.ag.add',@aufunc_AddAttrGroup,'AttrName','在第AttrNo表中创建FieldName字段');
     //Script.add_func('attrs.ag.del',@aufunc_DelAttrGroup,'AttrName','在第AttrNo表中创建FieldName字段');
-    Script.add_func('attrs.af.add',@aufunc_AddAttrField,'AttrName,FieldName','在AttrName属性组中创建FieldName字段');
-    Script.add_func('attrs.af.del',@aufunc_DelAttrField,'AttrName,FieldName','在AttrName属性组中创建FieldName字段');
+    Script.add_func('field.add',@aufunc_AddAttrField,'AttrName,FieldName','在AttrName属性组中创建FieldName字段');
+    Script.add_func('field.del',@aufunc_DelAttrField,'AttrName,FieldName','在AttrName属性组中创建FieldName字段');
+    Script.add_func('field.enable',@aufunc_EnableAttrField,'AttrName,FieldName','在主表中显示AttrName属性组中的FieldName字段');
+    Script.add_func('field.disable',@aufunc_DisableAttrField,'AttrName,FieldName','在主表中隐藏AttrName属性组中的FieldName字段');
 
     Script.add_func('class.add',@aufunc_addKlass,'KlassName','创建分类表');
     Script.add_func('class.del',@aufunc_deleteKlass,'KlassName','删除分类表');
+    Script.add_func('class.enable',@aufunc_enableKlass,'KlassName','勾选KlassName分类');
+    Script.add_func('class.disable',@aufunc_disableKlass,'KlassName','取消勾选KlassName分类');
+    Script.add_func('class.filtermode',@aufunc_KlassFilterMode,'and | or | not','选择分类筛选模式');
+    Script.add_func('class.filterclear',@aufunc_KlassFilterClear,'','取消勾选所有分类');
+
     Script.add_func('class.include',@aufunc_KlassInclude,'KlassName, PID','将PID节点加入分类');
     Script.add_func('class.exclude',@aufunc_KlassExclude,'KlassName, PID','将PID节点移出分类');
     Script.add_func('class.include_ds',@aufunc_KlassIncludeDS,'KlassName','将主表中所有节点加入分类');
