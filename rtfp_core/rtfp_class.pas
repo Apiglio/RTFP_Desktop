@@ -23,6 +23,9 @@ type
     FDataSetType:TRTFP_DataSetType;
   public
     function FullPath(ProjectPath:string):string;
+  protected
+    function GetAllUnChecked:boolean;
+    procedure SetAllUnChecked(value:boolean);
   public
     property Name:string read FName;
     property Path:string read FPath;
@@ -32,9 +35,9 @@ type
     property SubKlassShown:boolean read FSubKlassShown write FSubKlassShown;//如果为true，在分类列表中会显示下属的分类
     property KlassList:TKlassList read FKlassList;
     property ParentKlass:TKlass read FParentKlass;
+    property AllUnChecked:boolean read GetAllUnChecked write SetAllUnChecked;
   public
     function KlassNameWithDelimiter(Delimiter:Char):string;
-    function AllUnChecked:boolean;
   public
     constructor Create(data_set_type:TRTFP_DataSetType);
     destructor Destroy;override;
@@ -109,7 +112,7 @@ begin
   if FParentKlass<>nil then result:=FParentKlass.KlassNameWithDelimiter(Delimiter)+Delimiter+result;
 end;
 
-function TKlass.AllUnChecked:boolean;
+function TKlass.GetAllUnChecked:boolean;
 var tmpKL:TKlass;
 begin
   result:=false;
@@ -117,6 +120,19 @@ begin
     if tmpKL.FilterEnabled then exit;
   end;
   result:=true;
+end;
+
+procedure TKlass.SetAllUnChecked(value:boolean);
+var tmpKL:TKlass;
+begin
+  if value=false then begin
+    raise Exception.Create('AllUnChecked只能改写为true');
+    exit;
+  end;
+  FilterEnabled:=False;
+  for tmpKL in FKlassList do begin
+    tmpKL.FilterEnabled:=False;
+  end;
 end;
 
 constructor TKlass.Create(data_set_type:TRTFP_DataSetType);
