@@ -2012,14 +2012,15 @@ begin
     //可展开分类的设置
     if Item.Name='.' then begin
       tmpKL.FilterEnabled:=Item.Checked;
-    end;
-    if tmpKL.KlassList.Count=0 then begin
-      tmpKL.FilterEnabled:=Item.Checked;
-      //tmpKL.SubKlassShown:=false;
     end else begin
-      tmpKL.SubKlassShown:=Item.Unfold;
-      //tmpKL.FilterEnabled:=false;
-      exit;//折叠展开时不刷新主表
+      if tmpKL.KlassList.Count=0 then begin
+        tmpKL.FilterEnabled:=Item.Checked;
+        //tmpKL.SubKlassShown:=false;
+      end else begin
+        tmpKL.SubKlassShown:=Item.Unfold;
+        //tmpKL.FilterEnabled:=false;
+        exit;//折叠展开时不刷新主表
+      end;
     end;
     CurrentRTFP.RebuildMainGrid;
   end;
