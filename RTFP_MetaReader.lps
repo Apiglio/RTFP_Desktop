@@ -15,12 +15,16 @@
       <Unit1>
         <Filename Value="rtfp_pdf\metareader_main.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form_MetaReader"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
-        <CursorPos X="17" Y="148"/>
+        <TopLine Value="34"/>
+        <CursorPos X="44" Y="67"/>
         <UsageCount Value="24"/>
         <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="rtfp_pdf\rtfp_pdfium.pas"/>
@@ -128,6 +132,15 @@
     </JumpHistory>
   </ProjectSession>
   <Debugging>
+    <BreakPoints Count="1">
+      <Item1>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="rtfp_pdf\metareader_main.pas"/>
+        <Line Value="51"/>
+      </Item1>
+    </BreakPoints>
     <Watches Count="2">
       <Item1>
         <Expression Value="stmp"/>

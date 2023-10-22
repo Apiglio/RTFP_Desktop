@@ -7,7 +7,7 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, lnetvisual, lazcontrols, tachartlazaruspkg,
+  Forms, lazcontrols, tachartlazaruspkg,
   metareader_main, rtfp_pdfobj;
 
 {$R *.res}

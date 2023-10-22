@@ -20,25 +20,22 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="meta &quot;K:\LAB_Pascal\RTFP Desktop\convert\EI.pdf&quot;"/>
+        <CommandLineParams Value="meta &quot;C:\Users\Apiglio\Downloads\地理尺度转换若干问题的初步探讨_李双成.pdf&quot;"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="5">
+    <RequiredPackages Count="4">
       <Item1>
-        <PackageName Value="lnetvisual"/>
+        <PackageName Value="TAChartLazarusPkg"/>
       </Item1>
       <Item2>
-        <PackageName Value="TAChartLazarusPkg"/>
+        <PackageName Value="LazControls"/>
       </Item2>
       <Item3>
-        <PackageName Value="LazControls"/>
+        <PackageName Value="SynEdit"/>
       </Item3>
       <Item4>
-        <PackageName Value="SynEdit"/>
-      </Item4>
-      <Item5>
         <PackageName Value="LCL"/>
-      </Item5>
+      </Item4>
     </RequiredPackages>
     <Units Count="5">
       <Unit0>
@@ -48,7 +45,9 @@
       <Unit1>
         <Filename Value="rtfp_pdf\metareader_main.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form_MetaReader"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
       </Unit1>
       <Unit2>
         <Filename Value="rtfp_pdf\rtfp_pdfium.pas"/>
