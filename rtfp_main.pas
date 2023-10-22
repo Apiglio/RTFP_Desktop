@@ -756,20 +756,24 @@ var fmt_file:string;
     oidx:integer;
 begin
 
-  Self.Frame_AufScript1.OpenDialog.InitialDir:={CurrentRTFP}(Sender as TRTFP).CurrentPathFull+'script';
-  Self.Frame_AufScript1.SaveDialog.InitialDir:={CurrentRTFP}(Sender as TRTFP).CurrentPathFull+'script';
+  Self.Frame_AufScript1.OpenDialog.InitialDir:=(Sender as TRTFP).CurrentPathFull+'script';
+  Self.Frame_AufScript1.SaveDialog.InitialDir:=(Sender as TRTFP).CurrentPathFull+'script';
 
   //文献节点选项卡
-  Self.DataSource_Main.DataSet:={CurrentRTFP}(Sender as TRTFP).PaperDS;
+  Self.DataSource_Main.DataSet:=(Sender as TRTFP).PaperDS;
 
   //分类节点选项卡
-  ClassListValidate({CurrentRTFP}Sender as TRTFP);
+  ClassListValidate(Sender as TRTFP);
 
   Self.Validate(Sender);
-  {CurrentRTFP}(Sender as TRTFP).RebuildMainGrid;//Self.MainGridValidate(Sender);
+  (Sender as TRTFP).RebuildMainGrid;
   fmt_file:=CurrentRTFP.Tag['编辑属性布局'];
-  if not (Sender as TRTFP).FormatList.Find(fmt_file,oidx) then fmt_file:='default.fmt';
-  {CurrentRTFP}(Sender as TRTFP).FormatEditBuild(Self.ScrollBox_Node_FormatEdit,fmt_file);//这个不是这里应该做的事，移到format_component里头。
+  if (Sender as TRTFP).FormatList.Find(fmt_file,oidx) then begin
+    ComboBox_FormatEdit.ItemIndex:=oidx;
+  end else begin
+    fmt_file:='default.fmt';
+  end;
+  (Sender as TRTFP).FormatEditBuild(Self.ScrollBox_Node_FormatEdit,fmt_file);//这个不是这里应该做的事，移到format_component里头。
 
 
   Self.MenuItem_project_new.Enabled:=false;
