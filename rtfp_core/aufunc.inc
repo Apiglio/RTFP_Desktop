@@ -43,6 +43,7 @@ var AufScpt:TAufScript;
     AAuf:TAuf;
     filename:string;
     FileStream:TMemoryStream;
+    rc:integer;
 begin
   AufScpt:=Sender as TAufScript;
   AAuf:=AufScpt.Auf as TAuf;
@@ -51,7 +52,9 @@ begin
   FileStream:=TMemoryStream.Create;
   FileStream.LoadFromFile(filename);
 
-  AufScpt.writeln(TRTFP_PDF.CalcHash(FileStream));
+  AufScpt.writeln(TRTFP_PDF.CalcHash(FileStream,rc));
+  AufScpt.writeln('file size  = '+IntToStr(FileStream.Size));
+  AufScpt.writeln('read count = '+IntToStr(rc));
   FileStream.Free;
 end;
 

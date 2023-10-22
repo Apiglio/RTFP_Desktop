@@ -64,6 +64,7 @@ end;
 function TForm_FileSource.SetNewBackup(backup:string):boolean;
 var pathn,filen:string;
     tmpFS:TFileStream;
+    rc:integer;
 begin
   result:=false;
   pathn:=TRTFP.GetDateDir;
@@ -81,7 +82,7 @@ begin
   CurrentRTFP.EditBasicInteger(_Col_Paper_FileSize_,Current_PID,FileSize(backup));
   try
     tmpFS:=TFileStream.Create(backup,fmOpenRead);
-    CurrentRTFP.EditBasicString(_Col_Paper_FileHash_,Current_PID,TRTFP_PDF.CalcHash(tmpFS));
+    CurrentRTFP.EditBasicString(_Col_Paper_FileHash_,Current_PID,TRTFP_PDF.CalcHash(tmpFS,rc));
   finally
     tmpFS.Free;
   end;

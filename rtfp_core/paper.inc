@@ -131,6 +131,7 @@ var PID:RTFP_ID;
     FHash,FName:string;
     FileStream,CpStr:TFileStream;
     retry:boolean;
+    rc:integer;
 begin
   FHash:='';
   PID:='';
@@ -143,7 +144,7 @@ begin
     repeat
       if FieldByName(_Col_Paper_FileSize_).AsLongint = FileStream.Size then
         begin
-          if FHash='' then FHash:=TRTFP_PDF.CalcHash(FileStream);
+          if FHash='' then FHash:=TRTFP_PDF.CalcHash(FileStream,rc);
           if FieldByName(_Col_Paper_FileHash_).AsString = FHash then
             begin
               FName:=FFilePath+FRootFolder+'/paper/'+FieldByName(_Col_Paper_Folder_).AsString+'/'+FieldByName(_Col_Paper_FileName_).AsString;

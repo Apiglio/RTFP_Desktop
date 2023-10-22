@@ -98,19 +98,20 @@ type
   public
     constructor Create(AOwner:TComponent;FileName:string);
     destructor Destroy;override;
-    class function CalcHash(AStream:TStream):string;
+    class function CalcHash(AStream:TStream;out read_count:integer):string;
   end;
 
 
 implementation
 uses math;
 
-class function TRTFP_PDF.CalcHash(AStream:TStream):string;
+class function TRTFP_PDF.CalcHash(AStream:TStream;out read_count:integer):string;
 var index:byte;
     byt:byte;
     arr:array [0..238] of byte;
     skip_byte:byte;
 begin
+  read_count:=0;
   for index:=0 to 238 do arr[index]:=0;
   with AStream do
     begin
@@ -125,6 +126,7 @@ begin
         Position:=0;
         while Position<Size do begin
           byt:=ReadByte;
+          inc(read_count);
           arr[index]:=arr[index]+byt;
           inc(index);
           if index>238 then index:=0;
@@ -136,6 +138,7 @@ begin
         Position:=0;
         while Position<Size do begin
           byt:=ReadByte;
+          inc(read_count);
           if byt<>0 then begin
             arr[index]:=byt;
             inc(index);
@@ -148,6 +151,7 @@ begin
           Seek(arr[index],soFromCurrent);
           if Position>=Size then break;
           byt:=ReadByte;
+          inc(read_count);
           arr[index]:=arr[index]+byt;
         end;
       end;
@@ -165,6 +169,7 @@ begin
 end;
 
 constructor TRTFP_PDF.Create(AOwner:TComponent;FileName:string);
+var rc:integer;
 begin
   inherited Create;
   FHash:='';
@@ -178,7 +183,7 @@ begin
   if FileExists(FileName) then begin
     FMem:=TFileStream.Create(FFileName,fmOpenRead);
     FSize:=FMem.Size;
-    FHash:=TRTFP_PDF.CalcHash(FMem);
+    FHash:=TRTFP_PDF.CalcHash(FMem,rc);
     CalcMeta;
   end;
 end;
@@ -216,6 +221,7 @@ begin
   result:=true;
   {$endif}
 end;
+
 
 function TRTFP_PDF.FileEqual(buf:pbyte;buflen:uint64):boolean;
 var index:uint64;
