@@ -1,5 +1,8 @@
 # RTFP_Desktop
-personal paper management system, **RTFP** means <i>read the fa_king paper</i>.
+
+自用的文件阅读、笔记整理和文件管理桌面软件。
+
+personal paper management system, **RTFP** means <i>read the fking paper</i>.
 
 ![image](https://user-images.githubusercontent.com/42532325/184797285-ebd0e145-0dba-46f5-8e34-7d99cf2db898.png)
 
