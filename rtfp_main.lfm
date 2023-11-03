@@ -1083,17 +1083,16 @@ object FormDesktop: TFormDesktop
         AnchorSideTop.Control = TabSheet_Node_FormatEdit
         AnchorSideRight.Control = TabSheet_Node_FormatEdit
         AnchorSideRight.Side = asrBottom
-        AnchorSideBottom.Control = TabSheet_Node_FormatEdit
-        AnchorSideBottom.Side = asrBottom
+        AnchorSideBottom.Control = ComboBox_FormatEdit
         Left = 0
-        Height = 109
+        Height = 99
         Top = 0
         Width = 857
         HorzScrollBar.Page = 1
         HorzScrollBar.Visible = False
         VertScrollBar.Page = 1
         Anchors = [akTop, akLeft, akRight, akBottom]
-        BorderSpacing.Bottom = 30
+        BorderSpacing.Bottom = 4
         ChildSizing.TopBottomSpacing = 6
         TabOrder = 0
       end
@@ -1104,7 +1103,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrBottom
         Left = 299
         Height = 32
-        Top = 104
+        Top = 103
         Width = 75
         Anchors = [akTop, akRight, akBottom]
         BorderSpacing.Right = 4
@@ -1120,7 +1119,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrBottom
         Left = 482
         Height = 32
-        Top = 104
+        Top = 103
         Width = 75
         Anchors = [akTop, akLeft, akBottom]
         BorderSpacing.Left = 4
@@ -1137,11 +1136,11 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrBottom
         Left = 378
         Height = 32
-        Top = 104
+        Top = 103
         Width = 100
         Anchors = [akLeft, akBottom]
         BorderSpacing.Left = 4
-        BorderSpacing.Bottom = 3
+        BorderSpacing.Bottom = 4
         ItemHeight = 24
         OnChange = ComboBox_FormatEditChange
         Style = csDropDownList
@@ -1156,7 +1155,7 @@ object FormDesktop: TFormDesktop
         Left = 561
         Height = 32
         Hint = '提交并查看下一条'
-        Top = 104
+        Top = 103
         Width = 45
         Anchors = [akTop, akLeft, akBottom]
         BorderSpacing.Left = 4
@@ -1174,7 +1173,7 @@ object FormDesktop: TFormDesktop
         Left = 250
         Height = 32
         Hint = '提交并查看上一条'
-        Top = 104
+        Top = 103
         Width = 45
         Anchors = [akTop, akRight, akBottom]
         BorderSpacing.Right = 4
@@ -1210,14 +1209,14 @@ object FormDesktop: TFormDesktop
     Height = 518
     Top = 5
     Width = 207
-    ActivePage = TabSheet_Filter_Field
+    ActivePage = TabSheet_Filter_Klass
     Anchors = [akTop, akLeft, akRight, akBottom]
     Constraints.MinWidth = 167
     Font.CharSet = ANSI_CHARSET
     Font.Pitch = fpFixed
     Font.Quality = fqDraft
     ParentFont = False
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 6
     object TabSheet_Filter_Klass: TTabSheet
       Caption = '分类节点'
@@ -1230,12 +1229,12 @@ object FormDesktop: TFormDesktop
       object Button_AddKlass: TButton
         AnchorSideRight.Control = TabSheet_Filter_Klass
         AnchorSideRight.Side = asrBottom
-        AnchorSideBottom.Control = TabSheet_Filter_Klass
-        AnchorSideBottom.Side = asrBottom
+        AnchorSideBottom.Control = Edit_AddKlass
+        AnchorSideBottom.Side = asrCenter
         Left = 177
         Height = 22
         Hint = '长度限制在40个字节（约13个汉字），'#13#10'可使用的特殊符号包括：()_-+&"'':'
-        Top = 455
+        Top = 450
         Width = 22
         Anchors = [akRight, akBottom]
         BorderSpacing.Bottom = 4
@@ -1261,11 +1260,11 @@ object FormDesktop: TFormDesktop
       end
       object Label_AddKlass: TLabel
         AnchorSideLeft.Control = TabSheet_Filter_Klass
-        AnchorSideBottom.Control = Button_AddKlass
+        AnchorSideBottom.Control = Edit_AddKlass
         AnchorSideBottom.Side = asrCenter
         Left = 2
         Height = 24
-        Top = 454
+        Top = 449
         Width = 54
         Anchors = [akLeft, akBottom]
         BorderSpacing.Left = 2
@@ -1280,7 +1279,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrCenter
         Left = 131
         Height = 28
-        Top = 417
+        Top = 413
         Width = 64
         Anchors = [akLeft, akBottom]
         Caption = '取反'
@@ -1293,7 +1292,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrCenter
         Left = 3
         Height = 28
-        Top = 417
+        Top = 413
         Width = 64
         Anchors = [akRight, akBottom]
         Caption = '交集'
@@ -1306,9 +1305,10 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Control = Edit_AddKlass
         Left = 67
         Height = 28
-        Top = 417
+        Top = 413
         Width = 64
         Anchors = [akLeft, akBottom]
+        BorderSpacing.Bottom = 4
         Caption = '并集'
         Checked = True
         OnClick = RadioButton_KlassORClick
@@ -1321,13 +1321,12 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Control = TabSheet_Filter_Klass
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = RadioButton_KlassOR
-        AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 415
+        Height = 409
         Top = 0
         Width = 199
         Anchors = [akTop, akLeft, akRight, akBottom]
-        BorderSpacing.Bottom = 30
+        BorderSpacing.Bottom = 4
         ItemColor = clWhite
         ItemColorSelected = clHighlight
         ItemFont.Height = 21
@@ -1352,11 +1351,12 @@ object FormDesktop: TFormDesktop
       object Button_AddField: TButton
         AnchorSideRight.Control = TabSheet_Filter_Field
         AnchorSideRight.Side = asrBottom
-        AnchorSideBottom.Control = Button_FieldType
+        AnchorSideBottom.Control = Edit_AddField
+        AnchorSideBottom.Side = asrCenter
         Left = 177
         Height = 22
         Hint = '长度限制在12个字节（4个汉字），'#13#10'可使用的特殊符号包括：_-'
-        Top = 426
+        Top = 414
         Width = 22
         Anchors = [akRight, akBottom]
         BorderSpacing.Bottom = 7
@@ -1370,13 +1370,13 @@ object FormDesktop: TFormDesktop
         AnchorSideLeft.Control = Label_AddField
         AnchorSideLeft.Side = asrBottom
         AnchorSideRight.Control = Button_AddField
-        AnchorSideBottom.Control = Button_AddField
-        AnchorSideBottom.Side = asrCenter
+        AnchorSideBottom.Control = Combo_FieldType
         Left = 74
         Height = 32
-        Top = 421
-        Width = 103
+        Top = 409
+        Width = 99
         Anchors = [akLeft, akRight, akBottom]
+        BorderSpacing.Right = 4
         BorderSpacing.Bottom = 4
         TabOrder = 1
       end
@@ -1386,7 +1386,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrCenter
         Left = 2
         Height = 24
-        Top = 425
+        Top = 413
         Width = 72
         Anchors = [akLeft, akBottom]
         BorderSpacing.Left = 2
@@ -1402,11 +1402,12 @@ object FormDesktop: TFormDesktop
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = TabSheet_Filter_Field
         AnchorSideRight.Side = asrBottom
-        AnchorSideBottom.Control = Button_AddField
+        AnchorSideBottom.Control = Combo_AddAttrs
+        AnchorSideBottom.Side = asrCenter
         Left = 177
         Height = 22
         Hint = '长度限制在20个字节（约6个汉字），'#13#10'可使用的特殊符号包括：_-'
-        Top = 397
+        Top = 378
         Width = 22
         Anchors = [akRight, akBottom]
         BorderSpacing.Bottom = 7
@@ -1422,7 +1423,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrCenter
         Left = 2
         Height = 24
-        Top = 396
+        Top = 377
         Width = 72
         Anchors = [akLeft, akBottom]
         BorderSpacing.Left = 2
@@ -1437,13 +1438,14 @@ object FormDesktop: TFormDesktop
         AnchorSideLeft.Control = Label_AddAttrs
         AnchorSideLeft.Side = asrBottom
         AnchorSideRight.Control = Button_AddAttrs
-        AnchorSideBottom.Control = Button_AddAttrs
-        AnchorSideBottom.Side = asrCenter
+        AnchorSideBottom.Control = Edit_AddField
         Left = 74
         Height = 32
-        Top = 392
-        Width = 103
+        Top = 373
+        Width = 99
         Anchors = [akLeft, akRight, akBottom]
+        BorderSpacing.Right = 4
+        BorderSpacing.Bottom = 4
         ItemHeight = 24
         TabOrder = 3
       end
@@ -1451,13 +1453,15 @@ object FormDesktop: TFormDesktop
         AnchorSideLeft.Control = Label_FieldType
         AnchorSideLeft.Side = asrBottom
         AnchorSideRight.Control = Button_FieldType
-        AnchorSideBottom.Control = Button_FieldType
-        AnchorSideBottom.Side = asrCenter
+        AnchorSideBottom.Control = TabSheet_Filter_Field
+        AnchorSideBottom.Side = asrBottom
         Left = 74
         Height = 32
-        Top = 450
-        Width = 103
+        Top = 445
+        Width = 99
         Anchors = [akLeft, akRight, akBottom]
+        BorderSpacing.Right = 4
+        BorderSpacing.Bottom = 4
         ItemHeight = 24
         Items.Strings = (
           '段落 Memo'
@@ -1477,11 +1481,11 @@ object FormDesktop: TFormDesktop
       object Button_FieldType: TButton
         AnchorSideRight.Control = TabSheet_Filter_Field
         AnchorSideRight.Side = asrBottom
-        AnchorSideBottom.Control = TabSheet_Filter_Field
-        AnchorSideBottom.Side = asrBottom
+        AnchorSideBottom.Control = Combo_FieldType
+        AnchorSideBottom.Side = asrCenter
         Left = 177
         Height = 22
-        Top = 455
+        Top = 450
         Width = 22
         Anchors = [akRight, akBottom]
         BorderSpacing.Bottom = 4
@@ -1495,7 +1499,7 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Side = asrCenter
         Left = 2
         Height = 24
-        Top = 454
+        Top = 449
         Width = 72
         Anchors = [akLeft, akBottom]
         BorderSpacing.Left = 2
@@ -1511,14 +1515,13 @@ object FormDesktop: TFormDesktop
         AnchorSideTop.Control = TabSheet_Filter_Field
         AnchorSideRight.Control = TabSheet_Filter_Field
         AnchorSideRight.Side = asrBottom
-        AnchorSideBottom.Control = TabSheet_Filter_Field
-        AnchorSideBottom.Side = asrBottom
+        AnchorSideBottom.Control = Combo_AddAttrs
         Left = 0
-        Height = 391
+        Height = 369
         Top = 0
         Width = 199
         Anchors = [akTop, akLeft, akRight, akBottom]
-        BorderSpacing.Bottom = 90
+        BorderSpacing.Bottom = 4
         ItemColor = clWhite
         ItemColorSelected = clHighlight
         ItemFont.Height = 21
