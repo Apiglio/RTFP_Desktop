@@ -27,6 +27,7 @@
 //KNOWN BUGS
 //  【FATAL】TableFilter中使用无效的正则表达式会导致崩溃，并且主窗体中try except不能解决问题
 //  属性组和字段改名后FormatEdit没有一起修改
+//  新打开工程时默认的FormatEdit没有combo选项，需要结合FormatEdit作整体的改造
 
 //FieldCalc的主表模式
 //FieldMatch的正则模式
