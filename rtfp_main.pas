@@ -402,6 +402,7 @@ type
       ExportImageFontSize:integer;       //导出图片报表的字体大小
       ExportImageCellWidth:integer;      //导出图片报表的单元格宽
       ExportImageCellHeight:integer;     //导出图片报表的单元格高
+      DisplayKlassListRecCount:boolean;  //在分类列表中显示节点数量
     end;//这些设置需要同步到RTFP对象中，打开工程时需要赋值，同时在软件打开时从注册表中读取，关闭是保存到注册表
     RunOption:record
       Filter_AutoRun:boolean;
@@ -537,6 +538,7 @@ begin
     CurrentRTFP.RunPerformance.ExportImageFontSize:=OptionMap.ExportImageFontSize;
     CurrentRTFP.RunPerformance.ExportImageCellWidth:=OptionMap.ExportImageCellWidth;
     CurrentRTFP.RunPerformance.ExportImageCellHeight:=OptionMap.ExportImageCellHeight;
+    CurrentRTFP.RunPerformance.DisplayKlassListRecCount:=OptionMap.DisplayKlassListRecCount;
   end else ShowMsgOK('未找到工程','工程文件未找到！');
 end;
 
@@ -1000,6 +1002,7 @@ begin
     CurrentRTFP.RunPerformance.ExportImageFontSize:=OptionMap.ExportImageFontSize;
     CurrentRTFP.RunPerformance.ExportImageCellWidth:=OptionMap.ExportImageCellWidth;
     CurrentRTFP.RunPerformance.ExportImageCellHeight:=OptionMap.ExportImageCellHeight;
+    CurrentRTFP.RunPerformance.DisplayKlassListRecCount:=OptionMap.DisplayKlassListRecCount;
   end;
 
 end;
@@ -1883,6 +1886,7 @@ begin
       CurrentRTFP.RunPerformance.ExportImageFontSize:=OptionMap.ExportImageFontSize;
       CurrentRTFP.RunPerformance.ExportImageCellWidth:=OptionMap.ExportImageCellWidth;
       CurrentRTFP.RunPerformance.ExportImageCellHeight:=OptionMap.ExportImageCellHeight;
+      CurrentRTFP.RunPerformance.DisplayKlassListRecCount:=OptionMap.DisplayKlassListRecCount;
       SetFocus;
       exit;
     end;
@@ -2542,6 +2546,7 @@ begin
     CurrentRTFP.RunPerformance.ExportImageFontSize:=OptionMap.ExportImageFontSize;
     CurrentRTFP.RunPerformance.ExportImageCellWidth:=OptionMap.ExportImageCellWidth;
     CurrentRTFP.RunPerformance.ExportImageCellHeight:=OptionMap.ExportImageCellHeight;
+    CurrentRTFP.RunPerformance.DisplayKlassListRecCount:=OptionMap.DisplayKlassListRecCount;
   end;
 end;
 

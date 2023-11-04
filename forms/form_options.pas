@@ -14,6 +14,7 @@ type
 
   TFormOptions = class(TForm)
     Button_SyncPath: TButton;
+    CheckBox_Display_KlasslistRecCount: TCheckBox;
     CheckBox_MGCopy_DispName: TCheckBox;
     CheckBox_Fields_img: TCheckBox;
     CheckBox_AutoSave: TCheckBox;
@@ -38,6 +39,7 @@ type
     ScrollBox_Export: TScrollBox;
     ScrollBox_Sync: TScrollBox;
     SelectDirectoryDialog: TSelectDirectoryDialog;
+    TabSheet_Display: TTabSheet;
     TabSheet_Export: TTabSheet;
     TabSheet_Backup: TTabSheet;
     TabSheet_Format: TTabSheet;
@@ -46,16 +48,19 @@ type
     TrackBar_SyncInterval: TTrackBar;
     procedure Button_SyncPathClick(Sender: TObject);
     procedure CheckBox_Backup_xmlChange(Sender: TObject);
+    procedure CheckBox_Display_KlasslistRecCountChange(Sender: TObject);
     procedure CheckBox_Fields_imgChange(Sender: TObject);
     procedure CheckBox_FormatEditOpt_ForceSaveChange(Sender: TObject);
     procedure CheckBox_MGCopy_DispNameChange(Sender: TObject);
     procedure CheckBox_MGCopy_HeadLineChange(Sender: TObject);
     procedure Edit_SyncPathChange(Sender: TObject);
     procedure FormActivate(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
     procedure FormHide(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Memo_RegExprChange(Sender: TObject);
     procedure CheckBox_SyncEnabledChange(Sender: TObject);
+    procedure PageControl_OptionChange(Sender: TObject);
     procedure RadioGroup_BackupModeClick(Sender: TObject);
     procedure RadioGroup_MGSC_CRClick(Sender: TObject);
     procedure TrackBar_SyncIntervalChange(Sender: TObject);
@@ -88,6 +93,11 @@ end;
 procedure TFormOptions.CheckBox_SyncEnabledChange(Sender: TObject);
 begin
   TimerEnabled:=(Sender as TCheckBox).Checked;
+end;
+
+procedure TFormOptions.PageControl_OptionChange(Sender: TObject);
+begin
+
 end;
 
 procedure TFormOptions.Edit_SyncPathChange(Sender: TObject);
@@ -134,7 +144,12 @@ begin
   end;
   CheckBox_MGCopy_HeadLine.Checked:=FormDesktop.OptionMap.CopyMainGridWithHeadLine;
   CheckBox_MGCopy_DispName.Checked:=FormDesktop.OptionMap.CopyMainGridWithDispName;
+  CheckBox_Display_KlasslistRecCount.Checked:=FormDesktop.OptionMap.DisplayKlassListRecCount;
+end;
 
+procedure TFormOptions.FormCreate(Sender: TObject);
+begin
+  PageControl_Option.ActivePage:=TabSheet_Sync;
 end;
 
 procedure TFormOptions.FormHide(Sender: TObject);
@@ -171,6 +186,18 @@ begin
   status:=(Sender as TCheckBox).Checked;
   FormDesktop.OptionMap.Backup_SaveXml:=status;
   if not ProjectInvalid then CurrentRTFP.RunPerformance.Backup_SaveXml:=status;
+end;
+
+procedure TFormOptions.CheckBox_Display_KlasslistRecCountChange(Sender: TObject
+  );
+var status:boolean;
+begin
+  status:=(Sender as TCheckBox).Checked;
+  FormDesktop.OptionMap.DisplayKlassListRecCount:=status;
+  if not ProjectInvalid then begin
+    CurrentRTFP.RunPerformance.DisplayKlassListRecCount:=status;
+    CurrentRTFP.ClassChange;
+  end;
 end;
 
 procedure TFormOptions.CheckBox_Fields_imgChange(Sender: TObject);
@@ -309,6 +336,15 @@ begin
         FormDesktop.OptionMap.CopyMainGridWithDispName:=true;
         FormDesktop.OptionMap.CopyMainGridWithHeadLine:=true;
       end;
+    if Reg.OpenKey('Software\ApiglioToolBox\RTFP_Desktop\DisplayOption',false) then
+      begin
+        FormDesktop.OptionMap.DisplayKlassListRecCount:=Reg.ReadBool('KlassListRecCount');
+        Reg.CloseKey;
+      end
+    else
+      begin
+        FormDesktop.OptionMap.DisplayKlassListRecCount:=false;
+      end;
 
   finally
     Reg.Free;
@@ -349,6 +385,10 @@ begin
     Reg.WriteInteger('CellHeight',FormDesktop.OptionMap.ExportImageCellHeight);
     Reg.WriteBool('DispName',FormDesktop.OptionMap.CopyMainGridWithDispName);
     Reg.WriteBool('HeadLine',FormDesktop.OptionMap.CopyMainGridWithHeadLine);
+    Reg.CloseKey;
+
+    Reg.OpenKey('Software\ApiglioToolBox\RTFP_Desktop\DisplayOption',true);
+    Reg.WriteBool('KlassListRecCount',FormDesktop.OptionMap.DisplayKlassListRecCount);
     Reg.CloseKey;
 
   finally

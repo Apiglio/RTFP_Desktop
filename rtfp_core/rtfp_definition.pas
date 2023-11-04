@@ -139,6 +139,8 @@ type
       ExportImageCellWidth:integer;      //导出图片报表的单元格宽
       ExportImageCellHeight:integer;     //导出图片报表的单元格高
 
+      DisplayKlassListRecCount:boolean;  //在分类列表中显示节点数量
+
       Filter_Command:string;
       Filter_AutoRun:boolean;
       Sorter_Command:string;

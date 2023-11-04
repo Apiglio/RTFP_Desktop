@@ -1,7 +1,7 @@
 object FormDesktop: TFormDesktop
-  Left = 759
+  Left = 702
   Height = 587
-  Top = 361
+  Top = 351
   Width = 1077
   AllowDropFiles = True
   Caption = 'RTFP Desktop'
@@ -1209,14 +1209,14 @@ object FormDesktop: TFormDesktop
     Height = 518
     Top = 5
     Width = 207
-    ActivePage = TabSheet_Filter_Klass
+    ActivePage = TabSheet_Filter_Field
     Anchors = [akTop, akLeft, akRight, akBottom]
     Constraints.MinWidth = 167
     Font.CharSet = ANSI_CHARSET
     Font.Pitch = fpFixed
     Font.Quality = fqDraft
     ParentFont = False
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 6
     object TabSheet_Filter_Klass: TTabSheet
       Caption = '分类节点'

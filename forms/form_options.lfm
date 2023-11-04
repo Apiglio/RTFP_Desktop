@@ -10,6 +10,7 @@ object FormOptions: TFormOptions
   Constraints.MinWidth = 400
   DesignTimePPI = 144
   OnActivate = FormActivate
+  OnCreate = FormCreate
   OnHide = FormHide
   OnShow = FormShow
   Position = poMainFormCenter
@@ -25,10 +26,11 @@ object FormOptions: TFormOptions
     Height = 557
     Top = 0
     Width = 472
-    ActivePage = TabSheet_Export
+    ActivePage = TabSheet_Sync
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 4
+    TabIndex = 1
     TabOrder = 0
+    OnChange = PageControl_OptionChange
     object TabSheet_MaingridShortcut: TTabSheet
       Caption = '主表快捷键'
       ClientHeight = 520
@@ -478,6 +480,24 @@ object FormOptions: TFormOptions
             TabOrder = 1
           end
         end
+      end
+    end
+    object TabSheet_Display: TTabSheet
+      Caption = '显示设置'
+      ClientHeight = 520
+      ClientWidth = 464
+      object CheckBox_Display_KlasslistRecCount: TCheckBox
+        AnchorSideLeft.Control = TabSheet_Display
+        AnchorSideTop.Control = TabSheet_Display
+        Left = 10
+        Height = 28
+        Top = 15
+        Width = 172
+        BorderSpacing.Left = 10
+        BorderSpacing.Top = 15
+        Caption = '分类列表显示数量'
+        OnChange = CheckBox_Display_KlasslistRecCountChange
+        TabOrder = 0
       end
     end
   end

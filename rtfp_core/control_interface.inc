@@ -77,7 +77,7 @@ begin
   AListView.Refresh;
 end;
 
-procedure RecurKlassListValidate(ANode:TListCheckNode;AKlassList:TKlassList);
+procedure RecurKlassListValidate(ANode:TListCheckNode;AKlassList:TKlassList;show_rec_count:boolean);
 var tmpKL:TKlass;
     tmpNode:TListCheckNode;
     pi:integer;
@@ -90,10 +90,15 @@ begin
   for pi:=0 to AKlassList.Count-1 do begin
     //GetEnumerator已经是递归的了，所以不能使用for-in
     tmpKL:=AKlassList.Items[pi];
-    tmpNode:=ANode.AddItem(tmpKL.Name,tmpKL);
+    if show_rec_count then begin
+      if not tmpKL.Dbf.Active then tmpKL.Dbf.Open;
+      tmpNode:=ANode.AddItem(tmpKL.Name+' ('+IntToStr(tmpKL.Dbf.RecordCount)+')',tmpKL);
+    end else begin
+      tmpNode:=ANode.AddItem(tmpKL.Name,tmpKL);
+    end;
     tmpNode.Checked:=tmpKL.FilterEnabled;
     tmpNode.Unfold:=tmpKL.SubKlassShown;
-    if tmpKL.KlassList.Count>0 then RecurKlassListValidate(tmpNode,tmpKL.KlassList);
+    if tmpKL.KlassList.Count>0 then RecurKlassListValidate(tmpNode,tmpKL.KlassList,show_rec_count);
   end;
 end;
 
@@ -102,7 +107,7 @@ procedure TRTFP.KlassListValidate(AListView:TListCheck);
 begin
   //AListView.BeginUpdate;
   AListView.Root.Clear;
-  RecurKlassListValidate(AListView.Root,FKlassList);
+  RecurKlassListValidate(AListView.Root,FKlassList,RunPerformance.DisplayKlassListRecCount);
   //AListView.EndUpdate;
   AListView.Refresh;
 end;
