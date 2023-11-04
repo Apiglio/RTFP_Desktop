@@ -48,9 +48,9 @@ object FormDesktop: TFormDesktop
     Height = 342
     Top = 0
     Width = 865
-    ActivePage = TabSheet_Project_DataGrid
+    ActivePage = TabSheet_Project_Properties
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 1
     object TabSheet_Project_Properties: TTabSheet
       Caption = '工程信息'
@@ -78,7 +78,7 @@ object FormDesktop: TFormDesktop
         )
         ColWidths = (
           167
-          655
+          681
         )
       end
       object Splitter_PropertiesV: TSplitter
@@ -1053,9 +1053,9 @@ object FormDesktop: TFormDesktop
     Height = 176
     Top = 347
     Width = 865
-    ActivePage = TabSheet_Node_FormatEdit
+    ActivePage = TabSheet_Node_PDF
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 4
     OnChange = PageControl_NodeChange
     object TabSheet_Node_PDF: TTabSheet
@@ -1209,14 +1209,14 @@ object FormDesktop: TFormDesktop
     Height = 518
     Top = 5
     Width = 207
-    ActivePage = TabSheet_Filter_Field
+    ActivePage = TabSheet_Filter_Klass
     Anchors = [akTop, akLeft, akRight, akBottom]
     Constraints.MinWidth = 167
     Font.CharSet = ANSI_CHARSET
     Font.Pitch = fpFixed
     Font.Quality = fqDraft
     ParentFont = False
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 6
     object TabSheet_Filter_Klass: TTabSheet
       Caption = '分类节点'

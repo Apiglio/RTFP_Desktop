@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, Types;
 
 const
-  C_VERSION_NUMBER  = '0.3.2-alpha.4';
+  C_VERSION_NUMBER  = '0.3.2-alpha.5';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -420,6 +420,7 @@ type
   public
     //RTFP类事件，Sender参数为TRTFP类
     procedure EventLink(Sender:TRTFP);//链接所有事件
+    procedure OptionLink(Sender:TRTFP);//链接所有选项
     procedure MenuItemOpenProject(Sender:TObject);
     procedure LoadRecentProject;
     procedure SaveRecentProject;
@@ -512,6 +513,22 @@ begin
   Sender.onFormatEditChange:=@FormatEditValidate;
 end;
 
+procedure TFormDesktop.OptionLink(Sender:TRTFP);
+begin
+  Sender.RunPerformance.Backup_SaveXml:=OptionMap.Backup_SaveXml;
+  Sender.RunPerformance.Fields_ImgFile:=OptionMap.Fields_ImgFile;
+  Sender.RunPerformance.Filter_AutoRun:=CheckBox_MainFilterAuto.Checked;
+  Sender.RunPerformance.Filter_Command:=Edit_DBGridMain_Filter.Caption;
+  Sender.RunPerformance.CopyMainGridWithDispName:=OptionMap.CopyMainGridWithDispName;
+  Sender.RunPerformance.CopyMainGridWithHeadLine:=OptionMap.CopyMainGridWithHeadLine;
+  Sender.RunPerformance.ExportImagePicStretch:=OptionMap.ExportImagePicStretch;
+  Sender.RunPerformance.ExportImageFontSize:=OptionMap.ExportImageFontSize;
+  Sender.RunPerformance.ExportImageCellWidth:=OptionMap.ExportImageCellWidth;
+  Sender.RunPerformance.ExportImageCellHeight:=OptionMap.ExportImageCellHeight;
+  Sender.RunPerformance.DisplayKlassListRecCount:=OptionMap.DisplayKlassListRecCount;
+  Sender.ClassChange(true);
+end;
+
 procedure TFormDesktop.MenuItemOpenProject(Sender:TObject);
 var filename:string;
 begin
@@ -528,17 +545,7 @@ begin
     end;
   if FileExists(filename) then begin
     CurrentRTFP.Open(UTF8ToWinCP(filename));
-    CurrentRTFP.RunPerformance.Backup_SaveXml:=OptionMap.Backup_SaveXml;
-    CurrentRTFP.RunPerformance.Fields_ImgFile:=OptionMap.Fields_ImgFile;
-    CurrentRTFP.RunPerformance.Filter_AutoRun:=CheckBox_MainFilterAuto.Checked;
-    CurrentRTFP.RunPerformance.Filter_Command:=Edit_DBGridMain_Filter.Caption;
-    CurrentRTFP.RunPerformance.CopyMainGridWithDispName:=OptionMap.CopyMainGridWithDispName;
-    CurrentRTFP.RunPerformance.CopyMainGridWithHeadLine:=OptionMap.CopyMainGridWithHeadLine;
-    CurrentRTFP.RunPerformance.ExportImagePicStretch:=OptionMap.ExportImagePicStretch;
-    CurrentRTFP.RunPerformance.ExportImageFontSize:=OptionMap.ExportImageFontSize;
-    CurrentRTFP.RunPerformance.ExportImageCellWidth:=OptionMap.ExportImageCellWidth;
-    CurrentRTFP.RunPerformance.ExportImageCellHeight:=OptionMap.ExportImageCellHeight;
-    CurrentRTFP.RunPerformance.DisplayKlassListRecCount:=OptionMap.DisplayKlassListRecCount;
+    OptionLink(CurrentRTFP);
   end else ShowMsgOK('未找到工程','工程文件未找到！');
 end;
 
@@ -992,17 +999,7 @@ begin
 
   if Self.OpenDialog_Project.Execute then begin
     CurrentRTFP.Open(UTF8ToWinCP(Self.OpenDialog_Project.FileName));
-    CurrentRTFP.RunPerformance.Backup_SaveXml:=OptionMap.Backup_SaveXml;
-    CurrentRTFP.RunPerformance.Fields_ImgFile:=OptionMap.Fields_ImgFile;
-    CurrentRTFP.RunPerformance.Filter_AutoRun:=CheckBox_MainFilterAuto.Checked;
-    CurrentRTFP.RunPerformance.Filter_Command:=Edit_DBGridMain_Filter.Caption;
-    CurrentRTFP.RunPerformance.CopyMainGridWithDispName:=OptionMap.CopyMainGridWithDispName;
-    CurrentRTFP.RunPerformance.CopyMainGridWithHeadLine:=OptionMap.CopyMainGridWithHeadLine;
-    CurrentRTFP.RunPerformance.ExportImagePicStretch:=OptionMap.ExportImagePicStretch;
-    CurrentRTFP.RunPerformance.ExportImageFontSize:=OptionMap.ExportImageFontSize;
-    CurrentRTFP.RunPerformance.ExportImageCellWidth:=OptionMap.ExportImageCellWidth;
-    CurrentRTFP.RunPerformance.ExportImageCellHeight:=OptionMap.ExportImageCellHeight;
-    CurrentRTFP.RunPerformance.DisplayKlassListRecCount:=OptionMap.DisplayKlassListRecCount;
+    OptionLink(CurrentRTFP);
   end;
 
 end;
@@ -1785,6 +1782,9 @@ begin
   for pi:=1 to 99 do StringGrid_FormatEditLayout.Cells[0,pi]:=IntToStr(pi);
   StringGrid_FormatEditLayout.ColWidths[0]:=36;
 
+  PageControl_Filter.ActivePage:=TabSheet_Filter_Field;
+  PageControl_Project.ActivePage:=TabSheet_Project_DataGrid;
+  PageControl_Node.ActivePage:=TabSheet_Node_FormatEdit;
 
   FShowWaitForm:=true;
   FWaitForm:=TForm.Create(Self);
@@ -1876,17 +1876,7 @@ begin
       Application.ProcessMessages;
 
       CurrentRTFP.Open(UTF8ToWinCP(FileNames[0]));
-      CurrentRTFP.RunPerformance.Backup_SaveXml:=OptionMap.Backup_SaveXml;
-      CurrentRTFP.RunPerformance.Fields_ImgFile:=OptionMap.Fields_ImgFile;
-      CurrentRTFP.RunPerformance.Filter_AutoRun:=CheckBox_MainFilterAuto.Checked;
-      CurrentRTFP.RunPerformance.Filter_Command:=Edit_DBGridMain_Filter.Caption;
-      CurrentRTFP.RunPerformance.CopyMainGridWithDispName:=OptionMap.CopyMainGridWithDispName;
-      CurrentRTFP.RunPerformance.CopyMainGridWithHeadLine:=OptionMap.CopyMainGridWithHeadLine;
-      CurrentRTFP.RunPerformance.ExportImagePicStretch:=OptionMap.ExportImagePicStretch;
-      CurrentRTFP.RunPerformance.ExportImageFontSize:=OptionMap.ExportImageFontSize;
-      CurrentRTFP.RunPerformance.ExportImageCellWidth:=OptionMap.ExportImageCellWidth;
-      CurrentRTFP.RunPerformance.ExportImageCellHeight:=OptionMap.ExportImageCellHeight;
-      CurrentRTFP.RunPerformance.DisplayKlassListRecCount:=OptionMap.DisplayKlassListRecCount;
+      OptionLink(CurrentRTFP);
       SetFocus;
       exit;
     end;
@@ -2536,17 +2526,7 @@ begin
     if FShowWaitForm then FWaitForm.Show;
     CurrentRTFP.ZTFP_Importer(Self.OpenDialog_Project.FileName);
     if FShowWaitForm then FWaitForm.Hide;
-    CurrentRTFP.RunPerformance.Backup_SaveXml:=OptionMap.Backup_SaveXml;
-    CurrentRTFP.RunPerformance.Fields_ImgFile:=OptionMap.Fields_ImgFile;
-    CurrentRTFP.RunPerformance.Filter_AutoRun:=CheckBox_MainFilterAuto.Checked;
-    CurrentRTFP.RunPerformance.Filter_Command:=Edit_DBGridMain_Filter.Caption;
-    CurrentRTFP.RunPerformance.CopyMainGridWithDispName:=OptionMap.CopyMainGridWithDispName;
-    CurrentRTFP.RunPerformance.CopyMainGridWithHeadLine:=OptionMap.CopyMainGridWithHeadLine;
-    CurrentRTFP.RunPerformance.ExportImagePicStretch:=OptionMap.ExportImagePicStretch;
-    CurrentRTFP.RunPerformance.ExportImageFontSize:=OptionMap.ExportImageFontSize;
-    CurrentRTFP.RunPerformance.ExportImageCellWidth:=OptionMap.ExportImageCellWidth;
-    CurrentRTFP.RunPerformance.ExportImageCellHeight:=OptionMap.ExportImageCellHeight;
-    CurrentRTFP.RunPerformance.DisplayKlassListRecCount:=OptionMap.DisplayKlassListRecCount;
+    OptionLink(CurrentRTFP);
   end;
 end;
 
