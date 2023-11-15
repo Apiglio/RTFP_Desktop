@@ -333,5 +333,9 @@ begin
   if FPaperDS.BookmarkValid(bm) then FPaperDS.GotoBookmark(bm);
 end;
 
-
+procedure TRTFP.LogLine(msg:string);
+begin
+  if FOnLogLine=nil then exit;
+  if FLogEnabled then FOnLogLine(Self,Self.FFileName+' ['+DateTimeToStr(Now)+'] '+msg);
+end;
 

@@ -48,9 +48,9 @@ object FormDesktop: TFormDesktop
     Height = 342
     Top = 0
     Width = 865
-    ActivePage = TabSheet_Project_Properties
+    ActivePage = TabSheet_Project_DataGrid
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 1
     object TabSheet_Project_Properties: TTabSheet
       Caption = '工程信息'
@@ -78,7 +78,7 @@ object FormDesktop: TFormDesktop
         )
         ColWidths = (
           167
-          681
+          655
         )
       end
       object Splitter_PropertiesV: TSplitter
@@ -1053,9 +1053,9 @@ object FormDesktop: TFormDesktop
     Height = 176
     Top = 347
     Width = 865
-    ActivePage = TabSheet_Node_PDF
+    ActivePage = TabSheet_Log
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 0
+    TabIndex = 2
     TabOrder = 4
     OnChange = PageControl_NodeChange
     object TabSheet_Node_PDF: TTabSheet
@@ -1182,6 +1182,26 @@ object FormDesktop: TFormDesktop
         ParentShowHint = False
         ShowHint = True
         TabOrder = 5
+      end
+    end
+    object TabSheet_Log: TTabSheet
+      Caption = '操作日志'
+      ClientHeight = 139
+      ClientWidth = 857
+      object Memo_Log: TMemo
+        AnchorSideLeft.Control = TabSheet_Log
+        AnchorSideTop.Control = TabSheet_Log
+        AnchorSideRight.Control = TabSheet_Log
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = TabSheet_Log
+        AnchorSideBottom.Side = asrBottom
+        Left = 0
+        Height = 139
+        Top = 0
+        Width = 857
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        ScrollBars = ssAutoBoth
+        TabOrder = 0
       end
     end
   end

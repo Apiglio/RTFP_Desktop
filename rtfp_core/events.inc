@@ -21,6 +21,7 @@ begin
   if (not IsUpdating) and (FOnChange<>nil) then FOnChange(Self);
   if first_edit then Self.FOnFirstEdit(Self);
   Self.FIsChanged:=true;
+  LogLine('Change');
 end;
 
 procedure TRTFP.TagChange(key,value:string);
@@ -29,6 +30,7 @@ begin
     begin
       if FOnTagChange<>nil then FOnTagChange(Self,key,value);
     end;
+  LogLine('TagChange');
   Change;
 end;
 
@@ -39,6 +41,7 @@ begin
       if FOnDataChange<>nil then FOnDataChange(Self);
       UpdateCurrentRec(PID);
     end;
+  LogLine('DataChange '+PID);
   Change;
 end;
 
@@ -49,6 +52,7 @@ begin
       if FOnFieldChange<>nil then FOnFieldChange(Self);
       RebuildMainGrid;
     end;
+  LogLine('FieldChange');
   {Data}Change;
 end;
 
@@ -59,6 +63,7 @@ begin
       if FOnRecordChange<>nil then FOnRecordChange(Self);
       RebuildMainGrid;
     end;
+  LogLine('RecordChange');
   {Data}Change;
 end;
 
@@ -70,29 +75,34 @@ begin
       if FOnRecordChange<>nil then FOnRecordChange(Self);
       RebuildMainGrid;
     end;
+  if not_change_at_the_beginning then LogLine('FieldAndRecordChange true') else LogLine('FieldAndRecordChange false');
   if not not_change_at_the_beginning then {Data}Change;
 end;
 
 procedure TRTFP.ClassChange(not_change_at_the_beginning:boolean=false);
 begin
   if (not IsUpdating) and (FOnClassChange<>nil) then FOnClassChange(Self);
+  if not_change_at_the_beginning then LogLine('ClassChange true') else LogLine('ClassChange false');
   if not not_change_at_the_beginning then Change;
 end;
 
 procedure TRTFP.UsersChange;
 begin
   if (not IsUpdating) and (FOnUsersChange<>nil) then FOnUsersChange(Self);
+  LogLine('UsersChange');
   Change;
 end;
 
 procedure TRTFP.FormatListChange(rename:string='default.fmt');
 begin
   if (not IsUpdating) and (FOnFormatListChange<>nil) then FOnFormatListChange(Self,rename);
+  LogLine('FormatListChange '+rename);
   Change;
 end;
 
 procedure TRTFP.FormatEditChange(fe_new,fe_old:string);
 begin
   if (not IsUpdating) and (FOnFormatEditChange<>nil) then FOnFormatEditChange(Self,fe_new,fe_old);
+  LogLine('FormatEditChange '+fe_new+', '+fe_old);
   Change;
 end;

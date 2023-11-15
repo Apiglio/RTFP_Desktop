@@ -54,6 +54,7 @@ type
     CheckBox_MainSorterAuto: TCheckBox;
     Edit_DBGridMain_Sorter: TEdit;
     Label_MainSorter: TLabel;
+    Memo_Log: TMemo;
     MenuItem_DBGC_Export_set: TMenuItem;
     MenuItem_DBGC_Export_array: TMenuItem;
     MenuItem_DBGC_Export_lines: TMenuItem;
@@ -211,6 +212,7 @@ type
     StatusBar: TStatusBar;
     StringGrid_FormatEditLayout: TStringGrid;
     SynEdit_FEMgr: TSynEdit;
+    TabSheet_Log: TTabSheet;
     TabSheet_Project_FormatEditMgr: TTabSheet;
     TabSheet_Node_FormatEdit: TTabSheet;
     TabSheet_Filter_Klass: TTabSheet;
@@ -437,6 +439,7 @@ type
 
     procedure FirstEdit(Sender:TObject);//工程第一次编辑
     procedure Clear(Sender:TObject);//清空
+    procedure Log(Sender:TObject;msg:string);//日志
 
 
     procedure ProjectOpenDone(Sender:TObject);//工程打开或新建
@@ -511,6 +514,10 @@ begin
   Sender.onFieldChange:=@FieldListValidate;
   Sender.onFormatListChange:=@FormatListValidate;
   Sender.onFormatEditChange:=@FormatEditValidate;
+
+  Sender.OnLogLine:=@Log;
+  Sender.LogEnabled:=true;
+
 end;
 
 procedure TFormDesktop.OptionLink(Sender:TRTFP);
@@ -758,6 +765,11 @@ begin
   AListView_Klass.Root.Clear;
   Combo_AddAttrs.Clear;
   ComboBox_FormatEdit.Clear;
+end;
+
+procedure TFormDesktop.Log(Sender:TObject;msg:string);
+begin
+  Memo_Log.Lines.Add(msg);
 end;
 
 procedure TFormDesktop.ProjectOpenDone(Sender:TObject);

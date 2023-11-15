@@ -538,7 +538,13 @@ type
     function ExportDSFieldToArray(field_title:string):string;
     function ExportDSFieldToLinesSet(field_title:string):string;
 
-
+  private
+    FOnLogLine:TRTFPOneStrEvent;
+    FLogEnabled:boolean;
+  public
+    procedure LogLine(msg:string);inline;
+    property OnLogLine:TRTFPOneStrEvent read FOnLogLine write FOnLogLine;
+    property LogEnabled:boolean read FLogEnabled write FLogEnabled;
 
   //未分类
   private
@@ -1262,6 +1268,7 @@ begin
   RebuildMainGrid;
   ClassChange(true);
   FieldAndRecordChange(true);
+  LogLine('New '+WinCPToUTF8(filename)+' '+p_title+' '+p_user);
 end;
 
 Procedure TRTFP.Open(filename:ansistring);
@@ -1310,6 +1317,7 @@ begin
   Self.RebuildMainGrid;
   Self.ClassChange(true);
   Self.FieldAndRecordChange(true);
+  LogLine('Open '+WinCPToUTF8(filename));
 end;
 
 procedure TRTFP.Save;
@@ -1352,6 +1360,7 @@ begin
 
   Self.FIsChanged:=false;
   if FOnSaveDone <> nil then FOnSaveDone(Self);
+  LogLine('Save');
 end;
 
 procedure TRTFP.SaveAs(filename:ansistring);
@@ -1361,6 +1370,7 @@ begin
   //暂未实现
 
   if FOnSaveAsDone <> nil then FOnSaveAsDone(Self);
+  LogLine('SaveAs '+WinCPToUTF8(filename));
 end;
 
 function TRTFP.Close:boolean;
@@ -1389,6 +1399,7 @@ begin
   Self.FIsOpen:=false;
   if FOnCloseDone <> nil then FOnCloseDone(Self);
   result:=true;
+  LogLine('Close');
 end;
 
 function TRTFP.UserID(AUser:string):integer;
