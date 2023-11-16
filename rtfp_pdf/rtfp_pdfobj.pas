@@ -98,14 +98,71 @@ type
   public
     constructor Create(AOwner:TComponent;FileName:string);
     destructor Destroy;override;
-    class function CalcHash(AStream:TStream;out read_count:integer):string;
+    class function CalcHash(AStream:TStream;out read_count:integer;method:string='S239'):string;
   end;
 
 
 implementation
 uses math;
 
-class function TRTFP_PDF.CalcHash(AStream:TStream;out read_count:integer):string;
+//8个字母表示五个字节，前四位用16进制(char+17)表示，第五位用8个字母的大小写区分
+//大写为0小写为1，Bigendian，总共240个字母表示150个字节
+function CalcHash_Q240(AStream:TStream;out read_count:integer):string;
+var index:byte;
+    byt:byte;
+    stream_size:int64;
+    arr:array [0..149] of byte;
+    function EncodeResult:string;
+    var idx,s_idx:integer;
+        itmp:dword;
+        stmp:string;
+    begin
+      idx:=0;
+      result:='';
+      while idx<150 do begin
+        itmp:=(arr[idx] shl 24) or (arr[idx+1] shl 16) or (arr[idx+2] shl 8) or  arr[idx+3];
+        stmp:=IntToHex(itmp,8);
+        for s_idx:=1 to 8 do begin
+          if arr[idx+4] and (1 shl s_idx) =0 then stmp[s_idx]:=chr((ord(stmp[s_idx])+17) and $DF)
+          else stmp[s_idx]:=chr((ord(stmp[s_idx])+17) or $20);
+        end;
+        result:=result+stmp;
+        inc(idx,5);
+      end;
+    end;
+
+begin
+  read_count:=0;
+  stream_size:=AStream.Size;
+  for index:=0 to 149 do arr[index]:=0;
+  {
+  if stream_size>$400000 then begin //4M   以上四层
+
+    result:=EncodeResult;
+    exit;
+  end;
+  if stream_size>$4000 then begin   //16K  以上两层
+
+    result:=EncodeResult;
+    exit;
+  end;
+  }
+  if stream_size>$100 then begin    //256B 以上一层
+    AStream.Position:=0;
+    for index:=0 to 149 do begin
+      AStream.Seek(trunc((stream_size-1) * index div 149),soFromBeginning);
+      arr[index]:=AStream.ReadByte;
+    end;
+    read_count:=150;
+    result:=EncodeResult;
+    exit;
+  end;
+  //tiny file
+  read_count:=0;
+  result:='tinyfile';
+end;
+
+function CalcHash_S239(AStream:TStream;out read_count:integer):string;
 var index:byte;
     byt:byte;
     arr:array [0..238] of byte;
@@ -168,6 +225,14 @@ begin
     end;
 end;
 
+class function TRTFP_PDF.CalcHash(AStream:TStream;out read_count:integer;method:string='S239'):string;
+begin
+  case lowercase(method) of
+    'q240':result:=CalcHash_Q240(AStream,read_count);
+    else result:=CalcHash_S239(AStream,read_count);
+  end;
+end;
+
 constructor TRTFP_PDF.Create(AOwner:TComponent;FileName:string);
 var rc:integer;
 begin
@@ -183,7 +248,7 @@ begin
   if FileExists(FileName) then begin
     FMem:=TFileStream.Create(FFileName,fmOpenRead);
     FSize:=FMem.Size;
-    FHash:=TRTFP_PDF.CalcHash(FMem,rc);
+    FHash:=TRTFP_PDF.CalcHash(FMem,rc,'Q240');
     CalcMeta;
   end;
 end;
