@@ -28,6 +28,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
     procedure FormHide(Sender: TObject);
+    procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure MenuItem_ClsMgr_ExcludeClick(Sender: TObject);
     procedure MenuItem_ClsMgr_IncludeClick(Sender: TObject);
@@ -56,9 +57,22 @@ begin
   FormDesktop.DBGrid_Main.Options:=FormDesktop.DBGrid_Main.Options + [dgMultiselect];
   //FormDesktop.DBGrid_Main.SelectedIndex:=FormDesktop.DBGrid_Main.DataSource.DataSet.RecNo;
   FormDesktop.DBGrid_Main.SelectedRows.CurrentRowSelected:=true;
-  FormDesktop.AListView_Klass.Parent:=Self.Panel_ListView_Temporary;
-  FormDesktop.AListView_Klass.Align:=alClient;
-  FormDesktop.AListView_Klass.PopupMenu:=Self.PopupMenu_ClassManager;
+  with FormDesktop.AListView_Klass do begin
+    Parent:=Self.Panel_ListView_Temporary;
+    AnchorSideTop.Control:=Parent;
+    AnchorSideTop.Side:=asrTop;
+    BorderSpacing.Top:=0;
+    AnchorSideLeft.Control:=Parent;
+    AnchorSideTop.Side:=asrLeft;
+    BorderSpacing.Top:=0;
+    AnchorSideRight.Control:=Parent;
+    AnchorSideRight.Side:=asrRight;
+    BorderSpacing.Right:=0;
+    AnchorSideBottom.Control:=Parent;
+    AnchorSideBottom.Side:=asrBottom;
+    BorderSpacing.Bottom:=0;
+    PopupMenu:=Self.PopupMenu_ClassManager;
+  end;
 end;
 
 procedure TClassManagerForm.MenuItem_ClsMgr_ExcludeClick(Sender: TObject);
@@ -137,9 +151,29 @@ begin
   FormDesktop.Panel_DBGridMain.Align:=alClient;
   FormDesktop.DBGrid_Main.PopupMenu:=FormDesktop.PopupMenu_MainDBGrid;
   FormDesktop.DBGrid_Main.Options:=FormDesktop.DBGrid_Main.Options - [dgMultiselect];
-  FormDesktop.AListView_Klass.Parent:=FormDesktop.TabSheet_Filter_Klass;
-  FormDesktop.AListView_Klass.Align:=alClient;
-  FormDesktop.AListView_Klass.PopupMenu:=FormDesktop.PopupMenu_ClassManager;
+  with FormDesktop.AListView_Klass do begin
+    Parent:=FormDesktop.TabSheet_Filter_Klass;
+    AnchorSideTop.Control:=Parent;
+    AnchorSideTop.Side:=asrTop;
+    BorderSpacing.Top:=0;
+    AnchorSideLeft.Control:=Parent;
+    AnchorSideTop.Side:=asrLeft;
+    BorderSpacing.Top:=0;
+    AnchorSideRight.Control:=Parent;
+    AnchorSideRight.Side:=asrRight;
+    BorderSpacing.Right:=0;
+    AnchorSideBottom.Control:=FormDesktop.RadioButton_KlassOR;
+    AnchorSideBottom.Side:=asrTop;
+    BorderSpacing.Bottom:=4;
+    PopupMenu:=FormDesktop.PopupMenu_ClassManager;
+  end;
+end;
+
+procedure TClassManagerForm.FormResize(Sender: TObject);
+var mw:TConstraintSize;
+begin
+  mw:=Panel_ListView_Temporary.Constraints.MinWidth;
+  if Splitter_ClsMgrV.Left < mw then Splitter_ClsMgrV.Left := mw;
 end;
 
 procedure TClassManagerForm.FormDeactivate(Sender: TObject);

@@ -1,7 +1,7 @@
 object FormDesktop: TFormDesktop
-  Left = 702
+  Left = 650
   Height = 587
-  Top = 351
+  Top = 347
   Width = 1077
   AllowDropFiles = True
   Caption = 'RTFP Desktop'

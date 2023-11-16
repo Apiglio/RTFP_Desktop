@@ -13,6 +13,7 @@ object ClassManagerForm: TClassManagerForm
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   OnHide = FormHide
+  OnResize = FormResize
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.8.4.0'
@@ -39,10 +40,9 @@ object ClassManagerForm: TClassManagerForm
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
     AnchorSideRight.Control = Splitter_ClsMgrV
-    AnchorSideBottom.Control = Owner
-    AnchorSideBottom.Side = asrBottom
+    AnchorSideBottom.Control = Button_ClsMgr_UnSelect
     Left = 5
-    Height = 483
+    Height = 449
     Top = 5
     Width = 283
     Anchors = [akTop, akLeft, akRight, akBottom]
@@ -50,56 +50,8 @@ object ClassManagerForm: TClassManagerForm
     BorderSpacing.Top = 5
     BorderSpacing.Bottom = 5
     Caption = '分类表，通过修改Parent实现'
-    ClientHeight = 483
-    ClientWidth = 283
     Constraints.MinWidth = 270
     TabOrder = 1
-    object Button_ClsMgr_SelectAll: TButton
-      AnchorSideRight.Control = Button_ClsMgr_UnSelect
-      AnchorSideBottom.Control = Panel_ListView_Temporary
-      AnchorSideBottom.Side = asrBottom
-      Left = 28
-      Height = 29
-      Top = 448
-      Width = 72
-      Anchors = [akRight, akBottom]
-      BorderSpacing.Right = 5
-      BorderSpacing.Bottom = 5
-      Caption = '全部选择'
-      OnClick = Button_ClsMgr_SelectAllClick
-      TabOrder = 0
-    end
-    object Button_ClsMgr_UnSelect: TButton
-      AnchorSideLeft.Control = Panel_ListView_Temporary
-      AnchorSideLeft.Side = asrCenter
-      AnchorSideBottom.Control = Panel_ListView_Temporary
-      AnchorSideBottom.Side = asrBottom
-      Left = 105
-      Height = 29
-      Top = 448
-      Width = 72
-      Anchors = [akLeft, akBottom]
-      BorderSpacing.Bottom = 5
-      Caption = '取消选择'
-      OnClick = Button_ClsMgr_UnSelectClick
-      TabOrder = 1
-    end
-    object Button_ClsMgr_XorSelect: TButton
-      AnchorSideLeft.Control = Button_ClsMgr_UnSelect
-      AnchorSideLeft.Side = asrBottom
-      AnchorSideBottom.Control = Panel_ListView_Temporary
-      AnchorSideBottom.Side = asrBottom
-      Left = 182
-      Height = 29
-      Top = 448
-      Width = 72
-      Anchors = [akLeft, akBottom]
-      BorderSpacing.Left = 5
-      BorderSpacing.Bottom = 5
-      Caption = '反向选择'
-      OnClick = Button_ClsMgr_XorSelectClick
-      TabOrder = 2
-    end
   end
   object Splitter_ClsMgrV: TSplitter
     AnchorSideTop.Control = Owner
@@ -112,6 +64,52 @@ object ClassManagerForm: TClassManagerForm
     Align = alNone
     Anchors = [akTop, akBottom]
     ResizeStyle = rsPattern
+  end
+  object Button_ClsMgr_UnSelect: TButton
+    AnchorSideLeft.Control = Panel_ListView_Temporary
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 110
+    Height = 29
+    Top = 459
+    Width = 72
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Bottom = 5
+    Caption = '取消选择'
+    OnClick = Button_ClsMgr_UnSelectClick
+    TabOrder = 3
+  end
+  object Button_ClsMgr_XorSelect: TButton
+    AnchorSideLeft.Control = Button_ClsMgr_UnSelect
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideBottom.Control = Button_ClsMgr_UnSelect
+    AnchorSideBottom.Side = asrCenter
+    Left = 187
+    Height = 29
+    Top = 458
+    Width = 72
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Left = 5
+    BorderSpacing.Bottom = 5
+    Caption = '反向选择'
+    OnClick = Button_ClsMgr_XorSelectClick
+    TabOrder = 4
+  end
+  object Button_ClsMgr_SelectAll: TButton
+    AnchorSideRight.Control = Button_ClsMgr_UnSelect
+    AnchorSideBottom.Control = Button_ClsMgr_UnSelect
+    AnchorSideBottom.Side = asrCenter
+    Left = 33
+    Height = 29
+    Top = 458
+    Width = 72
+    Anchors = [akRight, akBottom]
+    BorderSpacing.Right = 5
+    BorderSpacing.Bottom = 5
+    Caption = '全部选择'
+    OnClick = Button_ClsMgr_SelectAllClick
+    TabOrder = 5
   end
   object PopupMenu_ClassManager: TPopupMenu
     left = 144
