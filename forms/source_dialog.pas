@@ -82,7 +82,7 @@ begin
   CurrentRTFP.EditBasicInteger(_Col_Paper_FileSize_,Current_PID,FileSize(backup));
   try
     tmpFS:=TFileStream.Create(backup,fmOpenRead);
-    CurrentRTFP.EditBasicString(_Col_Paper_FileHash_,Current_PID,TRTFP_PDF.CalcHash(tmpFS,rc));
+    CurrentRTFP.EditBasicString(_Col_Paper_FileHash_,Current_PID,TRTFP_PDF.CalcHash(tmpFS,rc,CurrentRTFP.Tag['文件哈希方式']));
   finally
     tmpFS.Free;
   end;

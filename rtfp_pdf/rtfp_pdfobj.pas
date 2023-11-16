@@ -75,6 +75,7 @@ type
     FFileName:string;
     FHash:string;
     FSize:uint64;
+    FHashMethod:string;
     {$ifdef WINDOWS}
     fdoc:FPDF_DOCUMENT;
     fpage:FPDF_PAGE;
@@ -87,6 +88,7 @@ type
     property Hash:string read FHash;
     property Size:uint64 read FSize write FSize;
     property Meta:TPdfMeta read FMeta;
+    property HashMethod:string read FHashMethod;
 
   public
     function FileEqual(buf:pbyte;buflen:uint64):boolean;
@@ -96,9 +98,9 @@ type
     procedure ShowPage(dc:HDC;page:uint64);
     {$endif}
   public
-    constructor Create(AOwner:TComponent;FileName:string);
+    constructor Create(AOwner:TComponent;FileName:string;AHashMethod:string);
     destructor Destroy;override;
-    class function CalcHash(AStream:TStream;out read_count:integer;method:string='S239'):string;
+    class function CalcHash(AStream:TStream;out read_count:integer;method:string):string;
   end;
 
 
@@ -109,7 +111,6 @@ uses math;
 //大写为0小写为1，Bigendian，总共240个字母表示150个字节
 function CalcHash_Q240(AStream:TStream;out read_count:integer):string;
 var index:byte;
-    byt:byte;
     stream_size:int64;
     arr:array [0..149] of byte;
     function EncodeResult:string;
@@ -135,22 +136,10 @@ begin
   read_count:=0;
   stream_size:=AStream.Size;
   for index:=0 to 149 do arr[index]:=0;
-  {
-  if stream_size>$400000 then begin //4M   以上四层
-
-    result:=EncodeResult;
-    exit;
-  end;
-  if stream_size>$4000 then begin   //16K  以上两层
-
-    result:=EncodeResult;
-    exit;
-  end;
-  }
-  if stream_size>$100 then begin    //256B 以上一层
+  if stream_size>$400 then begin    //1KByte 以上才采样
     AStream.Position:=0;
     for index:=0 to 149 do begin
-      AStream.Seek(trunc((stream_size-1) * index div 149),soFromBeginning);
+      AStream.Seek(trunc((stream_size-1) * index div 149)-AStream.Position,soCurrent);
       arr[index]:=AStream.ReadByte;
     end;
     read_count:=150;
@@ -159,7 +148,7 @@ begin
   end;
   //tiny file
   read_count:=0;
-  result:='tinyfile';
+  result:='BelowOneKiloByte';
 end;
 
 function CalcHash_S239(AStream:TStream;out read_count:integer):string;
@@ -225,7 +214,7 @@ begin
     end;
 end;
 
-class function TRTFP_PDF.CalcHash(AStream:TStream;out read_count:integer;method:string='S239'):string;
+class function TRTFP_PDF.CalcHash(AStream:TStream;out read_count:integer;method:string):string;
 begin
   case lowercase(method) of
     'q240':result:=CalcHash_Q240(AStream,read_count);
@@ -233,7 +222,7 @@ begin
   end;
 end;
 
-constructor TRTFP_PDF.Create(AOwner:TComponent;FileName:string);
+constructor TRTFP_PDF.Create(AOwner:TComponent;FileName:string;AHashMethod:string);
 var rc:integer;
 begin
   inherited Create;
@@ -248,7 +237,7 @@ begin
   if FileExists(FileName) then begin
     FMem:=TFileStream.Create(FFileName,fmOpenRead);
     FSize:=FMem.Size;
-    FHash:=TRTFP_PDF.CalcHash(FMem,rc,'Q240');
+    FHash:=TRTFP_PDF.CalcHash(FMem,rc,AHashMethod);
     CalcMeta;
   end;
 end;

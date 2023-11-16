@@ -38,10 +38,10 @@ begin
   CurrentRTFP.EndUpdate;
 end;
 
-procedure aufunc_FileHash(Sender:TObject);
+procedure aufunc_FileHash(Sender:TObject);//hash filename, method
 var AufScpt:TAufScript;
     AAuf:TAuf;
-    filename:string;
+    filename,hash_method:string;
     FileStream:TMemoryStream;
     rc:integer;
 begin
@@ -49,10 +49,20 @@ begin
   AAuf:=AufScpt.Auf as TAuf;
   if not AAuf.CheckArgs(2) then exit;
   if not AAuf.TryArgToString(1,filename) then exit;
+  if AAuf.ArgsCount<3 then begin
+    if ProjectInvalid then begin
+      AufScpt.send_error('未打开工程，需要指定文件哈希方法。');
+      exit;
+    end else begin
+      hash_method:=CurrentRTFP.Tag['文件哈希方法'];
+    end;
+  end else begin
+    if not AAuf.TryArgToStrParam(2,['Q240','S239'],false,hash_method) then exit;
+  end;
   FileStream:=TMemoryStream.Create;
   FileStream.LoadFromFile(filename);
 
-  AufScpt.writeln(TRTFP_PDF.CalcHash(FileStream,rc));
+  AufScpt.writeln(TRTFP_PDF.CalcHash(FileStream,rc,hash_method));
   AufScpt.writeln('file size  = '+IntToStr(FileStream.Size));
   AufScpt.writeln('read count = '+IntToStr(rc));
   FileStream.Free;
@@ -550,7 +560,7 @@ begin
   if not AAuf.CheckArgs(2) then exit;
   if not AAuf.TryArgToString(1,filename) then exit;
 
-  RTFP_PDF:=TRTFP_PDF.Create(nil,filename);
+  RTFP_PDF:=TRTFP_PDF.Create(nil,filename,'Q240');//这里不涉及hash的显示，所以选择更快的方式
 
   AufScpt.writeln(RTFP_PDF.Meta.ToString);
 
@@ -570,7 +580,7 @@ begin
   if not AAuf.CheckArgs(2) then exit;
   if not AAuf.TryArgToString(1,filename) then exit;
 
-  RTFP_PDF:=TRTFP_PDF.Create(nil,filename);
+  RTFP_PDF:=TRTFP_PDF.Create(nil,filename,'Q240');//这里不涉及hash的显示，所以选择更快的方式
   {$ifdef WINDOWS}
   RTFP_PDF.ShowPage(FormDesktop.Image_PDF_View.Picture.Bitmap.Canvas.Handle,page);
   //AufScpt.writeln(RTFP_PDF.Meta.ToString);

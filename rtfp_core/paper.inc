@@ -38,7 +38,7 @@ begin
                 'Yes':{do nothing};
                 'No':exit;
             end;
-            tmpPDF:=TRTFP_PDF.Create(nil,fullfilename);
+            tmpPDF:=TRTFP_PDF.Create(nil,fullfilename,Tag['文件哈希方法']);
           end;
         apmAddress:
           begin
@@ -46,7 +46,7 @@ begin
             FileName:=fullfilename;
             if length(FileName)>240 then exit;
             //TargetDir:=FFilePath+FRootFolder+'/paper/'+DateDir;
-            tmpPDF:=TRTFP_PDF.Create(nil,'');
+            tmpPDF:=TRTFP_PDF.Create(nil,'',Tag['文件哈希方法']);
             tmpPDF.Size:=FileSize(fullfilename);
           end;
       end;
@@ -55,7 +55,7 @@ begin
       if AddPaperMethod in [apmFullBackup,apmCutBackup,apmAddress] then exit;
       DateDir:='';
       FileName:='';
-      tmpPDF:=TRTFP_PDF.Create(nil,'');
+      tmpPDF:=TRTFP_PDF.Create(nil,'',Tag['文件哈希方法']);
     END;
 
     BeginUpdate;
@@ -144,7 +144,7 @@ begin
     repeat
       if FieldByName(_Col_Paper_FileSize_).AsLongint = FileStream.Size then
         begin
-          if FHash='' then FHash:=TRTFP_PDF.CalcHash(FileStream,rc);
+          if FHash='' then FHash:=TRTFP_PDF.CalcHash(FileStream,rc,Self.Tag['文件哈希方法']);
           if FieldByName(_Col_Paper_FileHash_).AsString = FHash then
             begin
               FName:=FFilePath+FRootFolder+'/paper/'+FieldByName(_Col_Paper_Folder_).AsString+'/'+FieldByName(_Col_Paper_FileName_).AsString;

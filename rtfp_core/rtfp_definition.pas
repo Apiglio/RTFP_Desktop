@@ -379,6 +379,7 @@ type
     procedure Update_0_1_2_alpha_8;unimplemented;
     procedure Update_0_2_5_alpha_3;
     procedure Update_0_2_7_alpha_4;
+    procedure Update_0_3_2_alpha_5;
 
   public
     procedure Update(save_version:string);
@@ -1078,6 +1079,7 @@ begin
   tmpProjectFile.Add('字段关联后缀,'+'');
   tmpProjectFile.Add('编辑属性布局,'+'default.fmt');
 
+  tmpProjectFile.Add('文件哈希方法,'+'Q240');
 
   repeat
     retry:=false;

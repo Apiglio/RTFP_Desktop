@@ -98,7 +98,10 @@ begin
   //实际上并不会在打开旧文件后有修改星号
   //这是因为触发OnOpenDone之后会复原成未修改状态
 end;
-
+procedure TRTFP.Update_0_3_2_alpha_5;
+begin
+  Tag['文件哈希方法']:='S239';
+end;
 
 procedure TRTFP.Update(save_version:string);
 begin
@@ -106,7 +109,7 @@ begin
   //if not TRTFP.VersionCheck(save_version,'0.1.2-alpha.8') then Update_0_1_2_alpha_8;
   if not TRTFP.VersionCheck(save_version,'0.2.5-alpha.3') then Update_0_2_5_alpha_3;
   if not TRTFP.VersionCheck(save_version,'0.2.7-alpha.4') then Update_0_2_7_alpha_4;
-
+  if not TRTFP.VersionCheck(save_version,'0.3.2-alpha.6') then Update_0_3_2_alpha_5;
 end;
 
 class function TRTFP.VersionCheck(check,target:string):boolean;

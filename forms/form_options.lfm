@@ -26,9 +26,9 @@ object FormOptions: TFormOptions
     Height = 557
     Top = 0
     Width = 472
-    ActivePage = TabSheet_Sync
+    ActivePage = TabSheet_Backup
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 1
+    TabIndex = 3
     TabOrder = 0
     OnChange = PageControl_OptionChange
     object TabSheet_MaingridShortcut: TTabSheet
