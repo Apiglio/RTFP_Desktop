@@ -421,31 +421,31 @@ type
 
   public
     //RTFP类事件，Sender参数为TRTFP类
-    procedure EventLink(Sender:TRTFP);//链接所有事件
-    procedure OptionLink(Sender:TRTFP);//链接所有选项
+    procedure EventLink(AProject:TRTFP);//链接所有事件
+    procedure OptionLink(AProject:TRTFP);//链接所有选项
     procedure MenuItemOpenProject(Sender:TObject);
     procedure LoadRecentProject;
     procedure SaveRecentProject;
 
-    procedure Validate(Sender:TObject);//更新显示
-    procedure ClassListValidate(Sender:TObject);//分类更新时的操作
-    procedure FieldListValidate(Sender:TObject);//分类更新时的操作
+    procedure Validate(AProject:TRTFP);//更新显示
+    procedure ClassListValidate(AProject:TRTFP);//分类更新时的操作
+    procedure FieldListValidate(AProject:TRTFP);//分类更新时的操作
     procedure MainGridRebuilding(Sender:TObject);
     procedure MainGridRebuildDone(Sender:TObject);
-    procedure MainGridUpdateRec(Sender:TObject;PID:RTFP_ID);
-    procedure FormatListValidate(Sender:TObject;rename:string='default.fmt');
-    procedure FormatEditValidate(Sender:TObject;fe_new,fe_old:string);
-    procedure ProjectTagChange(Sender:TObject;akey,avalue:string);
+    procedure MainGridUpdateRec(AProject:TRTFP;PID:RTFP_ID);
+    procedure FormatListValidate(AProject:TRTFP;rename:string='default.fmt');
+    procedure FormatEditValidate(AProject:TRTFP;fe_new,fe_old:string);
+    procedure ProjectTagChange(AProject:TRTFP;akey,avalue:string);
 
-    procedure FirstEdit(Sender:TObject);//工程第一次编辑
-    procedure Clear(Sender:TObject);//清空
-    procedure Log(Sender:TObject;msg:string);//日志
+    procedure FirstEdit(AProject:TRTFP);//工程第一次编辑
+    procedure Clear(AProject:TRTFP);//清空
+    procedure Log(AProject:TRTFP;msg:string);//日志
 
 
-    procedure ProjectOpenDone(Sender:TObject);//工程打开或新建
-    procedure ProjectClose(Sender:TObject);//工程关闭之前
-    procedure ProjectCloseDone(Sender:TObject);//工程关闭
-    procedure ProjectSaveDone(Sender:TObject);//工程保存
+    procedure ProjectOpenDone(AProject:TRTFP);//工程打开或新建
+    procedure ProjectClose(AProject:TRTFP);//工程关闭之前
+    procedure ProjectCloseDone(AProject:TRTFP);//工程关闭
+    procedure ProjectSaveDone(AProject:TRTFP);//工程保存
 
     procedure DBGridColumnAdjusting(Sender:TObject);
     procedure DBGridColumnAllocating(Sender:TObject);
@@ -498,42 +498,45 @@ begin
   Frame_AufScript1.Auf.Script.writeln(str);
 end;
 
-procedure TFormDesktop.EventLink(Sender:TRTFP);//链接所有事件
+procedure TFormDesktop.EventLink(AProject:TRTFP);//链接所有事件
 begin
-  Sender.onOpenDone:=@ProjectOpenDone;
-  Sender.onFirstEdit:=@FirstEdit;
-  Sender.onSaveDone:=@ProjectSaveDone;
-  Sender.onCloseDone:=@ProjectCloseDone;
-  Sender.onClose:=@ProjectClose;
-
-  Sender.onChange:=@Validate;
-  Sender.onTagChange:=@ProjectTagChange;
-  Sender.OnMainGridRebuilding:=@MainGridRebuilding;
-  Sender.OnMainGridRebuildDone:=@MainGridRebuildDone;
-  Sender.onClassChange:=@ClassListValidate;
-  Sender.onFieldChange:=@FieldListValidate;
-  Sender.onFormatListChange:=@FormatListValidate;
-  Sender.onFormatEditChange:=@FormatEditValidate;
-
-  Sender.OnLogLine:=@Log;
-  Sender.LogEnabled:=true;
-
+  with AProject do begin
+    onOpenDone:=@ProjectOpenDone;
+    onFirstEdit:=@FirstEdit;
+    onSaveDone:=@ProjectSaveDone;
+    onCloseDone:=@ProjectCloseDone;
+    onClose:=@ProjectClose;
+    onChange:=@Validate;
+    onTagChange:=@ProjectTagChange;
+    OnMainGridRebuilding:=@MainGridRebuilding;
+    OnMainGridRebuildDone:=@MainGridRebuildDone;
+    onClassChange:=@Self.ClassListValidate;
+    onFieldChange:=@Self.FieldListValidate;
+    onFormatListChange:=@Self.FormatListValidate;
+    onFormatEditChange:=@Self.FormatEditValidate;
+    OnLogLine:=@Log;
+    LogEnabled:=true;
+  end;
 end;
 
-procedure TFormDesktop.OptionLink(Sender:TRTFP);
+procedure TFormDesktop.OptionLink(AProject:TRTFP);
 begin
-  Sender.RunPerformance.Backup_SaveXml:=OptionMap.Backup_SaveXml;
-  Sender.RunPerformance.Fields_ImgFile:=OptionMap.Fields_ImgFile;
-  Sender.RunPerformance.Filter_AutoRun:=CheckBox_MainFilterAuto.Checked;
-  Sender.RunPerformance.Filter_Command:=Edit_DBGridMain_Filter.Caption;
-  Sender.RunPerformance.CopyMainGridWithDispName:=OptionMap.CopyMainGridWithDispName;
-  Sender.RunPerformance.CopyMainGridWithHeadLine:=OptionMap.CopyMainGridWithHeadLine;
-  Sender.RunPerformance.ExportImagePicStretch:=OptionMap.ExportImagePicStretch;
-  Sender.RunPerformance.ExportImageFontSize:=OptionMap.ExportImageFontSize;
-  Sender.RunPerformance.ExportImageCellWidth:=OptionMap.ExportImageCellWidth;
-  Sender.RunPerformance.ExportImageCellHeight:=OptionMap.ExportImageCellHeight;
-  Sender.RunPerformance.DisplayKlassListRecCount:=OptionMap.DisplayKlassListRecCount;
-  Sender.ClassChange(true);
+  with AProject do begin
+    with RunPerformance do begin
+      Backup_SaveXml:=OptionMap.Backup_SaveXml;
+      Fields_ImgFile:=OptionMap.Fields_ImgFile;
+      Filter_AutoRun:=CheckBox_MainFilterAuto.Checked;
+      Filter_Command:=Edit_DBGridMain_Filter.Caption;
+      CopyMainGridWithDispName:=OptionMap.CopyMainGridWithDispName;
+      CopyMainGridWithHeadLine:=OptionMap.CopyMainGridWithHeadLine;
+      ExportImagePicStretch:=OptionMap.ExportImagePicStretch;
+      ExportImageFontSize:=OptionMap.ExportImageFontSize;
+      ExportImageCellWidth:=OptionMap.ExportImageCellWidth;
+      ExportImageCellHeight:=OptionMap.ExportImageCellHeight;
+      DisplayKlassListRecCount:=OptionMap.DisplayKlassListRecCount;
+    end;
+    ClassChange(true);
+  end;
 end;
 
 procedure TFormDesktop.MenuItemOpenProject(Sender:TObject);
@@ -612,37 +615,37 @@ begin
   end;
 end;
 
-procedure TFormDesktop.Validate(Sender:TObject);
+procedure TFormDesktop.Validate(AProject:TRTFP);
 var changed_str:string;
 begin
   if ProjectInvalid then begin
     Self.Caption:=C_SOFTWARE_NAME;
     exit;
   end;
-  if (Sender as TRTFP).IsChanged then changed_str:=' *'
+  if AProject.IsChanged then changed_str:=' *'
   else changed_str:='';
   //标题
-  if (Sender as TRTFP).Title <> '' then
-    Self.Caption:=C_SOFTWARE_NAME+' - '+(Sender as TRTFP).Title + changed_str
+  if AProject.Title <> '' then
+    Self.Caption:=C_SOFTWARE_NAME+' - '+AProject.Title + changed_str
   else
     Self.Caption:=C_SOFTWARE_NAME+' - '+'<无标题>' + changed_str;
   //工程信息 标签页
-  CurrentRTFP.ProjectPropertiesValidate(Self.PropertiesValueListEditor);
+  AProject.ProjectPropertiesValidate(Self.PropertiesValueListEditor);
   //文献节点 标签页
   //MainGridValidate(CurrentRTFP);//这个移到DataChange去了
 
 end;
 
-procedure TFormDesktop.ClassListValidate(Sender:TObject);
+procedure TFormDesktop.ClassListValidate(AProject:TRTFP);
 begin
-  (Sender as TRTFP).KlassListValidate(AListView_Klass);
+  AProject.KlassListValidate(AListView_Klass);
 end;
 
-procedure TFormDesktop.FieldListValidate(Sender:TObject);
+procedure TFormDesktop.FieldListValidate(AProject:TRTFP);
 var tmpAG:TAttrsGroup;
     stored_AG:string;
 begin
-  (Sender as TRTFP).FieldListValidate(AListView_Attrs);
+  AProject.FieldListValidate(AListView_Attrs);
   stored_AG:='';
   if Combo_AddAttrs.ItemIndex>=0 then stored_AG:=Combo_AddAttrs.Items[Combo_AddAttrs.ItemIndex];
   Combo_AddAttrs.Clear;
@@ -671,12 +674,12 @@ begin
   TabSheet_Project_DataGrid.Caption:='文献节点 ('+IntToStr(CurrentRTFP.CountMainGrid)+')';
 end;
 
-procedure TFormDesktop.MainGridUpdateRec(Sender:TObject;PID:RTFP_ID);
+procedure TFormDesktop.MainGridUpdateRec(AProject:TRTFP;PID:RTFP_ID);
 begin
-  (Sender as TRTFP).UpdateCurrentRec(PID);
+  AProject.UpdateCurrentRec(PID);
 end;
 
-procedure TFormDesktop.FormatListValidate(Sender:TObject;rename:string='default.fmt');
+procedure TFormDesktop.FormatListValidate(AProject:TRTFP;rename:string='default.fmt');
 var stmp,stored:string;
     marked,acc,index:integer;
 begin
@@ -687,7 +690,7 @@ begin
   ComboBox_FormatEdit.Clear;
   acc:=0;
   marked:=-1;
-  for stmp in (Sender as TRTFP).FormatList do
+  for stmp in AProject.FormatList do
     begin
       ComboBox_FormatEdit.AddItem(stmp,nil);
       if stmp=stored then marked:=acc;
@@ -698,12 +701,12 @@ begin
   //ProjectTab
   index:=ListBox_FormatEditMgr.ItemIndex;
   ListBox_FormatEditMgr.Clear;
-  for stmp in (Sender as TRTFP).FormatList do ListBox_FormatEditMgr.Items.Add(stmp);
+  for stmp in AProject.FormatList do ListBox_FormatEditMgr.Items.Add(stmp);
   if ListBox_FormatEditMgr.Count>index then ListBox_FormatEditMgr.ItemIndex:=index;
 
 end;
 
-procedure TFormDesktop.FormatEditValidate(Sender:TObject;fe_new,fe_old:string);
+procedure TFormDesktop.FormatEditValidate(AProject:TRTFP;fe_new,fe_old:string);
 var stored:integer;
     current_fe:string;
 begin
@@ -734,12 +737,12 @@ begin
   CurrentRTFP.FormatEditValidate(Selected_PID);
 end;
 
-procedure TFormDesktop.ProjectTagChange(Sender:TObject;akey,avalue:string);
+procedure TFormDesktop.ProjectTagChange(AProject:TRTFP;akey,avalue:string);
 var combo:TComboBox;
     filename:string;
 begin
   case akey of
-    '字段关联路径':with Sender as TRTFP do
+    '字段关联路径':with AProject do
       begin
         combo:=ComboBox_FormatEdit;
         if combo.ItemIndex>=0 then filename:=combo.Items[combo.ItemIndex]
@@ -750,14 +753,14 @@ begin
   end;
 end;
 
-procedure TFormDesktop.FirstEdit(Sender:TObject);
+procedure TFormDesktop.FirstEdit(AProject:TRTFP);
 begin
-  Self.Caption:=C_SOFTWARE_NAME+' - '+(Sender as TRTFP).Title + ' *';
+  Self.Caption:=C_SOFTWARE_NAME+' - '+AProject.Title + ' *';
   Self.MenuItem_project_save.Enabled:=true;
   Application.ProcessMessages;
 end;
 
-procedure TFormDesktop.Clear(Sender:TObject);
+procedure TFormDesktop.Clear(AProject:TRTFP);
 begin
   Self.Caption:=C_SOFTWARE_NAME;
   Self.PropertiesValueListEditor.Clear;
@@ -767,35 +770,34 @@ begin
   ComboBox_FormatEdit.Clear;
 end;
 
-procedure TFormDesktop.Log(Sender:TObject;msg:string);
+procedure TFormDesktop.Log(AProject:TRTFP;msg:string);
 begin
   Memo_Log.Lines.Add(msg);
 end;
 
-procedure TFormDesktop.ProjectOpenDone(Sender:TObject);
+procedure TFormDesktop.ProjectOpenDone(AProject:TRTFP);
 var fmt_file:string;
     oidx:integer;
 begin
 
-  Self.Frame_AufScript1.OpenDialog.InitialDir:=(Sender as TRTFP).CurrentPathFull+'script';
-  Self.Frame_AufScript1.SaveDialog.InitialDir:=(Sender as TRTFP).CurrentPathFull+'script';
+  Self.Frame_AufScript1.OpenDialog.InitialDir:=AProject.CurrentPathFull+'script';
+  Self.Frame_AufScript1.SaveDialog.InitialDir:=AProject.CurrentPathFull+'script';
 
   //文献节点选项卡
-  Self.DataSource_Main.DataSet:=(Sender as TRTFP).PaperDS;
+  Self.DataSource_Main.DataSet:=AProject.PaperDS;
 
   //分类节点选项卡
-  ClassListValidate(Sender as TRTFP);
-
-  Self.Validate(Sender);
-  (Sender as TRTFP).RebuildMainGrid;
-  fmt_file:=CurrentRTFP.Tag['编辑属性布局'];
-  if (Sender as TRTFP).FormatList.Find(fmt_file,oidx) then begin
+  ClassListValidate(AProject);
+  Self.Validate(AProject);
+  AProject.RebuildMainGrid;
+  fmt_file:=AProject.Tag['编辑属性布局'];
+  if AProject.FormatList.Find(fmt_file,oidx) then begin
     ComboBox_FormatEdit.ItemIndex:=oidx;
   end else begin
     fmt_file:='default.fmt';
   end;
-  (Sender as TRTFP).FormatEditBuild(Self.ScrollBox_Node_FormatEdit,fmt_file);//这个不是这里应该做的事，移到format_component里头。
 
+  AProject.FormatEditBuild(Self.ScrollBox_Node_FormatEdit,fmt_file);//这个不是这里应该做的事，移到format_component里头。
 
   Self.MenuItem_project_new.Enabled:=false;
   Self.MenuItem_project_open.Enabled:=false;
@@ -811,15 +813,15 @@ begin
 
 end;
 
-procedure TFormDesktop.ProjectClose(Sender:TObject);
+procedure TFormDesktop.ProjectClose(AProject:TRTFP);
 begin
   SaveRecentProject;
 end;
 
 
-procedure TFormDesktop.ProjectCloseDone(Sender:TObject);
+procedure TFormDesktop.ProjectCloseDone(AProject:TRTFP);
 begin
-  Self.Clear(Sender);
+  Self.Clear(AProject);
   CurrentRTFP.FormatEditClear(Self.ScrollBox_Node_FormatEdit);
 
   //文献节点选项卡
@@ -843,9 +845,9 @@ begin
 
 end;
 
-procedure TFormDesktop.ProjectSaveDone(Sender:TObject);
+procedure TFormDesktop.ProjectSaveDone(AProject:TRTFP);
 begin
-  Self.Validate(Sender);
+  Self.Validate(AProject);
   Self.MenuItem_project_save.Enabled:=false;
 end;
 
@@ -1054,7 +1056,7 @@ end;
 procedure TFormDesktop.MenuItem_Tool_ProjectDirClick(Sender: TObject);
 begin
   if ProjectInvalid then exit;
-  TRTFP.OpenDir(UTF8ToWinCP(CurrentRTFP.CurrentFileFull));
+  TRTFP.OpenDir({UTF8ToWinCP}(CurrentRTFP.CurrentFileFull));
 end;
 
 

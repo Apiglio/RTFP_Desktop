@@ -1,33 +1,33 @@
 object Form_NewProject: TForm_NewProject
   Left = 892
-  Height = 240
+  Height = 200
   Top = 498
-  Width = 450
+  Width = 375
   BorderIcons = [biSystemMenu]
   Caption = '新建工程'
-  ClientHeight = 240
-  ClientWidth = 450
-  Constraints.MinHeight = 240
-  Constraints.MinWidth = 450
-  DesignTimePPI = 144
+  ClientHeight = 200
+  ClientWidth = 375
+  Constraints.MinHeight = 200
+  Constraints.MinWidth = 375
+  DesignTimePPI = 120
   OnActivate = FormActivate
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   Position = poScreenCenter
-  LCLVersion = '1.8.4.0'
+  LCLVersion = '2.2.6.0'
   object Edit_ProjectName: TEdit
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 90
-    Height = 32
-    Top = 15
-    Width = 345
+    Left = 75
+    Height = 39
+    Top = 12
+    Width = 288
     Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Left = 90
-    BorderSpacing.Top = 15
-    BorderSpacing.Right = 15
+    BorderSpacing.Left = 75
+    BorderSpacing.Top = 12
+    BorderSpacing.Right = 12
     OnChange = Edit_ProjectNameChange
     TabOrder = 0
     Text = 'Untitled'
@@ -36,11 +36,11 @@ object Form_NewProject: TForm_NewProject
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Edit_ProjectName
     AnchorSideTop.Side = asrCenter
-    Left = 15
-    Height = 24
-    Top = 19
+    Left = 12
+    Height = 27
+    Top = 18
     Width = 90
-    BorderSpacing.Left = 15
+    BorderSpacing.Left = 12
     Caption = '工程名称：'
     ParentColor = False
   end
@@ -48,11 +48,11 @@ object Form_NewProject: TForm_NewProject
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Edit_ProjectPath
     AnchorSideTop.Side = asrCenter
-    Left = 15
-    Height = 24
-    Top = 61
+    Left = 12
+    Height = 27
+    Top = 65
     Width = 90
-    BorderSpacing.Left = 15
+    BorderSpacing.Left = 12
     Caption = '文件路径：'
     ParentColor = False
   end
@@ -62,14 +62,14 @@ object Form_NewProject: TForm_NewProject
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 90
-    Height = 32
-    Top = 57
-    Width = 345
+    Left = 75
+    Height = 39
+    Top = 59
+    Width = 288
     Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Left = 90
-    BorderSpacing.Top = 10
-    BorderSpacing.Right = 15
+    BorderSpacing.Left = 75
+    BorderSpacing.Top = 8
+    BorderSpacing.Right = 12
     OnChange = Edit_ProjectPathChange
     TabOrder = 1
     Text = 'K:\LAB_Pascal\RTFP Desktop\DefaultDB'
@@ -80,14 +80,14 @@ object Form_NewProject: TForm_NewProject
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 10
-    Height = 36
-    Top = 189
-    Width = 72
+    Left = 8
+    Height = 30
+    Top = 158
+    Width = 60
     HelpType = htKeyword
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Left = 10
-    BorderSpacing.Bottom = 15
+    BorderSpacing.Left = 8
+    BorderSpacing.Bottom = 12
     Caption = '创建'
     ModalResult = 1
     OnClick = Button_CreateClick
@@ -96,13 +96,13 @@ object Form_NewProject: TForm_NewProject
   object Button_Browse: TButton
     AnchorSideLeft.Control = Owner
     AnchorSideBottom.Control = Button_Create
-    Left = 10
-    Height = 36
-    Top = 143
-    Width = 72
+    Left = 8
+    Height = 30
+    Top = 120
+    Width = 60
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Left = 10
-    BorderSpacing.Bottom = 10
+    BorderSpacing.Left = 8
+    BorderSpacing.Bottom = 8
     Caption = '浏览'
     OnClick = Button_BrowseClick
     TabOrder = 3
@@ -115,15 +115,15 @@ object Form_NewProject: TForm_NewProject
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 90
-    Height = 126
-    Top = 99
-    Width = 235
+    Left = 75
+    Height = 82
+    Top = 106
+    Width = 196
     Anchors = [akTop, akLeft, akRight, akBottom]
-    BorderSpacing.Left = 90
-    BorderSpacing.Top = 10
-    BorderSpacing.Right = 125
-    BorderSpacing.Bottom = 15
+    BorderSpacing.Left = 75
+    BorderSpacing.Top = 8
+    BorderSpacing.Right = 104
+    BorderSpacing.Bottom = 12
     Enabled = False
     Items.Strings = (
       '工程名称合法'
@@ -132,7 +132,7 @@ object Form_NewProject: TForm_NewProject
       '路径长度'
       '磁盘空间(>4Gbytes)'
     )
-    ItemHeight = 25
+    ItemHeight = 33
     TabOrder = 4
     Data = {
       050000000000000000
@@ -141,12 +141,12 @@ object Form_NewProject: TForm_NewProject
   object Label_ProjectCanBuild: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = CheckListBox_CanBuild
-    Left = 15
-    Height = 24
-    Top = 103
+    Left = 12
+    Height = 27
+    Top = 109
     Width = 90
-    BorderSpacing.Left = 15
-    BorderSpacing.Top = 4
+    BorderSpacing.Left = 12
+    BorderSpacing.Top = 3
     Caption = '创建要求：'
     ParentColor = False
   end
@@ -155,14 +155,14 @@ object Form_NewProject: TForm_NewProject
     AnchorSideTop.Control = CheckListBox_CanBuild
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 336
-    Height = 69
-    Top = 99
-    Width = 99
+    Left = 281
+    Height = 58
+    Top = 106
+    Width = 82
     Anchors = [akTop, akRight]
     AutoFill = True
-    BorderSpacing.Left = 30
-    BorderSpacing.Right = 15
+    BorderSpacing.Left = 25
+    BorderSpacing.Right = 12
     Caption = '数据库格式'
     ChildSizing.LeftRightSpacing = 6
     ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
@@ -171,8 +171,8 @@ object Form_NewProject: TForm_NewProject
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
-    ClientHeight = 40
-    ClientWidth = 95
+    ClientHeight = 30
+    ClientWidth = 80
     ItemIndex = 1
     Items.Strings = (
       'DBF'
@@ -184,7 +184,7 @@ object Form_NewProject: TForm_NewProject
     Title = '选择目录'
     FileName = 'K:\LAB_Pascal\RTFP Desktop'
     InitialDir = 'K:\LAB_Pascal\'
-    left = 272
-    top = 152
+    Left = 227
+    Top = 127
   end
 end

@@ -319,7 +319,7 @@ begin
   end;
   FileList:=TStringList.Create;
   try
-    FindAllFiles(FileList,search_path,'',false,faAnyFile);
+    FindAllFiles(FileList,search_path,'*.*',false,faAnyFile);
     for file_path in FileList do begin
       if not regexp.Exec(file_path) then continue;
       klassname:=ExtractFilename(file_path);

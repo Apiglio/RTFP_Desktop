@@ -361,24 +361,20 @@ begin
         end;
     end;
     max_attr:=pi;
-
     FPaperDS.CreateTable;
     FPaperDS.Open;
     FPaperDS.Last;
-
     IF (FKlassList.Count=0) or (FKlassList.AllUnChecked) THEN BEGIN
       GenerateFields_WithoutKlassFilter;
     END ELSE BEGIN
       GenerateFields_WithKlassFilter;
     END;
-
     IF FPaperDS.EOF and FPaperDS.BOF THEN ELSE BEGIN
       for pj:=0 to max_attr do
         begin
           if attr_range[pj].min > attr_range[pj].max then continue;
           tmpDbf:=FFieldList[pj].Dbf;
           if tmpDbf.EOF and tmpDbf.BOF then continue;
-
           FPaperDS.First;
           if not FPaperDS.EOF then repeat
             PID:=FPaperDS.FieldByName(_Col_PID_).AsString;

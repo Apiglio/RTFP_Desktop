@@ -11,8 +11,8 @@ begin
   if tmpKlassList.FindItemIndexByName(klassname)>=0 then exit;
   if parentklass<>nil then begin
     mkdir_path:=FKlassList.KlassDir;
-    if parentklass.Path<>'' then mkdir_path:=mkdir_path+'\'+parentklass.Path;
-    mkdir_path:=mkdir_path+'\'+parentklass.Name;
+    if parentklass.Path<>'' then mkdir_path:=mkdir_path+'/'+parentklass.Path;
+    mkdir_path:=mkdir_path+'/'+parentklass.Name;
     ForceDirectories(mkdir_path);
   end;
   tmpKL:=tmpKlassList.Add(klassname,DataSetType);

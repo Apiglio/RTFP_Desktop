@@ -330,12 +330,12 @@ begin
     if not Active then Open;
     if not LocatePID(FPaperDB,PID) then exit;
     if FieldByName(_Col_Paper_Is_Backup_).AsBoolean then
-      filename:=Utf8ToWinCP(FFilePath+FRootFolder+'/paper/'
+      filename:={Utf8ToWinCP}(FFilePath+FRootFolder+'/paper/'
         +FieldByName(_Col_Paper_Folder_).AsString+'/'
         +FieldByName(_Col_Paper_FileName_).AsString)
     else begin
       case FieldByName(_Col_Paper_Folder_).AsString of
-        'extern':filename:=Utf8ToWinCP(FieldByName(_Col_Paper_FileName_).AsString);
+        'extern':filename:={Utf8ToWinCP}(FieldByName(_Col_Paper_FileName_).AsString);
         'weblnk':
           begin
             filename:=ReadFieldAsString(_Col_basic_Link_,_Attrs_Basic_,PID,[]);
@@ -365,12 +365,12 @@ begin
     if not Active then Open;
     if not LocatePID(FPaperDB,PID) then exit;
     if FieldByName(_Col_Paper_Is_Backup_).AsBoolean then
-      filename:=Utf8ToWinCP(FFilePath+FRootFolder+'/paper/'
+      filename:={Utf8ToWinCP}(FFilePath+FRootFolder+'/paper/'
         +FieldByName(_Col_Paper_Folder_).AsString+'/'
         +FieldByName(_Col_Paper_FileName_).AsString)
     else begin
       case FieldByName(_Col_Paper_Folder_).AsString of
-        'extern':filename:=Utf8ToWinCP(FieldByName(_Col_Paper_FileName_).AsString);
+        'extern':filename:={Utf8ToWinCP}(FieldByName(_Col_Paper_FileName_).AsString);
         else begin ShowMsgOK('警告','非备份文献节点不能通过此方法打开！');exit;end;
       end;
     end;

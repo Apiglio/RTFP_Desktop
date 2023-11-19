@@ -68,7 +68,7 @@ uses RTFP_main, RTFP_definition, rtfp_field, rtfp_constants, rtfp_type,
 
 procedure TFormRepeatedChecker.Button_FindRepeatedClick(Sender: TObject);
 var vOption:TSimChkOptions;
-    tmpProc:TNotifyEvent;
+    tmpProc:TRTFPProjectEvent;
     cnt_total:integer;
 begin
 
@@ -158,7 +158,7 @@ end;
 
 procedure TFormRepeatedChecker.Button_ApplyAllClick(Sender: TObject);
 var index:integer;
-    tmpProc:TNotifyEvent;
+    tmpProc:TRTFPProjectEvent;
 begin
   if ShowMsgYesNoAll('批量合并','请再三确认是否合并左栏所有重复项。')<>'Yes' then exit;
 
