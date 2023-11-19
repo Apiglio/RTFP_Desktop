@@ -58,7 +58,7 @@ function TForm_NewProject.GetFileFullName:string;
 var str:string;
     len:integer;
 begin
-  result:=Utf8ToWinCP(Self.Edit_ProjectPath.Caption)+'\'+Utf8ToWinCP(Self.Edit_ProjectName.Caption);
+  result:=Utf8ToWinCP(Self.Edit_ProjectPath.Caption)+'/'+Utf8ToWinCP(Self.Edit_ProjectName.Caption);
   len:=length(result);
   if len>=5 then begin
     str:=copy(result,len-4,5);
@@ -83,7 +83,7 @@ function TForm_NewProject.GetFilePath:string;
 begin
   result:=Utf8ToWinCP(Self.Edit_ProjectPath.Caption);
   ExpandFileName(result);
-  result:=result+'\';
+  result:=result+'/';
 end;
 
 procedure TForm_NewProject.Button_BrowseClick(Sender: TObject);
@@ -133,8 +133,17 @@ begin
 end;
 
 procedure TForm_NewProject.FormCreate(Sender: TObject);
+var init_path:string;
+    len:integer;
 begin
-  Edit_ProjectPath.Caption:=ExtractFilePath(ParamStr(0))+'DefaultDB'+_fsplit_;
+  if ProjectInvalid then
+    init_path:=ExtractFilePath(ParamStr(0))+'DefaultDB'+_fsplit_
+  else
+    init_path:=CurrentRTFP.CurrentPathFull;
+  Edit_ProjectPath.Caption:=init_path;
+  len:=length(init_path);
+  if len>1 then delete(init_path,len,1);
+  SelectDirectoryDialog_NewProject.InitialDir:=init_path;
 end;
 
 procedure TForm_NewProject.FormDeactivate(Sender: TObject);

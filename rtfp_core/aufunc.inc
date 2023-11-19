@@ -734,7 +734,11 @@ begin
           AufScpt.send_error('错误：找不到属性组“'+NA+'.'+NF+'”。');
           exit;
         end;
+        {$ifdef WINDOWS}
         AF.FFieldDisplayOption.LoadFromJSON(stmp);
+        {$else}
+        AufScpt.send_error('非Windows端由于bug问题，暂时取消该设置。');
+        {$endif}
       end;
     'add_combo':
       begin

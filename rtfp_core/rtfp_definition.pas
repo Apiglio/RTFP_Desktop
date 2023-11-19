@@ -53,6 +53,9 @@ uses
   {$ifdef Windows}
   Windows,
   {$endif}
+  {$ifdef UNIX}
+  unix, process,
+  {$endif}
 
   {$ifndef insert}
   Apiglio_Useful, auf_ram_var, rtfp_pdfobj, rtfp_files, rtfp_class, rtfp_field,
@@ -80,10 +83,11 @@ type
   AttrsTypeDismatchErr=class(AttrsError)
   end;
 
-  TRTFPProjectEvent = procedure(Sender:TObject) of object;//TNotifyEvent;
-  TRTFPChangeEvent = procedure(Sender:TObject) of object;//TNotifyEvent;
-  TRTFPOneStrEvent = procedure(Sender:TObject;str:string) of object;
-  TRTFPTwoStrEvent = procedure(Sender:TObject;str1,str2:string) of object;
+  TRTFP = class;
+  TRTFPProjectEvent = procedure(AProject:TRTFP) of object;
+  TRTFPChangeEvent = procedure(AProject:TRTFP) of object;
+  TRTFPOneStrEvent = procedure(AProject:TRTFP;str:string) of object;
+  TRTFPTwoStrEvent = procedure(AProject:TRTFP;str1,str2:string) of object;
 
 
   TRTFP_Auf=class(TAuf)
@@ -1920,30 +1924,23 @@ end;
 
 class function TRTFP.FileCopy(source,dest:string;bFailIfExist:boolean):boolean;
 begin
-  {$ifdef Windows}
   result:=false;
   if not ForceDirectories(ExtractFilePath(dest)) then exit;
-  result:=CopyFile(pchar(UTF8ToWinCP(source)),pchar(UTF8ToWinCP(dest)),bFailIfExist);
-  {$endif}
+  result:=CopyFile(pchar({$ifdef Windows}UTF8ToWinCP{$endif}(source)),pchar(UTF8ToWinCP(dest)),bFailIfExist);
 end;
 
 class function TRTFP.FileDelete(source:string):boolean;
 begin
-  {$ifdef Windows}
-  result:=DeleteFile(pchar(UTF8ToWinCP(source)));
-  {$endif}
+  result:=DeleteFile(pchar({$ifdef Windows}UTF8ToWinCP{$endif}(source)));
 end;
 
 class function TRTFP.FileMove(source,dest:string;bFailIfExist:boolean):boolean;
 begin
   result:=false;
-  {$ifdef Windows}
-  if CopyFile(pchar(UTF8ToWinCP(source)),pchar(UTF8ToWinCP(dest)),bFailIfExist) then
+  if CopyFile(pchar({$ifdef Windows}UTF8ToWinCP{$endif}(source)),pchar({$ifdef Windows}UTF8ToWinCP{$endif}(dest)),bFailIfExist) then
     result:=DeleteFile(pchar(UTF8ToWinCP(source)))
   else
     result:=false;
-  {$endif}
-
 end;
 
 class function TRTFP.FileRename(oldname,newname:string):boolean;
@@ -1972,29 +1969,99 @@ begin
   result:=RemoveDir(filename);
 end;
 
-class function TRTFP.OpenDir(filename:string):boolean;
+{$ifdef UNIX}
+procedure CheckXDG;inline;
 begin
-  {$ifdef Windows}
-  ShellExecute(0,'open','explorer',pchar('/select,"'+StringReplace(filename,'/','\',[rfReplaceAll])+'"'),nil,SW_NORMAL);
-  {$endif}
+  //sudo apt install xdg-utils
 end;
+{$endif}
+
+class function TRTFP.OpenDir(filename:string):boolean;
+{$ifdef Windows}
+var stmp:string;
+begin
+  result:=false;
+  stmp:=UTF8ToWinCP(filename);
+  ShellExecute(0,'open','explorer',pchar('/select,"'+StringReplace(stmp,'/','\',[rfReplaceAll])+'"'),nil,SW_NORMAL);
+  result:=true;
+end;
+{$else}
+{$ifdef UNIX}
+var result_str:string;
+begin
+  result:=false;
+  CheckXDG;
+  RunCommand('xdg-open',ExtractFileDir(filename),result_str); //using xdg-open cannot select specific file?
+  if result_str='' then result:=true
+  else ShowMsgOK('Linux Bash Error',result_str);
+end;
+{$else}
+begin
+  result:=false;
+end;
+{$endif}
+{$endif}
 
 class function TRTFP.OpenFile(filename:string;exefile:string=''):boolean;
+{$ifdef Windows}
+var stmp,etmp:string;
 begin
-  {$ifdef Windows}
-  if exefile='' then
-    ShellExecute(0,'open',pchar('"'+filename+'"'),'','',SW_NORMAL)
+  result:=false;
+  stmp:=UTF8ToWinCP(filename);
+  etmp:=UTF8ToWinCP(exefile);
+  if etmp='' then
+    ShellExecute(0,'open',pchar('"'+stmp+'"'),'','',SW_NORMAL)
   else
-    ShellExecute(0,'open',pchar(exefile),pchar('"'+filename+'"'),'',SW_NORMAL);
-  {$endif}
+    ShellExecute(0,'open',pchar(etmp),pchar('"'+stmp+'"'),'',SW_NORMAL);
+  result:=true;
 end;
+{$else}
+{$ifdef UNIX}
+var result_str:string;
+begin
+  result:=false;
+  result_str:='';
+  CheckXDG;
+  if exefile='' then begin
+    RunCommand('xdg-open',filename,result_str);
+    if result_str='' then result:=true
+    else ShowMsgOK('Linux Bash Error','xdg-open '+filename+#10+result_str);
+  end else begin
+    RunCommand(exefile,filename,result_str);
+    if result_str='' then result:=true
+    else ShowMsgOK('Linux Bash Error',exefile+' '+filename+#10+result_str);
+  end;
+end;
+{$else}
+begin
+  result:=false;
+end;
+{$endif}
+{$endif}
 
 class function TRTFP.OpenLink(linkage:string):boolean;
+{$ifdef Windows}
+var stmp:string;
 begin
-  {$ifdef Windows}
+  result:=false;
   ShellExecute(0,'open',pchar(linkage),'','',SW_NORMAL);
-  {$endif}
+  result:=true;
+{$else}
+{$ifdef UNIX}
+var result_str:string;
+begin
+  result:=false;
+  CheckXDG;
+  RunCommand('xdg-open',linkage,result_str);
+  if result_str='' then result:=true
+  else ShowMsgOK('Linux Bash Error',result_str);
 end;
+{$else}
+begin
+  result:=false;
+end;
+{$endif}
+{$endif}
 
 initialization
 

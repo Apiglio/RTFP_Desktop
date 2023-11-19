@@ -801,7 +801,7 @@ begin
   assert(APath<>'','TAttrsGroupList.LoadFromPath: APath=""');
   if APath='' then exit;
   Clear;
-  tmpFileList:=TRTFP_FileList.Create(nil,FFullPath+'\'+APath);
+  tmpFileList:=TRTFP_FileList.Create(nil,FFullPath+'/'+APath);
   regexp:=TRegExpr.Create;
   case data_set_type of
     dstDBF:regexp.Expression:='[^_run]\.dbf$';

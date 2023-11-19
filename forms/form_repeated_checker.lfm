@@ -12,7 +12,7 @@ object FormRepeatedChecker: TFormRepeatedChecker
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.8.4.0'
+  LCLVersion = '2.2.6.0'
   object ListBox_RepeatedPIDPair: TListBox
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
@@ -27,6 +27,7 @@ object FormRepeatedChecker: TFormRepeatedChecker
     ItemHeight = 0
     OnSelectionChange = ListBox_RepeatedPIDPairSelectionChange
     TabOrder = 0
+    TopIndex = -1
   end
   object Button_FindRepeated: TButton
     AnchorSideLeft.Control = ListBox_RepeatedPIDPair
@@ -100,6 +101,7 @@ object FormRepeatedChecker: TFormRepeatedChecker
       end    
       item
         Caption = '对比'
+        Width = 400
       end>
     GridLines = True
     PopupMenu = PopupMenu_CombinationMode
@@ -205,8 +207,8 @@ object FormRepeatedChecker: TFormRepeatedChecker
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
-    ClientHeight = 85
-    ClientWidth = 120
+    ClientHeight = 77
+    ClientWidth = 122
     ItemIndex = 0
     Items.Strings = (
       '完全相同'
@@ -251,8 +253,8 @@ object FormRepeatedChecker: TFormRepeatedChecker
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
-    ClientHeight = 85
-    ClientWidth = 120
+    ClientHeight = 77
+    ClientWidth = 122
     ItemIndex = 0
     Items.Strings = (
       '主表显示'
@@ -281,8 +283,8 @@ object FormRepeatedChecker: TFormRepeatedChecker
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 2
-    ClientHeight = 120
-    ClientWidth = 250
+    ClientHeight = 112
+    ClientWidth = 252
     Columns = 2
     Items.Strings = (
       '文件名'
@@ -301,8 +303,8 @@ object FormRepeatedChecker: TFormRepeatedChecker
     }
   end
   object PopupMenu_CombinationMode: TPopupMenu
-    left = 136
-    top = 64
+    Left = 136
+    Top = 64
     object MenuItem_KeepMain: TMenuItem
       Caption = '保留主要属性'
       OnClick = MenuItem_KeepMainClick
