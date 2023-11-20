@@ -2046,6 +2046,8 @@ begin
   result:=false;
   ShellExecute(0,'open',pchar(linkage),'','',SW_NORMAL);
   result:=true;
+end;
+
 {$else}
 {$ifdef UNIX}
 var result_str:string;
