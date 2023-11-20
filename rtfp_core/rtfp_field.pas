@@ -341,8 +341,8 @@ var data,tmp:TJSONData;
 begin
   Clear;
   str:=StringReplace(str,'''','"',[rfReplaceAll]);
+  data:=GetJSON(str);
   try
-    data:=GetJSON(str);
     tmp:=data.FindPath('disp_name');
     if tmp=nil then FDispName:=''
     else FDispName:=tmp.AsString;
@@ -368,10 +368,9 @@ begin
       len:=tmp.Count;
       for pi:=0 to len-1 do FColors.Add(pdword(HexToColor(tmp.Items[pi].AsString)));
     end;
-  except
-    {nop}
+  finally
+    if assigned(data) then data.Free;
   end;
-  if assigned(data) then FreeAndNil(data);
   if FMode=fdmSuccessive then CheckSuccessive;
 end;
 
