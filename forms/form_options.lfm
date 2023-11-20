@@ -90,11 +90,11 @@ object FormOptions: TFormOptions
         Height = 332
         Top = 0
         Width = 415
-        HorzScrollBar.Page = 324
-        VertScrollBar.Page = 330
+        HorzScrollBar.Page = 315
+        VertScrollBar.Page = 328
         Anchors = [akTop, akLeft, akRight, akBottom]
-        ClientHeight = 330
-        ClientWidth = 413
+        ClientHeight = 328
+        ClientWidth = 408
         TabOrder = 0
         object RadioGroup_BackupMode: TRadioGroup
           AnchorSideLeft.Control = ScrollBox_Sync
@@ -105,7 +105,7 @@ object FormOptions: TFormOptions
           Left = 8
           Height = 47
           Top = 119
-          Width = 397
+          Width = 392
           Anchors = [akTop, akLeft, akRight]
           AutoFill = True
           BorderSpacing.Left = 8
@@ -120,7 +120,7 @@ object FormOptions: TFormOptions
           ChildSizing.Layout = cclLeftToRightThenTopToBottom
           ChildSizing.ControlsPerLine = 3
           ClientHeight = 19
-          ClientWidth = 395
+          ClientWidth = 390
           Columns = 3
           Items.Strings = (
             '移动入库'
@@ -139,14 +139,14 @@ object FormOptions: TFormOptions
           Left = 8
           Height = 52
           Top = 174
-          Width = 397
+          Width = 392
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Left = 8
           BorderSpacing.Top = 8
           BorderSpacing.Right = 8
           Caption = '同步间隔'
           ClientHeight = 24
-          ClientWidth = 395
+          ClientWidth = 390
           TabOrder = 1
           object TrackBar_SyncInterval: TTrackBar
             AnchorSideLeft.Control = GroupBox_SyncInterval
@@ -157,7 +157,7 @@ object FormOptions: TFormOptions
             Left = 8
             Height = 48
             Top = -28
-            Width = 325
+            Width = 320
             Max = 20
             OnChange = TrackBar_SyncIntervalChange
             Position = 5
@@ -172,7 +172,7 @@ object FormOptions: TFormOptions
             AnchorSideTop.Side = asrCenter
             AnchorSideRight.Control = GroupBox_SyncInterval
             AnchorSideRight.Side = asrBottom
-            Left = 349
+            Left = 344
             Height = 27
             Top = -17
             Width = 38
@@ -191,14 +191,14 @@ object FormOptions: TFormOptions
           Left = 8
           Height = 137
           Top = 234
-          Width = 397
+          Width = 392
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Left = 8
           BorderSpacing.Top = 8
           BorderSpacing.Right = 8
           Caption = '同步规则'
           ClientHeight = 109
-          ClientWidth = 395
+          ClientWidth = 390
           TabOrder = 2
           object Memo_RegExpr: TMemo
             AnchorSideLeft.Control = GroupBox_SyncFilter
@@ -210,7 +210,7 @@ object FormOptions: TFormOptions
             Left = 8
             Height = 109
             Top = 0
-            Width = 387
+            Width = 382
             Anchors = [akTop, akLeft, akRight, akBottom]
             BorderSpacing.Left = 8
             OnChange = Memo_RegExprChange
@@ -227,23 +227,23 @@ object FormOptions: TFormOptions
           Left = 8
           Height = 60
           Top = 51
-          Width = 397
+          Width = 392
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Left = 8
           BorderSpacing.Top = 8
           BorderSpacing.Right = 8
           Caption = '同步路径：'
           ClientHeight = 32
-          ClientWidth = 395
+          ClientWidth = 390
           TabOrder = 3
           object Edit_SyncPath: TEdit
             AnchorSideLeft.Control = GroupBox_SyncPath
             AnchorSideTop.Control = GroupBox_SyncPath
             AnchorSideRight.Control = Button_SyncPath
             Left = 8
-            Height = 39
+            Height = 35
             Top = 4
-            Width = 309
+            Width = 304
             Anchors = [akTop, akLeft, akRight]
             BorderSpacing.Left = 8
             BorderSpacing.Top = 4
@@ -259,8 +259,8 @@ object FormOptions: TFormOptions
             AnchorSideRight.Side = asrBottom
             AnchorSideBottom.Control = Edit_SyncPath
             AnchorSideBottom.Side = asrBottom
-            Left = 325
-            Height = 39
+            Left = 320
+            Height = 35
             Top = 4
             Width = 62
             Anchors = [akTop, akRight, akBottom]
@@ -276,7 +276,7 @@ object FormOptions: TFormOptions
           Left = 8
           Height = 31
           Top = 12
-          Width = 134
+          Width = 131
           BorderSpacing.Left = 8
           BorderSpacing.Top = 12
           Caption = '启用文件同步'
@@ -411,7 +411,7 @@ object FormOptions: TFormOptions
         Height = 332
         Top = 0
         Width = 415
-        HorzScrollBar.Page = 192
+        HorzScrollBar.Page = 189
         VertScrollBar.Page = 260
         Anchors = [akTop, akLeft, akRight, akBottom]
         ClientHeight = 328
@@ -458,7 +458,7 @@ object FormOptions: TFormOptions
             Left = 8
             Height = 31
             Top = 8
-            Width = 152
+            Width = 149
             BorderSpacing.Left = 8
             BorderSpacing.Top = 8
             Caption = '使用字段显示名'
@@ -472,7 +472,7 @@ object FormOptions: TFormOptions
             Left = 8
             Height = 31
             Top = 47
-            Width = 166
+            Width = 163
             BorderSpacing.Left = 8
             BorderSpacing.Top = 8
             Caption = 'csv或tsv使用表头'

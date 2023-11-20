@@ -617,7 +617,7 @@ begin
       ShowMsgOK('警告','请选择一种报表再导出。');
       exit;
     end;
-  filepath:=CurrentRTFP.CurrentPathFull+'export\';
+  filepath:=CurrentRTFP.CurrentPathFull+'export';
   ForceDirectories(filepath);
   with SaveDialog_report do begin
     InitialDir:=filepath;

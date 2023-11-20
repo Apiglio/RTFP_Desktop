@@ -48,7 +48,7 @@ type
 
 
 implementation
-uses rtfp_dialog, rtfp_main, form_cite_trans;
+uses rtfp_dialog, rtfp_main, form_cite_trans, rtfp_constants;
 
 function apm_str(apm:TAddPaperMethod):string;
 begin
@@ -70,7 +70,7 @@ Begin
   FFileList.Clear;
   FFileListNew.Clear;
 
-  If FindFirst(FSyncPath+'\*',faAnyFile,Info)=0 then
+  If FindFirst(FSyncPath+_fsplit_+'*',faAnyFile,Info)=0 then
   Repeat
     With Info do
     if (Name<>'.') and (Name<>'..') and (Attr and faDirectory = 0) then
@@ -112,7 +112,7 @@ begin
   UpdateFileList;
   for filename in FFileListNew do
     begin
-      fullname:=FSyncPath+'\'+filename;
+      fullname:=FSyncPath+_fsplit_+filename;
       case ShowMsgYesNoAll('新建文件节点','是否为以下文件新建文献节点？'+#13#10+fullname+'（'+apm_str(FBackupMode)+'）') of
         'No':continue;
         else begin
@@ -187,7 +187,14 @@ begin
   FEnabled:=false;
   FInterval:=5000;
   FRule:='\.pdf|\.caj';
+  {$ifdef WINDOWS}
   FSyncPath:='F:\chrome_downloaded';
+  {$else}
+  {$ifdef UNIX}
+  FSyncPath:='~/Downloads';
+  {$else}
+  {$endif}
+  {$endif}
   FBackupMode:=apmCutBackup;
 
   FFileList:=TStringList.Create;

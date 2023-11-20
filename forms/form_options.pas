@@ -280,7 +280,15 @@ begin
       end
     else
       begin
+        {$ifdef WINDOWS}
         FormDesktop.SyncTimer.SyncPath:='E:\chrome_download';
+        {$else}
+        {$ifdef UNIX}
+        FormDesktop.SyncTimer.SyncPath:='~/Downloads';
+        {$else}
+        FormDesktop.SyncTimer.SyncPath:='';
+        {$endif}
+        {$endif}
         FormDesktop.SyncTimer.BackupMode:=apmFullBackup;
         FormDesktop.SyncTimer.Interval:=1195;
         FormDesktop.SyncTimer.Rule:='\.pdf|\.caj|\.docx*|\.xlsx*|\.sep|\.od[ts]';

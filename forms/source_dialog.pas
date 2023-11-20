@@ -52,10 +52,10 @@ var pathn,filen,fulln:string;
 begin
   pathn:=CurrentRTFP.ReadBasicString(_Col_Paper_Folder_,Current_PID);
   filen:=CurrentRTFP.ReadBasicString(_Col_Paper_FileName_,Current_PID);
-  fulln:=pathn+'\'+filen;
+  fulln:=pathn+_fsplit_+filen;
   result:=true;
   case ShowMsgYesNoCancel('删除旧备份','是否删除旧有备份文件：'+#13#10+'  '+fulln) of
-    'Yes':TRTFP.FileDelete(CurrentRTFP.CurrentPathFull+'paper\'+fulln);
+    'Yes':TRTFP.FileDelete(CurrentRTFP.CurrentPathFull+'paper'+_fsplit_+fulln);
     'No':;
     else result:=false;
   end;
@@ -70,10 +70,10 @@ begin
   pathn:=TRTFP.GetDateDir;
   filen:=ExtractFileName(backup);
   if not FileExists(backup) then exit;
-  if not TRTFP.FileCopy(backup,CurrentRTFP.CurrentPathFull+'paper\'+pathn+'\'+filen,true) then
+  if not TRTFP.FileCopy(backup,CurrentRTFP.CurrentPathFull+'paper'+_fsplit_+pathn+_fsplit_+filen,true) then
     case ShowMsgYesNoAll('备份文件重名','备份文件重名，是否覆盖？') of
       'No':exit;
-      else TRTFP.FileCopy(backup,CurrentRTFP.CurrentPathFull+'paper\'+pathn+'\'+filen,false);
+      else TRTFP.FileCopy(backup,CurrentRTFP.CurrentPathFull+'paper'+_fsplit_+pathn+_fsplit_+filen,false);
     end;
   //这里没有文件路径长度检验
   CurrentRTFP.EditBasicString(_Col_Paper_Folder_,Current_PID,pathn);
@@ -137,7 +137,7 @@ begin
       begin
         if filen='' then RadioGroup_mode.ItemIndex:=3
         else begin
-          OriPath:=pathn+'\'+filen;
+          OriPath:=pathn+_fsplit_+filen;
           RadioGroup_mode.ItemIndex:=0;
           Button_RenameBackup.Enabled:=true;
         end;
@@ -168,16 +168,16 @@ begin
   with CurrentRTFP do
     begin
       filen:=ReadBasicString(_Col_Paper_FileName_,Current_PID);
-      pathn:=CurrentPathFull+'paper\'+ReadBasicString(_Col_Paper_Folder_,Current_PID);
+      pathn:=CurrentPathFull+'paper'+_fsplit_+ReadBasicString(_Col_Paper_Folder_,Current_PID);
     end;
   filenew:=ShowMsgEdit('重命名备份','备份文件名修改为：',filen);
-  if TRTFP.FileRename(pathn+'\'+filen,pathn+'\'+filenew) then
+  if TRTFP.FileRename(pathn+_fsplit_+filen,pathn+_fsplit_+filenew) then
     CurrentRTFP.EditBasicString(_Col_Paper_FileName_,Current_PID,filenew)
   else ShowMsgOK('重命名失败','备份文件重命名失败。');
   pathn:=CurrentRTFP.ReadBasicString(_Col_Paper_Folder_,Current_PID);
   filen:=CurrentRTFP.ReadBasicString(_Col_Paper_FileName_,Current_PID);
   Memo_Path.Clear;
-  Memo_Path.Lines.Add(pathn+'\'+filen);
+  Memo_Path.Lines.Add(pathn+_fsplit_+filen);
 end;
 
 procedure TForm_FileSource.Button_CommitClick(Sender: TObject);

@@ -1124,7 +1124,7 @@ begin
   if ProjectInvalid then exit;
   folder:=CurrentRTFP.PaperDS.FieldByName(_Col_Paper_Folder_).AsString;
   filename:=CurrentRTFP.PaperDS.FieldByName(_Col_Paper_FileName_).AsString;
-  ClipBoard.AsText:=CurrentRTFP.CurrentPathFull+folder+'\'+filename;
+  ClipBoard.AsText:=CurrentRTFP.CurrentPathFull+folder+_fsplit_+filename;
 end;
 
 procedure TFormDesktop.MenuItem_CB_PIDClick(Sender: TObject);
@@ -1462,7 +1462,7 @@ begin
           end;
           if CurrentRTFP.RunPerformance.Fields_ImgFile=is_img_file then continue;
           img_file_path:=CurrentRTFP.GetImgFilePath(AF.FieldName,AG.Name);
-          img_file_name:=img_file_path+'\'+CurrentRTFP.GetImgFileName(PID);
+          img_file_name:=img_file_path+_fsplit_+CurrentRTFP.GetImgFileName(PID);
           if is_img_file then begin
             tmp_bmp.Bitmap.LoadFromFile(img_file_name);
             tmp_bmp.Bitmap.SaveToStream(tmp_mem);
@@ -2171,7 +2171,7 @@ begin
   SynEdit_FEMgr.Clear;
   with ListBox_FormatEditMgr do
     filename:=Items[ItemIndex];
-  //SynEdit_FEMgr.Lines.LoadFromFile(CurrentRTFP.CurrentPathFull+'format\'+filename);
+  //SynEdit_FEMgr.Lines.LoadFromFile(CurrentRTFP.CurrentPathFull+'format'+_fsplit_+filename);
   CurrentRTFP.LoadFromFormatEdit(filename,SynEdit_FEMgr.Lines);
   with StringGrid_FormatEditLayout do
     begin
@@ -2227,7 +2227,7 @@ begin
     'Yes':;
     else ;
   end;
-  //SynEdit_FEMgr.Lines.SaveToFile(CurrentRTFP.CurrentPathFull+'format\'+filename);
+  //SynEdit_FEMgr.Lines.SaveToFile(CurrentRTFP.CurrentPathFull+'format'+_fsplit_+filename);
   CurrentRTFP.SaveToFormatEdit(filename,SynEdit_FEMgr.Lines);
 end;
 
