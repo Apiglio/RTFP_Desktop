@@ -1987,13 +1987,16 @@ begin
 end;
 {$else}
 {$ifdef UNIX}
-var result_str:string;
 begin
   result:=false;
   CheckXDG;
-  RunCommand('xdg-open',ExtractFileDir(filename),result_str); //using xdg-open cannot select specific file?
-  if result_str='' then result:=true
-  else ShowMsgOK('Linux Bash Error',result_str);
+  with TProcess.Create(nil) do begin
+    Executable:='xdg-open';
+    Parameters.Add(ExtractFileDir(filename));
+    Options:=[];
+    Execute;
+  end;
+  result:=true;
 end;
 {$else}
 begin
@@ -2017,20 +2020,17 @@ begin
 end;
 {$else}
 {$ifdef UNIX}
-var result_str:string;
 begin
   result:=false;
-  result_str:='';
   CheckXDG;
-  if exefile='' then begin
-    RunCommand('xdg-open',filename,result_str);
-    if result_str='' then result:=true
-    else ShowMsgOK('Linux Bash Error','xdg-open '+filename+#10+result_str);
-  end else begin
-    RunCommand(exefile,filename,result_str);
-    if result_str='' then result:=true
-    else ShowMsgOK('Linux Bash Error',exefile+' '+filename+#10+result_str);
+  with TProcess.Create(nil) do begin
+    if exefile='' then Executable:='xdg-open'
+    else Executable:=exefile;
+    Parameters.Add(filename);
+    Options:=[];
+    Execute;
   end;
+  result:=true;
 end;
 {$else}
 begin
@@ -2054,9 +2054,13 @@ var result_str:string;
 begin
   result:=false;
   CheckXDG;
-  RunCommand('xdg-open',linkage,result_str);
-  if result_str='' then result:=true
-  else ShowMsgOK('Linux Bash Error',result_str);
+  with TProcess.Create(nil) do begin
+    Executable:='xdg-open';
+    Parameters.Add(linkage);
+    Options:=[];
+    Execute;
+  end;
+  result:=true;
 end;
 {$else}
 begin

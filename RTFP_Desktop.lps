@@ -4,7 +4,7 @@
     <PathDelim Value="\"/>
     <Version Value="12"/>
     <BuildModes Active="Default"/>
-    <Units Count="148">
+    <Units Count="149">
       <Unit0>
         <Filename Value="RTFP_Desktop.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -43,10 +43,9 @@
       <Unit3>
         <Filename Value="sync\sync_timer.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="48"/>
-        <TopLine Value="46"/>
-        <CursorPos X="61" Y="51"/>
+        <TopLine Value="85"/>
+        <CursorPos X="12" Y="54"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
       </Unit3>
@@ -214,9 +213,10 @@
         <Filename Value="rtfp_core\rtfp_definition.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="RTFP_definition"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="18"/>
-        <TopLine Value="1980"/>
-        <CursorPos X="28" Y="1992"/>
+        <TopLine Value="1984"/>
+        <CursorPos X="17" Y="2024"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
       </Unit17>
@@ -530,9 +530,8 @@
         <Filename Value="sync\sync_thread.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="2"/>
-        <TopLine Value="34"/>
         <CursorPos X="11" Y="43"/>
-        <UsageCount Value="129"/>
+        <UsageCount Value="130"/>
         <Loaded Value="True"/>
       </Unit52>
       <Unit53>
@@ -542,7 +541,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="115"/>
+        <UsageCount Value="116"/>
       </Unit53>
       <Unit54>
         <Filename Value="..\AufScript\auftype\auf_type_base.pas"/>
@@ -551,7 +550,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="115"/>
+        <UsageCount Value="116"/>
       </Unit54>
       <Unit55>
         <Filename Value="rtfp_core\packed_format.inc"/>
@@ -1197,16 +1196,16 @@
       <Unit141>
         <Filename Value="..\..\..\..\..\..\usr\share\fpcsrc\3.2.2\packages\fcl-process\src\processbody.inc"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="172"/>
-        <CursorPos X="10" Y="185"/>
+        <TopLine Value="134"/>
+        <CursorPos X="24" Y="148"/>
         <UsageCount Value="16"/>
       </Unit141>
       <Unit142>
         <Filename Value="..\..\..\..\..\..\usr\share\fpcsrc\3.2.2\packages\fcl-process\src\process.pp"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="13"/>
-        <CursorPos X="3" Y="25"/>
-        <UsageCount Value="8"/>
+        <CursorPos X="59" Y="29"/>
+        <UsageCount Value="10"/>
       </Unit142>
       <Unit143>
         <Filename Value="..\..\..\..\..\..\usr\share\lazarus\2.2.6\components\lazutils\unixlazutf8.inc"/>
@@ -1245,6 +1244,13 @@
         <CursorPos Y="1114"/>
         <UsageCount Value="10"/>
       </Unit147>
+      <Unit148>
+        <Filename Value="..\..\..\..\..\..\usr\share\fpcsrc\3.2.2\rtl\inc\threadh.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="24"/>
+        <CursorPos X="25" Y="35"/>
+        <UsageCount Value="10"/>
+      </Unit148>
     </Units>
     <Debugger>
       <Backend Value="{C22652D6-9D42-45F5-A8CC-22C1FFC0C153}"/>
@@ -1252,123 +1258,123 @@
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="forms\form_options.pas"/>
-        <Caret Line="287" Column="53" TopLine="267"/>
+        <Caret Line="298" Column="29" TopLine="289"/>
       </Position1>
       <Position2>
         <Filename Value="forms\form_options.pas"/>
-        <Caret Line="283" Column="44" TopLine="267"/>
+        <Caret Line="307" Column="29" TopLine="298"/>
       </Position2>
       <Position3>
         <Filename Value="forms\form_options.pas"/>
-        <Caret Line="286" Column="38" TopLine="277"/>
+        <Caret Line="320" Column="29" TopLine="312"/>
       </Position3>
       <Position4>
         <Filename Value="forms\form_options.pas"/>
-        <Caret Line="289" Column="29" TopLine="277"/>
+        <Caret Line="339" Column="29" TopLine="328"/>
       </Position4>
       <Position5>
         <Filename Value="forms\form_options.pas"/>
-        <Caret Line="298" Column="29" TopLine="289"/>
+        <Caret Line="360" Column="26" TopLine="354"/>
       </Position5>
       <Position6>
         <Filename Value="forms\form_options.pas"/>
-        <Caret Line="307" Column="29" TopLine="298"/>
+        <Caret Line="390" Column="26" TopLine="385"/>
       </Position6>
       <Position7>
-        <Filename Value="forms\form_options.pas"/>
-        <Caret Line="320" Column="29" TopLine="312"/>
-      </Position7>
-      <Position8>
-        <Filename Value="forms\form_options.pas"/>
-        <Caret Line="339" Column="29" TopLine="328"/>
-      </Position8>
-      <Position9>
-        <Filename Value="forms\form_options.pas"/>
-        <Caret Line="360" Column="26" TopLine="354"/>
-      </Position9>
-      <Position10>
-        <Filename Value="forms\form_options.pas"/>
-        <Caret Line="368" Column="26" TopLine="385"/>
-      </Position10>
-      <Position11>
-        <Filename Value="forms\form_options.pas"/>
-        <Caret Line="390" Column="26" TopLine="385"/>
-      </Position11>
-      <Position12>
         <Filename Value="rtfp_core\rtfp_constants.pas"/>
         <Caret Line="108" Column="13" TopLine="93"/>
-      </Position12>
-      <Position13>
+      </Position7>
+      <Position8>
         <Filename Value="rtfp_core\rtfp_format_component.pas"/>
         <Caret Line="432" Column="36" TopLine="413"/>
-      </Position13>
-      <Position14>
+      </Position8>
+      <Position9>
         <Filename Value="rtfp_core\formatedit_list.inc"/>
         <Caret Line="196" Column="33" TopLine="193"/>
+      </Position9>
+      <Position10>
+        <Filename Value="forms\source_dialog.pas"/>
+        <Caret Line="76" Column="78" TopLine="61"/>
+      </Position10>
+      <Position11>
+        <Filename Value="forms\source_dialog.pas"/>
+        <Caret Line="58" Column="62" TopLine="47"/>
+      </Position11>
+      <Position12>
+        <Filename Value="forms\source_dialog.pas"/>
+        <Caret Line="73" Column="66" TopLine="62"/>
+      </Position12>
+      <Position13>
+        <Filename Value="forms\source_dialog.pas"/>
+        <Caret Line="76" Column="68" TopLine="62"/>
+      </Position13>
+      <Position14>
+        <Filename Value="forms\source_dialog.pas"/>
+        <Caret Line="140" Column="34" TopLine="130"/>
       </Position14>
       <Position15>
         <Filename Value="forms\source_dialog.pas"/>
-        <Caret Line="76" Column="78" TopLine="61"/>
+        <Caret Line="171" Column="46" TopLine="159"/>
       </Position15>
       <Position16>
         <Filename Value="forms\source_dialog.pas"/>
-        <Caret Line="58" Column="62" TopLine="47"/>
+        <Caret Line="180" Column="30" TopLine="161"/>
       </Position16>
       <Position17>
-        <Filename Value="forms\source_dialog.pas"/>
-        <Caret Line="73" Column="66" TopLine="62"/>
-      </Position17>
-      <Position18>
-        <Filename Value="forms\source_dialog.pas"/>
-        <Caret Line="76" Column="68" TopLine="62"/>
-      </Position18>
-      <Position19>
-        <Filename Value="forms\source_dialog.pas"/>
-        <Caret Line="140" Column="34" TopLine="130"/>
-      </Position19>
-      <Position20>
-        <Filename Value="forms\source_dialog.pas"/>
-        <Caret Line="171" Column="46" TopLine="159"/>
-      </Position20>
-      <Position21>
-        <Filename Value="forms\source_dialog.pas"/>
-        <Caret Line="180" Column="30" TopLine="161"/>
-      </Position21>
-      <Position22>
         <Filename Value="sync\sync_timer.pas"/>
         <Caret Line="73" Column="34" TopLine="65"/>
-      </Position22>
-      <Position23>
+      </Position17>
+      <Position18>
         <Filename Value="sync\sync_timer.pas"/>
         <Caret Line="115" Column="35" TopLine="103"/>
-      </Position23>
-      <Position24>
+      </Position18>
+      <Position19>
         <Filename Value="sync\sync_timer.pas"/>
         <Caret Line="194" Column="26" TopLine="179"/>
-      </Position24>
-      <Position25>
+      </Position19>
+      <Position20>
         <Filename Value="sync\sync_timer.pas"/>
         <Caret Line="189" Column="11" TopLine="179"/>
-      </Position25>
-      <Position26>
+      </Position20>
+      <Position21>
         <Filename Value="sync\sync_timer.pas"/>
         <Caret Line="190" Column="17" TopLine="179"/>
-      </Position26>
-      <Position27>
+      </Position21>
+      <Position22>
         <Filename Value="forms\form_classmanager.pas"/>
         <Caret Line="174" Column="39" TopLine="160"/>
-      </Position27>
-      <Position28>
+      </Position22>
+      <Position23>
         <Filename Value="forms\form_options.pas"/>
         <Caret Line="289" Column="44" TopLine="94"/>
+      </Position23>
+      <Position24>
+        <Filename Value="rtfp_core\rtfp_definition.pas"/>
+        <Caret Line="1992" Column="28" TopLine="1980"/>
+      </Position24>
+      <Position25>
+        <Filename Value="rtfp_core\rtfp_constants.pas"/>
+        <Caret Line="6" Column="38"/>
+      </Position25>
+      <Position26>
+        <Filename Value="rtfp_core\rtfp_definition.pas"/>
+        <Caret Line="1994" Column="89" TopLine="1981"/>
+      </Position26>
+      <Position27>
+        <Filename Value="rtfp_core\rtfp_definition.pas"/>
+        <Caret Line="1981" Column="14" TopLine="1968"/>
+      </Position27>
+      <Position28>
+        <Filename Value="rtfp_core\rtfp_definition.pas"/>
+        <Caret Line="1984" Column="14" TopLine="1968"/>
       </Position28>
       <Position29>
         <Filename Value="rtfp_core\rtfp_definition.pas"/>
-        <Caret Line="1992" Column="28" TopLine="1980"/>
+        <Caret Line="1994" Column="23" TopLine="1977"/>
       </Position29>
       <Position30>
-        <Filename Value="rtfp_core\rtfp_constants.pas"/>
-        <Caret Line="6" Column="38"/>
+        <Filename Value="rtfp_core\rtfp_definition.pas"/>
+        <Caret Line="2064" Column="14" TopLine="2059"/>
       </Position30>
     </JumpHistory>
     <RunParams>
