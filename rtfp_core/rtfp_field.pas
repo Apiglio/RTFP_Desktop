@@ -9,7 +9,7 @@ unit rtfp_field;
 interface
 
 uses
-  Classes, SysUtils, db, dbf, fpjson, Graphics, BufDataset,
+  Classes, SysUtils, db, dbf, fpjson, jsonparser, Graphics, BufDataset,
   rtfp_constants, rtfp_type;
 
 type
@@ -341,8 +341,12 @@ var data,tmp:TJSONData;
 begin
   Clear;
   str:=StringReplace(str,'''','"',[rfReplaceAll]);
-  data:=GetJSON(str);
   try
+    data:=GetJSON(str);
+  except
+    on E:EJsonParser do exit;
+  end;
+  //try
     tmp:=data.FindPath('disp_name');
     if tmp=nil then FDispName:=''
     else FDispName:=tmp.AsString;
@@ -368,9 +372,9 @@ begin
       len:=tmp.Count;
       for pi:=0 to len-1 do FColors.Add(pdword(HexToColor(tmp.Items[pi].AsString)));
     end;
-  finally
-    if assigned(data) then data.Free;
-  end;
+  //finally
+    if data<>nil then data.Free;
+  //end;
   if FMode=fdmSuccessive then CheckSuccessive;
 end;
 
