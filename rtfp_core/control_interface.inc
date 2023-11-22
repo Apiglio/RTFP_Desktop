@@ -52,6 +52,7 @@ var tmpAG:TAttrsGroup;
 begin
   //AListView.BeginUpdate;
   AListView.Root.Clear;
+  AListView.Refresh;
   for tmpAG in FFieldList do
     begin
       if (tmpAG.DisplayName<>'') and (tmpAG.DisplayName<>tmpAG.Name) then
@@ -107,6 +108,7 @@ procedure TRTFP.KlassListValidate(AListView:TListCheck);
 begin
   //AListView.BeginUpdate;
   AListView.Root.Clear;
+  AListView.Refresh;
   RecurKlassListValidate(AListView.Root,FKlassList,RunPerformance.DisplayKlassListRecCount);
   //AListView.EndUpdate;
   AListView.Refresh;
