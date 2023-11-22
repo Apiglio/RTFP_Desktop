@@ -828,7 +828,10 @@ begin
   Self.DataSource_Main.DataSet:=nil;
 
   //分类节点选项卡
-  AListView_Klass.Root.Clear;//but why
+  AListView_Klass.Root.Clear;
+  AListView_Attrs.Root.Clear;
+  AListView_Klass.Refresh;
+  AListView_Attrs.Refresh;
 
   Self.MenuItem_project_new.Enabled:=true;
   Self.MenuItem_project_open.Enabled:=true;
