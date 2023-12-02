@@ -42,6 +42,25 @@ type
   );
   TRTFP_Button_Set=set of TRTFP_Button;
 
+  TScrollImage = class(TScrollBox)
+  private
+    FImage:TImage;
+    FDrag:boolean;
+    FFirstPoint:Classes.TPoint;
+    FTargetPoint:Classes.TPoint;
+    FFirstPosition:Classes.TPoint;
+  private
+    procedure ScrollPaint(Sender:TObject);unimplemented;
+    procedure ApplyMovement(X,Y:Integer);
+  public
+    procedure ScrollMouseDown(Sender:TObject;Button:TMouseButton;Shift:TShiftState;X,Y:Integer);
+    procedure ScrollMouseMove(Sender:TObject;Shift:TShiftState;X,Y:Integer);
+    procedure ScrollMouseUp(Sender:TObject;Button:TMouseButton;Shift:TShiftState;X,Y:Integer);
+  public
+    constructor Create(AOwner:TComponent;ABitmap:TBitmap);
+    destructor Destroy;override;
+  end;
+
   TAllState = class
   private
     FEnabled:boolean;//为真时触发All选项
@@ -486,7 +505,7 @@ begin
   Result:='';
   Frm:=TForm.Create(FormDesktop);
   try
-
+    //确保最大窗体不会超过屏幕
     if (Screen.Width/Screen.Height)>=(ABitmap.Width/ABitmap.Height) then begin
       H:=Min(ABitmap.Height,Screen.Height-180);
       W:=ABitmap.Width*H div ABitmap.Height;
@@ -503,23 +522,21 @@ begin
         Caption:=ACaption;
       ClientWidth:=W+2*Margin+ScrollWidth;
       ClientHeight:=H+2*Margin+ScrollWidth;
-      //Position:=poOwnerFormCenter;
       Position:=poScreenCenter;
       KeyPreview:=true;
     end;
 
-    Scroll:=TScrollBox.Create(Frm);
+    //Scroll:=TScrollBox.Create(Frm);
+    Scroll:=TScrollImage.Create(Frm,ABitmap);
     with Scroll do begin
       Parent:=Frm;
-      //Left:=Margin;
-      //Top:=Margin;
-      //Width:=W;
-      //Height:=H;
       Anchors:=[akTop,akLeft,akRight,akBottom];
-      BorderSpacing.Top:=Margin;
-      BorderSpacing.Left:=Margin;
-      BorderSpacing.Right:=Margin;
-      BorderSpacing.Bottom:=Margin;
+      with BorderSpacing do begin
+        Top:=Margin;
+        Left:=Margin;
+        Right:=Margin;
+        Bottom:=Margin;
+      end;
       AnchorSideTop.Control:=Frm;
       AnchorSideTop.Side:=asrTop;
       AnchorSideLeft.Control:=Frm;
@@ -529,18 +546,17 @@ begin
       AnchorSideBottom.Control:=Frm;
       AnchorSideBottom.Side:=asrBottom;
     end;
-
+    {
     Image:=TImage.Create(Scroll);
     with Image do begin
       Parent:=Scroll;
       Align:=alClient;
-      //Stretch:=true;
       Proportional:=true;
-      //StretchInEnabled:=true;
-      //StretchOutEnabled:=true;
       Picture.Bitmap:=ABitmap;
+      OnMouseDown:=nil;
+      OnMouseUp:=nil;
     end;
-
+    }
     Frm.ShowModal;
     result:='';
 
@@ -638,6 +654,72 @@ begin
     end;
   end;
   result:='OK';
+end;
+
+{ ScrollImage }
+
+procedure TScrollImage.ScrollPaint(Sender:TObject);
+begin
+  if not FDrag then exit;
+  FImage.Repaint;
+  with FImage.Canvas do begin
+    Pen.Width:=2;
+    Pen.Color:=clRed;
+    Line(FFirstPoint.X,FFirstPoint.Y,FTargetPoint.X,FTargetPoint.Y);
+  end;
+end;
+
+procedure TScrollImage.ApplyMovement(X,Y:Integer);
+var tmp_x,tmp_y:integer;
+begin
+  tmp_x:=FFirstPosition.X+FFirstPoint.X-X;
+  tmp_y:=FFirstPosition.Y+FFirstPoint.Y-Y;
+  HorzScrollBar.Position:=tmp_x;
+  VertScrollBar.Position:=tmp_y;
+end;
+
+procedure TScrollImage.ScrollMouseDown(Sender:TObject;Button:TMouseButton;Shift:TShiftState;X,Y:Integer);
+begin
+  FDrag:=true;
+  FFirstPoint.X:=X;
+  FFirstPoint.Y:=Y;
+  FFirstPosition.X:=HorzScrollBar.Position;
+  FFirstPosition.Y:=VertScrollBar.Position;
+end;
+
+procedure TScrollImage.ScrollMouseMove(Sender:TObject;Shift:TShiftState;X,Y:Integer);
+begin
+  if not FDrag then exit;
+  FTargetPoint.X:=X;
+  FTargetPoint.Y:=Y;
+  ApplyMovement(X,Y);
+end;
+
+procedure TScrollImage.ScrollMouseUp(Sender:TObject;Button:TMouseButton;Shift:TShiftState;X,Y:Integer);
+var tmp_x,tmp_y:integer;
+begin
+  FDrag:=false;
+  ApplyMovement(X,Y);
+end;
+
+constructor TScrollImage.Create(AOwner:TComponent;ABitmap:TBitmap);
+begin
+  inherited Create(AOwner);
+  FImage:=TImage.Create(Self);
+  FImage.Parent:=Self;
+  FImage.Picture.Bitmap:=ABitmap;
+  FImage.Width:=ABitmap.Width;
+  FImage.Height:=ABitmap.Height;
+  FImage.OnMouseDown:=@ScrollMouseDown;
+  FImage.OnMouseUp:=@ScrollMouseUp;
+  FImage.OnMouseMove:=@ScrollMouseMove;
+  //FImage.OnPaint:=@ScrollPaint;
+  FDrag:=false;
+end;
+
+destructor TScrollImage.Destroy;
+begin
+  inherited Destroy;
 end;
 
 initialization
