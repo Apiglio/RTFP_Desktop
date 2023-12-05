@@ -8,13 +8,13 @@ object FormOptions: TFormOptions
   ClientWidth = 425
   Constraints.MinHeight = 200
   Constraints.MinWidth = 333
-  DesignTimePPI = 120
+  DesignTimePPI = 144
   OnActivate = FormActivate
   OnCreate = FormCreate
   OnHide = FormHide
   OnShow = FormShow
   Position = poMainFormCenter
-  LCLVersion = '2.2.6.0'
+  LCLVersion = '1.8.4.0'
   object PageControl_Option: TPageControl
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
@@ -26,9 +26,9 @@ object FormOptions: TFormOptions
     Height = 373
     Top = 0
     Width = 425
-    ActivePage = TabSheet_Backup
+    ActivePage = TabSheet_Sync
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 3
+    TabIndex = 1
     TabOrder = 0
     OnChange = PageControl_OptionChange
     object TabSheet_MaingridShortcut: TTabSheet
@@ -57,8 +57,8 @@ object FormOptions: TFormOptions
         ChildSizing.ShrinkVertical = crsScaleChilds
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 3
-        ClientHeight = 70
-        ClientWidth = 397
+        ClientHeight = 69
+        ClientWidth = 395
         Columns = 3
         ItemIndex = 3
         Items.Strings = (
@@ -77,8 +77,8 @@ object FormOptions: TFormOptions
     end
     object TabSheet_Sync: TTabSheet
       Caption = '文件同步'
-      ClientHeight = 332
-      ClientWidth = 415
+      ClientHeight = 336
+      ClientWidth = 417
       object ScrollBox_Sync: TScrollBox
         AnchorSideLeft.Control = TabSheet_Sync
         AnchorSideTop.Control = TabSheet_Sync
@@ -87,14 +87,14 @@ object FormOptions: TFormOptions
         AnchorSideBottom.Control = TabSheet_Sync
         AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 332
+        Height = 336
         Top = 0
-        Width = 415
-        HorzScrollBar.Page = 315
-        VertScrollBar.Page = 328
+        Width = 417
+        HorzScrollBar.Page = 332
+        VertScrollBar.Page = 332
         Anchors = [akTop, akLeft, akRight, akBottom]
-        ClientHeight = 328
-        ClientWidth = 408
+        ClientHeight = 332
+        ClientWidth = 387
         TabOrder = 0
         object RadioGroup_BackupMode: TRadioGroup
           AnchorSideLeft.Control = ScrollBox_Sync
@@ -104,8 +104,8 @@ object FormOptions: TFormOptions
           AnchorSideRight.Side = asrBottom
           Left = 8
           Height = 47
-          Top = 119
-          Width = 392
+          Top = 116
+          Width = 371
           Anchors = [akTop, akLeft, akRight]
           AutoFill = True
           BorderSpacing.Left = 8
@@ -119,8 +119,8 @@ object FormOptions: TFormOptions
           ChildSizing.ShrinkVertical = crsScaleChilds
           ChildSizing.Layout = cclLeftToRightThenTopToBottom
           ChildSizing.ControlsPerLine = 3
-          ClientHeight = 19
-          ClientWidth = 390
+          ClientHeight = 18
+          ClientWidth = 367
           Columns = 3
           Items.Strings = (
             '移动入库'
@@ -137,31 +137,32 @@ object FormOptions: TFormOptions
           AnchorSideRight.Control = ScrollBox_Sync
           AnchorSideRight.Side = asrBottom
           Left = 8
-          Height = 52
-          Top = 174
-          Width = 392
+          Height = 69
+          Top = 171
+          Width = 371
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Left = 8
           BorderSpacing.Top = 8
           BorderSpacing.Right = 8
           Caption = '同步间隔'
-          ClientHeight = 24
-          ClientWidth = 390
+          ClientHeight = 40
+          ClientWidth = 367
           TabOrder = 1
           object TrackBar_SyncInterval: TTrackBar
             AnchorSideLeft.Control = GroupBox_SyncInterval
+            AnchorSideTop.Control = GroupBox_SyncInterval
             AnchorSideRight.Control = GroupBox_SyncInterval
             AnchorSideRight.Side = asrBottom
             AnchorSideBottom.Control = GroupBox_SyncInterval
             AnchorSideBottom.Side = asrBottom
             Left = 8
-            Height = 48
-            Top = -28
-            Width = 320
+            Height = 36
+            Top = 0
+            Width = 297
             Max = 20
             OnChange = TrackBar_SyncIntervalChange
             Position = 5
-            Anchors = [akLeft, akRight, akBottom]
+            Anchors = [akTop, akLeft, akRight, akBottom]
             BorderSpacing.Left = 8
             BorderSpacing.Right = 62
             BorderSpacing.Bottom = 4
@@ -172,10 +173,10 @@ object FormOptions: TFormOptions
             AnchorSideTop.Side = asrCenter
             AnchorSideRight.Control = GroupBox_SyncInterval
             AnchorSideRight.Side = asrBottom
-            Left = 344
-            Height = 27
-            Top = -17
-            Width = 38
+            Left = 319
+            Height = 24
+            Top = 6
+            Width = 40
             Anchors = [akTop, akRight]
             BorderSpacing.Right = 8
             Caption = '60秒'
@@ -190,15 +191,15 @@ object FormOptions: TFormOptions
           AnchorSideRight.Side = asrBottom
           Left = 8
           Height = 137
-          Top = 234
-          Width = 392
+          Top = 248
+          Width = 371
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Left = 8
           BorderSpacing.Top = 8
           BorderSpacing.Right = 8
           Caption = '同步规则'
-          ClientHeight = 109
-          ClientWidth = 390
+          ClientHeight = 108
+          ClientWidth = 367
           TabOrder = 2
           object Memo_RegExpr: TMemo
             AnchorSideLeft.Control = GroupBox_SyncFilter
@@ -208,9 +209,9 @@ object FormOptions: TFormOptions
             AnchorSideBottom.Control = GroupBox_SyncFilter
             AnchorSideBottom.Side = asrBottom
             Left = 8
-            Height = 109
+            Height = 108
             Top = 0
-            Width = 382
+            Width = 359
             Anchors = [akTop, akLeft, akRight, akBottom]
             BorderSpacing.Left = 8
             OnChange = Memo_RegExprChange
@@ -226,24 +227,24 @@ object FormOptions: TFormOptions
           AnchorSideRight.Side = asrBottom
           Left = 8
           Height = 60
-          Top = 51
-          Width = 392
+          Top = 48
+          Width = 371
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Left = 8
           BorderSpacing.Top = 8
           BorderSpacing.Right = 8
           Caption = '同步路径：'
-          ClientHeight = 32
-          ClientWidth = 390
+          ClientHeight = 31
+          ClientWidth = 367
           TabOrder = 3
           object Edit_SyncPath: TEdit
             AnchorSideLeft.Control = GroupBox_SyncPath
             AnchorSideTop.Control = GroupBox_SyncPath
             AnchorSideRight.Control = Button_SyncPath
             Left = 8
-            Height = 35
+            Height = 32
             Top = 4
-            Width = 304
+            Width = 281
             Anchors = [akTop, akLeft, akRight]
             BorderSpacing.Left = 8
             BorderSpacing.Top = 4
@@ -259,8 +260,8 @@ object FormOptions: TFormOptions
             AnchorSideRight.Side = asrBottom
             AnchorSideBottom.Control = Edit_SyncPath
             AnchorSideBottom.Side = asrBottom
-            Left = 320
-            Height = 35
+            Left = 297
+            Height = 32
             Top = 4
             Width = 62
             Anchors = [akTop, akRight, akBottom]
@@ -274,9 +275,9 @@ object FormOptions: TFormOptions
           AnchorSideLeft.Control = ScrollBox_Sync
           AnchorSideTop.Control = ScrollBox_Sync
           Left = 8
-          Height = 31
+          Height = 28
           Top = 12
-          Width = 131
+          Width = 136
           BorderSpacing.Left = 8
           BorderSpacing.Top = 12
           Caption = '启用文件同步'
@@ -304,8 +305,8 @@ object FormOptions: TFormOptions
         BorderSpacing.Top = 8
         BorderSpacing.Right = 8
         Caption = 'FormatEdit'
-        ClientHeight = 168
-        ClientWidth = 397
+        ClientHeight = 167
+        ClientWidth = 395
         TabOrder = 0
         object CheckBox_FormatEditOpt_AllowBasicFormatEdit: TCheckBox
           AnchorSideLeft.Control = GroupBox_FormatEdit
@@ -366,15 +367,15 @@ object FormOptions: TFormOptions
     end
     object TabSheet_Backup: TTabSheet
       Caption = '保存与备份'
-      ClientHeight = 332
-      ClientWidth = 415
+      ClientHeight = 336
+      ClientWidth = 417
       object CheckBox_Backup_xml: TCheckBox
         AnchorSideLeft.Control = TabSheet_Backup
         AnchorSideTop.Control = TabSheet_Backup
         Left = 8
-        Height = 31
+        Height = 28
         Top = 12
-        Width = 200
+        Width = 203
         BorderSpacing.Left = 8
         BorderSpacing.Top = 12
         Caption = '额外保存xml文件备份'
@@ -386,9 +387,9 @@ object FormOptions: TFormOptions
         AnchorSideTop.Control = CheckBox_Backup_xml
         AnchorSideTop.Side = asrBottom
         Left = 8
-        Height = 31
-        Top = 55
-        Width = 98
+        Height = 28
+        Top = 52
+        Width = 100
         BorderSpacing.Left = 8
         BorderSpacing.Top = 12
         Caption = '自动保存'
@@ -398,8 +399,8 @@ object FormOptions: TFormOptions
     end
     object TabSheet_Export: TTabSheet
       Caption = '导出选项'
-      ClientHeight = 332
-      ClientWidth = 415
+      ClientHeight = 336
+      ClientWidth = 417
       object ScrollBox_Export: TScrollBox
         AnchorSideLeft.Control = TabSheet_Export
         AnchorSideTop.Control = TabSheet_Export
@@ -408,14 +409,14 @@ object FormOptions: TFormOptions
         AnchorSideBottom.Control = TabSheet_Export
         AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 332
+        Height = 336
         Top = 0
-        Width = 415
-        HorzScrollBar.Page = 189
-        VertScrollBar.Page = 260
+        Width = 417
+        HorzScrollBar.Page = 196
+        VertScrollBar.Page = 255
         Anchors = [akTop, akLeft, akRight, akBottom]
-        ClientHeight = 328
-        ClientWidth = 411
+        ClientHeight = 332
+        ClientWidth = 413
         TabOrder = 0
         object GroupBox_Export_ImgExport: TGroupBox
           AnchorSideLeft.Control = ScrollBox_Export
@@ -425,7 +426,7 @@ object FormOptions: TFormOptions
           Left = 8
           Height = 138
           Top = 8
-          Width = 395
+          Width = 397
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Left = 8
           BorderSpacing.Top = 8
@@ -440,25 +441,25 @@ object FormOptions: TFormOptions
           AnchorSideRight.Control = ScrollBox_Export
           AnchorSideRight.Side = asrBottom
           Left = 8
-          Height = 106
+          Height = 101
           Top = 154
-          Width = 395
+          Width = 397
           Anchors = [akTop, akLeft, akRight]
           AutoSize = True
           BorderSpacing.Left = 8
           BorderSpacing.Top = 8
           BorderSpacing.Right = 8
           Caption = '主表复制'
-          ClientHeight = 78
+          ClientHeight = 72
           ClientWidth = 393
           TabOrder = 1
           object CheckBox_MGCopy_DispName: TCheckBox
             AnchorSideLeft.Control = GroupBox_Export_MGCopy
             AnchorSideTop.Control = GroupBox_Export_MGCopy
             Left = 8
-            Height = 31
+            Height = 28
             Top = 8
-            Width = 149
+            Width = 154
             BorderSpacing.Left = 8
             BorderSpacing.Top = 8
             Caption = '使用字段显示名'
@@ -470,9 +471,9 @@ object FormOptions: TFormOptions
             AnchorSideTop.Control = CheckBox_MGCopy_DispName
             AnchorSideTop.Side = asrBottom
             Left = 8
-            Height = 31
-            Top = 47
-            Width = 163
+            Height = 28
+            Top = 44
+            Width = 168
             BorderSpacing.Left = 8
             BorderSpacing.Top = 8
             Caption = 'csv或tsv使用表头'
@@ -502,7 +503,7 @@ object FormOptions: TFormOptions
     end
   end
   object SelectDirectoryDialog: TSelectDirectoryDialog
-    Left = 20
-    Top = 413
+    left = 20
+    top = 413
   end
 end
