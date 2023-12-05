@@ -48,9 +48,9 @@ object FormDesktop: TFormDesktop
     Height = 281
     Top = 0
     Width = 722
-    ActivePage = TabSheet_Project_DataGrid
+    ActivePage = TabSheet_Project_FormatEditMgr
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 1
+    TabIndex = 2
     TabOrder = 1
     object TabSheet_Project_Properties: TTabSheet
       Caption = '工程信息'
@@ -272,8 +272,8 @@ object FormDesktop: TFormDesktop
     end
     object TabSheet_Project_FormatEditMgr: TTabSheet
       Caption = '样式管理'
-      ClientHeight = 237
-      ClientWidth = 712
+      ClientHeight = 244
+      ClientWidth = 714
       object ListBox_FormatEditMgr: TListBox
         AnchorSideLeft.Control = Button_help
         AnchorSideLeft.Side = asrBottom
@@ -282,7 +282,7 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = Button_FormatEdit_Ren
         AnchorSideBottom.Side = asrBottom
-        Left = 526
+        Left = 528
         Height = 108
         Top = 0
         Width = 186
@@ -299,8 +299,8 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = TabSheet_Project_FormatEditMgr
         AnchorSideBottom.Side = asrBottom
-        Left = 504
-        Height = 129
+        Left = 506
+        Height = 136
         Top = 108
         Width = 208
         Anchors = [akTop, akRight, akBottom]
@@ -330,7 +330,7 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Control = Button_help
         AnchorSideRight.Side = asrCenter
         AnchorSideBottom.Control = SynEdit_FEMgr
-        Left = 504
+        Left = 506
         Height = 18
         Hint = '重命名样式'
         Top = 90
@@ -350,7 +350,7 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Control = Button_help
         AnchorSideRight.Side = asrCenter
         AnchorSideBottom.Control = SynEdit_FEMgr
-        Left = 504
+        Left = 506
         Height = 18
         Hint = '删除样式'
         Top = 72
@@ -369,7 +369,7 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Control = Button_help
         AnchorSideRight.Side = asrCenter
         AnchorSideBottom.Control = SynEdit_FEMgr
-        Left = 504
+        Left = 506
         Height = 18
         Hint = '新建样式'
         Top = 54
@@ -387,7 +387,7 @@ object FormDesktop: TFormDesktop
         AnchorSideTop.Control = TabSheet_Project_FormatEditMgr
         AnchorSideRight.Control = Button_FormatEditSave
         AnchorSideBottom.Control = SynEdit_FEMgr
-        Left = 504
+        Left = 506
         Height = 18
         Hint = '样式帮助'
         Top = 0
@@ -405,11 +405,10 @@ object FormDesktop: TFormDesktop
         AnchorSideBottom.Control = TabSheet_Project_FormatEditMgr
         AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 237
+        Height = 244
         Top = 0
-        Width = 504
+        Width = 506
         Anchors = [akTop, akLeft, akRight, akBottom]
-        Font.Height = -9
         Font.Name = 'Courier New'
         Font.Pitch = fpFixed
         Font.Quality = fqNonAntialiased
@@ -417,7 +416,7 @@ object FormDesktop: TFormDesktop
         ParentFont = False
         TabOrder = 6
         OnClick = SynEdit_FEMgrClick
-        Gutter.Width = 52
+        Gutter.Width = 62
         Gutter.MouseActions = <>
         RightGutter.Width = 0
         RightGutter.MouseActions = <>
@@ -872,7 +871,7 @@ object FormDesktop: TFormDesktop
             MouseActions = <>
           end
           object SynGutterLineNumber1: TSynGutterLineNumber
-            Width = 11
+            Width = 21
             MouseActions = <>
             MarkupInfo.Background = clBtnFace
             MarkupInfo.Foreground = clNone
@@ -910,7 +909,7 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Control = Button_help
         AnchorSideRight.Side = asrCenter
         AnchorSideBottom.Control = SynEdit_FEMgr
-        Left = 504
+        Left = 506
         Height = 18
         Hint = '读取样式'
         Top = 36
@@ -928,7 +927,7 @@ object FormDesktop: TFormDesktop
         AnchorSideRight.Control = Button_help
         AnchorSideRight.Side = asrCenter
         AnchorSideBottom.Control = SynEdit_FEMgr
-        Left = 504
+        Left = 506
         Height = 18
         Hint = '保存样式'
         Top = 18
