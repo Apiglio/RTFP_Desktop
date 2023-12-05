@@ -18,7 +18,29 @@ begin
   result:='000000';
   if not (AddPaperMethod in [apmFullBackup,apmCutBackup,apmReference,apmAddress]) then
     begin
-      assert(false,'暂不支持apmWebsite的方式。');
+      //assert(false,'暂不支持apmWebsite的方式。');
+      //四个新增方式有点冗杂了，需要解耦
+      BeginUpdate;
+      PID:=NewPaperID;
+      with FPaperDB do begin
+        Append;
+        FieldByName(_Col_PID_).AsString:=PID;
+        FieldByName(_Col_Paper_Is_Backup_).AsBoolean:=false;
+        FieldByName(_Col_Paper_Folder_).AsString:='';
+        FieldByName(_Col_Paper_FileName_).AsString:=fullfilename;
+        FieldByName(_Col_Paper_FileSize_).AsLargeInt:=0;
+        FieldByName(_Col_Paper_FileHash_).AsString:='';
+        Post;
+      end;
+      EditFieldAsString(_Col_basic_Link_,_Attrs_Basic_,PID,fullfilename,[]);
+      EditFieldAsBoolean(_Col_class_Is_Read_,_Attrs_Class_,PID,false,[]);
+      EditFieldAsInteger(_Col_notes_User_,_Attrs_Notes_,PID,0,[]);
+      EditFieldAsDateTime(_Col_notes_CreateTime_,_Attrs_Notes_,PID,Now,[]);
+      EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now,[]);
+      EditFieldAsDateTime(_Col_notes_CheckTime_,_Attrs_Notes_,PID,Now,[]);
+      EndUpdate;
+      RecordChange;
+      result:=PID;
       exit;
     end;
 

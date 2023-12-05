@@ -55,6 +55,7 @@ type
     Edit_DBGridMain_Sorter: TEdit;
     Label_MainSorter: TLabel;
     Memo_Log: TMemo;
+    MenuItem_Edit_NewWebLnkNode: TMenuItem;
     MenuItem_DBGC_Export_set: TMenuItem;
     MenuItem_DBGC_Export_array: TMenuItem;
     MenuItem_DBGC_Export_lines: TMenuItem;
@@ -107,7 +108,7 @@ type
     MenuItem_EditReferences: TMenuItem;
     MenuItem_Edit: TMenuItem;
     MenuItem_NewPaper: TMenuItem;
-    MenuItem_Edit_NewNode: TMenuItem;
+    MenuItem_Edit_NewVoidNode: TMenuItem;
     MenuItem_Edit_div01: TMenuItem;
     MenuItem_Node: TMenuItem;
     MenuItem_CB_RefNum_InOrder: TMenuItem;
@@ -265,6 +266,7 @@ type
     procedure MenuItem_DBGE_python_dictClick(Sender: TObject);
     procedure MenuItem_DBGE_ruby_hashClick(Sender: TObject);
     procedure MenuItem_DBGE_tsvClick(Sender: TObject);
+    procedure MenuItem_Edit_NewWebLnkNodeClick(Sender: TObject);
     procedure MenuItem_FieldMgr_CopyClick(Sender: TObject);
     procedure MenuItem_PastePaperClick(Sender: TObject);
     procedure MenuItem_project_unzipClick(Sender: TObject);
@@ -343,7 +345,7 @@ type
     procedure MenuItem_Mark_IsRead_NoClick(Sender: TObject);
     procedure MenuItem_Mark_IsRead_YesClick(Sender: TObject);
     procedure MenuItem_NewPaperClick(Sender: TObject);
-    procedure MenuItem_Edit_NewNodeClick(Sender: TObject);
+    procedure MenuItem_Edit_NewVoidNodeClick(Sender: TObject);
     procedure MenuItem_OpenAsCajClick(Sender: TObject);
     procedure MenuItem_OpenAsPdfClick(Sender: TObject);
     procedure MenuItem_OpenDefaultClick(Sender: TObject);
@@ -459,6 +461,7 @@ type
   public
     //能使用快捷键的命令
     function Action_NewPaper:boolean;
+    function Action_NewPaper_WebLnk:boolean;
 
   public
     procedure debugline(str:string);
@@ -980,6 +983,24 @@ begin
   if ProjectInvalid then exit;
   CurrentRTFP.BeginUpdate;//这里不禁用会触发修改分组时的UpdateCurrentRec，应该重新考虑各个Change事件的时机
   _pid:=CurrentRTFP.AddPaper('',apmReference);
+  CurrentRTFP.KlassIncludeFromCombo(_pid,true);
+  CurrentRTFP.EndUpdate;//这里不禁用会触发修改分组时的UpdateCurrentRec，应该重新考虑各个Change事件的时机
+  CurrentRTFP.RecordChange;
+  Select_PID(_pid);
+  NodeViewValidate;
+  result:=true;
+end;
+
+function TFormDesktop.Action_NewPaper_WebLnk:boolean;
+var _pid:RTFP_ID;
+    link:string;
+begin
+  result:=false;
+  if ProjectInvalid then exit;
+  link:=ShowMsgEdit('新增链接节点','链接：','');
+  if link='' then exit;
+  CurrentRTFP.BeginUpdate;//这里不禁用会触发修改分组时的UpdateCurrentRec，应该重新考虑各个Change事件的时机
+  _pid:=CurrentRTFP.AddPaper(link,apmWebsite);
   CurrentRTFP.KlassIncludeFromCombo(_pid,true);
   CurrentRTFP.EndUpdate;//这里不禁用会触发修改分组时的UpdateCurrentRec，应该重新考虑各个Change事件的时机
   CurrentRTFP.RecordChange;
@@ -1623,7 +1644,7 @@ begin
   Action_NewPaper;
 end;
 
-procedure TFormDesktop.MenuItem_Edit_NewNodeClick(Sender: TObject);
+procedure TFormDesktop.MenuItem_Edit_NewVoidNodeClick(Sender: TObject);
 begin
   Action_NewPaper;
 end;
@@ -2473,6 +2494,11 @@ end;
 procedure TFormDesktop.MenuItem_DBGE_tsvClick(Sender: TObject);
 begin
   ClipBoard.AsText:=CurrentRTFP.ExportDSToCSVOrTSV(#9);
+end;
+
+procedure TFormDesktop.MenuItem_Edit_NewWebLnkNodeClick(Sender: TObject);
+begin
+  Action_NewPaper_WebLnk;
 end;
 
 procedure TFormDesktop.MenuItem_FieldMgr_CopyClick(Sender: TObject);
