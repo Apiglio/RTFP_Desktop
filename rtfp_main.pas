@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, Types;
 
 const
-  C_VERSION_NUMBER  = '0.4.1-alpha.1';
+  C_VERSION_NUMBER  = '0.4.1-alpha.2';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -801,8 +801,6 @@ begin
     fmt_file:='default.fmt';
   end;
 
-  AProject.FormatEditBuild(Self.ScrollBox_Node_FormatEdit,fmt_file);//这个不是这里应该做的事，移到format_component里头。
-
   Self.MenuItem_project_new.Enabled:=false;
   Self.MenuItem_project_open.Enabled:=false;
   Self.MenuItem_project_save.Enabled:=false;
@@ -814,6 +812,12 @@ begin
   Self.MenuItem_Tool_ProjectDir.Enabled:=true;
 
   Application.ProcessMessages;
+
+  //这个不是这里应该做的事，应该整合到format_component里头
+  //目前在application.processmessage之后避免属性组选项未加载完成而导致combo选项未加载。
+  AProject.FormatEditClear(nil);
+  AProject.FormatEditBuild(Self.ScrollBox_Node_FormatEdit,fmt_file);
+  AProject.FormatEditValidate(Selected_PID);
 
 end;
 
