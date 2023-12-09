@@ -23,9 +23,9 @@ object Form_CalcField: TForm_CalcField
     Height = 360
     Top = 0
     Width = 727
-    ActivePage = TabSheet_Join
+    ActivePage = TabSheet_Formula
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 0
     object TabSheet_Formula: TTabSheet
       Caption = '字段计算'
@@ -1028,18 +1028,6 @@ object Form_CalcField: TForm_CalcField
         MouseActions = <>
         MouseTextActions = <>
         MouseSelActions = <>
-        Lines.Strings = (
-          'ifdef _apiglio_pid_,@2_lines_next'
-          'var char _apiglio_pid_ 6'
-          'ifdef _apiglio_res_,@2_lines_next'
-          'var char _apiglio_res_ 2048'
-          'ifdef _apiglio_tmp_,@2_lines_next'
-          'var char _apiglio_tmp_ 256'
-          'update.begin'
-          'pid.first @_apiglio_pid_'
-          'loo:'
-          'mov @_apiglio_res_,""'
-        )
         VisibleSpecialChars = [vscSpace, vscTabAtLast]
         ReadOnly = True
         ScrollBars = ssVertical
@@ -1548,16 +1536,6 @@ object Form_CalcField: TForm_CalcField
         MouseActions = <>
         MouseTextActions = <>
         MouseSelActions = <>
-        Lines.Strings = (
-          'attrs.rec.edit @_apiglio_pid_,AttrName,FieldName,@_apiglio_res_'
-          'pid.next_jump @_apiglio_pid_,:loo'
-          'update.end'
-          'update.apply "rebuild_mg"  '
-          'unvar _apiglio_pid_'
-          'unvar _apiglio_res_'
-          'unvar _apiglio_tmp_'
-          'end'
-        )
         VisibleSpecialChars = [vscSpace, vscTabAtLast]
         ReadOnly = True
         ScrollBars = ssVertical

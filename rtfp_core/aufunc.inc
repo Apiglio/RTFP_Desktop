@@ -87,15 +87,16 @@ begin
   if AAuf.ArgsCount>3 then
     begin
       if not AAuf.TryArgToString(3,mode) then exit;
+      if not AAuf.TryArgToStrParam(3,['copy','move','refs','addr','link'],false,mode) then exit;
     end
-  else mode:='fb';
+  else mode:='copy';
   if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
   case lowercase(mode) of
-    'fullbackup','full','fb':PID:=CurrentRTFP.AddPaper(filename,apmFullBackup);
-    'cutbackup','cut','cb':PID:=CurrentRTFP.AddPaper(filename,apmCutBackup);
-    'reference','ref':PID:=CurrentRTFP.AddPaper(filename,apmReference);
-    'address','addr':PID:=CurrentRTFP.AddPaper(filename,apmAddress);
-    'website','web':PID:=CurrentRTFP.AddPaper(filename,apmWebsite);
+    'copy':PID:=CurrentRTFP.AddPaper(filename,apmFullBackup);
+    'move':PID:=CurrentRTFP.AddPaper(filename,apmCutBackup);
+    'refs':PID:=CurrentRTFP.AddPaper(filename,apmReference);
+    'addr':PID:=CurrentRTFP.AddPaper(filename,apmAddress);
+    'link':PID:=CurrentRTFP.AddPaper(filename,apmWebsite);
     else PID:=CurrentRTFP.AddPaper(filename);//默认也是apmFullBackup
   end;
   if arv.VarType=ARV_Raw then
@@ -525,30 +526,6 @@ begin
   end else AufScpt.send_error('未找到'+filename+'布局文件！');
 end;
 
-procedure aufunc_newPaperId(Sender:TObject);
-var AufScpt:TAufScript;
-begin
-  AufScpt:=Sender as TAufScript;
-  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
-  AufScpt.writeln(CurrentRTFP.NewPaperID);
-end;
-
-procedure aufunc_newImageId(Sender:TObject);
-var AufScpt:TAufScript;
-begin
-  AufScpt:=Sender as TAufScript;
-  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
-  AufScpt.writeln(CurrentRTFP.NewImageID);
-end;
-
-procedure aufunc_newNoteId(Sender:TObject);
-var AufScpt:TAufScript;
-begin
-  AufScpt:=Sender as TAufScript;
-  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
-  AufScpt.writeln(CurrentRTFP.NewNoteID);
-end;
-
 procedure aufunc_ShowMeta(Sender:TObject);
 var AufScpt:TAufScript;
     AAuf:TAuf;
@@ -838,60 +815,54 @@ end;
 procedure AufScriptFuncDefineRTFP(Auf:TAuf);
 begin
   with Auf do begin
-    Script.add_func('new.pid',@aufunc_newPaperId,'','返回一个可用的PID');
-    Script.add_func('new.iid',@aufunc_newImageId,'','返回一个可用的IID');
-    Script.add_func('new.nid',@aufunc_newNoteId,'','返回一个可用的NID');
 
-    Script.add_func('paper.add',@aufunc_AddPaper,'filename,@out_pid,mode="fb"','新建Paper节点');
-    Script.add_func('paper.del',@aufunc_DeletePaper,'PID','删除Paper节点');
+    Script.add_func('paper.add',            @aufunc_AddPaper,         'filename,@out_pid,mode="copy"','新建Paper节点');
+    Script.add_func('paper.del',            @aufunc_DeletePaper,      'PID','删除Paper节点');
 
-    Script.add_func('paper.edit',@aufunc_EditAttr,'PID,AttrName,FieldName,Memo','修改PID节点中AttrName属性组的FieldName字段为Memo');
-    Script.add_func('paper.edit_image',@aufunc_EditImage,'PID,AttrName,FieldName,filename','修改PID节点中AttrName属性组的FieldName图像字段为filename图像');
-    Script.add_func('paper.read',@aufunc_ReadAttr,'PID,AttrName,FieldName,arv','修改PID节点中AttrName属性组的FieldName字段为Memo');
+    Script.add_func(_COMMAND_READ_VALUE_,   @aufunc_ReadAttr,         'PID,AttrName,FieldName,arv','修改PID节点中AttrName属性组的FieldName字段为Memo');
+    Script.add_func(_COMMAND_EDIT_VALUE_,   @aufunc_EditAttr,         'PID,AttrName,FieldName,Memo','修改PID节点中AttrName属性组的FieldName字段为Memo');
+    Script.add_func('paper.edit_image',     @aufunc_EditImage,        'PID,AttrName,FieldName,filename','修改PID节点中AttrName属性组的FieldName图像字段为filename图像');
 
-    //Script.add_func('attrs.ag.add',@aufunc_AddAttrGroup,'AttrName','在第AttrNo表中创建FieldName字段');
-    //Script.add_func('attrs.ag.del',@aufunc_DelAttrGroup,'AttrName','在第AttrNo表中创建FieldName字段');
-    Script.add_func('field.add',@aufunc_AddAttrField,'AttrName,FieldName','在AttrName属性组中创建FieldName字段');
-    Script.add_func('field.del',@aufunc_DelAttrField,'AttrName,FieldName','在AttrName属性组中创建FieldName字段');
-    Script.add_func('field.enable',@aufunc_EnableAttrField,'AttrName,FieldName','在主表中显示AttrName属性组中的FieldName字段');
-    Script.add_func('field.disable',@aufunc_DisableAttrField,'AttrName,FieldName','在主表中隐藏AttrName属性组中的FieldName字段');
+    Script.add_func('field.add',            @aufunc_AddAttrField,     'AttrName,FieldName','在AttrName属性组中创建FieldName字段');
+    Script.add_func('field.del',            @aufunc_DelAttrField,     'AttrName,FieldName','在AttrName属性组中删除FieldName字段');
+    Script.add_func('field.enable',         @aufunc_EnableAttrField,  'AttrName,FieldName','在主表中显示AttrName属性组中的FieldName字段');
+    Script.add_func('field.disable',        @aufunc_DisableAttrField, 'AttrName,FieldName','在主表中隐藏AttrName属性组中的FieldName字段');
 
-    Script.add_func('class.add',@aufunc_addKlass,'KlassName','创建分类表');
-    Script.add_func('class.del',@aufunc_deleteKlass,'KlassName','删除分类表');
-    Script.add_func('class.enable',@aufunc_enableKlass,'KlassName','勾选KlassName分类');
-    Script.add_func('class.disable',@aufunc_disableKlass,'KlassName','取消勾选KlassName分类');
-    Script.add_func('class.filtermode',@aufunc_KlassFilterMode,'and | or | not','选择分类筛选模式');
-    Script.add_func('class.filterclear',@aufunc_KlassFilterClear,'','取消勾选所有分类');
+    Script.add_func('class.add',            @aufunc_addKlass,         'KlassName','创建分类表');
+    Script.add_func('class.del',            @aufunc_deleteKlass,      'KlassName','删除分类表');
+    Script.add_func('class.enable',         @aufunc_enableKlass,      'KlassName','勾选KlassName分类');
+    Script.add_func('class.disable',        @aufunc_disableKlass,     'KlassName','取消勾选KlassName分类');
+    Script.add_func('class.filtermode',     @aufunc_KlassFilterMode,  'and | or | not','选择分类筛选模式');
+    Script.add_func('class.filterclear',    @aufunc_KlassFilterClear, '','取消勾选所有分类');
 
-    Script.add_func('class.include',@aufunc_KlassInclude,'KlassName, PID','将PID节点加入分类');
-    Script.add_func('class.exclude',@aufunc_KlassExclude,'KlassName, PID','将PID节点移出分类');
-    Script.add_func('class.include_ds',@aufunc_KlassIncludeDS,'KlassName','将主表中所有节点加入分类');
-    Script.add_func('class.exclude_ds',@aufunc_KlassExcludeDS,'KlassName','将主表中所有节点移出分类');
+    Script.add_func('class.include',        @aufunc_KlassInclude,     'KlassName, PID','将PID节点加入分类');
+    Script.add_func('class.exclude',        @aufunc_KlassExclude,     'KlassName, PID','将PID节点移出分类');
+    Script.add_func('class.include_ds',     @aufunc_KlassIncludeDS,   'KlassName','将主表中所有节点加入分类');
+    Script.add_func('class.exclude_ds',     @aufunc_KlassExcludeDS,   'KlassName','将主表中所有节点移出分类');
 
-    Script.add_func('pdf.meta',@aufunc_ShowMeta,'filename','检查pdf文件的meta数据');
-    Script.add_func('pdf.view',@aufunc_ShowView,'filename,page','预览pdf的page页');
+    Script.add_func('pdf.meta',             @aufunc_ShowMeta,         'filename','检查pdf文件的meta数据');
+    Script.add_func('pdf.view',             @aufunc_ShowView,         'filename,page','预览pdf的page页');
 
-    Script.add_func('update.begin',@aufunc_BeginUpdate,'','开始更新模式');
-    Script.add_func('update.end',@aufunc_EndUpdate,'','结束更新模式');
-    Script.add_func('update.apply',@aufunc_update_case,'mode','触发更新过程');
+    Script.add_func(_COMMAND_UPDATE_BEGIN_, @aufunc_BeginUpdate,      '','开始更新模式');
+    Script.add_func(_COMMAND_UPDATE_END_,   @aufunc_EndUpdate,        '','结束更新模式');
+    Script.add_func(_COMMAND_UPDATE_APPLY_, @aufunc_update_case,      'mode','触发更新过程');
 
-    Script.add_func('mg.filter',@aufunc_maingrid_filter,'criterion','修改主表筛选条件');
-    Script.add_func('mg.sorter',@aufunc_maingrid_sorter,'criterion','修改主表排序条件');
+    Script.add_func('mg.filter',            @aufunc_maingrid_filter,  'criterion','修改主表筛选条件');
+    Script.add_func('mg.sorter',            @aufunc_maingrid_sorter,  'criterion','修改主表排序条件');
 
 
-    Script.add_func('fmt.rebuild',@aufunc_RebuildFormatEdit,'filename','从filename中加载FormatEdit布局');
-    //把FmtCmp改掉，取消泛型
+    Script.add_func('fmt.rebuild',          @aufunc_RebuildFormatEdit,'filename','从filename中加载FormatEdit布局');
 
-    Script.add_func('hash',@aufunc_FileHash,'filename','返回FileHash');
-    Script.add_func('save',@aufunc_save,'','强制保存');
+    Script.add_func('hash',                 @aufunc_FileHash,         'filename','返回FileHash');
+    Script.add_func('save',                 @aufunc_save,             '','强制保存');
 
-    Script.add_func('pid.first',@aufunc_PID_First,'@str','寻找第一个PID，并赋值给@str');
-    Script.add_func('pid.next_jump',@aufunc_PID_NextJump,'@str,:addr','寻找第下一个PID，下一个存在则赋值给@str并跳转到:addr');
+    Script.add_func(_COMMAND_GET_FIRST_PID_,@aufunc_PID_First,        '@str','寻找第一个PID，并赋值给@str');
+    Script.add_func(_COMMAND_GET_NEXT_PID_, @aufunc_PID_NextJump,     '@str,:addr','寻找第下一个PID，下一个存在则赋值给@str并跳转到:addr');
 
-    Script.add_func('option.attrs.set',@aufunc_set_field_option,'attrs,field,key,value','字段显示设置');
+    Script.add_func(_COMMAND_SET_OPTION_,   @aufunc_set_field_option, 'attrs,field,key,value','字段显示设置');
 
     {$ifdef test}
-    Script.add_func('test',@aufunc_test,'*arg','测试');
+    Script.add_func('test',                 @aufunc_test,             '*arg','测试');
 
 
     {$endif}

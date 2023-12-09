@@ -104,6 +104,18 @@ const
   _Col_relat_Cited_ = '引证文献';
   _Col_relat_References_ = '参考文献';
 
+  //在窗体功能中涉及的aufscript指令
+
+  _COMMAND_SET_OPTION_    = 'option.attrs.set';
+  _COMMAND_GET_FIRST_PID_ = 'pid.first';
+  _COMMAND_GET_NEXT_PID_  = 'pid.next_jump';
+  _COMMAND_READ_VALUE_    = 'paper.read';
+  _COMMAND_EDIT_VALUE_    = 'paper.edit';
+  _COMMAND_UPDATE_BEGIN_  = 'update.begin';
+  _COMMAND_UPDATE_END_    = 'update.end';
+  _COMMAND_UPDATE_APPLY_  = 'update.apply';
+
+
   {$ifdef WINDOWS}
   _fsplit_='\';
   {$else}

@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, SynEdit, Forms, Controls, Graphics, Dialogs,
-  Grids, ComCtrls, StdCtrls, ExtCtrls, Menus, rtfp_field;
+  Grids, ComCtrls, StdCtrls, ExtCtrls, Menus, rtfp_field, rtfp_constants;
 
 type
 
@@ -203,6 +203,32 @@ begin
   Memo_CalcSyntaxPost.Highlighter:=FormDesktop.Frame_AufScript1.Auf.Script.SynAufSyn;
   FRangeMode:=rm_maingrid;
   FMatchMode:=mm_all;
+  with Memo_CalcSyntaxPre.Lines do begin
+    Clear;
+    Add('ifdef _apiglio_pid_,@2_lines_next');
+    Add('var char _apiglio_pid_ 6');
+    Add('ifdef _apiglio_res_,@2_lines_next');
+    Add('var char _apiglio_res_ 2048');
+    Add('ifdef _apiglio_tmp_,@2_lines_next');
+    Add('var char _apiglio_tmp_ 256');
+    Add(_COMMAND_UPDATE_BEGIN_);
+    Add(_COMMAND_GET_FIRST_PID_+' @_apiglio_pid_');
+    Add('loo:');
+    Add('mov @_apiglio_res_,""');
+  end;
+  with Memo_CalcSyntaxPost.Lines do begin
+    Clear;
+    Add(_COMMAND_EDIT_VALUE_+' @_apiglio_pid_,AttrName,FieldName,@_apiglio_res_');
+    Add(_COMMAND_GET_NEXT_PID_+' @_apiglio_pid_,:loo');
+    Add(_COMMAND_UPDATE_END_);
+    Add(_COMMAND_UPDATE_APPLY_+' "rebuild_mg"');
+    Add('unvar _apiglio_pid_');
+    Add('unvar _apiglio_res_');
+    Add('unvar _apiglio_tmp_');
+    Add('end');
+  end;
+
+
 end;
 
 procedure TForm_CalcField.ListBox_FieldsDblClick(Sender: TObject);
@@ -214,7 +240,7 @@ begin
   if DragField=nil then
     Memo_CalcSyntaxMid.SelText:=#13#10+'cat @_apiglio_res_,""'
   else
-    Memo_CalcSyntaxMid.SelText:=#13#10+'attrs.rec.read @_apiglio_pid_,"'
+    Memo_CalcSyntaxMid.SelText:=#13#10+_COMMAND_READ_VALUE_+' @_apiglio_pid_,"'
       +DragField.AttrsGroup.Name+'","'+DragField.FieldName+'",@_apiglio_tmp_'
       +#13#10+'cat @_apiglio_res_,@_apiglio_tmp_';
 end;
@@ -235,7 +261,7 @@ begin
   if DragField=nil then
     Memo_CalcSyntaxMid.SelText:=#13#10+'cat @_apiglio_res_,""'
   else
-    Memo_CalcSyntaxMid.SelText:=#13#10+'attrs.rec.read @_apiglio_pid_,"'
+    Memo_CalcSyntaxMid.SelText:=#13#10+_COMMAND_READ_VALUE_+' @_apiglio_pid_,"'
       +DragField.AttrsGroup.Name+'","'+DragField.FieldName+'",@_apiglio_tmp_'
       +#13#10+'cat @_apiglio_res_,@_apiglio_tmp_';
 end;
@@ -380,7 +406,7 @@ begin
     StringGrid_Join.Cells[2,0]:='目标字段'
   else
     StringGrid_Join.Cells[2,0]:='目标字段：'+FTargetField.AttrsGroup.Name+'.'+FTargetField.FieldName;
-  Memo_CalcSyntaxPost.Lines[0]:='attrs.rec.edit @_apiglio_pid_,'+FTargetField.AttrsGroup.Name+','+FTargetField.FieldName+',@_apiglio_res_';
+  Memo_CalcSyntaxPost.Lines[0]:=_COMMAND_EDIT_VALUE_+' @_apiglio_pid_,'+FTargetField.AttrsGroup.Name+','+FTargetField.FieldName+',@_apiglio_res_';
   StringGrid_Join.OnResize(StringGrid_Join);
 end;
 
