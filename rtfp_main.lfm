@@ -409,6 +409,7 @@ object FormDesktop: TFormDesktop
         Top = 0
         Width = 506
         Anchors = [akTop, akLeft, akRight, akBottom]
+        Font.Height = -13
         Font.Name = 'Courier New'
         Font.Pitch = fpFixed
         Font.Quality = fqNonAntialiased
@@ -416,7 +417,7 @@ object FormDesktop: TFormDesktop
         ParentFont = False
         TabOrder = 6
         OnClick = SynEdit_FEMgrClick
-        Gutter.Width = 62
+        Gutter.Width = 58
         Gutter.MouseActions = <>
         RightGutter.Width = 0
         RightGutter.MouseActions = <>
@@ -871,7 +872,7 @@ object FormDesktop: TFormDesktop
             MouseActions = <>
           end
           object SynGutterLineNumber1: TSynGutterLineNumber
-            Width = 21
+            Width = 17
             MouseActions = <>
             MarkupInfo.Background = clBtnFace
             MarkupInfo.Foreground = clNone

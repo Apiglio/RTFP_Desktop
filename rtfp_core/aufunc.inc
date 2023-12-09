@@ -770,7 +770,7 @@ begin
   AufScpt:=Sender as TAufScript;
   AAuf:=AufScpt.Auf as TAuf;
   if not AAuf.CheckArgs(2) then exit;
-  if not AAuf.TryArgToStrParam(1,['rebuild_mg','update_cur','change','datachange','fieldchange','recordchange','classchange'],false,stmp) then exit;
+  if not AAuf.TryArgToStrParam(1,['rebuild_mg','update_cur','change','datachange','fieldchange','recordchange','classchange','classincludechange'],false,stmp) then exit;
   if not AAuf.TryArgToString(2,ppid) then ppid:='000000';
   if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
   case lowercase(stmp) of
@@ -781,6 +781,7 @@ begin
     'fieldchange':CurrentRTFP.FieldChange;
     'recordchange':CurrentRTFP.RecordChange;
     'classchange':CurrentRTFP.ClassChange;
+    'classincludechange':CurrentRTFP.ClassIncludeChange(ppid);
     else AufScpt.writeln('无效的更新模式。');
   end;
 end;

@@ -179,7 +179,7 @@ begin
   finally
     stmp.Free;
   end;
-  DataChange(PID);
+  ClassIncludeChange(PID);
   result:=true;
 end;
 
@@ -206,7 +206,7 @@ begin
   finally
     stmp.Free;
   end;
-  DataChange(PID);
+  ClassIncludeChange(PID);
   result:=true;
 end;
 

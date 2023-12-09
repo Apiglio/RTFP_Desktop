@@ -513,6 +513,7 @@ begin
     onTagChange:=@ProjectTagChange;
     OnMainGridRebuilding:=@MainGridRebuilding;
     OnMainGridRebuildDone:=@MainGridRebuildDone;
+    onClassIncludeChange:=@Self.ClassListValidate;
     onClassChange:=@Self.ClassListValidate;
     onFieldChange:=@Self.FieldListValidate;
     onFormatListChange:=@Self.FormatListValidate;

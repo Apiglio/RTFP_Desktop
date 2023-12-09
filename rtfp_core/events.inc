@@ -79,6 +79,13 @@ begin
   if not not_change_at_the_beginning then {Data}Change;
 end;
 
+procedure TRTFP.ClassIncludeChange(PID:RTFP_ID);
+begin
+  if (not IsUpdating) and (FOnClassIncludeChange<>nil) then FOnClassIncludeChange(Self);
+  LogLine('ClassIncludeChange '+PID);
+  DataChange(PID);
+end;
+
 procedure TRTFP.ClassChange(not_change_at_the_beginning:boolean=false);
 begin
   if (not IsUpdating) and (FOnClassChange<>nil) then FOnClassChange(Self);

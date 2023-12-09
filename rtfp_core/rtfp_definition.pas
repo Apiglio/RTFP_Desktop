@@ -440,6 +440,7 @@ type
     FOnDataChange            :TRTFPChangeEvent;
     FOnFieldChange           :TRTFPChangeEvent;
     FOnRecordChange          :TRTFPChangeEvent;
+    FOnClassIncludeChange    :TRTFPChangeEvent;
     FOnClassChange           :TRTFPChangeEvent;
     FOnUsersChange           :TRTFPChangeEvent;
     FOnFormatListChange      :TRTFPOneStrEvent;
@@ -478,6 +479,7 @@ type
     property onDataChange         :TRTFPChangeEvent  read FOnDataChange           write FOnDataChange;
     property onFieldChange        :TRTFPChangeEvent  read FOnFieldChange          write FOnFieldChange;
     property onRecordChange       :TRTFPChangeEvent  read FOnRecordChange         write FOnRecordChange;
+    property onClassIncludeChange :TRTFPChangeEvent  read FOnClassIncludeChange   write FOnClassIncludeChange;
     property onClassChange        :TRTFPChangeEvent  read FOnClassChange          write FOnClassChange;
     property onUsersChange        :TRTFPChangeEvent  read FOnUsersChange          write FOnUsersChange;
     property onFormatListChange   :TRTFPOneStrEvent  read FOnFormatListChange     write FOnFormatListChange;
@@ -490,6 +492,7 @@ type
     procedure FieldChange;//字段修改，也会触发DataChange和Change事件
     procedure RecordChange;//记录修改，也会触发DataChange和Change事件
     procedure FieldAndRecordChange(not_change_at_the_beginning:boolean=false);//记录和字段同时修改，也会触发DataChange和Change事件
+    procedure ClassIncludeChange(PID:RTFP_ID);//记录中的分类字段修改，也会触发DataChange事件
     procedure ClassChange(not_change_at_the_beginning:boolean=false);//分类修改，也会触发Change事件
     procedure UsersChange;//用户列表修改，也会触发Change事件
     procedure FormatListChange(rename:string='default.fmt');//编辑样式列表修改，也会触发Change事件
