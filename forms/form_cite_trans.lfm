@@ -23,10 +23,10 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = TabControl_Reference_Style
     AnchorSideBottom.Side = asrBottom
-    Left = 453
+    Left = 452
     Height = 92
     Top = 373
-    Width = 540
+    Width = 541
     Anchors = [akLeft, akRight, akBottom]
     BorderSpacing.Bottom = 25
     OnPaint = PaintBox_ArrowsPaint
@@ -38,12 +38,12 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideRight.Control = TabControl_CiteStyle
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Button_ExportCite
-    Left = 453
+    Left = 452
     Height = 341
     Top = 28
-    Width = 540
+    Width = 541
     Anchors = [akTop, akLeft, akRight, akBottom]
-    BorderSpacing.Bottom = 5
+    BorderSpacing.Bottom = 4
     ScrollBars = ssAutoVertical
     TabOrder = 0
     WordWrap = False
@@ -56,10 +56,10 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 453
+    Left = 452
     Height = 68
     Top = 490
-    Width = 540
+    Width = 541
     Anchors = [akLeft, akRight, akBottom]
     ScrollBars = ssAutoVertical
     TabOrder = 1
@@ -85,11 +85,11 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideTop.Control = Owner
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 453
+    Left = 452
     Height = 28
     Top = 0
-    Width = 540
-    TabIndex = 4
+    Width = 541
+    TabIndex = 5
     Tabs.Strings = (
       'E-Study'
       'RefWorks'
@@ -99,7 +99,7 @@ object Form_CiteTrans: TForm_CiteTrans
       'RIS'
     )
     Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Left = 5
+    BorderSpacing.Left = 4
     ParentFont = False
     TabOrder = 3
   end
@@ -110,11 +110,11 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Memo_Reference
-    Left = 453
+    Left = 452
     Height = 28
     Top = 462
-    Width = 540
-    TabIndex = 4
+    Width = 541
+    TabIndex = 0
     Tabs.Strings = (
       'GB/T 7714'
       'CAJ-CD'
@@ -135,7 +135,7 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideRight.Control = TabControl_CiteStyle
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Button_ImportRefs
-    Left = 653
+    Left = 652
     Height = 28
     Top = 389
     Width = 100
@@ -155,7 +155,7 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideRight.Control = Panel_DBGrid_Temporary
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Button_ImportRefs
-    Left = 503
+    Left = 502
     Height = 28
     Top = 374
     Width = 100
@@ -175,7 +175,7 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = TabControl_Reference_Style
     AnchorSideBottom.Side = asrBottom
-    Left = 653
+    Left = 652
     Height = 28
     Top = 422
     Width = 100
@@ -192,7 +192,7 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideTop.Side = asrBottom
     AnchorSideBottom.Control = TabControl_Reference_Style
     AnchorSideBottom.Side = asrBottom
-    Left = 503
+    Left = 502
     Height = 28
     Top = 437
     Width = 100
@@ -211,10 +211,10 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Button_ImportCite
     AnchorSideBottom.Side = asrBottom
-    Left = 813
+    Left = 812
     Height = 28
     Top = 389
-    Width = 170
+    Width = 171
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 60
     BorderSpacing.Right = 10
@@ -228,11 +228,11 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideTop.Side = asrCenter
     AnchorSideRight.Control = Button_ImportPapers
     AnchorSideRight.Side = asrBottom
-    Left = 853
+    Left = 852
     Height = 32
     Hint = '新创建节点默认纳入此分类'
     Top = 420
-    Width = 130
+    Width = 131
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Left = 40
     ItemHeight = 24
@@ -246,7 +246,7 @@ object Form_CiteTrans: TForm_CiteTrans
     AnchorSideTop.Control = ComboBox_DefaultCl
     AnchorSideTop.Side = asrCenter
     AnchorSideRight.Control = ComboBox_DefaultCl
-    Left = 813
+    Left = 812
     Height = 24
     Top = 424
     Width = 54

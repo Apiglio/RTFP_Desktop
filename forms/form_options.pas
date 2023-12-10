@@ -60,7 +60,6 @@ type
     procedure FormShow(Sender: TObject);
     procedure Memo_RegExprChange(Sender: TObject);
     procedure CheckBox_SyncEnabledChange(Sender: TObject);
-    procedure PageControl_OptionChange(Sender: TObject);
     procedure RadioGroup_BackupModeClick(Sender: TObject);
     procedure RadioGroup_MGSC_CRClick(Sender: TObject);
     procedure TrackBar_SyncIntervalChange(Sender: TObject);
@@ -93,11 +92,6 @@ end;
 procedure TFormOptions.CheckBox_SyncEnabledChange(Sender: TObject);
 begin
   TimerEnabled:=(Sender as TCheckBox).Checked;
-end;
-
-procedure TFormOptions.PageControl_OptionChange(Sender: TObject);
-begin
-
 end;
 
 procedure TFormOptions.Edit_SyncPathChange(Sender: TObject);

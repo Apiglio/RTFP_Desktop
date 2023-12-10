@@ -1,12 +1,12 @@
 object Form_NewProject: TForm_NewProject
-  Left = 777
-  Height = 249
+  Left = 830
+  Height = 267
   Top = 478
-  Width = 513
+  Width = 460
   BorderIcons = [biSystemMenu]
   Caption = '新建工程'
-  ClientHeight = 249
-  ClientWidth = 513
+  ClientHeight = 267
+  ClientWidth = 460
   Constraints.MinHeight = 200
   Constraints.MinWidth = 375
   DesignTimePPI = 144
@@ -21,14 +21,14 @@ object Form_NewProject: TForm_NewProject
     AnchorSideTop.Control = Owner
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 114
+    Left = 106
     Height = 32
-    Top = 12
-    Width = 387
+    Top = 8
+    Width = 346
     Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Left = 12
-    BorderSpacing.Top = 12
-    BorderSpacing.Right = 12
+    BorderSpacing.Left = 8
+    BorderSpacing.Top = 8
+    BorderSpacing.Right = 8
     OnChange = Edit_ProjectNameChange
     TabOrder = 0
     Text = 'Untitled'
@@ -37,11 +37,11 @@ object Form_NewProject: TForm_NewProject
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Edit_ProjectName
     AnchorSideTop.Side = asrCenter
-    Left = 12
+    Left = 8
     Height = 24
-    Top = 16
+    Top = 12
     Width = 90
-    BorderSpacing.Left = 12
+    BorderSpacing.Left = 8
     Caption = '工程名称：'
     ParentColor = False
   end
@@ -49,11 +49,11 @@ object Form_NewProject: TForm_NewProject
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Edit_ProjectPath
     AnchorSideTop.Side = asrCenter
-    Left = 12
+    Left = 8
     Height = 24
-    Top = 56
+    Top = 52
     Width = 90
-    BorderSpacing.Left = 12
+    BorderSpacing.Left = 8
     Caption = '文件路径：'
     ParentColor = False
   end
@@ -63,13 +63,13 @@ object Form_NewProject: TForm_NewProject
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 114
+    Left = 106
     Height = 32
-    Top = 52
-    Width = 387
+    Top = 48
+    Width = 346
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 8
-    BorderSpacing.Right = 12
+    BorderSpacing.Right = 8
     OnChange = Edit_ProjectPathChange
     TabOrder = 1
     Text = 'K:\LAB_Pascal\RTFP Desktop\DefaultDB'
@@ -82,12 +82,12 @@ object Form_NewProject: TForm_NewProject
     AnchorSideBottom.Side = asrBottom
     Left = 8
     Height = 30
-    Top = 207
-    Width = 94
+    Top = 229
+    Width = 90
     HelpType = htKeyword
     Anchors = [akLeft, akRight, akBottom]
     BorderSpacing.Left = 8
-    BorderSpacing.Bottom = 12
+    BorderSpacing.Bottom = 8
     Caption = '创建'
     ModalResult = 1
     OnClick = Button_CreateClick
@@ -100,8 +100,8 @@ object Form_NewProject: TForm_NewProject
     AnchorSideBottom.Control = Button_Create
     Left = 8
     Height = 30
-    Top = 169
-    Width = 94
+    Top = 191
+    Width = 90
     Anchors = [akLeft, akRight, akBottom]
     BorderSpacing.Left = 8
     BorderSpacing.Bottom = 8
@@ -113,18 +113,17 @@ object Form_NewProject: TForm_NewProject
     AnchorSideLeft.Control = Edit_ProjectName
     AnchorSideTop.Control = Edit_ProjectPath
     AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = Owner
-    AnchorSideRight.Side = asrBottom
+    AnchorSideRight.Control = RadioGroup_dbFormat
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 114
-    Height = 145
-    Top = 92
-    Width = 295
+    Left = 106
+    Height = 171
+    Top = 88
+    Width = 229
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Top = 8
-    BorderSpacing.Right = 104
-    BorderSpacing.Bottom = 12
+    BorderSpacing.Right = 8
+    BorderSpacing.Bottom = 8
     Enabled = False
     Items.Strings = (
       '工程名称合法'
@@ -142,11 +141,11 @@ object Form_NewProject: TForm_NewProject
   object Label_ProjectCanBuild: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = CheckListBox_CanBuild
-    Left = 12
+    Left = 8
     Height = 24
-    Top = 95
+    Top = 91
     Width = 90
-    BorderSpacing.Left = 12
+    BorderSpacing.Left = 8
     BorderSpacing.Top = 3
     Caption = '创建要求：'
     ParentColor = False
@@ -156,14 +155,14 @@ object Form_NewProject: TForm_NewProject
     AnchorSideTop.Control = CheckListBox_CanBuild
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 419
-    Height = 58
-    Top = 92
-    Width = 82
+    Left = 343
+    Height = 85
+    Top = 88
+    Width = 109
     Anchors = [akTop, akRight]
     AutoFill = True
-    BorderSpacing.Left = 25
-    BorderSpacing.Right = 12
+    AutoSize = True
+    BorderSpacing.Right = 8
     Caption = '数据库格式'
     ChildSizing.LeftRightSpacing = 6
     ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
@@ -172,8 +171,8 @@ object Form_NewProject: TForm_NewProject
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
-    ClientHeight = 29
-    ClientWidth = 78
+    ClientHeight = 56
+    ClientWidth = 105
     ItemIndex = 1
     Items.Strings = (
       'DBF'
@@ -185,7 +184,7 @@ object Form_NewProject: TForm_NewProject
     Title = '选择目录'
     FileName = 'K:\LAB_Pascal\RTFP Desktop'
     InitialDir = 'K:\LAB_Pascal\'
-    left = 227
-    top = 127
+    left = 312
+    top = 144
   end
 end

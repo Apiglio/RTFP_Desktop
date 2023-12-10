@@ -1,18 +1,18 @@
 object Form_FileSource: TForm_FileSource
-  Left = 1285
-  Height = 167
-  Top = 738
-  Width = 472
+  Left = 1152
+  Height = 180
+  Top = 725
+  Width = 605
   AllowDropFiles = True
   Caption = '源替换'
-  ClientHeight = 167
-  ClientWidth = 472
-  Constraints.MinHeight = 167
-  Constraints.MinWidth = 417
-  DesignTimePPI = 120
+  ClientHeight = 180
+  ClientWidth = 605
+  Constraints.MinHeight = 180
+  Constraints.MinWidth = 450
+  DesignTimePPI = 144
   OnDropFiles = FormDropFiles
   Position = poScreenCenter
-  LCLVersion = '2.2.6.0'
+  LCLVersion = '1.8.4.0'
   object Memo_Path: TMemo
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
@@ -20,9 +20,9 @@ object Form_FileSource: TForm_FileSource
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = RadioGroup_mode
     Left = 0
-    Height = 89
+    Height = 79
     Top = 0
-    Width = 472
+    Width = 605
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Bottom = 8
     TabOrder = 0
@@ -32,11 +32,12 @@ object Form_FileSource: TForm_FileSource
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 389
-    Height = 32
-    Top = 127
-    Width = 75
+    Left = 499
+    Height = 34
+    Top = 138
+    Width = 98
     Anchors = [akRight, akBottom]
+    AutoSize = True
     BorderSpacing.Right = 8
     BorderSpacing.Bottom = 8
     Caption = '应用修改'
@@ -47,13 +48,14 @@ object Form_FileSource: TForm_FileSource
     AnchorSideRight.Control = Button_Commit
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 306
-    Height = 32
+    Left = 377
+    Height = 34
     Hint = '可直接将文件拖拽至窗口内'
-    Top = 127
-    Width = 75
+    Top = 138
+    Width = 98
     Anchors = [akRight, akBottom]
-    BorderSpacing.Right = 8
+    AutoSize = True
+    BorderSpacing.Right = 24
     BorderSpacing.Bottom = 8
     Caption = '选择替换'
     OnClick = Button_OpenDialogClick
@@ -66,11 +68,12 @@ object Form_FileSource: TForm_FileSource
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 8
-    Height = 62
-    Top = 97
-    Width = 178
+    Height = 85
+    Top = 87
+    Width = 216
     Anchors = [akLeft, akBottom]
     AutoFill = True
+    AutoSize = True
     BorderSpacing.Left = 8
     BorderSpacing.Bottom = 8
     Caption = '储存形式'
@@ -81,8 +84,8 @@ object Form_FileSource: TForm_FileSource
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 2
-    ClientHeight = 34
-    ClientWidth = 176
+    ClientHeight = 56
+    ClientWidth = 212
     Columns = 2
     Items.Strings = (
       '文件备份'
@@ -96,12 +99,13 @@ object Form_FileSource: TForm_FileSource
     AnchorSideRight.Control = Button_OpenDialog
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 223
-    Height = 32
+    Left = 253
+    Height = 34
     Hint = '可直接将文件拖拽至窗口内'
-    Top = 127
-    Width = 75
+    Top = 138
+    Width = 116
     Anchors = [akRight, akBottom]
+    AutoSize = True
     BorderSpacing.Right = 8
     BorderSpacing.Bottom = 8
     Caption = '重命名备份'
@@ -111,7 +115,7 @@ object Form_FileSource: TForm_FileSource
     TabOrder = 4
   end
   object OpenDialog: TOpenDialog
-    Left = 27
-    Top = 13
+    left = 27
+    top = 13
   end
 end

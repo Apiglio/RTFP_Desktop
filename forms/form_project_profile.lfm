@@ -36,10 +36,10 @@ object FormProjectProfile: TFormProjectProfile
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = TabSheet_AnnualReport
         AnchorSideBottom.Side = asrBottom
-        Left = 257
-        Height = 378
-        Top = 10
-        Width = 497
+        Left = 251
+        Height = 382
+        Top = 8
+        Width = 505
         AllowZoom = False
         AxisList = <        
           item
@@ -67,10 +67,10 @@ object FormProjectProfile: TFormProjectProfile
           'TAChart'
         )
         Anchors = [akTop, akLeft, akRight, akBottom]
-        BorderSpacing.Left = 10
-        BorderSpacing.Top = 10
-        BorderSpacing.Right = 10
-        BorderSpacing.Bottom = 10
+        BorderSpacing.Left = 8
+        BorderSpacing.Top = 8
+        BorderSpacing.Right = 8
+        BorderSpacing.Bottom = 8
         DragCursor = crNone
         object Chart_YearStatBarSeries: TBarSeries
           BarBrush.Color = clSkyBlue
@@ -83,9 +83,9 @@ object FormProjectProfile: TFormProjectProfile
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = Label_Year1
         AnchorSideTop.Side = asrCenter
-        Left = 100
+        Left = 98
         Height = 28
-        Top = 8
+        Top = 6
         Width = 81
         AutoSize = False
         MaxLength = 0
@@ -99,9 +99,9 @@ object FormProjectProfile: TFormProjectProfile
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = Label_Year2
         AnchorSideTop.Side = asrCenter
-        Left = 100
+        Left = 98
         Height = 32
-        Top = 50
+        Top = 44
         Width = 81
         MaxLength = 0
         TabOrder = 2
@@ -112,12 +112,12 @@ object FormProjectProfile: TFormProjectProfile
       object Label_Year1: TLabel
         AnchorSideLeft.Control = TabSheet_AnnualReport
         AnchorSideTop.Control = TabSheet_AnnualReport
-        Left = 10
+        Left = 8
         Height = 24
-        Top = 10
+        Top = 8
         Width = 90
-        BorderSpacing.Left = 10
-        BorderSpacing.Top = 10
+        BorderSpacing.Left = 8
+        BorderSpacing.Top = 8
         Caption = '起始年份：'
         ParentColor = False
       end
@@ -125,12 +125,12 @@ object FormProjectProfile: TFormProjectProfile
         AnchorSideLeft.Control = TabSheet_AnnualReport
         AnchorSideTop.Control = Label_Year1
         AnchorSideTop.Side = asrBottom
-        Left = 10
+        Left = 8
         Height = 24
-        Top = 54
+        Top = 48
         Width = 90
-        BorderSpacing.Left = 10
-        BorderSpacing.Top = 20
+        BorderSpacing.Left = 8
+        BorderSpacing.Top = 16
         Caption = '中止年份：'
         ParentColor = False
       end
@@ -141,13 +141,13 @@ object FormProjectProfile: TFormProjectProfile
         AnchorSideRight.Control = Chart_YearStat
         AnchorSideBottom.Control = SpinEditEx_Year2
         AnchorSideBottom.Side = asrBottom
-        Left = 191
-        Height = 74
-        Top = 8
+        Left = 187
+        Height = 70
+        Top = 6
         Width = 56
         Anchors = [akTop, akLeft, akBottom]
-        BorderSpacing.Left = 10
-        BorderSpacing.Right = 10
+        BorderSpacing.Left = 8
+        BorderSpacing.Right = 8
         Caption = '重绘'
         OnClick = Button_RedrawClick
         TabOrder = 3

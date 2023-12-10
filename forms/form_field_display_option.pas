@@ -245,7 +245,6 @@ begin
   StringGrid_ValuesColors.ColCount:=3;
   StringGrid_ValuesColors.Cells[1,0]:='数值';
   StringGrid_ValuesColors.Cells[2,0]:='颜色';
-  StringGrid_ValuesColors.DefaultRowHeight:=ColorBox_Popup.Height-1;
 
   CB_List:=TList.Create;
   CB_List.Add(ColorBox_Popup);
@@ -389,6 +388,7 @@ begin
   StringGrid_ValuesColors.ColWidths[1]:=2*w;
   StringGrid_ValuesColors.ColWidths[2]:=w;
   cs:=true;
+  StringGrid_ValuesColors.DefaultRowHeight:=ColorBox_Popup.Height-1;
   StringGrid_ValuesColorsSelectCell(SG,SG.Col,SG.Row,cs);
 end;
 
