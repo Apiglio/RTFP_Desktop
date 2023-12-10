@@ -26,26 +26,27 @@ object FormOptions: TFormOptions
     Height = 373
     Top = 0
     Width = 425
-    ActivePage = TabSheet_Sync
+    ActivePage = TabSheet_MaingridShortcut
     Anchors = [akTop, akLeft, akRight, akBottom]
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 0
     OnChange = PageControl_OptionChange
     object TabSheet_MaingridShortcut: TTabSheet
       Caption = '主表快捷键'
-      ClientHeight = 332
-      ClientWidth = 415
+      ClientHeight = 336
+      ClientWidth = 417
       object RadioGroup_MGSC_CR: TRadioGroup
         AnchorSideLeft.Control = TabSheet_MaingridShortcut
         AnchorSideTop.Control = TabSheet_MaingridShortcut
         AnchorSideRight.Control = TabSheet_MaingridShortcut
         AnchorSideRight.Side = asrBottom
         Left = 8
-        Height = 98
+        Height = 113
         Top = 8
-        Width = 399
+        Width = 401
         Anchors = [akTop, akLeft, akRight]
         AutoFill = True
+        AutoSize = True
         BorderSpacing.Left = 8
         BorderSpacing.Top = 8
         BorderSpacing.Right = 8
@@ -57,8 +58,8 @@ object FormOptions: TFormOptions
         ChildSizing.ShrinkVertical = crsScaleChilds
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 3
-        ClientHeight = 69
-        ClientWidth = 395
+        ClientHeight = 84
+        ClientWidth = 397
         Columns = 3
         ItemIndex = 3
         Items.Strings = (

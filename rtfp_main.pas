@@ -271,6 +271,7 @@ type
     procedure MenuItem_PastePaperClick(Sender: TObject);
     procedure MenuItem_project_unzipClick(Sender: TObject);
     procedure MenuItem_project_zipClick(Sender: TObject);
+    procedure PageControl_FilterResize(Sender: TObject);
     procedure RadioButton_KlassANDClick(Sender: TObject);
     procedure RadioButton_KlassORClick(Sender: TObject);
     procedure CheckBox_MainFilterAutoClick(Sender: TObject);
@@ -2589,6 +2590,14 @@ begin
     CurrentRTFP.ZTFP_Exporter(Self.SaveDialog_Project.FileName);
     if FShowWaitForm then FWaitForm.Hide;
   end;
+end;
+
+procedure TFormDesktop.PageControl_FilterResize(Sender: TObject);
+begin
+  Button_AddKlass.Width:=Button_AddKlass.Height;
+  Button_AddField.Width:=Button_AddField.Height;
+  Button_AddAttrs.Width:=Button_AddAttrs.Height;
+  Button_FieldType.Width:=Button_FieldType.Height;
 end;
 
 procedure TFormDesktop.RadioButton_KlassANDClick(Sender: TObject);

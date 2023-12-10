@@ -1,17 +1,17 @@
 object FormReportTool: TFormReportTool
-  Left = 998
+  Left = 934
   Height = 277
   Top = 447
-  Width = 500
+  Width = 535
   Caption = '导出报表'
   ClientHeight = 277
-  ClientWidth = 500
+  ClientWidth = 535
   Constraints.MinHeight = 250
   Constraints.MinWidth = 500
-  DesignTimePPI = 120
+  DesignTimePPI = 144
   OnCreate = FormCreate
   Position = poMainFormCenter
-  LCLVersion = '2.2.6.0'
+  LCLVersion = '1.8.4.0'
   object ListBox_List: TListBox
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Label_Choosing
@@ -19,15 +19,15 @@ object FormReportTool: TFormReportTool
     AnchorSideRight.Control = Memo_tip
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 17
-    Height = 208
-    Top = 52
-    Width = 124
-    Anchors = [akTop, akLeft, akRight, akBottom]
-    BorderSpacing.Left = 17
+    Left = 8
+    Height = 229
+    Top = 40
+    Width = 200
+    Anchors = [akTop, akLeft, akBottom]
+    BorderSpacing.Left = 8
     BorderSpacing.Top = 8
     BorderSpacing.Right = 8
-    BorderSpacing.Bottom = 17
+    BorderSpacing.Bottom = 8
     Items.Strings = (
       '工程基础信息'
       '导出字段数据'
@@ -37,25 +37,24 @@ object FormReportTool: TFormReportTool
       '分类统计'
       '属性统计'
     )
-    ItemHeight = 33
+    ItemHeight = 24
     OnDblClick = ListBox_ListDblClick
     OnSelectionChange = ListBox_ListSelectionChange
     TabOrder = 0
   end
   object Memo_tip: TMemo
-    AnchorSideLeft.Control = Button_ExportStyle
-    AnchorSideTop.Control = Label_Choosing
-    AnchorSideTop.Side = asrBottom
+    AnchorSideLeft.Control = ListBox_List
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = ListBox_List
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Button_Report
-    Left = 149
-    Height = 170
-    Top = 52
-    Width = 334
+    Left = 216
+    Height = 185
+    Top = 40
+    Width = 311
     Anchors = [akTop, akLeft, akRight, akBottom]
-    BorderSpacing.Top = 8
-    BorderSpacing.Right = 17
+    BorderSpacing.Right = 8
     BorderSpacing.Bottom = 8
     Enabled = False
     ParentColor = True
@@ -64,65 +63,37 @@ object FormReportTool: TFormReportTool
   object Label_Choosing: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
-    Left = 17
-    Height = 27
-    Top = 17
+    Left = 8
+    Height = 24
+    Top = 8
     Width = 126
-    BorderSpacing.Left = 17
-    BorderSpacing.Top = 17
+    BorderSpacing.Left = 8
+    BorderSpacing.Top = 8
     Caption = '选择导出类型：'
     ParentColor = False
   end
   object Button_Report: TButton
+    AnchorSideLeft.Control = ListBox_List
+    AnchorSideLeft.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 383
-    Height = 30
-    Top = 230
-    Width = 100
-    Anchors = [akRight, akBottom]
-    BorderSpacing.Right = 17
-    BorderSpacing.Bottom = 17
+    Left = 216
+    Height = 36
+    Top = 233
+    Width = 311
+    Anchors = [akLeft, akRight, akBottom]
+    BorderSpacing.Right = 8
+    BorderSpacing.Bottom = 8
     Caption = '导出'
     OnClick = Button_ReportClick
     TabOrder = 2
   end
-  object Button_ImportStyle: TButton
-    AnchorSideRight.Control = Button_Report
-    AnchorSideBottom.Control = Owner
-    AnchorSideBottom.Side = asrBottom
-    Left = 266
-    Height = 30
-    Top = 230
-    Width = 100
-    Anchors = [akRight, akBottom]
-    BorderSpacing.Right = 17
-    BorderSpacing.Bottom = 17
-    Caption = '导入报表类型'
-    Enabled = False
-    TabOrder = 3
-  end
-  object Button_ExportStyle: TButton
-    AnchorSideRight.Control = Button_ImportStyle
-    AnchorSideBottom.Control = Owner
-    AnchorSideBottom.Side = asrBottom
-    Left = 149
-    Height = 30
-    Top = 230
-    Width = 100
-    Anchors = [akRight, akBottom]
-    BorderSpacing.Right = 17
-    BorderSpacing.Bottom = 17
-    Caption = '导出报表类型'
-    Enabled = False
-    TabOrder = 4
-  end
   object SaveDialog_report: TSaveDialog
     Filter = '文本文档(*.txt)|*.txt|PNG图片(*.png)|*.png|全部文件(*.*)|*.*'
     Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
-    Left = 247
-    Top = 13
+    left = 247
+    top = 13
   end
 end

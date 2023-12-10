@@ -6,7 +6,7 @@ object FormProjectProfile: TFormProjectProfile
   Caption = '工程概览'
   ClientHeight = 435
   ClientWidth = 772
-  DesignTimePPI = 120
+  DesignTimePPI = 144
   OnShow = FormShow
   LCLVersion = '1.8.4.0'
   object PageControl1: TPageControl
@@ -26,19 +26,20 @@ object FormProjectProfile: TFormProjectProfile
     TabOrder = 0
     object TabSheet_AnnualReport: TTabSheet
       Caption = '年度统计'
-      ClientHeight = 402
+      ClientHeight = 398
       ClientWidth = 764
       object Chart_YearStat: TChart
-        AnchorSideLeft.Control = TabSheet_AnnualReport
+        AnchorSideLeft.Control = Button_Redraw
+        AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = TabSheet_AnnualReport
         AnchorSideRight.Control = TabSheet_AnnualReport
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = TabSheet_AnnualReport
         AnchorSideBottom.Side = asrBottom
-        Left = 240
-        Height = 382
+        Left = 257
+        Height = 378
         Top = 10
-        Width = 514
+        Width = 497
         AllowZoom = False
         AxisList = <        
           item
@@ -66,7 +67,7 @@ object FormProjectProfile: TFormProjectProfile
           'TAChart'
         )
         Anchors = [akTop, akLeft, akRight, akBottom]
-        BorderSpacing.Left = 240
+        BorderSpacing.Left = 10
         BorderSpacing.Top = 10
         BorderSpacing.Right = 10
         BorderSpacing.Bottom = 10
@@ -82,9 +83,9 @@ object FormProjectProfile: TFormProjectProfile
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = Label_Year1
         AnchorSideTop.Side = asrCenter
-        Left = 85
+        Left = 100
         Height = 28
-        Top = 3
+        Top = 8
         Width = 81
         AutoSize = False
         MaxLength = 0
@@ -98,9 +99,9 @@ object FormProjectProfile: TFormProjectProfile
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = Label_Year2
         AnchorSideTop.Side = asrCenter
-        Left = 85
-        Height = 28
-        Top = 38
+        Left = 100
+        Height = 32
+        Top = 50
         Width = 81
         MaxLength = 0
         TabOrder = 2
@@ -112,9 +113,9 @@ object FormProjectProfile: TFormProjectProfile
         AnchorSideLeft.Control = TabSheet_AnnualReport
         AnchorSideTop.Control = TabSheet_AnnualReport
         Left = 10
-        Height = 15
+        Height = 24
         Top = 10
-        Width = 75
+        Width = 90
         BorderSpacing.Left = 10
         BorderSpacing.Top = 10
         Caption = '起始年份：'
@@ -125,9 +126,9 @@ object FormProjectProfile: TFormProjectProfile
         AnchorSideTop.Control = Label_Year1
         AnchorSideTop.Side = asrBottom
         Left = 10
-        Height = 15
-        Top = 45
-        Width = 75
+        Height = 24
+        Top = 54
+        Width = 90
         BorderSpacing.Left = 10
         BorderSpacing.Top = 20
         Caption = '中止年份：'
@@ -140,9 +141,9 @@ object FormProjectProfile: TFormProjectProfile
         AnchorSideRight.Control = Chart_YearStat
         AnchorSideBottom.Control = SpinEditEx_Year2
         AnchorSideBottom.Side = asrBottom
-        Left = 176
-        Height = 63
-        Top = 3
+        Left = 191
+        Height = 74
+        Top = 8
         Width = 56
         Anchors = [akTop, akLeft, akBottom]
         BorderSpacing.Left = 10

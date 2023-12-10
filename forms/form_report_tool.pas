@@ -13,8 +13,6 @@ type
 
   TFormReportTool = class(TForm)
     Button_Report: TButton;
-    Button_ImportStyle: TButton;
-    Button_ExportStyle: TButton;
     Label_Choosing: TLabel;
     ListBox_List: TListBox;
     Memo_tip: TMemo;
