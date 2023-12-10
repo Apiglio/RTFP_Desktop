@@ -1,12 +1,12 @@
 object Form_CiteTrans: TForm_CiteTrans
-  Left = 725
-  Height = 558
-  Top = 215
-  Width = 993
+  Left = 969
+  Height = 419
+  Top = 429
+  Width = 722
   AllowDropFiles = True
   Caption = '引用格式转译'
-  ClientHeight = 558
-  ClientWidth = 993
+  ClientHeight = 419
+  ClientWidth = 722
   Constraints.MinHeight = 320
   Constraints.MinWidth = 640
   DesignTimePPI = 144
@@ -14,243 +14,111 @@ object Form_CiteTrans: TForm_CiteTrans
   OnDeactivate = FormDeactivate
   OnDropFiles = FormDropFiles
   OnHide = FormHide
+  OnResize = FormResize
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.8.4.0'
-  object PaintBox_Arrows: TPaintBox
-    AnchorSideLeft.Control = TabControl_Reference_Style
-    AnchorSideRight.Control = Memo_Reference
-    AnchorSideRight.Side = asrBottom
-    AnchorSideBottom.Control = TabControl_Reference_Style
-    AnchorSideBottom.Side = asrBottom
-    Left = 452
-    Height = 92
-    Top = 373
-    Width = 541
-    Anchors = [akLeft, akRight, akBottom]
-    BorderSpacing.Bottom = 25
-    OnPaint = PaintBox_ArrowsPaint
-  end
   object Memo_Cite: TMemo
-    AnchorSideLeft.Control = TabControl_CiteStyle
-    AnchorSideTop.Control = TabControl_CiteStyle
-    AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = TabControl_CiteStyle
-    AnchorSideRight.Side = asrBottom
-    AnchorSideBottom.Control = Button_ExportCite
-    Left = 452
-    Height = 341
-    Top = 28
-    Width = 541
-    Anchors = [akTop, akLeft, akRight, akBottom]
-    BorderSpacing.Bottom = 4
-    ScrollBars = ssAutoVertical
-    TabOrder = 0
-    WordWrap = False
-  end
-  object Memo_Reference: TMemo
-    AnchorSideLeft.Control = TabControl_Reference_Style
-    AnchorSideTop.Control = TabControl_Reference_Style
-    AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = TabControl_Reference_Style
+    AnchorSideLeft.Control = ListBox_CiteStyle
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 452
-    Height = 68
-    Top = 490
-    Width = 541
-    Anchors = [akLeft, akRight, akBottom]
+    Left = 534
+    Height = 419
+    Top = 0
+    Width = 188
+    Anchors = [akTop, akLeft, akRight, akBottom]
     ScrollBars = ssAutoVertical
-    TabOrder = 1
+    TabOrder = 0
     WordWrap = False
   end
   object Panel_DBGrid_Temporary: TPanel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
-    AnchorSideRight.Side = asrBottom
+    AnchorSideRight.Control = ListBox_CiteStyle
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 0
-    Height = 558
+    Height = 419
     Top = 0
-    Width = 448
-    Anchors = [akTop, akLeft, akRight, akBottom]
+    Width = 352
+    Anchors = [akTop, akLeft, akBottom]
     Caption = '这里用来放置总表，通过修改Parent实现'
+    TabOrder = 1
+  end
+  object Button_ImportCite: TButton
+    AnchorSideLeft.Control = ListBox_CiteStyle
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = ListBox_CiteStyle
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = ListBox_CiteStyle
+    Left = 368
+    Height = 34
+    Top = 82
+    Width = 150
+    Anchors = [akLeft, akRight, akBottom]
+    AutoSize = True
+    BorderSpacing.Bottom = 8
+    Caption = '修改题录信息/批量创建文献'
+    OnClick = Button_ImportCiteClick
     TabOrder = 2
   end
-  object TabControl_CiteStyle: TTabControl
+  object ListBox_CiteStyle: TListBox
     AnchorSideLeft.Control = Panel_DBGrid_Temporary
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = Owner
-    AnchorSideRight.Control = Owner
-    AnchorSideRight.Side = asrBottom
-    Left = 452
-    Height = 28
-    Top = 0
-    Width = 541
-    TabIndex = 5
-    Tabs.Strings = (
+    AnchorSideTop.Side = asrCenter
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 368
+    Height = 170
+    Top = 124
+    Width = 150
+    BorderSpacing.Left = 16
+    BorderSpacing.Right = 16
+    Items.Strings = (
       'E-Study'
-      'RefWorks'
+      'RefWork'
       'EndNote'
       'NoteExpress'
       'NoteFirst'
       'RIS'
     )
-    Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Left = 4
-    ParentFont = False
+    ItemHeight = 24
+    ItemIndex = 0
     TabOrder = 3
   end
-  object TabControl_Reference_Style: TTabControl
-    AnchorSideLeft.Control = TabControl_CiteStyle
-    AnchorSideTop.Control = Memo_Cite
+  object CheckBox_WordWrap: TCheckBox
+    AnchorSideLeft.Control = Button_ImportCite
+    AnchorSideTop.Control = Button_MemoModifer
     AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = Owner
-    AnchorSideRight.Side = asrBottom
-    AnchorSideBottom.Control = Memo_Reference
-    Left = 452
+    Left = 368
     Height = 28
-    Top = 462
-    Width = 541
-    TabIndex = 0
-    Tabs.Strings = (
-      'GB/T 7714'
-      'CAJ-CD'
-      'MLA'
-      'APA'
-      '查新'
-    )
-    Anchors = [akLeft, akRight, akBottom]
-    BorderSpacing.Top = 80
-    ParentFont = False
+    Top = 344
+    Width = 100
+    BorderSpacing.Top = 8
+    Caption = '自动换行'
+    OnChange = CheckBox_WordWrapChange
     TabOrder = 4
   end
-  object Button_ImportCite: TButton
-    AnchorSideLeft.Control = Button_ExportCite
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = Memo_Cite
+  object Button_MemoModifer: TButton
+    AnchorSideLeft.Control = ListBox_CiteStyle
+    AnchorSideTop.Control = ListBox_CiteStyle
     AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = TabControl_CiteStyle
+    AnchorSideRight.Control = ListBox_CiteStyle
     AnchorSideRight.Side = asrBottom
-    AnchorSideBottom.Control = Button_ImportRefs
-    Left = 652
-    Height = 28
-    Top = 389
-    Width = 100
-    Anchors = [akLeft, akBottom]
-    BorderSpacing.Left = 50
-    BorderSpacing.Top = 5
-    BorderSpacing.Right = 5
-    BorderSpacing.Bottom = 5
-    Caption = '应用格式引文'
-    OnClick = Button_ImportCiteClick
-    TabOrder = 5
-  end
-  object Button_ExportCite: TButton
-    AnchorSideLeft.Control = TabControl_CiteStyle
-    AnchorSideTop.Control = Memo_Cite
-    AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = Panel_DBGrid_Temporary
-    AnchorSideRight.Side = asrBottom
-    AnchorSideBottom.Control = Button_ImportRefs
-    Left = 502
-    Height = 28
-    Top = 374
-    Width = 100
-    Anchors = [akLeft, akBottom]
-    BorderSpacing.Left = 50
-    BorderSpacing.Top = 5
-    BorderSpacing.Bottom = 20
-    Caption = '读取格式引文'
-    OnClick = Button_ExportCiteClick
-    TabOrder = 6
-  end
-  object Button_ImportRefs: TButton
-    AnchorSideLeft.Control = Button_ImportCite
-    AnchorSideTop.Control = Button_ImportCite
-    AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = TabControl_Reference_Style
-    AnchorSideRight.Side = asrBottom
-    AnchorSideBottom.Control = TabControl_Reference_Style
-    AnchorSideBottom.Side = asrBottom
-    Left = 652
-    Height = 28
-    Top = 422
-    Width = 100
-    Anchors = [akLeft, akBottom]
-    BorderSpacing.Top = 5
-    BorderSpacing.Bottom = 40
-    Caption = '应用引用格式'
-    OnClick = Button_ImportRefsClick
-    TabOrder = 7
-  end
-  object Button_ExportRefs: TButton
-    AnchorSideLeft.Control = Button_ExportCite
-    AnchorSideTop.Control = Button_ExportCite
-    AnchorSideTop.Side = asrBottom
-    AnchorSideBottom.Control = TabControl_Reference_Style
-    AnchorSideBottom.Side = asrBottom
-    Left = 502
-    Height = 28
-    Top = 437
-    Width = 100
-    Anchors = [akLeft, akBottom]
-    BorderSpacing.Top = 5
-    BorderSpacing.Bottom = 25
-    Caption = '导出引用格式'
-    OnClick = Button_ExportRefsClick
-    TabOrder = 8
-  end
-  object Button_ImportPapers: TButton
-    AnchorSideLeft.Control = Button_ImportCite
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = Button_ImportCite
-    AnchorSideRight.Control = Memo_Reference
-    AnchorSideRight.Side = asrBottom
-    AnchorSideBottom.Control = Button_ImportCite
-    AnchorSideBottom.Side = asrBottom
-    Left = 812
-    Height = 28
-    Top = 389
-    Width = 171
-    Anchors = [akTop, akLeft, akRight, akBottom]
-    BorderSpacing.Left = 60
-    BorderSpacing.Right = 10
-    Caption = '批量创建节点'
-    OnClick = Button_ImportPapersClick
-    TabOrder = 9
-  end
-  object ComboBox_DefaultCl: TComboBox
-    AnchorSideLeft.Control = Button_ImportPapers
-    AnchorSideTop.Control = Button_ImportRefs
-    AnchorSideTop.Side = asrCenter
-    AnchorSideRight.Control = Button_ImportPapers
-    AnchorSideRight.Side = asrBottom
-    Left = 852
-    Height = 32
-    Hint = '新创建节点默认纳入此分类'
-    Top = 420
-    Width = 131
+    Left = 368
+    Height = 34
+    Top = 302
+    Width = 150
     Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Left = 40
-    ItemHeight = 24
-    ParentShowHint = False
-    ShowHint = True
-    Style = csDropDownList
-    TabOrder = 10
-  end
-  object Label_DefaultCl: TLabel
-    AnchorSideLeft.Control = Button_ImportPapers
-    AnchorSideTop.Control = ComboBox_DefaultCl
-    AnchorSideTop.Side = asrCenter
-    AnchorSideRight.Control = ComboBox_DefaultCl
-    Left = 812
-    Height = 24
-    Top = 424
-    Width = 54
-    Caption = '分类：'
-    ParentColor = False
+    AutoSize = True
+    BorderSpacing.Top = 8
+    Caption = '题录信息修饰'
+    OnClick = Button_MemoModiferClick
+    TabOrder = 5
   end
 end

@@ -38,6 +38,7 @@ type
   TFormDesktop = class(TForm)
     AListView_Attrs: TListCheck;
     AListView_Klass: TListCheck;
+    Button_ClearKlassFilter: TButton;
     Button_MainSorter: TButton;
     Button_FormatEditPostAndNext: TButton;
     Button_FormatEditLoad: TButton;
@@ -55,7 +56,13 @@ type
     Edit_DBGridMain_Sorter: TEdit;
     Label_MainSorter: TLabel;
     Memo_Log: TMemo;
-    MenuItem_Edit_NewWebLnkNode: TMenuItem;
+    MenuItem_ClassMgr_Danger_DeletePapers: TMenuItem;
+    MenuItem_ClassMgr_div02: TMenuItem;
+    MenuItem_ClassMgr_Danger: TMenuItem;
+    MenuItem_Edit_NewPaper_Void: TMenuItem;
+    MenuItem_Edit_NewPaper_WebLnk: TMenuItem;
+    MenuItem_Edit_NewPaper_Refs: TMenuItem;
+    MenuItem_Edit_NewPaper: TMenuItem;
     MenuItem_DBGC_Export_set: TMenuItem;
     MenuItem_DBGC_Export_array: TMenuItem;
     MenuItem_DBGC_Export_lines: TMenuItem;
@@ -108,7 +115,6 @@ type
     MenuItem_EditReferences: TMenuItem;
     MenuItem_Edit: TMenuItem;
     MenuItem_NewPaper: TMenuItem;
-    MenuItem_Edit_NewVoidNode: TMenuItem;
     MenuItem_Edit_div01: TMenuItem;
     MenuItem_Node: TMenuItem;
     MenuItem_CB_RefNum_InOrder: TMenuItem;
@@ -231,6 +237,7 @@ type
     procedure Button_AddAttrsClick(Sender: TObject);
     procedure Button_AddFieldClick(Sender: TObject);
     procedure Button_AddKlassClick(Sender: TObject);
+    procedure Button_ClearKlassFilterClick(Sender: TObject);
     procedure Button_FieldTypeClick(Sender: TObject);
     procedure Button_FormatEditLoadClick(Sender: TObject);
     procedure Button_FormatEditPostAndNextClick(Sender: TObject);
@@ -252,6 +259,7 @@ type
     procedure Edit_DBGridMain_SorterKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure MenuItem_ClassMgr_AddSubClick(Sender: TObject);
+    procedure MenuItem_ClassMgr_Danger_DeletePapersClick(Sender: TObject);
     procedure MenuItem_CopyPaperClick(Sender: TObject);
     procedure MenuItem_DBGC_ASClick(Sender: TObject);
     procedure MenuItem_DBGC_CalcClick(Sender: TObject);
@@ -266,7 +274,9 @@ type
     procedure MenuItem_DBGE_python_dictClick(Sender: TObject);
     procedure MenuItem_DBGE_ruby_hashClick(Sender: TObject);
     procedure MenuItem_DBGE_tsvClick(Sender: TObject);
-    procedure MenuItem_Edit_NewWebLnkNodeClick(Sender: TObject);
+    procedure MenuItem_Edit_NewPaper_RefsClick(Sender: TObject);
+    procedure MenuItem_Edit_NewPaper_VoidClick(Sender: TObject);
+    procedure MenuItem_Edit_NewPaper_WebLnkClick(Sender: TObject);
     procedure MenuItem_FieldMgr_CopyClick(Sender: TObject);
     procedure MenuItem_PastePaperClick(Sender: TObject);
     procedure MenuItem_project_unzipClick(Sender: TObject);
@@ -346,7 +356,6 @@ type
     procedure MenuItem_Mark_IsRead_NoClick(Sender: TObject);
     procedure MenuItem_Mark_IsRead_YesClick(Sender: TObject);
     procedure MenuItem_NewPaperClick(Sender: TObject);
-    procedure MenuItem_Edit_NewVoidNodeClick(Sender: TObject);
     procedure MenuItem_OpenAsCajClick(Sender: TObject);
     procedure MenuItem_OpenAsPdfClick(Sender: TObject);
     procedure MenuItem_OpenDefaultClick(Sender: TObject);
@@ -1079,7 +1088,7 @@ end;
 
 procedure TFormDesktop.MenuItem_EditReferencesClick(Sender: TObject);
 begin
-  Form_CiteTrans.Call(false);
+  Form_CiteTrans.Call(false,false);
   SetFocus;
 end;
 
@@ -1232,7 +1241,7 @@ end;
 procedure TFormDesktop.MenuItem_CiteToolClick(Sender: TObject);
 begin
   if ProjectInvalid then exit;
-  Form_CiteTrans.Call(true);
+  Form_CiteTrans.Call(true,false);
   SetFocus;
 end;
 
@@ -1646,11 +1655,6 @@ begin
 end;
 
 procedure TFormDesktop.MenuItem_NewPaperClick(Sender: TObject);
-begin
-  Action_NewPaper;
-end;
-
-procedure TFormDesktop.MenuItem_Edit_NewVoidNodeClick(Sender: TObject);
 begin
   Action_NewPaper;
 end;
@@ -2176,6 +2180,15 @@ begin
   end;
 end;
 
+procedure TFormDesktop.Button_ClearKlassFilterClick(Sender: TObject);
+var tmpKL:TKlass;
+begin
+  if ProjectInvalid then exit;
+  for tmpKL in CurrentRTFP.KlassList do tmpKL.AllUnChecked:=true;
+  CurrentRTFP.ClassChange;
+  CurrentRTFP.RebuildMainGrid;
+end;
+
 procedure TFormDesktop.Button_FieldTypeClick(Sender: TObject);
 begin
   //这里可以增加额外的字段类型设置
@@ -2397,6 +2410,35 @@ begin
   end;
 end;
 
+procedure TFormDesktop.MenuItem_ClassMgr_Danger_DeletePapersClick(
+  Sender: TObject);
+var tmpNode:TListCheckNode;
+    tmpKL:TKlass;
+    PIDs:TStringList;
+    PID:RTFP_ID;
+begin
+  if ProjectInvalid then exit;
+  tmpNode:=AListView_Klass.Selected;
+  if tmpNode=nil then exit;
+  tmpKL:=TKlass(tmpNode.Data);
+  if tmpKL=nil then exit;
+  case ShowMsgOK('不可恢复警告','删除分类中的文献不可恢复，请再三确认分类中所有文献均需要删除。') of
+    'OK':;
+    else exit;
+  end;
+  PIDs:=TStringList.Create;
+  try
+    CurrentRTFP.GetPIDList_Klass(PIDs,tmpKL);
+    CurrentRTFP.BeginUpdate;
+    for PID in PIDs do CurrentRTFP.DeletePaper(PID);
+    CurrentRTFP.EndUpdate;
+  finally
+    PIDs.Free;
+  end;
+  CurrentRTFP.ClassChange;
+  CurrentRTFP.RecordChange;
+end;
+
 procedure TFormDesktop.MenuItem_CopyPaperClick(Sender: TObject);
 begin
   if ProjectInvalid then exit;
@@ -2502,7 +2544,17 @@ begin
   ClipBoard.AsText:=CurrentRTFP.ExportDSToCSVOrTSV(#9);
 end;
 
-procedure TFormDesktop.MenuItem_Edit_NewWebLnkNodeClick(Sender: TObject);
+procedure TFormDesktop.MenuItem_Edit_NewPaper_RefsClick(Sender: TObject);
+begin
+  Form_CiteTrans.Call(false,true);//changeable选false是因为创建后关闭
+end;
+
+procedure TFormDesktop.MenuItem_Edit_NewPaper_VoidClick(Sender: TObject);
+begin
+  Action_NewPaper;
+end;
+
+procedure TFormDesktop.MenuItem_Edit_NewPaper_WebLnkClick(Sender: TObject);
 begin
   Action_NewPaper_WebLnk;
 end;

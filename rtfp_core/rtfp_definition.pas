@@ -611,6 +611,7 @@ type
   public
     procedure GetPIDList(AList:TStrings);
     procedure GetPIDList_DS(AList:TStrings);
+    procedure GetPIDList_Klass(AList:TStrings;AKlass:TKlass);
     procedure GetPIDArray(Dbf:TDataset;out pid_numbers:RTFP_ID_Array);
     procedure GetSimilarPIDList(AList:TStrings;ASimChkOption:TSimChkOptions;PB:TProgressBar=nil);
     function GetPaperAttrs(AFieldName:string;PID:RTFP_ID):string;deprecated;
@@ -1458,6 +1459,19 @@ begin
         end;
       GotoBookmark(bm);
       EndUpdate;
+    end;
+end;
+procedure TRTFP.GetPIDList_Klass(AList:TStrings;AKlass:TKlass);
+begin
+  with AKlass.Dbf do
+    begin
+      if not Active then Open;
+      First;
+      while not EOF do
+        begin
+          AList.Add(FieldByName(_Col_PID_).AsString);
+          Next;
+        end;
     end;
 end;
 procedure TRTFP.GetPIDArray(Dbf:TDataset;out pid_numbers:RTFP_ID_Array);

@@ -106,6 +106,7 @@ begin
     end;
   CurrentRTFP.EndUpdate;
   FormDesktop.DBGrid_Main.Visible:=true;
+  CurrentRTFP.ClassChange;
   CurrentRTFP.RebuildMainGrid;//FormDesktop.MainGridValidate(CurrentRTFP);//CurrentRTFP.DataChange;
   SetLength(arr,0);
 end;
@@ -141,6 +142,7 @@ begin
     end;
   CurrentRTFP.EndUpdate;
   FormDesktop.DBGrid_Main.Visible:=true;
+  CurrentRTFP.ClassChange;
   CurrentRTFP.RebuildMainGrid;//FormDesktop.MainGridValidate(CurrentRTFP);//CurrentRTFP.DataChange;
   SetLength(arr,0);
 end;
