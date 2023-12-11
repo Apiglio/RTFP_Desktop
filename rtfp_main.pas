@@ -2818,19 +2818,17 @@ begin
       LastDBGridPos:=vCell;
       if vCell.y=0 then begin
         if vCell.x>0 then begin
-          PopupMenu:=Self.PopupMenu_MainDBGrid_Column;
           PopupMenu_MainDBGrid_Column.Items[0].Caption:=Columns[vCell.x-1].FieldName;
+          PopupMenu_MainDBGrid_Column.PopUp;
         end else begin
-          PopupMenu:=Self.PopupMenu_MainDBGrid_Export;
+          PopupMenu_MainDBGrid_Export.PopUp;
         end;
       end else begin
-        PopupMenu:=Self.PopupMenu_MainDBGrid;
+        PopupMenu_MainDBGrid.PopUp;
       end;
 
     end;
   end;
-  //右键标题
-
 end;
 
 procedure TFormDesktop.DBGrid_MainMouseWheel(Sender: TObject;
