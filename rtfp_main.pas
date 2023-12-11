@@ -1307,6 +1307,7 @@ var tmpNode:TListCheckNode;
 begin
   if ProjectInvalid then exit;
   tmpNode:=AListView_Klass.Selected;
+  if tmpNode=nil then exit;
   CurrentRTFP.BeginUpdate;
   tmpNode.CheckAllSubordinates;
   for tmpKL in TKlass(tmpNode.Data).KlassList do tmpKL.FilterEnabled:=true;
@@ -1321,6 +1322,7 @@ var tmpNode:TListCheckNode;
 begin
   if ProjectInvalid then exit;
   tmpNode:=AListView_Klass.Selected;
+  if tmpNode=nil then exit;
   CurrentRTFP.BeginUpdate;
   tmpNode.UnCheckAllSubordinates;
   for tmpKL in TKlass(tmpNode.Data).KlassList do tmpKL.FilterEnabled:=false;
