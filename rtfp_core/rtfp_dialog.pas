@@ -9,7 +9,7 @@ uses
   // LCL
   LResources, LCLIntf, LCLType, LCLProc,
   Forms, Controls, Themes, GraphType, Graphics, Buttons, ButtonPanel, StdCtrls,
-  ExtCtrls, ClipBrd, Menus, LCLTaskDialog,
+  ExtCtrls, ComCtrls, ClipBrd, Menus, LCLTaskDialog,
   ListFilterEdit, CheckLst;
 
 type
@@ -41,6 +41,7 @@ type
     rtmb_YesToAll=10
   );
   TRTFP_Button_Set=set of TRTFP_Button;
+  TRTFP_Lines_Func = procedure(line:string);
 
   TScrollImage = class(TScrollBox)
   private
@@ -79,6 +80,35 @@ type
     destructor Destroy;override;
   end;
 
+  TProgressBarThread = class;
+  TForm_ProgressBar = class(TForm)
+  private
+    FIndex:Integer;
+    FThread:TProgressBarThread;
+    FOnProgress:TRTFP_Lines_Func;
+    PLines:TSTringList;
+    PProgressBar:TProgressBar;
+    procedure ProgressBarShowEvent(Sender: TObject);
+    procedure ProgressBarCloseEvent(Sender: TObject; var CloseAction: TCloseAction);
+  public
+    constructor Create(AOwner:TComponent; const Lines:TStringList; const Func:TRTFP_Lines_Func);
+    destructor Destroy;override;
+    property OnProgress:TRTFP_Lines_Func read FOnProgress write FOnProgress;
+    property ProgressBar:TProgressBar read PProgressBar write PProgressBar;
+    property Lines:TSTringList read PLines write PLines;
+    property Index:Integer read FIndex write FIndex;
+  end;
+
+  TProgressBarThread = class(TThread)
+  private
+    PForm:TForm_ProgressBar;
+    procedure OneStep;
+    procedure FinishProgress;
+  protected
+    procedure Execute;override;
+  public
+    constructor Create(AForm:TObject;CreateSuspended:Boolean);
+  end;
 
 var
   AllState,ConfirmState:TAllState;
@@ -93,6 +123,7 @@ function ShowMsgList(const ACaption,APrompt:string;const AList:TStrings;
 function ShowMsgList(const ACaption,APrompt:string;const AList:TStrings):string;
 function ShowMsgCheckList(ACaption,APrompt:string;AList:TStrings;out SelList:TStrings;AllSelected:boolean=false):String;//AList会根据选择改变
 function ShowMsgEdit(const ACaption,APrompt,DefaultStr:string):String;
+function ShowMsgProgressBar(const ACaption,APrompt:string;Lines:TStringList;Func:TRTFP_Lines_Func):String;
 
 function ShowMsgImage(const ACaption:string;const ABitmap:TBitmap;ShowPixelInfo:boolean=false):string;
 
@@ -101,13 +132,6 @@ function ShowMsgYesNoAll(const ACaption,APrompt:string;UseAllState:boolean=false
 function ShowMsgRetryIgnore(const ACaption,APrompt:string;UseCancel:boolean=false):String;//返回首字母大写的键名
 function ShowMsgOK(const ACaption,APrompt:string):String;
 function ShowMsgOKAll(const ACaption,APrompt:string):String;
-
-
-//继续制作以下几类全部替代之前的MessageDlg和InputBox：
-//ShowMsgYesNoCancel:boolean;
-//ShowMsgYesNoAll:boolean;
-//ShowMsgRetryIgnore:boolean;
-//ShowMsgOK;
 
 
 implementation
@@ -491,6 +515,70 @@ begin
   end;
 end;
 
+
+function ShowMsgProgressBar(const ACaption,APrompt:string;Lines:TStringList;Func:TRTFP_Lines_Func):String;
+var
+  W,Sep,Margin: Integer;
+  Frm: TForm_ProgressBar;
+  CBProgressBar : TProgressBar;
+  LPrompt: TLabel;
+  BP: TButtonPanel;
+begin
+  Margin:=24;
+  Sep:=8;
+  Result:='';
+  Frm:=TForm_ProgressBar.Create(FormDesktop,Lines,Func);
+  try
+
+    W:=Max(frm.Canvas.TextWidth(APrompt),frm.Canvas.TextWidth(ACaption));
+    W:=Min(W,540);
+    W:=Max(W,360);
+
+    with frm do begin
+      BorderStyle:=bsDialog;
+      Caption:=ACaption;
+      ClientWidth:=W+2*Margin;
+      Position:=poOwnerFormCenter;
+      KeyPreview:=true;
+    end;
+
+    LPrompt:=TLabel.Create(frm);
+    with LPrompt do begin
+      Parent:=frm;
+      Caption:=APrompt;
+      SetBounds(Margin,Margin,Frm.ClientWidth-2*Margin,frm.Canvas.TextHeight(APrompt));
+      WordWrap:=True;
+      AutoSize:=False;
+    end;
+
+    CBProgressBar:=TProgressBar.Create(Frm);
+    with CBProgressBar do begin
+      Parent:=Frm;
+      Left:=Margin;
+      Top:=LPrompt.Top + LPrompt.Height + Sep;
+      Width:=Frm.ClientWidth-2*Margin;
+    end;
+    Frm.ProgressBar:=CBProgressBar;
+
+    BP:=TButtonPanel.Create(Frm);
+    with BP do begin
+      Parent:=Frm;
+      ShowButtons:=[pbCancel];
+      ShowGlyphs:=[];
+      CancelButton.Caption:='&取消';
+    end;
+
+    Frm.ClientHeight:=LPrompt.Height+CBProgressBar.Height+BP.Height+3*Sep+Margin;
+
+    if (Frm.ShowModal=mrOk) then begin
+      Result:='OK';
+    end;
+
+  finally
+    FreeAndNil(Frm);
+  end;
+end;
+
 function ShowMsgImage(const ACaption:string;const ABitmap:TBitmap;ShowPixelInfo:boolean=false):string;
 var
   W,H,Sep,Margin,ScrollWidth:Integer;
@@ -696,7 +784,6 @@ begin
 end;
 
 procedure TScrollImage.ScrollMouseUp(Sender:TObject;Button:TMouseButton;Shift:TShiftState;X,Y:Integer);
-var tmp_x,tmp_y:integer;
 begin
   FDrag:=false;
   ApplyMovement(X,Y);
@@ -721,6 +808,70 @@ destructor TScrollImage.Destroy;
 begin
   inherited Destroy;
 end;
+
+
+{ TForm_ProgressBar }
+
+procedure TForm_ProgressBar.ProgressBarShowEvent(Sender: TObject);
+begin
+  if FOnProgress=nil then exit;
+  PProgressBar.Min:=0;
+  PProgressBar.Max:=PLines.Count;
+  PProgressBar.Position:=0;
+  FThread.Start;
+end;
+
+procedure TForm_ProgressBar.ProgressBarCloseEvent(Sender: TObject; var CloseAction: TCloseAction);
+begin
+  FIndex:=PLines.Count;
+  if not FThread.Terminated then FThread.Terminate;
+end;
+
+constructor TForm_ProgressBar.Create(AOwner:TComponent; const Lines:TStringList; const Func:TRTFP_Lines_Func);
+begin
+  inherited CreateNew(AOwner);
+  OnShow:=@ProgressBarShowEvent;
+  OnClose:=@ProgressBarCloseEvent;
+  OnProgress:=Func;
+  FIndex:=0;
+  PLines:=Lines;
+  FThread:=TProgressBarThread.Create(Self,true);
+end;
+
+destructor TForm_ProgressBar.Destroy;
+begin
+  FThread.Free;
+  inherited Destroy;
+end;
+
+{ TProgressBarThread }
+procedure TProgressBarThread.OneStep;
+begin
+  PForm.OnProgress(PForm.Lines[PForm.Index]);
+  PForm.PProgressBar.Position:=PForm.Index;
+end;
+
+procedure TProgressBarThread.FinishProgress;
+begin
+  PForm.ModalResult:=mrOK;
+end;
+
+procedure TProgressBarThread.Execute;
+begin
+  while PForm.Index<PForm.Lines.Count do begin
+    Synchronize(@OneStep);
+    PForm.Index:=PForm.Index+1;
+  end;
+  Synchronize(@FinishProgress);
+  Terminate;
+end;
+
+constructor TProgressBarThread.Create(AForm:TObject;CreateSuspended:Boolean);
+begin
+  inherited Create(CreateSuspended);
+  PForm:=AForm as TForm_ProgressBar;
+end;
+
 
 initialization
   AllState:=TAllState.Create;

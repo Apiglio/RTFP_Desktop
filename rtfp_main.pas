@@ -1613,6 +1613,18 @@ begin
   end;
 end;
 
+procedure SourceClassMaking(APID:string);
+var source,klassname:string;
+    tmpKL:TKlass;
+begin
+  source:=CurrentRTFP.ReadFieldAsString(_Col_basic_Source_,_Attrs_Basic_,APID,[]);
+  if source<>'' then begin
+    klassname:=source;
+    tmpKL:=CurrentRTFP.AddKlass('来源库.'+klassname,'.');
+    CurrentRTFP.KlassInclude(tmpKL,APID);
+  end;
+end;
+
 procedure TFormDesktop.MenuItem_klass_SourceClassClick(Sender: TObject);
 var PID:RTFP_ID;
     source,klassname:string;
@@ -1623,19 +1635,10 @@ begin
   if ProjectInvalid then exit;
   //if ShowMsgYesNoAll('重建来源分类','重建来源分类会删除已有的全部“来源库”文件夹下的分类，是否继续？')<>'Yes' then exit;
   PIDList:=TStringList.Create;
+  CurrentRTFP.BeginUpdate;
   try
     CurrentRTFP.GetPIDList(PIDList);
-    CurrentRTFP.BeginUpdate;
-    for PID in PIDList do
-      begin
-        source:=CurrentRTFP.ReadFieldAsString(_Col_basic_Source_,_Attrs_Basic_,PID,[]);
-        if source<>'' then
-          begin
-            klassname:='《'+source+'》';
-            tmpKL:=CurrentRTFP.AddKlass('来源库.'+klassname,'.');
-            CurrentRTFP.KlassInclude(tmpKL,PID);
-          end;
-      end;
+    ShowMsgProgressBar('请稍后','正在创建来源分类……',PIDList,@SourceClassMaking);
   finally
     PIDList.Free;
     CurrentRTFP.EndUpdate;
