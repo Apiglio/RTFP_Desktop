@@ -10,84 +10,146 @@ begin
   result:=TRTFP.NumToID(num);
 end;
 
-function TRTFP.AddPaper(fullfilename:string;AddPaperMethod:TAddPaperMethod=apmFullBackup):RTFP_ID;//新增一个文献到工程
+function TRTFP.AddPaper_Reference:RTFP_ID;
 var PID:RTFP_ID;
-    DateDir,TargetDir,FileName:string;
+begin
+  result:='000000';
+  BeginUpdate;
+  PID:=NewPaperID;
+  with FPaperDB do begin
+    Append;
+    FieldByName(_Col_PID_).AsString:=PID;
+    FieldByName(_Col_Paper_Is_Backup_).AsBoolean:=false;
+    FieldByName(_Col_Paper_Folder_).AsString:='';
+    FieldByName(_Col_Paper_FileName_).AsString:='';
+    FieldByName(_Col_Paper_FileSize_).AsLargeInt:=0;
+    FieldByName(_Col_Paper_FileHash_).AsString:='';
+    Post;
+  end;
+  EditFieldAsString(_Col_basic_Link_,_Attrs_Basic_,PID,'',[]);
+  EditFieldAsBoolean(_Col_class_Is_Read_,_Attrs_Class_,PID,false,[]);
+  EditFieldAsInteger(_Col_notes_User_,_Attrs_Notes_,PID,0,[]);
+  EditFieldAsDateTime(_Col_notes_CreateTime_,_Attrs_Notes_,PID,Now,[]);
+  EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now,[]);
+  EditFieldAsDateTime(_Col_notes_CheckTime_,_Attrs_Notes_,PID,Now,[]);
+  EndUpdate;
+  RecordChange;
+  result:=PID;
+end;
+
+function TRTFP.AddPaper_Website(website:string):RTFP_ID;
+var PID:RTFP_ID;
+begin
+  result:='000000';
+  BeginUpdate;
+  PID:=NewPaperID;
+  with FPaperDB do begin
+    Append;
+    FieldByName(_Col_PID_).AsString:=PID;
+    FieldByName(_Col_Paper_Is_Backup_).AsBoolean:=false;
+    FieldByName(_Col_Paper_Folder_).AsString:='weblnk';
+    FieldByName(_Col_Paper_FileName_).AsString:=website;
+    FieldByName(_Col_Paper_FileSize_).AsLargeInt:=0;
+    FieldByName(_Col_Paper_FileHash_).AsString:='';
+    Post;
+  end;
+  EditFieldAsString(_Col_basic_Link_,_Attrs_Basic_,PID,website,[]);
+  EditFieldAsBoolean(_Col_class_Is_Read_,_Attrs_Class_,PID,false,[]);
+  EditFieldAsInteger(_Col_notes_User_,_Attrs_Notes_,PID,0,[]);
+  EditFieldAsDateTime(_Col_notes_CreateTime_,_Attrs_Notes_,PID,Now,[]);
+  EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now,[]);
+  EditFieldAsDateTime(_Col_notes_CheckTime_,_Attrs_Notes_,PID,Now,[]);
+  EndUpdate;
+  RecordChange;
+  result:=PID;
+end;
+
+function TRTFP.AddPaper_Address(fullfilename:string;get_hash:boolean):RTFP_ID;
+var PID:RTFP_ID;
+    FileName,FileHash:string;
     tmpPDF:TRTFP_PDF;
 begin
   result:='000000';
-  if not (AddPaperMethod in [apmFullBackup,apmCutBackup,apmReference,apmAddress]) then
-    begin
-      //assert(false,'暂不支持apmWebsite的方式。');
-      //四个新增方式有点冗杂了，需要解耦
-      BeginUpdate;
-      PID:=NewPaperID;
-      with FPaperDB do begin
+  if not FileExists(fullfilename) then begin ShowMsgOK('新建文献','文件路径无效，无法创建文献节点。');exit;end;
+  if length(fullfilename)>240 then begin ShowMsgOK('新建文献','文件路径过长，无法创建文献节点。');exit;end;
+  if get_hash then FileName:=fullfilename else FileName:='';
+
+  tmpPDF:=TRTFP_PDF.Create(nil,FileName,Tag['文件哈希方法']);
+  PID:=NewPaperID;
+  BeginUpdate;
+  try
+    if get_hash then FileHash:=tmpPDF.Hash else FileHash:='';
+    tmpPDF.Size:=FileSize(fullfilename);
+    with FPaperDB do begin
+      Append;
+      FieldByName(_Col_PID_).AsString:=PID;
+      FieldByName(_Col_Paper_Is_Backup_).AsBoolean:=false;
+      FieldByName(_Col_Paper_Folder_).AsString:='extern';
+      FieldByName(_Col_Paper_FileName_).AsString:=fullfilename;
+      FieldByName(_Col_Paper_FileSize_).AsLargeInt:=tmpPDF.Size;
+      FieldByName(_Col_Paper_FileHash_).AsString:=FileHash;
+      Post;
+    end;
+    if get_hash then with FFieldList.FindItemByName(_Attrs_Metas_).Dbf do begin
+      if not Active then Open;
+      if Locate(_Col_PID_,PID,[]) then Edit
+      else begin
         Append;
         FieldByName(_Col_PID_).AsString:=PID;
-        FieldByName(_Col_Paper_Is_Backup_).AsBoolean:=false;
-        FieldByName(_Col_Paper_Folder_).AsString:='';
-        FieldByName(_Col_Paper_FileName_).AsString:=fullfilename;
-        FieldByName(_Col_Paper_FileSize_).AsLargeInt:=0;
-        FieldByName(_Col_Paper_FileHash_).AsString:='';
-        Post;
       end;
-      EditFieldAsString(_Col_basic_Link_,_Attrs_Basic_,PID,fullfilename,[]);
-      EditFieldAsBoolean(_Col_class_Is_Read_,_Attrs_Class_,PID,false,[]);
-      EditFieldAsInteger(_Col_notes_User_,_Attrs_Notes_,PID,0,[]);
-      EditFieldAsDateTime(_Col_notes_CreateTime_,_Attrs_Notes_,PID,Now,[]);
-      EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now,[]);
-      EditFieldAsDateTime(_Col_notes_CheckTime_,_Attrs_Notes_,PID,Now,[]);
-      EndUpdate;
-      RecordChange;
-      result:=PID;
-      exit;
+      FieldByName(_Col_metas_Title_  ).AsString := tmpPDF.Meta.pFields['DocInfo:Title']^;
+      FieldByName(_Col_metas_Authors_).AsString := tmpPDF.Meta.pFields['DocInfo:Author']^;
+      FieldByName(_Col_metas_Subject_).AsString := tmpPDF.Meta.pFields['DocInfo:Subject']^;
+      FieldByName(_Col_metas_Keyword_).AsString := tmpPDF.Meta.pFields['DocInfo:Keywords']^;
+      FieldByName(_Col_metas_Creator_).AsString := tmpPDF.Meta.pFields['DocInfo:Creator']^;
+      FieldByName(_Col_metas_Produce_).AsString := tmpPDF.Meta.pFields['DocInfo:Producer']^;
+      FieldByName(_Col_metas_CreDate_).AsString := tmpPDF.Meta.pFields['DocInfo:CreationDate']^;
+      FieldByName(_Col_metas_ModDate_).AsString := tmpPDF.Meta.pFields['DocInfo:ModDate']^;
+      Post;
+    end;
+    EditFieldAsString(_Col_basic_Link_,_Attrs_Basic_,PID,fullfilename,[]);
+    EditFieldAsBoolean(_Col_class_Is_Read_,_Attrs_Class_,PID,false,[]);
+    EditFieldAsInteger(_Col_notes_User_,_Attrs_Notes_,PID,0,[]);
+    EditFieldAsDateTime(_Col_notes_CreateTime_,_Attrs_Notes_,PID,Now,[]);
+    EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now,[]);
+    EditFieldAsDateTime(_Col_notes_CheckTime_,_Attrs_Notes_,PID,Now,[]);
+  finally
+    EndUpdate;
+    RecordChange;
+    tmpPDF.Free;
+  end;
+  result:=PID;
+end;
+
+function TRTFP.AddPaper_Backup(fullfilename:string;cut_origin:boolean):RTFP_ID;
+const caption_bak_exists = '相同的备份路径';
+      prompts_bak_exists = '正在导入的文件“%s”的默认备份地址“%s”已存在文件，覆盖保存会导致两个文献节点共用一个备份文件，旧有文件将无法恢复。是否覆盖？';
+
+var PID:RTFP_ID;
+    DateDir,TargetDir,FileName,BackupFullName:string;
+    tmpPDF:TRTFP_PDF;
+begin
+  result:='000000';
+  if not FileExists(fullfilename) then begin ShowMsgOK('新建文献','文件路径无效，无法创建文献节点。');exit;end;
+  DateDir:=TRTFP.GetDateDir;
+  FileName:=ExtractFileName(fullfilename);
+  TargetDir:=FFilePath+FRootFolder+'/paper/'+DateDir;
+  BackupFullName:=TargetDir+'/'+FileName;
+  if length(BackupFullName)>240 then begin ShowMsgOK('新建文献','文件路径过长，无法创建文献节点。');exit;end;
+  if FileExists(BackupFullName) then
+    case ShowMsgYesNoAll(caption_bak_exists,Format(prompts_bak_exists,[fullfilename,BackupFullName]),true) of
+      'Yes':;
+      'No':exit;
     end;
 
-  TRY
-    IF fullfilename<>'' THEN BEGIN
-      case AddPaperMethod of
-        apmFullBackup,apmCutBackup:
-          begin
-            DateDir:=TRTFP.GetDateDir;
-            FileName:=ExtractFileName(fullfilename);
-            TargetDir:=FFilePath+FRootFolder+'/paper/'+DateDir;
-            if FileExists(TargetDir+'/'+FileName) then
-              case ShowMsgYesNoAll('相同的备份路径','正在导入的文件“'+fullfilename
-              +'”的默认备份地址存在重名，覆盖会导致两个文献节点共用一个备份文件。'
-              +'若两个文件不相同，会导致旧版本备份文件被覆盖，且难以复原。'
-              +'是否覆盖？',true) of
-                'Yes':{do nothing};
-                'No':exit;
-            end;
-            tmpPDF:=TRTFP_PDF.Create(nil,fullfilename,Tag['文件哈希方法']);
-          end;
-        apmAddress:
-          begin
-            DateDir:='extern';
-            FileName:=fullfilename;
-            if length(FileName)>240 then exit;
-            //TargetDir:=FFilePath+FRootFolder+'/paper/'+DateDir;
-            tmpPDF:=TRTFP_PDF.Create(nil,'',Tag['文件哈希方法']);
-            tmpPDF.Size:=FileSize(fullfilename);
-          end;
-      end;
-      //tmpPDF.LoadPdf(fullfilename);
-    END ELSE BEGIN
-      if AddPaperMethod in [apmFullBackup,apmCutBackup,apmAddress] then exit;
-      DateDir:='';
-      FileName:='';
-      tmpPDF:=TRTFP_PDF.Create(nil,'',Tag['文件哈希方法']);
-    END;
-
-    BeginUpdate;
-
-    PID:=NewPaperID;
-    //FPaperDB.Last;//此时游标已经在Last位置
+  tmpPDF:=TRTFP_PDF.Create(nil,fullfilename,Tag['文件哈希方法']);
+  PID:=NewPaperID;
+  BeginUpdate;
+  try
     with FPaperDB do begin
-      Append;//Insert;
+      Append;
       FieldByName(_Col_PID_).AsString:=PID;
-      FieldByName(_Col_Paper_Is_Backup_).AsBoolean:=(AddPaperMethod in [apmFullBackup,apmCutBackup]);
+      FieldByName(_Col_Paper_Is_Backup_).AsBoolean:=true;
       FieldByName(_Col_Paper_Folder_).AsString:=DateDir;
       FieldByName(_Col_Paper_FileName_).AsString:=FileName;
       FieldByName(_Col_Paper_FileSize_).AsLargeInt:=tmpPDF.Size;
@@ -95,57 +157,53 @@ begin
       Post;
     end;
 
-    //0-文献基本信息要专门的算法
     EditFieldAsString(_Col_basic_doi_,_Attrs_Basic_,PID,'',[]);
-
-    //1-分类
     EditFieldAsBoolean(_Col_class_Is_Read_,_Attrs_Class_,PID,false,[]);
-
-    //2-注解
-    //这里之后要考虑不是pdf或者pdf读取错误的情况
-    //这不是一个好做法，会大量浪费算力，但是现在先让他爬起来吧，再优化，现在再优化需要考虑TAttrsGroup.Modified
     EditFieldAsInteger(_Col_notes_User_,_Attrs_Notes_,PID,0,[]);
     EditFieldAsDateTime(_Col_notes_CreateTime_,_Attrs_Notes_,PID,Now,[]);
     EditFieldAsDateTime(_Col_notes_ModifyTime_,_Attrs_Notes_,PID,Now,[]);
     EditFieldAsDateTime(_Col_notes_CheckTime_,_Attrs_Notes_,PID,Now,[]);
 
-    //3-元数据
-    //这里之后要考虑不是pdf或者pdf读取错误的情况
-    //这不是一个好做法，会大量浪费算力，但是现在先让他爬起来吧，再优化，现在再优化需要考虑TAttrsGroup.Modified
-    EditFieldAsString(_Col_metas_Title_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Title']^,[aeForceEditIfTypeDismatch]);
-    EditFieldAsString(_Col_metas_Authors_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Author']^,[aeForceEditIfTypeDismatch]);
-    EditFieldAsString(_Col_metas_Subject_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Subject']^,[aeForceEditIfTypeDismatch]);
-    EditFieldAsString(_Col_metas_Keyword_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Keywords']^,[aeForceEditIfTypeDismatch]);
-    EditFieldAsString(_Col_metas_Creator_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Creator']^,[aeForceEditIfTypeDismatch]);
-    EditFieldAsString(_Col_metas_Produce_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:Producer']^,[aeForceEditIfTypeDismatch]);
-    EditFieldAsString(_Col_metas_CreDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:CreationDate']^,[aeForceEditIfTypeDismatch]);
-    EditFieldAsString(_Col_metas_ModDate_,_Attrs_Metas_,PID,tmpPDF.Meta.pFields['DocInfo:ModDate']^,[aeForceEditIfTypeDismatch]);
-
-    EndUpdate;
-
-  FINALLY
-    tmpPDF.Free;
-  END;
-
-  IF fullfilename<>'' THEN BEGIN
-    case AddPaperMethod of
-      apmFullBackup:
-        begin
-          ForceDirectories(TargetDir);
-          TRTFP.FileCopy(fullfilename,TargetDir+'/'+FileName,false);
-          //尚未加入长度检验
-        end;
-      apmCutBackup:
-        begin
-          ForceDirectories(TargetDir);
-          TRTFP.FileMove(fullfilename,TargetDir+'/'+FileName,false);
-          //尚未加入长度检验
-        end;
+    with FFieldList.FindItemByName(_Attrs_Metas_).Dbf do begin
+      if not Active then Open;
+      if Locate(_Col_PID_,PID,[]) then Edit
+      else begin
+        Append;
+        FieldByName(_Col_PID_).AsString:=PID;
+      end;
+      FieldByName(_Col_metas_Title_  ).AsString := tmpPDF.Meta.pFields['DocInfo:Title']^;
+      FieldByName(_Col_metas_Authors_).AsString := tmpPDF.Meta.pFields['DocInfo:Author']^;
+      FieldByName(_Col_metas_Subject_).AsString := tmpPDF.Meta.pFields['DocInfo:Subject']^;
+      FieldByName(_Col_metas_Keyword_).AsString := tmpPDF.Meta.pFields['DocInfo:Keywords']^;
+      FieldByName(_Col_metas_Creator_).AsString := tmpPDF.Meta.pFields['DocInfo:Creator']^;
+      FieldByName(_Col_metas_Produce_).AsString := tmpPDF.Meta.pFields['DocInfo:Producer']^;
+      FieldByName(_Col_metas_CreDate_).AsString := tmpPDF.Meta.pFields['DocInfo:CreationDate']^;
+      FieldByName(_Col_metas_ModDate_).AsString := tmpPDF.Meta.pFields['DocInfo:ModDate']^;
+      Post;
     end;
-  END;
+    ForceDirectories(TargetDir);
+    if cut_origin then
+      TRTFP.FileMove(fullfilename,BackupFullName,false)
+    else
+      TRTFP.FileCopy(fullfilename,BackupFullName,false);
+  finally
+    EndUpdate;
+    RecordChange;
+    result:=PID;
+    tmpPDF.Free;
+  end;
+end;
 
-  RecordChange;
-  result:=PID;
+function TRTFP.AddPaper(fullfilename:string;AddPaperMethod:TAddPaperMethod=apmFullBackup):RTFP_ID;//新增一个文献到工程
+begin
+  case AddPaperMethod of
+    apmFullBackup: result:=AddPaper_Backup(fullfilename,false);
+    apmCutBackup : result:=AddPaper_Backup(fullfilename,false);
+    apmWebsite:    result:=AddPaper_Website(fullfilename);
+    apmReference:  result:=AddPaper_Reference;
+    apmAddress:    result:=AddPaper_Address(fullfilename,false);
+  end;
+
 end;
 
 function TRTFP.FindPaper(fullfilename:string):RTFP_ID;//查找具体文件在工程中的PID，未找到返回000000

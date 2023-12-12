@@ -317,7 +317,12 @@ type
 
   //PAPER.INC 文献节点
   private
-    function NewPaperID:RTFP_ID;
+    function NewPaperID:RTFP_ID;//新建PID编号并将数据库游标指向新行
+    function AddPaper_Reference:RTFP_ID;
+    function AddPaper_Website(website:string):RTFP_ID;
+    function AddPaper_Address(fullfilename:string;get_hash:boolean):RTFP_ID;
+    function AddPaper_Backup(fullfilename:string;cut_origin:boolean):RTFP_ID;
+
 
   public
     function AddPaper(fullfilename:string;AddPaperMethod:TAddPaperMethod=apmFullBackup):RTFP_ID;//新增一个文献到工程
