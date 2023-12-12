@@ -49,10 +49,10 @@ object FormDesktop: TFormDesktop
     Height = 281
     Top = 0
     Width = 631
-    ActivePage = TabSheet_Project_Properties
+    ActivePage = TabSheet_Project_DataGrid
     Anchors = [akTop, akLeft, akRight, akBottom]
     Constraints.MinWidth = 360
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 1
     object TabSheet_Project_Properties: TTabSheet
       Caption = '工程信息'
@@ -133,7 +133,6 @@ object FormDesktop: TFormDesktop
           DataSource = DataSource_Main
           Options = [dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgRowSelect, dgAlwaysShowSelection, dgConfirmDelete, dgCancelOnExit, dgAnyButtonCanSelect, dgDblClickAutoSize]
           ParentFont = False
-          PopupMenu = PopupMenu_MainDBGrid
           ReadOnly = True
           TabOrder = 0
           OnCellClick = DBGrid_MainCellClick
