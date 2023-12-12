@@ -16,9 +16,10 @@ type
     Button_MemoModifer: TButton;
     Button_ImportCite: TButton;
     CheckBox_WordWrap: TCheckBox;
-    ListBox_CiteStyle: TListBox;
+    GroupBox_CiteOperation: TGroupBox;
     Memo_Cite: TMemo;
     Panel_DBGrid_Temporary: TPanel;
+    RadioGroup_CiteStyle: TRadioGroup;
     procedure Button_ImportCiteClick(Sender: TObject);
     procedure Button_MemoModiferClick(Sender: TObject);
     procedure CheckBox_WordWrapChange(Sender: TObject);
@@ -55,8 +56,8 @@ end;
 procedure TForm_CiteTrans.ImportCiteInfo_Mono;
 begin
   if ProjectInvalid then exit;
-  if ListBox_CiteStyle.ItemIndex<0 then exit;
-  case ListBox_CiteStyle.Items[ListBox_CiteStyle.ItemIndex] of
+  if RadioGroup_CiteStyle.ItemIndex<0 then exit;
+  case RadioGroup_CiteStyle.Items[RadioGroup_CiteStyle.ItemIndex] of
     'E-Study':CurrentRTFP.LoadFromEStudy(FormDesktop.Selected_PID,Memo_Cite.Lines);
     'RefWorks':CurrentRTFP.LoadFromRefWork(FormDesktop.Selected_PID,Memo_Cite.Lines);
     'EndNote':CurrentRTFP.LoadFromEndNote(FormDesktop.Selected_PID,Memo_Cite.Lines);
@@ -73,9 +74,9 @@ procedure TForm_CiteTrans.ImportCiteInfo_Multi;
 var tmpKL:TKlass;
 begin
   if ProjectInvalid then exit;
-  if ListBox_CiteStyle.ItemIndex<0 then exit;
+  if RadioGroup_CiteStyle.ItemIndex<0 then exit;
   tmpKL:=nil;
-  case ListBox_CiteStyle.Items[ListBox_CiteStyle.ItemIndex] of
+  case RadioGroup_CiteStyle.Items[RadioGroup_CiteStyle.ItemIndex] of
     'E-Study':CurrentRTFP.ImportPapersFromEStudy(Memo_Cite.Lines,tmpKL);
     'RefWorks':CurrentRTFP.ImportPapersFromRefWork(Memo_Cite.Lines,tmpKL);
     'EndNote':CurrentRTFP.ImportPapersFromEndNote(Memo_Cite.Lines,tmpKL);
@@ -122,6 +123,7 @@ var line:integer;
 begin
   memo_wordwrap:=Memo_Cite.WordWrap;
   Memo_Cite.WordWrap:=false;
+  Memo_Cite.Lines.BeginUpdate;
   with Memo_Cite do
   begin
     for line:=0 to Lines.Count-1 do
@@ -141,6 +143,7 @@ begin
       inc(line);
     end;
   end;
+  Memo_Cite.Lines.EndUpdate;
   Memo_Cite.WordWrap:=memo_wordwrap;
 end;
 
