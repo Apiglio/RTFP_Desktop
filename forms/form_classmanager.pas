@@ -53,9 +53,7 @@ procedure TClassManagerForm.FormShow(Sender: TObject);
 begin
   FormDesktop.Panel_DBGridMain.Parent:=Self.Panel_DBGrid_Temporary;
   FormDesktop.Panel_DBGridMain.Align:=alClient;
-  FormDesktop.DBGrid_Main.PopupMenu:=nil;
   FormDesktop.DBGrid_Main.Options:=FormDesktop.DBGrid_Main.Options + [dgMultiselect];
-  //FormDesktop.DBGrid_Main.SelectedIndex:=FormDesktop.DBGrid_Main.DataSource.DataSet.RecNo;
   FormDesktop.DBGrid_Main.SelectedRows.CurrentRowSelected:=true;
   with FormDesktop.AListView_Klass do begin
     Parent:=Self.Panel_ListView_Temporary;
@@ -107,7 +105,7 @@ begin
   CurrentRTFP.EndUpdate;
   FormDesktop.DBGrid_Main.Visible:=true;
   CurrentRTFP.ClassChange;
-  CurrentRTFP.RebuildMainGrid;//FormDesktop.MainGridValidate(CurrentRTFP);//CurrentRTFP.DataChange;
+  CurrentRTFP.RebuildMainGrid;
   SetLength(arr,0);
 end;
 
@@ -143,7 +141,7 @@ begin
   CurrentRTFP.EndUpdate;
   FormDesktop.DBGrid_Main.Visible:=true;
   CurrentRTFP.ClassChange;
-  CurrentRTFP.RebuildMainGrid;//FormDesktop.MainGridValidate(CurrentRTFP);//CurrentRTFP.DataChange;
+  CurrentRTFP.RebuildMainGrid;
   SetLength(arr,0);
 end;
 
@@ -151,7 +149,6 @@ procedure TClassManagerForm.FormHide(Sender: TObject);
 begin
   FormDesktop.Panel_DBGridMain.Parent:=FormDesktop.TabSheet_Project_DataGrid;
   FormDesktop.Panel_DBGridMain.Align:=alClient;
-  FormDesktop.DBGrid_Main.PopupMenu:=FormDesktop.PopupMenu_MainDBGrid;
   FormDesktop.DBGrid_Main.Options:=FormDesktop.DBGrid_Main.Options - [dgMultiselect];
   with FormDesktop.AListView_Klass do begin
     Parent:=FormDesktop.TabSheet_Filter_Klass;
