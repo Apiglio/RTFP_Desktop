@@ -209,56 +209,61 @@ begin
 
 end;
 
+function TRTFP.CompareFile(hash1,fn1,fn2:string;empty_hash_rebuild:boolean=false):boolean;
+var rc:integer;//哈希计算的次数返回
+    fs1,fs2:TFileStream;
+begin
+  result:=false;
+  if (hash1='') and (not empty_hash_rebuild) then exit;
+  if FileSize(fn1)<>FileSize(fn2) then exit;
+  fs1:=TFileStream.Create(fn1,fmOpenRead);
+  fs2:=TFileStream.Create(fn2,fmOpenRead);
+  try
+    if hash1='' then hash1:=TRTFP_PDF.CalcHash(fs1,rc,Self.Tag['文件哈希方法']);
+    if hash1<>TRTFP_PDF.CalcHash(fs2,rc,Self.Tag['文件哈希方法']) then exit;
+    fs1.Position:=0;
+    fs2.Position:=0;
+    while fs1.Position<fs1.Size do begin
+      {$ifdef cpu64}
+      if fs1.Size-fs1.Position>=8 then begin
+        if fs1.ReadQWord<>fs2.ReadQWord then exit;
+      end
+      {$else}
+      if fs1.Size-fs1.Position>=4 then begin
+        if fs1.ReadDWord<>fs2.ReadDWord then exit;
+      end
+      {$endif}
+      else begin
+        if fs1.ReadByte<>fs2.ReadByte then exit;
+      end;
+    end;
+  finally
+    fs1.Free;
+    fs2.Free;
+  end;
+  result:=true;
+end;
+
 function TRTFP.FindPaper(fullfilename:string):RTFP_ID;//查找具体文件在工程中的PID，未找到返回000000
 var PID:RTFP_ID;
-    FHash,FName:string;
-    FileStream,CpStr:TFileStream;
-    retry:boolean;
-    rc:integer;
+    fn1,fn2,hash:string;
 begin
-  FHash:='';
   PID:='';
-
-  FileStream:=TFileStream.Create(fullfilename,fmOpenRead);
-  //FileStream.LoadFromFile(fullfilename);
-
   with FPaperDB do begin
     First;
     repeat
-      if FieldByName(_Col_Paper_FileSize_).AsLongint = FileStream.Size then
-        begin
-          if FHash='' then FHash:=TRTFP_PDF.CalcHash(FileStream,rc,Self.Tag['文件哈希方法']);
-          if FieldByName(_Col_Paper_FileHash_).AsString = FHash then
-            begin
-              FName:=FFilePath+FRootFolder+'/paper/'+FieldByName(_Col_Paper_Folder_).AsString+'/'+FieldByName(_Col_Paper_FileName_).AsString;
-              repeat try
-                retry:=false;
-                //CpStr.LoadFromFile(FName);
-                CpStr:=TFileStream.Create(FName,fmOpenRead);
-                if FileStream.Size<>CpStr.Size then break;
-                FileStream.Position:=0;
-                CpStr.Position:=0;
-                while FileStream.Position<FileStream.Size do begin
-                  if FileStream.ReadByte<>CpStr.ReadByte then break;
-                  FileStream.Seek(1,soFromCurrent);
-                  CpStr.Seek(1,soFromCurrent);
-                end;
-                PID:=FieldByName(_Col_PID_).AsString;
-              except
-                case ShowMsgRetryIgnore('错误','疑似相同文件被占用！') of
-                  'Retry':retry:=true;
-                  'Ignore':;
-                end;
-              end until not retry;
-            end;
-        end;
+      if not FieldByName(_Col_Paper_Is_Backup_).AsBoolean then begin Next;continue;end;//只检测备份节点的hash
+      hash:=FieldByName(_Col_Paper_FileHash_).AsString;
+      fn1:=FFilePath+FRootFolder+'/paper/'+FieldByName(_Col_Paper_Folder_).AsString+'/'+FieldByName(_Col_Paper_FileName_).AsString;
+      fn2:=fullfilename;
+      if not FileExists(fn1) then begin Next;continue;end;
+      if CompareFile(hash,fn1,fn2) then begin
+        PID:=FieldByName(_Col_PID_).AsString;
+      end;
       Next;
     until EOF or (PID<>'');
   end;
-
   if PID='' then result:='000000' else result:=PID;
-
-  FileStream.Free;
 end;
 
 function TRTFP.DeletePaper(PID:RTFP_ID;PreserveFileNoAsk:boolean=false):boolean;//移除指定PID的文献

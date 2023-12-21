@@ -56,6 +56,7 @@ type
     Edit_DBGridMain_Sorter: TEdit;
     Label_MainSorter: TLabel;
     Memo_Log: TMemo;
+    MenuItem_Edit_NewPaper_Files: TMenuItem;
     MenuItem_ClassMgr_Danger_DeletePapers: TMenuItem;
     MenuItem_ClassMgr_div02: TMenuItem;
     MenuItem_ClassMgr_Danger: TMenuItem;
@@ -274,6 +275,7 @@ type
     procedure MenuItem_DBGE_python_dictClick(Sender: TObject);
     procedure MenuItem_DBGE_ruby_hashClick(Sender: TObject);
     procedure MenuItem_DBGE_tsvClick(Sender: TObject);
+    procedure MenuItem_Edit_NewPaper_FilesClick(Sender: TObject);
     procedure MenuItem_Edit_NewPaper_RefsClick(Sender: TObject);
     procedure MenuItem_Edit_NewPaper_VoidClick(Sender: TObject);
     procedure MenuItem_Edit_NewPaper_WebLnkClick(Sender: TObject);
@@ -472,6 +474,7 @@ type
     //能使用快捷键的命令
     function Action_NewPaper:boolean;
     function Action_NewPaper_WebLnk:boolean;
+    function Action_ImportPapers:boolean;
 
   public
     procedure debugline(str:string);
@@ -1024,6 +1027,35 @@ begin
   result:=true;
 end;
 
+function TFormDesktop.Action_ImportPapers:boolean;
+var filenames:array of string;
+    index,len:integer;
+begin
+  result:=false;
+  if ProjectInvalid then exit;
+  Form_ImportFiles.IsBackup:=not (ssShift in FMainForm_ShiftState);
+  OpenDialog_Project.Title:='导入文献';
+  OpenDialog_Project.Filter:='PDF文件(*.pdf)|*.pdf|CAJ文件(*.caj)|*.caj|EPUB文件(*.epub)|*.epub|所有文件|*.*';
+  OpenDialog_Project.DefaultExt:='*.pdf';
+  OpenDialog_Project.Options:=[ofEnableSizing, ofAllowMultiSelect];
+  if OpenDialog_Project.Execute then begin
+    index:=0;
+    len:=OpenDialog_Project.Files.Count;
+    SetLength(filenames,len);
+    try
+      while index<len do begin
+        filenames[index]:=OpenDialog_Project.Files[index];
+        inc(index);
+      end;
+      Form_ImportFiles.Call(filenames);
+    finally
+      SetLength(filenames,0);
+    end;
+    SetFocus;
+  end;
+  result:=true;
+end;
+
 ////////////////////////////////////////////////////////////////////////////////
 //菜单事件
 
@@ -1050,6 +1082,10 @@ begin
   CurrentRTFP.SetAuf(Frame_AufScript1.Auf);
   Self.EventLink(CurrentRTFP);
 
+  OpenDialog_Project.Title:='打开工程';
+  OpenDialog_Project.Filter:='RTFP工程文件(*.rtfp)|*.rtfp|所有文件|*.*';
+  OpenDialog_Project.DefaultExt:='*.rtfp';
+  OpenDialog_Project.Options:=[ofEnableSizing];
   if Self.OpenDialog_Project.Execute then begin
     CurrentRTFP.Open(UTF8ToWinCP(Self.OpenDialog_Project.FileName));
     OptionLink(CurrentRTFP);
@@ -2549,6 +2585,11 @@ begin
   ClipBoard.AsText:=CurrentRTFP.ExportDSToCSVOrTSV(#9);
 end;
 
+procedure TFormDesktop.MenuItem_Edit_NewPaper_FilesClick(Sender: TObject);
+begin
+  Action_ImportPapers;
+end;
+
 procedure TFormDesktop.MenuItem_Edit_NewPaper_RefsClick(Sender: TObject);
 begin
   Form_CiteTrans.Call(false,true);//changeable选false是因为创建后关闭
@@ -2622,6 +2663,7 @@ begin
   OpenDialog_Project.Filter:='RTFP压缩工程文件(*.ztfp)|*.ztfp|ZIP压缩文件(*.ztfp.zip)|*.ztfp.zip|所有文件|*.*';
   OpenDialog_Project.DefaultExt:='*.ztfp';
   OpenDialog_Project.Title:='解压导入';
+  OpenDialog_Project.Options:=[ofEnableSizing];
   if Self.OpenDialog_Project.Execute then begin
     Form_NewProject.Caption:='选择工程解压位置';
     Form_NewProject.ShowModal;

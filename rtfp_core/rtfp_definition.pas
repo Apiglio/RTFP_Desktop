@@ -322,7 +322,7 @@ type
     function AddPaper_Website(website:string):RTFP_ID;
     function AddPaper_Address(fullfilename:string;get_hash:boolean):RTFP_ID;
     function AddPaper_Backup(fullfilename:string;cut_origin:boolean):RTFP_ID;
-
+    function CompareFile(hash1,fn1,fn2:string;empty_hash_rebuild:boolean=false):boolean;
 
   public
     function AddPaper(fullfilename:string;AddPaperMethod:TAddPaperMethod=apmFullBackup):RTFP_ID;//新增一个文献到工程

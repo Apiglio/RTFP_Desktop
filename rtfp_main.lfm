@@ -80,7 +80,7 @@ object FormDesktop: TFormDesktop
         )
         ColWidths = (
           139
-          476
+          450
         )
       end
       object Splitter_PropertiesV: TSplitter
@@ -1655,6 +1655,10 @@ object FormDesktop: TFormDesktop
         object MenuItem_Edit_NewPaper_Void: TMenuItem
           Caption = '创建空行'
           OnClick = MenuItem_Edit_NewPaper_VoidClick
+        end
+        object MenuItem_Edit_NewPaper_Files: TMenuItem
+          Caption = '根据文件创建'
+          OnClick = MenuItem_Edit_NewPaper_FilesClick
         end
         object MenuItem_Edit_NewPaper_WebLnk: TMenuItem
           Caption = '根据链接创建'
