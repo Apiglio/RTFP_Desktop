@@ -1282,8 +1282,7 @@ begin
 end;
 
 procedure TFormDesktop.MenuItem_ClassMgr_CDirClick(Sender: TObject);
-var klassname,newname:string;
-    tmpNode:TListCheckNode;
+var tmpNode:TListCheckNode;
 begin
   if ProjectInvalid then exit;
   tmpNode:=TListCheckNode(AListView_Klass.Selected);
@@ -1325,8 +1324,7 @@ begin
 end;
 
 procedure TFormDesktop.MenuItem_ClassMgr_RenClick(Sender: TObject);
-var klassname,newname:string;
-    tmpNode:TListCheckNode;
+var tmpNode:TListCheckNode;
 begin
   if ProjectInvalid then exit;
   tmpNode:=AListView_Klass.Selected;
@@ -1662,10 +1660,7 @@ begin
 end;
 
 procedure TFormDesktop.MenuItem_klass_SourceClassClick(Sender: TObject);
-var PID:RTFP_ID;
-    source,klassname:string;
-    PIDList:TStringList;
-    tmpKL:TKlass;
+var PIDList:TStringList;
 begin
   //太慢了，要点其他操作缓解一下，或者做进度条和耗时提示
   if ProjectInvalid then exit;
