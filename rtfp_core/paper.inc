@@ -216,8 +216,17 @@ begin
   result:=false;
   if (hash1='') and (not empty_hash_rebuild) then exit;
   if FileSize(fn1)<>FileSize(fn2) then exit;
-  fs1:=TFileStream.Create(fn1,fmOpenRead);
-  fs2:=TFileStream.Create(fn2,fmOpenRead);
+  try
+    fs1:=TFileStream.Create(fn1,fmOpenRead);
+  except
+    exit;
+  end;
+  try
+    fs2:=TFileStream.Create(fn2,fmOpenRead);
+  except
+    fs1.Free;
+    exit;
+  end;
   try
     if hash1='' then hash1:=TRTFP_PDF.CalcHash(fs1,rc,Self.Tag['文件哈希方法']);
     if hash1<>TRTFP_PDF.CalcHash(fs2,rc,Self.Tag['文件哈希方法']) then exit;
