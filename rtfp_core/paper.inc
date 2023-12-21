@@ -181,16 +181,19 @@ begin
       FieldByName(_Col_metas_ModDate_).AsString := tmpPDF.Meta.pFields['DocInfo:ModDate']^;
       Post;
     end;
-    ForceDirectories(TargetDir);
-    if cut_origin then
-      TRTFP.FileMove(fullfilename,BackupFullName,false)
-    else
-      TRTFP.FileCopy(fullfilename,BackupFullName,false);
   finally
     EndUpdate;
     RecordChange;
     result:=PID;
     tmpPDF.Free;
+  end;
+  //在析构tmpPDF之后最后移动或复制文件
+  if result<>'000000' then begin
+    ForceDirectories(TargetDir);
+    if cut_origin then
+      TRTFP.FileMove(fullfilename,BackupFullName,false)
+    else
+      TRTFP.FileCopy(fullfilename,BackupFullName,false);
   end;
 end;
 
@@ -198,7 +201,7 @@ function TRTFP.AddPaper(fullfilename:string;AddPaperMethod:TAddPaperMethod=apmFu
 begin
   case AddPaperMethod of
     apmFullBackup: result:=AddPaper_Backup(fullfilename,false);
-    apmCutBackup : result:=AddPaper_Backup(fullfilename,false);
+    apmCutBackup : result:=AddPaper_Backup(fullfilename,true);
     apmWebsite:    result:=AddPaper_Website(fullfilename);
     apmReference:  result:=AddPaper_Reference;
     apmAddress:    result:=AddPaper_Address(fullfilename,false);
