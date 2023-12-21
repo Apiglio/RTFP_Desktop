@@ -250,7 +250,7 @@ begin
               1:tmpAddPaperMethod:=apmCutBackup;
               2:tmpAddPaperMethod:=apmAddress;
             end;
-            CurrentRTFP.AddPaper(FFileNames[pi],tmpAddPaperMethod);
+            newPID:=CurrentRTFP.AddPaper(FFileNames[pi],tmpAddPaperMethod);
             if newPID<>'000000' then begin
               CheckListBox_ImportFileNames.Items[pi].SubItems[0]:='导入成功';
               index:=ComboBox_DefaultCl.ItemIndex;

@@ -322,7 +322,7 @@ type
     function AddPaper_Website(website:string):RTFP_ID;
     function AddPaper_Address(fullfilename:string;get_hash:boolean):RTFP_ID;
     function AddPaper_Backup(fullfilename:string;cut_origin:boolean):RTFP_ID;
-    function CompareFile(hash1,fn1,fn2:string;empty_hash_rebuild:boolean=false):boolean;
+    function CompareFile(hash1,fn1,fn2:string;out fileopened:boolean;empty_hash_rebuild:boolean=false):boolean;
 
   public
     function AddPaper(fullfilename:string;AddPaperMethod:TAddPaperMethod=apmFullBackup):RTFP_ID;//新增一个文献到工程
@@ -641,6 +641,7 @@ type
     class function CanBuildPLen(pathname:string):boolean;
     class function CanBuildFile(fullname:string):boolean;
     class function CanBuildDisc(discchar:char):boolean;
+    class function CanReadFile(fullname:string):boolean;
 
     class function FileCopy(source,dest:string;bFailIfExist:boolean):boolean;//utf8的string版本
     class function FileDelete(source:string):boolean;//utf8的string版本
@@ -1939,6 +1940,18 @@ begin
   if d1<$ffffffff then result:=false
   else result:=true;
 
+end;
+
+class function TRTFP.CanReadFile(fullname:string):boolean;
+var FileStream:TFileStream;
+begin
+  result:=true;
+  try
+    FileStream:=TFileStream.Create(fullname,fmOpenRead);
+    FileStream.Free;
+  except
+    result:=false;
+  end;
 end;
 
 class function TRTFP.FileCopy(source,dest:string;bFailIfExist:boolean):boolean;

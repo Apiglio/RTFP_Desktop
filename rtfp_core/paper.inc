@@ -136,11 +136,20 @@ begin
   TargetDir:=FFilePath+FRootFolder+'/paper/'+DateDir;
   BackupFullName:=TargetDir+'/'+FileName;
   if length(BackupFullName)>240 then begin ShowMsgOK('新建文献','文件路径过长，无法创建文献节点。');exit;end;
-  if FileExists(BackupFullName) then
+  if FileExists(BackupFullName) then begin
     case ShowMsgYesNoAll(caption_bak_exists,Format(prompts_bak_exists,[fullfilename,BackupFullName]),true) of
       'Yes':;
       'No':exit;
     end;
+    if not TRTFP.CanReadFile(BackupFullName) then begin
+      ShowMsgOK('文件占用','以下文件被占用，未导入文献：'+_fnewline_+BackupFullName);
+      exit;
+    end;
+  end;
+  if not TRTFP.CanReadFile(fullfilename) then begin
+    ShowMsgOK('文件占用','以下文件被占用，未导入文献：'+_fnewline_+fullfilename);
+    exit;
+  end;
 
   tmpPDF:=TRTFP_PDF.Create(nil,fullfilename,Tag['文件哈希方法']);
   PID:=NewPaperID;
@@ -209,22 +218,25 @@ begin
 
 end;
 
-function TRTFP.CompareFile(hash1,fn1,fn2:string;empty_hash_rebuild:boolean=false):boolean;
+function TRTFP.CompareFile(hash1,fn1,fn2:string;out fileopened:boolean;empty_hash_rebuild:boolean=false):boolean;
 var rc:integer;//哈希计算的次数返回
     fs1,fs2:TFileStream;
 begin
   result:=false;
+  fileopened:=false;
   if (hash1='') and (not empty_hash_rebuild) then exit;
   if FileSize(fn1)<>FileSize(fn2) then exit;
   try
     fs1:=TFileStream.Create(fn1,fmOpenRead);
   except
+    fileopened:=true;
     exit;
   end;
   try
     fs2:=TFileStream.Create(fn2,fmOpenRead);
   except
     fs1.Free;
+    fileopened:=true;
     exit;
   end;
   try
@@ -256,6 +268,7 @@ end;
 function TRTFP.FindPaper(fullfilename:string):RTFP_ID;//查找具体文件在工程中的PID，未找到返回000000
 var PID:RTFP_ID;
     fn1,fn2,hash:string;
+    fileopened:boolean;
 begin
   PID:='';
   with FPaperDB do begin
@@ -266,9 +279,16 @@ begin
       fn1:=FFilePath+FRootFolder+'/paper/'+FieldByName(_Col_Paper_Folder_).AsString+'/'+FieldByName(_Col_Paper_FileName_).AsString;
       fn2:=fullfilename;
       if not FileExists(fn1) then begin Next;continue;end;
-      if CompareFile(hash,fn1,fn2) then begin
-        PID:=FieldByName(_Col_PID_).AsString;
-      end;
+      fileopened:=false;
+      repeat
+        if CompareFile(hash,fn1,fn2,fileopened) then begin
+          PID:=FieldByName(_Col_PID_).AsString;
+        end;
+        if fileopened then case ShowMsgRetryIgnore('文件占用','以下两个文件部分或全部被占用，忽略占用跳过重复性检查可导致导入重复的文件：'+_fnewline_+fn1+_fnewline_+fn2) of
+          'Retry':;
+          'Ignore':fileopened:=false;
+        end;
+      until not fileopened;
       Next;
     until EOF or (PID<>'');
   end;

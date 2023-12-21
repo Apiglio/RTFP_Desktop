@@ -118,8 +118,10 @@ const
 
   {$ifdef WINDOWS}
   _fsplit_='\';
+  _fnewline_=#13#10;
   {$else}
   _fsplit_='/';
+  _fnewline_=#10;
   {$endif}
 
 implementation
