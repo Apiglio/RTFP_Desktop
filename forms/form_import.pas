@@ -5,8 +5,11 @@ unit form_import;
 interface
 
 uses
+  {$ifdef UNIX}
+  cthreads,
+  {$endif}
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, Buttons,
-  ComCtrls, ExtCtrls, StdCtrls, rtfp_dialog;
+  ComCtrls, ExtCtrls, StdCtrls, rtfp_dialog, sync_thread;
 
 const
   AnimationStepLen = 50;
@@ -79,6 +82,7 @@ type
     FFilenames:TStringList;
     FPhase:integer;
     FHaltoff:boolean;//退出时结束未完成的导入
+    FImportThread:TLines_Thread;
 
     Panel_Down:boolean;//六个按键的状态，重复按过快可能报错，加入这个变量限制快速按键操作
 
@@ -90,7 +94,8 @@ type
 
   public
     IsBackup:boolean;//为真时导入文件采用复制方式，为假则删除源文件
-
+    ImportAny:boolean;
+    ImportAll:boolean;
 
   end;
 
@@ -223,6 +228,75 @@ begin
   Phase1;
 end;
 
+procedure ImportItemStep(Filename:string;Index:integer);
+var newPID:string;
+    tmpIdx:integer;
+    tmpKL:TKlass;
+    tmpAddPaperMethod:TAddPaperMethod;
+begin
+  with Form_ImportFiles do begin
+    CheckListBox_ImportFileNames.ItemIndex:=Index;
+    if CurrentRTFP.FindPaper(Filename) = '000000' then
+      begin
+        case RadioGroup_AddPaperMethod.ItemIndex of
+          0:tmpAddPaperMethod:=apmFullBackup;
+          1:tmpAddPaperMethod:=apmCutBackup;
+          2:tmpAddPaperMethod:=apmAddress;
+        end;
+        newPID:=CurrentRTFP.AddPaper(FileName,tmpAddPaperMethod);
+        if newPID<>'000000' then begin
+          ImportAny:=true;
+          CheckListBox_ImportFileNames.Items[Index].SubItems[0]:='导入成功';
+          tmpIdx:=ComboBox_DefaultCl.ItemIndex;
+          if tmpIdx>=0 then tmpKL:=TKlass(ComboBox_DefaultCl.Items.Objects[tmpIdx]) else tmpKL:=nil;
+          if tmpKL<>nil then CurrentRTFP.KlassInclude(tmpKL,newPID);
+        end else begin
+          //all_success:=false;
+          ImportAll:=false;
+          CheckListBox_ImportFileNames.Items[Index].SubItems[0]:='导入失败';
+        end;
+        ProgressBar_ImportFiles.Position:=Index+1;
+        //Application.ProcessMessages;
+      end
+    else
+      begin
+        //all_success:=false;
+        ImportAll:=false;
+        CheckListBox_ImportFileNames.Items[Index].SubItems[0]:='已在库内';
+      end;
+  end;
+end;
+
+procedure ImportItemStart;
+begin
+  with Form_ImportFiles do begin
+    ProgressBar_ImportFiles.Max:=FFileNames.Count;
+    //all_success:=true;
+    ImportAll:=true;
+    ImportAny:=false;
+    AllState.Enable;
+    CurrentRTFP.BeginUpdate;
+  end;
+end;
+
+procedure ImportItemTerminate;
+begin
+  with Form_ImportFiles do begin
+    CurrentRTFP.EndUpdate;
+    AllState.Disable;
+    //if all_success then begin
+    if ImportAll then begin
+      Button_ToMainForm.Click;
+    end else begin
+      MessageDlg('警告','部分文件导入失败！',mtWarning,[mbOK],0);
+      Button_ImportFileNamesCheck.Caption:='手动退出';
+      Button_ImportFileNamesCheck.Enabled:=false;
+      Button_BackToPrev.Enabled:=false;
+    end;
+    if ImportAny then CurrentRTFP.RecordChange;
+  end;
+end;
+
 procedure TForm_ImportFiles.Button_ImportFileNamesCheckClick(Sender: TObject);
 var pi:integer;
     all_success:boolean;
@@ -232,8 +306,22 @@ var pi:integer;
     tmpKL:TKlass;
     tmpAddPaperMethod:TAddPaperMethod;
 begin
-  ProgressBar_ImportFiles.Max:=FFileNames.Count;
-  all_success:=true;
+  //ProgressBar_ImportFiles.Max:=FFileNames.Count;
+  //all_success:=true;
+
+
+
+
+  FImportThread:=TLines_Thread.Create(FFilenames);
+  FImportThread.ProcStart:=@ImportItemStart;
+  FImportThread.ProcStep:=@ImportItemStep;
+  FImportThread.ProcTerminate:=@ImportItemTerminate;
+  FImportThread.Start;
+
+
+
+  {
+  ////////////////////////////////////////////
   try
     FormDesktop.ShowWaitForm:=false;
     AllState.Enable;
@@ -275,6 +363,8 @@ begin
     FormDesktop.ShowWaitForm:=true;
     AllState.Disable;
   end;
+  ////////////////////////////////////////
+
   if all_success then begin
     //Clear;
     //Self.Hide;
@@ -288,12 +378,15 @@ begin
     Button_BackToPrev.Enabled:=false;
   end;
   CurrentRTFP.RebuildMainGrid;//FormDesktop.MainGridValidate(CurrentRTFP);//CurrentRTFP.DataChange;
+  }
 end;
 
 procedure TForm_ImportFiles.Button_ToMainFormClick(Sender: TObject);
 begin
   //操作在ModalResult里头，不用自己写退出
-  FHaltoff:=true;
+  //FHaltoff:=true;
+  //改成线程之后可以用Thread.Terminate
+  if Assigned(FImportThread) then FImportThread.Terminate;
 end;
 
 procedure TForm_ImportFiles.CheckBox_DefaultClChange(Sender: TObject);

@@ -12,55 +12,61 @@ uses
 
 type
 
-  TRTFP_Thread = class(TThread)
+  TLines_Thread_Proc = procedure(line:string;index:integer);
+  TLines_Thread_Proc_Tips = procedure;
+  TLines_Thread = class(TThread)
   private
-    FRTFP_Project:TObject;
-    procedure ProjectOperation;
+    FProcStep:TLines_Thread_Proc;
+    FProcStart:TLines_Thread_Proc_Tips;
+    FProcTerminate:TLines_Thread_Proc_Tips;
+    PLines:TStrings;
+    FIndex:integer;
   protected
     procedure Execute;override;
+    procedure SynchOnStep;
+    procedure SynchOnStart;
+    procedure SynchOnTerminate;
   public
-    constructor Create(ARTFP_Project:TObject;CreateSuspended:Boolean);
+    constructor Create(ALines:TStrings);
+    property ProcStep:TLines_Thread_Proc read FProcStep write FProcStep;
+    property ProcStart:TLines_Thread_Proc_Tips read FProcStart write FProcStart;
+    property ProcTerminate:TLines_Thread_Proc_Tips read FProcTerminate write FProcTerminate;
   end;
 
-  TRTFP_ThreadPool = class
-  private
-    FList:TList;
-  public
-    constructor Create;
-    destructor Destroy;
-  end;
 
 implementation
 uses RTFP_definition;
 
-{ TRTFP_Thread }
+{ TLines_Thread }
 
-procedure TRTFP_Thread.ProjectOperation;
+procedure TLines_Thread.Execute;
 begin
-  //FRTFP_Project...;
+  Synchronize(@SynchOnStart);
+  while (FIndex<PLines.Count) and (not Terminated) do begin
+    Synchronize(@SynchOnStep);
+    inc(FIndex);
+  end;
+  Synchronize(@SynchOnTerminate);
 end;
-procedure TRTFP_Thread.Execute;
+procedure TLines_Thread.SynchOnStep;
 begin
-  //...
-  Synchronize(@ProjectOperation);
+  if FProcStep<>nil then FProcStep(PLines[FIndex],FIndex);
 end;
-constructor TRTFP_Thread.Create(ARTFP_Project:TObject;CreateSuspended:Boolean);
+procedure TLines_Thread.SynchOnStart;
 begin
-  inherited Create(CreateSuspended);
-  FRTFP_Project:=ARTFP_Project;
+  if FProcStart<>nil then FProcStart();
+end;
+procedure TLines_Thread.SynchOnTerminate;
+begin
+  if FProcTerminate<>nil then FProcTerminate();
+end;
+constructor TLines_Thread.Create(ALines:TStrings);
+begin
+  inherited Create(true);
+  //CreateSuspended=true 必须在启动前设置三个事件
   FreeOnTerminate := True;
-end;
-
-{ TRTFP_ThreadPool }
-
-constructor TRTFP_ThreadPool.Create;
-begin
-  inherited Create;
-end;
-
-destructor TRTFP_ThreadPool.Destroy;
-begin
-  inherited Destroy;
+  PLines:=ALines;
+  FIndex:=0;
 end;
 
 
