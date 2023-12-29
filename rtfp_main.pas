@@ -2463,6 +2463,7 @@ begin
     else exit;
   end;
   PIDs:=TStringList.Create;
+  AllState.Enable;
   try
     CurrentRTFP.GetPIDList_Klass(PIDs,tmpKL);
     CurrentRTFP.BeginUpdate;
@@ -2470,6 +2471,7 @@ begin
     CurrentRTFP.EndUpdate;
   finally
     PIDs.Free;
+    AllState.Disable;
   end;
   CurrentRTFP.ClassChange;
   CurrentRTFP.RecordChange;
