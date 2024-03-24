@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, Types;
 
 const
-  C_VERSION_NUMBER  = '0.4.1-alpha.5';
+  C_VERSION_NUMBER  = '0.4.1-alpha.6';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -594,7 +594,7 @@ begin
     if FileExists(filename) then str.LoadFromFile(filename);
     for stmp in str do
       begin
-        if MenuItem_project_recent.Count>10 then continue;
+        if MenuItem_project_recent.Count>10 then break;
         tmp:=TMenuItem.Create(Self);
         tmp.Caption:=stmp;
         tmp.OnClick:=@Self.MenuItemOpenProject;
@@ -613,22 +613,23 @@ begin
 end;
 procedure TFormDesktop.SaveRecentProject;
 var filename,stmp:string;
-    str:TStringList;
+    str,old:TStringList;
     index:integer;
 begin
   if ProjectInvalid then exit;
   filename:=CurrentRTFP.CurrentFileFull;
   str:=TStringList.Create;
+  old:=TStringList.Create;
   try
+    old.LoadFromFile(LocalPath+'recent_project.dat');
     str.Add(filename);
-    with MenuItem_project_recent do for index:=0 to Count-1 do
-      begin
-        stmp:=Items[index].Caption;
-        if (stmp<>filename) and FileExists(stmp) then str.Add(stmp);
-      end;
+    for stmp in old do begin
+      if (stmp<>filename) and FileExists(stmp) then str.Add(stmp);
+    end;
     str.SaveToFile(LocalPath+'recent_project.dat');
   finally
     str.Free;
+    old.Free;
   end;
 end;
 

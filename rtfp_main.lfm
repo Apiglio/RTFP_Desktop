@@ -1011,6 +1011,10 @@ object FormDesktop: TFormDesktop
           Left = 268
           Height = 194
         end
+        inherited Splitter_Horiz: TSplitter
+          AnchorSideLeft.Control = Frame_AufScript1
+          AnchorSideRight.Control = Frame_AufScript1
+        end
         inherited OpenDialog: TOpenDialog
           left = 350
           top = 99

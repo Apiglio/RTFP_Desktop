@@ -51,7 +51,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="55">
+    <Units Count="57">
       <Unit0>
         <Filename Value="RTFP_Desktop.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -323,6 +323,14 @@
         <Filename Value="..\AufScript\auftype\auf_type_base.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit54>
+      <Unit55>
+        <Filename Value="..\AufScript\aufkernel\kernel.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit55>
+      <Unit56>
+        <Filename Value="..\AufScript\aufkernel\svo_tree.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit56>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -333,7 +341,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir);rtfp_core"/>
-      <OtherUnitFiles Value="forms;sync;rtfp_core;rtfp_pdf;..\AufScript;..\AufScript\auftype"/>
+      <OtherUnitFiles Value="forms;sync;rtfp_core;rtfp_pdf;..\AufScript;..\AufScript\auftype;..\AufScript\aufkernel"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>
