@@ -10,7 +10,7 @@ object Form_CalcField: TForm_CalcField
   Constraints.MinWidth = 600
   DesignTimePPI = 144
   OnCreate = FormCreate
-  Position = poOwnerFormCenter
+  Position = poMainFormCenter
   LCLVersion = '1.8.4.0'
   object PageControl1: TPageControl
     AnchorSideLeft.Control = Owner
@@ -84,6 +84,7 @@ object Form_CalcField: TForm_CalcField
         BorderSpacing.Right = 16
         BorderSpacing.Bottom = 8
         Anchors = [akTop, akLeft, akRight, akBottom]
+        Font.Height = -13
         Font.Name = 'Courier New'
         Font.Pitch = fpFixed
         Font.Quality = fqNonAntialiased
@@ -92,7 +93,7 @@ object Form_CalcField: TForm_CalcField
         TabOrder = 2
         OnDragDrop = Memo_CalcSyntaxMidDragDrop
         OnDragOver = Memo_CalcSyntaxMidDragOver
-        Gutter.Width = 61
+        Gutter.Width = 57
         Gutter.MouseActions = <>
         RightGutter.Width = 0
         RightGutter.MouseActions = <>
@@ -546,7 +547,7 @@ object Form_CalcField: TForm_CalcField
             MouseActions = <>
           end
           object SynGutterLineNumber1: TSynGutterLineNumber
-            Width = 21
+            Width = 17
             MouseActions = <>
             MarkupInfo.Background = clBtnFace
             MarkupInfo.Foreground = clNone
@@ -590,6 +591,7 @@ object Form_CalcField: TForm_CalcField
         BorderSpacing.Top = 8
         BorderSpacing.Right = 16
         Anchors = [akTop, akLeft, akRight]
+        Font.Height = -13
         Font.Name = 'Courier New'
         Font.Pitch = fpFixed
         Font.Quality = fqNonAntialiased
@@ -598,7 +600,7 @@ object Form_CalcField: TForm_CalcField
         TabOrder = 3
         OnDragDrop = Memo_CalcSyntaxMidDragDrop
         OnDragOver = Memo_CalcSyntaxMidDragOver
-        Gutter.Width = 61
+        Gutter.Width = 57
         Gutter.MouseActions = <>
         RightGutter.Width = 0
         RightGutter.MouseActions = <>
@@ -1053,7 +1055,7 @@ object Form_CalcField: TForm_CalcField
             MouseActions = <>
           end
           object SynGutterLineNumber1: TSynGutterLineNumber
-            Width = 21
+            Width = 17
             MouseActions = <>
             MarkupInfo.Background = clBtnFace
             MarkupInfo.Foreground = clNone
@@ -1097,6 +1099,7 @@ object Form_CalcField: TForm_CalcField
         BorderSpacing.Left = 8
         BorderSpacing.Bottom = 8
         Anchors = [akTop, akLeft, akRight, akBottom]
+        Font.Height = -13
         Font.Name = 'Courier New'
         Font.Pitch = fpFixed
         Font.Quality = fqNonAntialiased
@@ -1105,7 +1108,7 @@ object Form_CalcField: TForm_CalcField
         TabOrder = 4
         OnDragDrop = Memo_CalcSyntaxMidDragDrop
         OnDragOver = Memo_CalcSyntaxMidDragOver
-        Gutter.Width = 61
+        Gutter.Width = 57
         Gutter.MouseActions = <>
         RightGutter.Width = 0
         RightGutter.MouseActions = <>
@@ -1560,7 +1563,7 @@ object Form_CalcField: TForm_CalcField
             MouseActions = <>
           end
           object SynGutterLineNumber1: TSynGutterLineNumber
-            Width = 21
+            Width = 17
             MouseActions = <>
             MarkupInfo.Background = clBtnFace
             MarkupInfo.Foreground = clNone

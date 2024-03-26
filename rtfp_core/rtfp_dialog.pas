@@ -167,7 +167,7 @@ begin
   inherited Destroy;
 end;
 
-//控件布局有些麻烦，先不写了。写完就可以把ShowMsgOK之类中的MessageDlg都替换了。
+//控件布局有些麻烦，先不写了。写完就可以把ShowMsgOK之类中的CreateMessageDialog都替换了。
 function ShowMsgButtons(const ACaption,APrompt:string;AButtons:TRTFP_Button_Set):String;
 var
   W,I,Sep,Margin: Integer;
@@ -188,7 +188,7 @@ begin
       BorderStyle:=bsDialog;
       Caption:=ACaption;
       ClientWidth:=W+2*Margin;
-      Position:=poOwnerFormCenter;
+      Position:=poMainFormCenter;
       KeyPreview:=true;
     end;
 
@@ -245,7 +245,7 @@ begin
       BorderStyle:=bsDialog;
       Caption:=ACaption;
       ClientWidth:=W+2*Margin;
-      Position:=poOwnerFormCenter;
+      Position:=poMainFormCenter;
       KeyPreview:=true;
     end;
 
@@ -322,7 +322,7 @@ begin
       BorderStyle:=bsDialog;
       Caption:=ACaption;
       ClientWidth:=W+2*Margin;
-      Position:=poOwnerFormCenter;
+      Position:=poMainFormCenter;
       KeyPreview:=true;
     end;
 
@@ -406,7 +406,7 @@ begin
       BorderStyle:=bsDialog;
       Caption:=ACaption;
       ClientWidth:=W+2*Margin;
-      Position:=poOwnerFormCenter;
+      Position:=poMainFormCenter;
       KeyPreview:=true;
     end;
 
@@ -473,7 +473,7 @@ begin
       BorderStyle:=bsDialog;
       Caption:=ACaption;
       ClientWidth:=W+2*Margin;
-      Position:=poOwnerFormCenter;
+      Position:=poMainFormCenter;
       KeyPreview:=true;
     end;
 
@@ -538,7 +538,7 @@ begin
       BorderStyle:=bsDialog;
       Caption:=ACaption;
       ClientWidth:=W+2*Margin;
-      Position:=poOwnerFormCenter;
+      Position:=poMainFormCenter;
       KeyPreview:=true;
     end;
 
@@ -610,7 +610,7 @@ begin
         Caption:=ACaption;
       ClientWidth:=W+2*Margin+ScrollWidth;
       ClientHeight:=H+2*Margin+ScrollWidth;
-      Position:=poScreenCenter;
+      Position:=poMainFormCenter;
       KeyPreview:=true;
     end;
 
@@ -655,8 +655,12 @@ begin
 end;
 
 function ShowMsgYesNoCancel(const ACaption,APrompt:string):String;
+var FL:TForm;
 begin
-  case MessageDlg(ACaption,APrompt,mtCustom,[mbYes,mbNo,mbCancel],0) of
+  FL:=CreateMessageDialog(APrompt,mtCustom,[mbYes,mbNo,mbCancel]);
+  FL.Caption:=ACaption;
+  FL.Position:=poMainFormCenter;
+  case FL.ShowModal of
     mrYes:result:='Yes';
     mrNo:result:='No';
     mrCancel:result:='Cancel';
@@ -667,55 +671,59 @@ end;
 function ShowMsgYesNoAll(const ACaption,APrompt:string;UseAllState:boolean=false):String;
 var buttons:TMsgDlgButtons;
     msg_line:string;
+    FL:TForm;
 begin
   buttons:=[mbYes,mbNo];
-  if UseAllState and AllState.FEnabled then
-    begin
-      if AllState.FConfirmed then
-        begin
-          result:=AllState.DefaultButton;
-          exit;
-        end
-      else
-        begin
-          if AllState.DefaultButton<>'' then buttons:=buttons+[mbAll];
-          case AllState.DefaultButton of
-            'Yes':msg_line:=APrompt+#13#10+'(全部：是)';
-            'No':msg_line:=APrompt+#13#10+'(全部：否)';
-            else msg_line:=APrompt;
-          end;
-        end;
-      case MessageDlg(ACaption,msg_line,mtCustom,buttons,0) of
-        mrYes:
-          begin
-            result:='Yes';
-            AllState.SetButton('Yes');
-          end;
-        mrNo:
-          begin
-            result:='No';
-            AllState.SetButton('No');
-          end;
-        mrAll:
-          begin
-            result:=AllState.DefaultButton;
-            AllState.ApplyAll;
-          end;
+  if UseAllState and AllState.FEnabled then begin
+    if AllState.FConfirmed then begin
+      result:=AllState.DefaultButton;
+      exit;
+    end else begin
+      if AllState.DefaultButton<>'' then buttons:=buttons+[mbAll];
+      case AllState.DefaultButton of
+        'Yes':msg_line:=APrompt+#13#10+'(全部：是)';
+        'No':msg_line:=APrompt+#13#10+'(全部：否)';
+        else msg_line:=APrompt;
       end;
-    end
-  else
-    case MessageDlg(ACaption,APrompt,mtCustom,buttons,0) of
+    end;
+    FL:=CreateMessageDialog(msg_line,mtCustom,buttons);
+    FL.Caption:=ACaption;
+    FL.Position:=poMainFormCenter;
+    case FL.ShowModal of
+      mrYes:begin
+        result:='Yes';
+        AllState.SetButton('Yes');
+      end;
+      mrNo:begin
+        result:='No';
+        AllState.SetButton('No');
+      end;
+      mrAll:begin
+        result:=AllState.DefaultButton;
+        AllState.ApplyAll;
+      end;
+    end;
+  end else begin
+    FL:=CreateMessageDialog(APrompt,mtCustom,buttons);
+    FL.Caption:=ACaption;
+    FL.Position:=poMainFormCenter;
+    case FL.ShowModal of
       mrYes:result:='Yes';
       mrNo:result:='No';
     end;
+  end;
 end;
 
 function ShowMsgRetryIgnore(const ACaption,APrompt:string;UseCancel:boolean=false):String;
 var buttons:TMsgDlgButtons;
+    FL:TForm;
 begin
   buttons:=[mbRetry,mbIgnore];
   if UseCancel then buttons:=buttons+[mbCancel];
-  case MessageDlg(ACaption,APrompt,mtCustom,buttons,0) of
+  FL:=CreateMessageDialog(APrompt,mtCustom,buttons);
+  FL.Caption:=ACaption;
+  FL.Position:=poMainFormCenter;
+  case FL.ShowModal of
     mrCancel:result:='Cancel';
     mrRetry:result:='Retry';
     mrIgnore:result:='Ignore';
@@ -724,18 +732,26 @@ begin
 end;
 
 function ShowMsgOK(const ACaption,APrompt:string):String;
+var FL:TForm;
 begin
-  MessageDlg(ACaption,APrompt,mtCustom,[mbOK],0);
+  FL:=CreateMessageDialog(APrompt,mtCustom,[mbOK]);
+  FL.Caption:=ACaption;
+  FL.Position:=poMainFormCenter;
+  FL.ShowModal;
   result:='OK';
 end;
 
 function ShowMsgOKAll(const ACaption,APrompt:string):String;
+var FL:TForm;
 begin
   if not ConfirmState.FEnabled then
     ShowMsgOK(ACaption,APrompt)
   else begin
     if not ConfirmState.FConfirmed then begin
-      case MessageDlg(ACaption,APrompt,mtCustom,[mbOK,mbAll],0) of
+      FL:=CreateMessageDialog(APrompt,mtCustom,[mbOK,mbAll]);
+      FL.Caption:=ACaption;
+      FL.Position:=poMainFormCenter;
+      case FL.ShowModal of
         mrOK:ConfirmState.SetButton('OK');
         mrAll:ConfirmState.ApplyAll;
       end;

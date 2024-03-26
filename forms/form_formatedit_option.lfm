@@ -10,7 +10,7 @@ object FormFormatEditOption: TFormFormatEditOption
   ClientWidth = 363
   DesignTimePPI = 144
   OnCreate = FormCreate
-  Position = poOwnerFormCenter
+  Position = poMainFormCenter
   LCLVersion = '1.8.4.0'
   object Edit_DisplayName: TEdit
     AnchorSideLeft.Control = ComboBox_Type

@@ -8,6 +8,7 @@ object FormProjectProfile: TFormProjectProfile
   ClientWidth = 772
   DesignTimePPI = 144
   OnShow = FormShow
+  Position = poMainFormCenter
   LCLVersion = '1.8.4.0'
   object PageControl1: TPageControl
     AnchorSideLeft.Control = Owner

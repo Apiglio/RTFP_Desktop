@@ -17,7 +17,7 @@ object Form_CiteTrans: TForm_CiteTrans
   OnHide = FormHide
   OnResize = FormResize
   OnShow = FormShow
-  Position = poScreenCenter
+  Position = poMainFormCenter
   LCLVersion = '1.8.4.0'
   object Memo_Cite: TMemo
     AnchorSideLeft.Control = Panel_DBGrid_Temporary

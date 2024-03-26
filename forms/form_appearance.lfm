@@ -9,7 +9,7 @@ object AppearanceForm: TAppearanceForm
   DesignTimePPI = 144
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
-  Position = poScreenCenter
+  Position = poMainFormCenter
   LCLVersion = '1.8.4.0'
   object ScrollBox_Appearance: TScrollBox
     AnchorSideLeft.Control = Owner

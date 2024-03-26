@@ -13,7 +13,7 @@ object Form_NewProject: TForm_NewProject
   OnActivate = FormActivate
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
-  Position = poScreenCenter
+  Position = poMainFormCenter
   LCLVersion = '1.8.4.0'
   object Edit_ProjectName: TEdit
     AnchorSideLeft.Control = Label_ProjectName

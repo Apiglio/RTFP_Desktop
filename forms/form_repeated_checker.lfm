@@ -11,7 +11,7 @@ object FormRepeatedChecker: TFormRepeatedChecker
   DesignTimePPI = 144
   OnCreate = FormCreate
   OnShow = FormShow
-  Position = poScreenCenter
+  Position = poMainFormCenter
   LCLVersion = '1.8.4.0'
   object ListBox_RepeatedPIDPair: TListBox
     AnchorSideLeft.Control = Owner

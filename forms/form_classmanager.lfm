@@ -15,7 +15,7 @@ object ClassManagerForm: TClassManagerForm
   OnHide = FormHide
   OnResize = FormResize
   OnShow = FormShow
-  Position = poScreenCenter
+  Position = poMainFormCenter
   LCLVersion = '1.8.4.0'
   object Panel_DBGrid_Temporary: TPanel
     AnchorSideLeft.Control = Splitter_ClsMgrV

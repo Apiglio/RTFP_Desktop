@@ -11,7 +11,7 @@ object FormFieldDisplayOption: TFormFieldDisplayOption
   DesignTimePPI = 144
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  Position = poOwnerFormCenter
+  Position = poMainFormCenter
   LCLVersion = '1.8.4.0'
   object RadioGroup_ColorStyle: TRadioGroup
     AnchorSideLeft.Control = Owner

@@ -215,6 +215,7 @@ var CL:TStringList;
     KL:TKlass;
     stmp:string;
 begin
+  result:=false;
   CL:=TStringList.Create;
   try
     for KL in FKlassList do
@@ -228,7 +229,7 @@ begin
         if CL.Count=1 then KlassInclude(CL.Objects[0] as TKlass,PID)
         else begin
           stmp:=ShowMsgCombo('纳入分类','选择文件拟纳入的分类',CL);
-          if stmp<>'' then KlassInclude(FindKlass(stmp,'.'),PID);
+          if stmp<>'' then KlassInclude(FindKlass(stmp,'.'),PID) else exit;
         end;
       end;
   finally

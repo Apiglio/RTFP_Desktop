@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, Types;
 
 const
-  C_VERSION_NUMBER  = '0.4.1-alpha.6';
+  C_VERSION_NUMBER  = '0.4.1-alpha.7';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -997,13 +997,16 @@ end;
 
 function TFormDesktop.Action_NewPaper:boolean;
 var _pid:RTFP_ID;
+    _success:boolean;
 begin
   result:=false;
   if ProjectInvalid then exit;
   CurrentRTFP.BeginUpdate;//这里不禁用会触发修改分组时的UpdateCurrentRec，应该重新考虑各个Change事件的时机
   _pid:=CurrentRTFP.AddPaper('',apmReference);
-  CurrentRTFP.KlassIncludeFromCombo(_pid,true);
+  _success:=CurrentRTFP.KlassIncludeFromCombo(_pid,true);
+  if not _success then CurrentRTFP.DeletePaper(_pid);
   CurrentRTFP.EndUpdate;//这里不禁用会触发修改分组时的UpdateCurrentRec，应该重新考虑各个Change事件的时机
+  if not _success then exit;
   CurrentRTFP.RecordChange;
   Select_PID(_pid);
   NodeViewValidate;

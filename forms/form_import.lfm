@@ -15,7 +15,7 @@ object Form_ImportFiles: TForm_ImportFiles
   OnDestroy = FormDestroy
   OnHide = FormHide
   OnResize = FormResize
-  Position = poScreenCenter
+  Position = poMainFormCenter
   LCLVersion = '1.8.4.0'
   object ProgressBar_ImportFiles: TProgressBar
     AnchorSideLeft.Control = Owner
