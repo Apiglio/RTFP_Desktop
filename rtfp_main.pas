@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, Types;
 
 const
-  C_VERSION_NUMBER  = '0.4.1-alpha.7';
+  C_VERSION_NUMBER  = '0.4.1-alpha.8';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -2782,20 +2782,21 @@ begin
 
   //这里不错，或许可以把PaperDS中的ftString改回ftMemo，
   //同时可以在主表显示图片
-  case tmpFD.DataType of
+  //case tmpFD.DataType of
     //ftMemo:
     //  begin
     //    Canvas.TextRect(Rect,Rect.Left,Rect.Top,Column.Field.AsString);
     //  end;
-    ftBlob:
-      begin
-        //啥没改，图片字段转成文件形式以后这么做的意义也不大了
-      end;
-    else
-      begin
+    //ftBlob:
+    //  begin
+    //    //啥没改，图片字段转成文件形式以后这么做的意义也不大了
+    //  end;
+    //else
+    //  begin
         (Sender as TDBGrid).DefaultDrawColumnCell(Rect,DataCol,Column,State);
-      end;
-  end;
+        //至少用BLOB和blob可以区分有没有赋值
+    //  end;
+  //end;
 
 end;
 

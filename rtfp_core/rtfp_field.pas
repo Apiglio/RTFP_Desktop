@@ -419,6 +419,7 @@ end;
 function TFieldDisplayOption.GetFieldColor(Value:TField):TColor;
 var pi,len:integer;
     dtmp,port:double;
+    tmp_field_string:string;
 begin
   len:=Self.Count;
   case FMode of
@@ -443,7 +444,11 @@ begin
     fdmIdentical:
       begin
         for pi:=0 to len-1 do begin
-          if Value.AsString=FValues[pi] then begin
+          case Value.DataType of
+            ftBlob:if TBlobField(Value).BlobSize>0 then tmp_field_string:='valid' else tmp_field_string:='invalid';
+            else tmp_field_string:=Value.AsString;
+          end;
+          if tmp_field_string=FValues[pi] then begin
             result:=Self.Colors[pi];
             exit;
           end;
