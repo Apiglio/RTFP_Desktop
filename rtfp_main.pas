@@ -17,7 +17,7 @@ uses
   RTFP_definition, rtfp_constants, rtfp_type, sync_timer, source_dialog, Types;
 
 const
-  C_VERSION_NUMBER  = '0.4.1-alpha.8';
+  C_VERSION_NUMBER  = '0.4.1-alpha.9';
   C_SOFTWARE_NAME   = 'RTFP Desktop';
   C_SOFTWARE_AUTHOR = 'Apiglio';
 
@@ -2881,8 +2881,22 @@ end;
 procedure TFormDesktop.DBGrid_MainMouseWheel(Sender: TObject;
   Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint;
   var Handled: Boolean);
+const row_step=12;//这个之后加一个设置，滚轮一次位移多少行
+var current_row,row_count:longint;
 begin
-  //NodeViewValidate;
+  if DBGrid_Main.DataSource.DataSet=nil then exit;
+  current_row:=DBGrid_Main.DataSource.DataSet.RecNo;
+  row_count:=DBGrid_Main.DataSource.DataSet.RecordCount;
+  if WheelDelta<0 then begin
+    current_row:=current_row+row_step;
+    if current_row>row_count then current_row:=row_count;
+  end else begin
+    current_row:=current_row-row_step;
+    if current_row<0 then current_row:=0;
+    //这里目前存在一个bug，高亮行不能归为0，对功能影响不大
+  end;
+  DBGrid_Main.DataSource.DataSet.RecNo:=current_row;
+  Handled:=true;//禁用滚轮改变高亮行这个默认行为
 end;
 
 procedure TFormDesktop.Edit_DBGridMain_FilterChange(Sender: TObject);
