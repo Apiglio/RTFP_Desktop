@@ -59,7 +59,8 @@ uses
 
   {$ifndef insert}
   Apiglio_Useful, auf_ram_var, rtfp_pdfobj, rtfp_files, rtfp_class, rtfp_field,
-  rtfp_constants, rtfp_type, rtfp_tags, rtfp_format_component, rtfp_dialog, rtfp_misc, rtfp_dataset_sorter,
+  rtfp_constants, rtfp_type, rtfp_tags, rtfp_format_component, rtfp_dialog,
+  rtfp_misc, rtfp_dataset_sorter, sync_https,
   {$endif}
   BufDataset, xmldatapacketreader,
   db, dbf, dbf_common, dbf_fields, sqldb, memds, fpjson;
@@ -318,6 +319,7 @@ type
   //PAPER.INC 文献节点
   private
     function NewPaperID:RTFP_ID;//新建PID编号并将数据库游标指向新行
+    function SetWebsiteParam(website,PID:string):boolean;
     function AddPaper_Reference:RTFP_ID;
     function AddPaper_Website(website:string):RTFP_ID;
     function AddPaper_Address(fullfilename:string;get_hash:boolean):RTFP_ID;

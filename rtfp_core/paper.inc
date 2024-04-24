@@ -37,6 +37,20 @@ begin
   result:=PID;
 end;
 
+function TRTFP.SetWebsiteParam(website,PID:string):boolean;
+var _title,_author,_keywords,_description:string;
+begin
+  {$ifdef WINDOWS}
+  //windows以外的版本暂时还没搞好怎么访问https
+  if ReadWebsiteMeta(website,_title,_author,_keywords,_description) then begin
+    EditFieldAsString(_Col_basic_Title_,_Attrs_Basic_,PID,_title,[aeForceEditIfTypeDismatch]);
+    EditFieldAsString(_Col_basic_Author_,_Attrs_Basic_,PID,_author,[aeForceEditIfTypeDismatch]);
+    EditFieldAsString(_Col_basic_Keyword_,_Attrs_Basic_,PID,_keywords,[aeForceEditIfTypeDismatch]);
+    EditFieldAsString(_Col_basic_Summary_,_Attrs_Basic_,PID,_description,[aeForceEditIfTypeDismatch]);
+  end;
+  {$endif}
+end;
+
 function TRTFP.AddPaper_Website(website:string):RTFP_ID;
 var PID:RTFP_ID;
 begin
@@ -53,6 +67,7 @@ begin
     FieldByName(_Col_Paper_FileHash_).AsString:='';
     Post;
   end;
+  SetWebsiteParam(website,PID);
   EditFieldAsString(_Col_basic_Link_,_Attrs_Basic_,PID,website,[]);
   EditFieldAsBoolean(_Col_class_Is_Read_,_Attrs_Class_,PID,false,[]);
   EditFieldAsInteger(_Col_notes_User_,_Attrs_Notes_,PID,0,[]);

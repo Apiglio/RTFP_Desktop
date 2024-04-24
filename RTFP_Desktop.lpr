@@ -13,7 +13,8 @@ uses
   tachartlazaruspkg, form_classmanager, form_appearance, form_options,
   form_report_tool, form_repeated_checker, form_project_profile,
   form_field_display_option, form_formatedit_option, source_dialog, sync_timer,
-  rtfp_type, rtfp_dataset_sorter, form_field_change, form_calc_field, sync_thread;
+  rtfp_type, rtfp_dataset_sorter, form_field_change, form_calc_field,
+  sync_thread, sync_https;
 
 {$R *.res}
 
