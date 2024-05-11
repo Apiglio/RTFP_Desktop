@@ -117,13 +117,13 @@ begin
         //ftFmtMemo,ftFixedChar,
         //ftBlob,
         ftBoolean:
-          result:=result+'"'+disp_name+'":'+export_con_string(FPaperDS.Fields[idx_f].AsBoolean)+',';
+          result:=result+TAB+TAB+'"'+disp_name+'":'+export_con_string(FPaperDS.Fields[idx_f].AsBoolean)+','+CRLF;
         ftFloat:
-          result:=result+'"'+disp_name+'":'+FloatToStr(FPaperDS.Fields[idx_f].AsFloat)+',';
+          result:=result+TAB+TAB+'"'+disp_name+'":'+FloatToStr(FPaperDS.Fields[idx_f].AsFloat)+','+CRLF;
         ftInteger,ftLargeint,ftSmallint,ftWord:
-          result:=result+'"'+disp_name+'":'+IntToStr(FPaperDS.Fields[idx_f].AsLargeInt)+',';
+          result:=result+TAB+TAB+'"'+disp_name+'":'+IntToStr(FPaperDS.Fields[idx_f].AsLargeInt)+','+CRLF;
         ftDateTime,ftDate,ftTime:
-          result:=result+'"'+disp_name+'":"'+DateTimeToStr(FPaperDS.Fields[idx_f].AsDateTime)+'",';//可以考虑改成Time.mktime()
+          result:=result+TAB+TAB+'"'+disp_name+'":"'+DateTimeToStr(FPaperDS.Fields[idx_f].AsDateTime)+'",'+CRLF;//可以考虑改成Time.mktime()
       end;
     end;
     delete(result,length(result)-length(CRLF),1);
