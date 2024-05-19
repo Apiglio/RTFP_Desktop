@@ -65,7 +65,7 @@ end;
 
 function export_con_string(boo:boolean):string;inline;
 begin
-  if boo then result:='True' else result:='False';
+  if boo then result:='true' else result:='false';
 end;
 
 function TRTFP.ExportDSToFormatJSON:string;
