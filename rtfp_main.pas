@@ -1203,7 +1203,10 @@ begin
   if ProjectInvalid then exit;
   folder:=CurrentRTFP.PaperDS.FieldByName(_Col_Paper_Folder_).AsString;
   filename:=CurrentRTFP.PaperDS.FieldByName(_Col_Paper_FileName_).AsString;
-  ClipBoard.AsText:=CurrentRTFP.CurrentPathFull+folder+_fsplit_+filename;
+  case folder of
+    'extern','weblnk','':ClipBoard.AsText:=filename;
+    else ClipBoard.AsText:=CurrentRTFP.CurrentPathFull+'paper'+_fsplit_+folder+_fsplit_+filename;
+  end;
 end;
 
 procedure TFormDesktop.MenuItem_CB_PIDClick(Sender: TObject);
