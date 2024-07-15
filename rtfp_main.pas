@@ -2760,6 +2760,11 @@ procedure TFormDesktop.DBGrid_MainDrawColumnCell(Sender: TObject;
 var tmpFD:TFieldDef;
     tmpA:Pointer;
     tmpCL:TColor;
+    tmpFontCL:TColor;
+    vert_space:integer;
+    tmpDBG:TDBGrid;
+    trimRect:TRect;
+    left_adjust:TTextStyle;
 
   function min(a,b:integer):integer;
   begin
@@ -2767,7 +2772,6 @@ var tmpFD:TFieldDef;
   end;
 
 begin
-  if gdSelected in State then exit;
   tmpFD:=Column.Field.FieldDef;
   tmpA:=CurrentRTFP.PaperDSFieldDefs.Items[DataCol];
   if tmpA=nil then exit;
@@ -2775,28 +2779,42 @@ begin
   tmpCL:=$ff000000;
   if TObject(tmpA) is TAttrsField then
     tmpCL:=TAttrsField(tmpA).FieldDisplayOption.GetFieldColor(Column.Field);
-  if tmpCL and $ff000000 <> $ff000000 then begin
-    (Sender as TDBGrid).Canvas.Brush.Color:=tmpCL;
-    (Sender as TDBGrid).Canvas.FillRect(Rect);
+
+  if (gdSelected in State) or (gdRowHighlight in State) then begin
+    tmpCL:=clHighlight;
+    tmpFontCL:=clHighlightText;
+  end else begin
+    if tmpCL and $ff000000 = $ff000000 then tmpCL:=clDefault;
+    tmpFontCL:=clBlack;
   end;
 
-  //这里不错，或许可以把PaperDS中的ftString改回ftMemo，
-  //同时可以在主表显示图片
-  //case tmpFD.DataType of
-    //ftMemo:
-    //  begin
-    //    Canvas.TextRect(Rect,Rect.Left,Rect.Top,Column.Field.AsString);
-    //  end;
+  tmpDBG:=Sender as TDBGrid;
+  tmpDBG.Canvas.Brush.Color:=tmpCL;
+  tmpDBG.Canvas.Pen.Color:=tmpFontCL;
+  tmpDBG.Canvas.FillRect(Rect);
+  vert_space:=Rect.Height-tmpDBG.Canvas.GetTextHeight('W');
+  left_adjust.Alignment:=taLeftJustify;
+
+  trimRect:=Classes.Rect(Rect.Left,Rect.Top,Rect.Right-vert_space,Rect.Bottom);
+  case tmpFD.DataType of
+    ftMemo:
+      begin
+        tmpDBG.Canvas.TextRect(trimRect,trimRect.Left+vert_space div 2,trimRect.Top,Column.Field.AsString);
+      end;
+    ftFloat,ftInteger,ftLargeint,ftSmallint:
+      begin
+        tmpDBG.Canvas.TextRect(trimRect,trimRect.Left+vert_space div 2,trimRect.Top,Column.Field.AsString,left_adjust);
+      end;
     //ftBlob:
     //  begin
     //    //啥没改，图片字段转成文件形式以后这么做的意义也不大了
     //  end;
-    //else
-    //  begin
+    else
+      begin
         (Sender as TDBGrid).DefaultDrawColumnCell(Rect,DataCol,Column,State);
         //至少用BLOB和blob可以区分有没有赋值
-    //  end;
-  //end;
+      end;
+  end;
 
 end;
 

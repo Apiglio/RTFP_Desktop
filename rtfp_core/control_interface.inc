@@ -186,7 +186,8 @@ var tmpDbf:{TDbf}TDataSet;
     procedure CopyFieldValue(dst,src:TField);
     begin
       case dst.DataType of
-        ftString,ftMemo,ftWideString,ftFixedWideChar,ftWideMemo{,ftFmtMemo,ftFixedChar}:dst.AsString:=src.AsString;
+        ftString,ftWideString,ftFixedWideChar{,ftFixedChar}:dst.AsString:=src.AsString;
+        ftMemo,ftWideMemo{,ftFmtMemo}:dst.AsString:=src.AsString;
         ftBoolean:dst.AsBoolean:=src.AsBoolean;
         ftFloat:dst.AsFloat:=src.AsFloat;
         ftInteger,ftLargeint,ftSmallint,ftWord:dst.AsLargeInt:=src.AsLargeInt;
@@ -352,7 +353,8 @@ begin
           dat_type:=tmpFieldDef.DataType;
           case dat_type of
             ftMemo,ftWideMemo,ftFmtMemo:
-              FPaperDS.FieldDefs.Add(tmpFieldDef.Name+'('+tmpAG.Name+')',ftString,255);
+              //FPaperDS.FieldDefs.Add(tmpFieldDef.Name+'('+tmpAG.Name+')',ftString,255);
+              FPaperDS.FieldDefs.Add(tmpFieldDef.Name+'('+tmpAG.Name+')',ftMemo);
             else
               FPaperDS.FieldDefs.Add(tmpFieldDef.Name+'('+tmpAG.Name+')',dat_type,tmpFieldDef.Size);
           end;
