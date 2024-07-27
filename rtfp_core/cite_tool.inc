@@ -56,7 +56,8 @@ function TRTFP.PID_Cite_format(APID:RTFP_ID):string;
 var project_id:string;
 begin
   project_id:=Cite_format;
-  if project_id='' then result:=APID else result:=project_id+'_'+APID;
+  //if project_id='' then result:=APID else result:=project_id+'_'+APID;
+  if project_id='' then result:=APID else result:=project_id+'_'+IntToStr(TRTFP.IDToNum(APID));
 end;
 
 function decodeEStudyRefType(str:string):string;

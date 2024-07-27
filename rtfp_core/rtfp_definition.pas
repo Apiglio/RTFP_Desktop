@@ -155,6 +155,8 @@ type
       Klass_Filter_NOT:boolean;
       Klass_Filter_AND:boolean;//false则为OR
 
+      Initial_PID:RTFP_ID;//在OnOpenDone之前临时存储CPID
+
     end;
 
 
@@ -400,10 +402,16 @@ type
   private
     FPaperDS:TMemDataSet;
     FPaperDSFieldDefs:TList;
-
+  protected
+    function GetCurrentPID:RTFP_ID;
+    procedure SetCurrentPID(value:RTFP_ID);
+  public
+    procedure PaperDS_BeforeScroll(DataSet: TDataSet);
+    procedure PaperDS_AfterScroll(DataSet: TDataSet);
   public
     property PaperDS:TMemDataSet read FPaperDS;//筛选后的总表，直接连接DBGrid
     property PaperDSFieldDefs:TList read FPaperDSFieldDefs write FPaperDSFieldDefs;
+    property CurrentPID:RTFP_ID read GetCurrentPID write SetCurrentPID;
 
   public
     procedure ProjectPropertiesValidate(AValueListEditor:TValueListEditor);
@@ -453,6 +461,9 @@ type
     FOnFormatListChange      :TRTFPOneStrEvent;
     FOnFormatEditChange      :TRTFPTwoStrEvent;
 
+    FOnBeforeCurrentPIDChange   :TRTFPOneStrEvent;
+    FOnAfterCurrentPIDChange    :TRTFPOneStrEvent;
+
   protected
     function GetIsUpdating:boolean;
 
@@ -478,6 +489,9 @@ type
 
     property OnMainGridRebuilding :TNotifyEvent      read FOnMainGridRebuilding   write FOnMainGridRebuilding;
     property OnMainGridRebuildDone:TNotifyEvent      read FOnMainGridRebuildDone  write FOnMainGridRebuildDone;
+
+    property OnBeforeCurrentPIDChange:TRTFPOneStrEvent read FOnBeforeCurrentPIDChange write FOnBeforeCurrentPIDChange;
+    property OnAfterCurrentPIDChange:TRTFPOneStrEvent read FOnAfterCurrentPIDChange write FOnAfterCurrentPIDChange;
 
     property onFirstEdit          :TRTFPChangeEvent  read FOnFirstEdit            write FOnFirstEdit;
     property onChange             :TRTFPChangeEvent  read FOnChange               write FOnChange;
@@ -702,6 +716,8 @@ begin
   FDataSetType:=ADatasetType;
 
   FPaperDS:=TMemDataset.Create(Self);
+  FPaperDS.BeforeScroll:=@PaperDS_BeforeScroll;
+  FPaperDS.AfterScroll:=@PaperDS_AfterScroll;
   PaperDSFieldDefs:=TList.Create;
   FFormatEditComponentList:=TList.Create;
 
@@ -1212,16 +1228,21 @@ begin
   try
     for AG in FFieldList do
       begin
-        str.Add(_COMMAND_SET_OPTION_+' "'+AG.Name+'","","folded",'+con(not AG.GroupShown));
-        str.Add(_COMMAND_SET_OPTION_+' "'+AG.Name+'","","display_name","'+AG.DisplayName+'"');
+        str.Add(_COMMAND_SET_OPTION_ATTRS_+' "'+AG.Name+'","","folded",'+con(not AG.GroupShown));
+        str.Add(_COMMAND_SET_OPTION_ATTRS_+' "'+AG.Name+'","","display_name","'+AG.DisplayName+'"');
         for AF in AG.FieldList do
           begin
-            str.Add(_COMMAND_SET_OPTION_+' "'+AG.Name+'","'+AF.FieldName+'","visible",'+con(AF.Shown));
-            str.Add(_COMMAND_SET_OPTION_+' "'+AG.Name+'","'+AF.FieldName+'","display_option","'+AF.FFieldDisplayOption.SaveToJSON+'"');
+            str.Add(_COMMAND_SET_OPTION_ATTRS_+' "'+AG.Name+'","'+AF.FieldName+'","visible",'+con(AF.Shown));
+            str.Add(_COMMAND_SET_OPTION_ATTRS_+' "'+AG.Name+'","'+AF.FieldName+'","display_option","'+AF.FFieldDisplayOption.SaveToJSON+'"');
             if AF.IsCombo then for stmp in AF.ComboItem do
-              str.Add(_COMMAND_SET_OPTION_+' "'+AG.Name+'","'+AF.FieldName+'","add_combo",'+stmp);
+              str.Add(_COMMAND_SET_OPTION_ATTRS_+' "'+AG.Name+'","'+AF.FieldName+'","add_combo",'+stmp);
           end;
       end;
+    str.Add(_COMMAND_SET_OPTION_PROJECT_+' "filter","'+RunPerformance.Filter_Command+'"');//Aufscript没有转译符号，这使得目前版本不能保存带空格设置
+    str.Add(_COMMAND_SET_OPTION_PROJECT_+' "filter_enabled",'+con(RunPerformance.Filter_AutoRun));
+    str.Add(_COMMAND_SET_OPTION_PROJECT_+' "sorter","'+RunPerformance.Sorter_Command+'"');//Aufscript没有转译符号，这使得目前版本不能保存带空格设置
+    str.Add(_COMMAND_SET_OPTION_PROJECT_+' "sorter_enabled",'+con(RunPerformance.Sorter_AutoRun));
+    str.Add(_COMMAND_SET_OPTION_PROJECT_+' "cpid","'+FPaperDS.FieldByName(_Col_PID_).AsString+'"');//LoadProjectOption的原理中用的是FormDesktop.Selected_PID
     if filename='' then filename:='option.lay.auf';
     str.SaveToFile(GetCurrentPathFull+filename);
   finally
@@ -1332,6 +1353,7 @@ begin
   Self.RebuildMainGrid;
   Self.ClassChange(true);
   Self.FieldAndRecordChange(true);
+  Self.CurrentPID:=RunPerformance.Initial_PID;
   LogLine('Open '+WinCPToUTF8(filename));
 end;
 

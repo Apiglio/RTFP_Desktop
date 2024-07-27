@@ -739,6 +739,67 @@ begin
   end;
 end;
 
+procedure aufunc_set_project_option(Sender:TObject);//option.project.set Item Value
+var AufScpt:TAufScript;
+    AAuf:TAuf;
+    item,value:string;
+
+begin
+  AufScpt:=Sender as TAufScript;
+  AAuf:=AufScpt.Auf as TAuf;
+  if not AAuf.CheckArgs(3) then exit;
+  if not AAuf.TryArgToStrParam(1,['filter','sorter','cpid','filter_enabled','sorter_enabled'],false,item) then exit;
+  if not AAuf.TryArgToString(2,value) then exit;
+  if ProjectInvalid then begin AufScpt.send_error('未打开工程，代码未执行。');exit;end;
+
+  case item of
+    'filter':
+    begin
+      CurrentRTFP.RunPerformance.Filter_Command:=value;
+      FormDesktop.Edit_DBGridMain_Filter.Caption:=value;
+    end;
+    'sorter':
+    begin
+      CurrentRTFP.RunPerformance.Sorter_Command:=value;
+      FormDesktop.Edit_DBGridMain_Sorter.Caption:=value;
+    end;
+    'cpid':
+    begin
+      //FormDesktop.Select_PID(value); //不应该用FormDesktop的，以后再改吧
+      CurrentRTFP.RunPerformance.Initial_PID:=value;
+    end;
+    'filter_enabled':
+    begin
+      case lowercase(value) of
+        'on':begin
+          CurrentRTFP.RunPerformance.Filter_AutoRun:=true;
+          FormDesktop.CheckBox_MainFilterAuto.Checked:=true;
+          CurrentRTFP.TableFilter;
+        end;
+        else begin
+          CurrentRTFP.RunPerformance.Filter_AutoRun:=false;
+          FormDesktop.CheckBox_MainFilterAuto.Checked:=false;
+        end;
+      end;
+    end;
+    'sorter_enabled':
+    begin
+      case lowercase(value) of
+        'on':begin
+          CurrentRTFP.RunPerformance.Sorter_AutoRun:=true;
+          FormDesktop.CheckBox_MainSorterAuto.Checked:=true;
+          CurrentRTFP.TableSorter;
+        end;
+        else begin
+          CurrentRTFP.RunPerformance.Sorter_AutoRun:=false;
+          FormDesktop.CheckBox_MainSorterAuto.Checked:=false;
+        end;
+      end;
+    end;
+  end;
+
+end;
+
 procedure aufunc_update_case(Sender:TObject);
 var AufScpt:TAufScript;
     AAuf:TAuf;
@@ -859,7 +920,9 @@ begin
     Script.add_func(_COMMAND_GET_FIRST_PID_,@aufunc_PID_First,        '@str','寻找第一个PID，并赋值给@str');
     Script.add_func(_COMMAND_GET_NEXT_PID_, @aufunc_PID_NextJump,     '@str,:addr','寻找第下一个PID，下一个存在则赋值给@str并跳转到:addr');
 
-    Script.add_func(_COMMAND_SET_OPTION_,   @aufunc_set_field_option, 'attrs,field,key,value','字段显示设置');
+    Script.add_func(_COMMAND_SET_OPTION_ATTRS_,    @aufunc_set_field_option, 'attrs,field,key,value','字段显示设置');
+    Script.add_func(_COMMAND_SET_OPTION_PROJECT_,  @aufunc_set_project_option, 'item,value','工程设置');
+
 
     {$ifdef test}
     Script.add_func('test',                 @aufunc_test,             '*arg','测试');

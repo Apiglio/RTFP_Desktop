@@ -20,6 +20,28 @@ begin
 
 end;
 
+function TRTFP.GetCurrentPID:RTFP_ID;
+begin
+  result:=FPaperDS.FieldByName(_Col_PID_).AsString;
+end;
+
+procedure TRTFP.SetCurrentPID(value:RTFP_ID);
+begin
+  if FOnBeforeCurrentPIDChange<>nil then FOnBeforeCurrentPIDChange(Self,FPaperDS.FieldByName(_Col_PID_).AsString);
+  if not FPaperDS.Locate(_Col_PID_,value,[]) then exit;
+  if FOnAfterCurrentPIDChange<>nil then FOnAfterCurrentPIDChange(Self,value);
+end;
+
+procedure TRTFP.PaperDS_BeforeScroll(DataSet: TDataSet);
+begin
+  if FOnBeforeCurrentPIDChange<>nil then FOnBeforeCurrentPIDChange(Self,DataSet.FieldByName(_Col_PID_).AsString);
+end;
+
+procedure TRTFP.PaperDS_AfterScroll(DataSet: TDataSet);
+begin
+  if FOnAfterCurrentPIDChange<> nil then FOnAfterCurrentPIDChange(Self,DataSet.FieldByName(_Col_PID_).AsString);
+end;
+
 procedure TRTFP.ProjectPropertiesDataPost(AValueListEditor:TValueListEditor);
 var str:TStringList;
     stmp,old_value,new_value:string;
