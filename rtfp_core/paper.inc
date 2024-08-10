@@ -10,6 +10,74 @@ begin
   result:=TRTFP.NumToID(num);
 end;
 
+procedure TRTFP.MakeSurePaperID(PID:RTFP_ID);
+var recno_1,recno_2,recno_m,reclen:dword;
+    pid_num_1,pid_num_2,pid_num_m,pid_num_t:dword;
+    function GetPidByRecNo(rno:dword):dword;
+    begin
+      FPaperDB.RecNo:=rno;
+      result:=TRTFP.IDToNum(FPaperDB.FieldByName(_Col_PID_).AsString);
+    end;
+
+begin
+  reclen:=FPaperDB.RecordCount;
+  pid_num_t:=TRTFP.IDToNum(PID);
+  case reclen of
+    0:begin
+        FPaperDB.First;
+        FPaperDB.Append;
+        FPaperDB.FieldByName(_Col_PID_).AsString:=PID;
+        FPaperDB.Post;
+        exit;
+      end;
+    1:begin
+        FPaperDB.First;
+        pid_num_1:=TRTFP.IDToNum(FPaperDB.FieldByName(_Col_PID_).AsString);
+        if pid_num_1=pid_num_t then exit;
+        if pid_num_1>pid_num_t then FPaperDB.Insert else FPaperDB.Append;
+        FPaperDB.FieldByName(_Col_PID_).AsString:=PID;
+        FPaperDB.Post;
+        exit;
+      end;
+  end;
+  pid_num_2:=GetPidByRecNo(reclen-1);
+  if pid_num_t>pid_num_2 then begin
+    FPaperDB.Append;
+    FPaperDB.FieldByName(_Col_PID_).AsString:=PID;
+    FPaperDB.Post;
+    exit;
+  end;
+  pid_num_1:=GetPidByRecNo(0);
+  if pid_num_t>pid_num_2 then begin
+    FPaperDB.First;
+    FPaperDB.Insert;
+    FPaperDB.FieldByName(_Col_PID_).AsString:=PID;
+    FPaperDB.Post;
+    exit;
+  end;
+  if (pid_num_t=pid_num_1) or (pid_num_t=pid_num_2) then exit;
+
+  recno_1:=0;
+  recno_2:=reclen-1;
+  while recno_1 < recno_2-1 do begin
+    if (pid_num_t=pid_num_1) or (pid_num_t=pid_num_2) then exit;
+    recno_m:=recno_1 + (recno_2 - recno_1) div 2;
+    pid_num_m:=GetPidByRecNo(recno_m);
+    if pid_num_m=pid_num_t then exit;
+    if pid_num_m>pid_num_t then begin
+      recno_2:=recno_m;
+      pid_num_2:=pid_num_m;
+    end else begin
+      recno_1:=recno_m;
+      pid_num_1:=pid_num_m;
+    end;
+  end;
+  FPaperDB.RecNo:=recno_1;
+  FPaperDB.Insert;
+  FPaperDB.FieldByName(_Col_PID_).AsString:=PID;
+  FPaperDB.Post;
+end;
+
 function TRTFP.AddPaper_Reference:RTFP_ID;
 var PID:RTFP_ID;
 begin

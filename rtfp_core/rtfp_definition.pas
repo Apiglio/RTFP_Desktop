@@ -321,6 +321,7 @@ type
   //PAPER.INC 文献节点
   private
     function NewPaperID:RTFP_ID;//新建PID编号并将数据库游标指向新行
+    procedure MakeSurePaperID(PID:RTFP_ID);//确保有给定的PID，没有则在PaperDB中按顺序插入
     function SetWebsiteParam(website,PID:string):boolean;
     function AddPaper_Reference:RTFP_ID;
     function AddPaper_Website(website:string):RTFP_ID;
@@ -343,6 +344,7 @@ type
   //IMAGE.INC 图片节点
   private
     function NewImageID:RTFP_ID;
+    procedure MakeSureImageID(PID:RTFP_ID);unimplemented;
   public
     function AddImage(fullfilename:string):RTFP_ID;//新增一个图片到工程
     procedure DeleteImage(IID:RTFP_ID);//移除指定IID的图片
@@ -350,7 +352,7 @@ type
   //NODES.INC 注解节点
   private
     function NewNoteID:RTFP_ID;
-
+    procedure MakeSureNoteID(PID:RTFP_ID);unimplemented;
   public
     function AddNote(fullfilename:string):RTFP_ID;//新增一个注解到工程
     procedure DeleteNote(NID:RTFP_ID);//移除指定NID的注解
@@ -521,7 +523,7 @@ type
 
   //EXCHANGE_FORMAT.INC 用于压缩与转换的单文件格式
   public
-    procedure ZTFP_Importer(fullfilename:string);//重复性检验之类的问题比较麻烦
+    procedure ZTFP_Importer(fullfilename:string;importToEmptyProject:boolean);//重复性检验之类的问题比较麻烦
     procedure ZTFP_Exporter(fullfilename:string);//PID筛选、备份选项未定
 
     function GetJSON_Project:TJSONObject;
@@ -535,7 +537,7 @@ type
     function GetJSON_FormatList:TJSONData;
 
     function GetJSON_Paper(PID:RTFP_ID):TJSONData;
-    procedure SetJSON_Paper(PID:RTFP_ID;data:TJSONData);
+    procedure SetJSON_Paper(PID:RTFP_ID;data:TJSONData;DoNotBackup:boolean=false);
     function GetJSON_Image(IID:RTFP_ID):TJSONData;unimplemented;
     function GetJSON_Notes(NID:RTFP_ID):TJSONData;unimplemented;
     function GetJSON_Klass(klass:TKlass):TJSONData;
@@ -663,6 +665,7 @@ type
     class function FileDelete(source:string):boolean;//utf8的string版本
     class function FileMove(source,dest:string;bFailIfExist:boolean):boolean;
     class function FileRename(oldname,newname:string):boolean;
+    class function FileNameUniq(test_path,test_name:string):string;
     class function MakeDir(filename:string):boolean;inline;
     class function DeleteDir(filename:string;force_delete:boolean=false):boolean;inline;
     class function OpenDir(filename:string):boolean;inline;
@@ -2002,6 +2005,26 @@ end;
 class function TRTFP.FileRename(oldname,newname:string):boolean;
 begin
   result:=ReNameFile(oldname,newname);
+end;
+
+class function TRTFP.FileNameUniq(test_path,test_name:string):string;
+var path,fn,ext,ins,fullpathname:string;
+    acc:integer;
+begin
+  result:='';
+  path:=test_path;
+  fn:=ExtractFileNameWithoutExt(test_name);
+  ext:=ExtractFileExt(test_name);
+  ins:='';
+  acc:=0;
+  fullpathname:=path+'/'+fn+ins+ext;
+  while FileExists(fullpathname) do begin
+    inc(acc);
+    if acc<=0 then raise Exception.Create('无法为文件“'+test_name+'”分配替代文件名。');
+    ins:='('+IntToStr(acc)+')';
+    fullpathname:=path+'/'+fn+ins+ext;
+  end;
+  result:=fn+ins+ext;
 end;
 
 class function TRTFP.MakeDir(filename:string):boolean;

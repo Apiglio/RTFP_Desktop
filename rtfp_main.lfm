@@ -1673,6 +1673,10 @@ object FormDesktop: TFormDesktop
           OnClick = MenuItem_Edit_NewPaper_RefsClick
         end
       end
+      object MenuItem_Edit_ImportFromZipProject: TMenuItem
+        Caption = '从压缩工程中导入'
+        OnClick = MenuItem_Edit_ImportFromZipProjectClick
+      end
       object MenuItem_Edit_div01: TMenuItem
         Caption = '-'
       end

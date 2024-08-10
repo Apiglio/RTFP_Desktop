@@ -56,6 +56,7 @@ type
     Edit_DBGridMain_Sorter: TEdit;
     Label_MainSorter: TLabel;
     Memo_Log: TMemo;
+    MenuItem_Edit_ImportFromZipProject: TMenuItem;
     MenuItem_Edit_NewPaper_Files: TMenuItem;
     MenuItem_ClassMgr_Danger_DeletePapers: TMenuItem;
     MenuItem_ClassMgr_div02: TMenuItem;
@@ -275,6 +276,7 @@ type
     procedure MenuItem_DBGE_python_dictClick(Sender: TObject);
     procedure MenuItem_DBGE_ruby_hashClick(Sender: TObject);
     procedure MenuItem_DBGE_tsvClick(Sender: TObject);
+    procedure MenuItem_Edit_ImportFromZipProjectClick(Sender: TObject);
     procedure MenuItem_Edit_NewPaper_FilesClick(Sender: TObject);
     procedure MenuItem_Edit_NewPaper_RefsClick(Sender: TObject);
     procedure MenuItem_Edit_NewPaper_VoidClick(Sender: TObject);
@@ -475,6 +477,7 @@ type
     function Action_NewPaper:boolean;
     function Action_NewPaper_WebLnk:boolean;
     function Action_ImportPapers:boolean;
+    function Action_ImportFromZipProject:boolean;
 
   public
     procedure debugline(str:string);
@@ -1058,6 +1061,17 @@ begin
     SetFocus;
   end;
   result:=true;
+end;
+
+function TFormDesktop.Action_ImportFromZipProject:boolean;
+begin
+  OpenDialog_Project.Filter:='RTFP压缩工程文件(*.ztfp)|*.ztfp|ZIP压缩文件(*.ztfp.zip)|*.ztfp.zip|所有文件|*.*';
+  OpenDialog_Project.DefaultExt:='*.ztfp';
+  OpenDialog_Project.Title:='从压缩工程中导入';
+  OpenDialog_Project.Options:=[ofEnableSizing];
+  if OpenDialog_Project.Execute then begin
+    CurrentRTFP.ZTFP_Importer(OpenDialog_Project.FileName,false);
+  end;
 end;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2589,6 +2603,11 @@ begin
   ClipBoard.AsText:=CurrentRTFP.ExportDSToCSVOrTSV(#9);
 end;
 
+procedure TFormDesktop.MenuItem_Edit_ImportFromZipProjectClick(Sender: TObject);
+begin
+  Action_ImportFromZipProject;
+end;
+
 procedure TFormDesktop.MenuItem_Edit_NewPaper_FilesClick(Sender: TObject);
 begin
   Action_ImportPapers;
@@ -2676,7 +2695,7 @@ begin
     if not CurrentRTFP.IsOpen then exit;
 
     if FShowWaitForm then FWaitForm.Show;
-    CurrentRTFP.ZTFP_Importer(Self.OpenDialog_Project.FileName);
+    CurrentRTFP.ZTFP_Importer(Self.OpenDialog_Project.FileName,true);
     if FShowWaitForm then FWaitForm.Hide;
     OptionLink(CurrentRTFP);
   end;

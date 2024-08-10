@@ -1,12 +1,229 @@
 //用于压缩储存和格式转换的文件定义
 //使用zip压缩格式
 
-procedure TRTFP.ZTFP_Importer(fullfilename:string);
-const folder_name:array[0..2] of string = ('paper','image','format');
-var zf:TUnZipper;
+function FieldTypeToStr(ft:TFieldType):string;
 begin
-  //理想状态下是新建空白工程后
-  //
+  case ft of
+    ftString:     result:='String';
+    ftSmallint:   result:='Smallint';
+    ftInteger:    result:='Integer';
+    ftWord:       result:='Word';
+    ftBoolean:    result:='Boolean';
+    ftFloat:      result:='Float';
+    ftDate:       result:='Date';
+    ftTime:       result:='Time';
+    ftDateTime:   result:='DateTime';
+    ftBlob:       result:='Blob';
+    ftMemo:       result:='Memo';
+    ftFmtMemo:    result:='FmtMemo';
+    ftWideString: result:='WideString';
+    ftLargeint:   result:='Largeint';
+    ftWideMemo:   result:='WideMemo';
+    else          result:='Unknown';
+  end;
+end;
+
+function StrToFieldType(str:string):TFieldType;
+begin
+  case str of
+    'String':     result:=ftString;
+    'Smallint':   result:=ftSmallint;
+    'Integer':    result:=ftInteger;
+    'Word':       result:=ftWord;
+    'Boolean':    result:=ftBoolean;
+    'Float':      result:=ftFloat;
+    'Date':       result:=ftDate;
+    'Time':       result:=ftTime;
+    'DateTime':   result:=ftDateTime;
+    'Blob':       result:=ftBlob;
+    'Memo':       result:=ftMemo;
+    'FmtMemo':    result:=ftFmtMemo;
+    'WideString': result:=ftWideString;
+    'Largeint':   result:=ftLargeint;
+    'WideMemo':   result:=ftWideMemo;
+    else          result:=ftUnknown;
+  end;
+end;
+
+procedure TRTFP.ZTFP_Importer(fullfilename:string;importToEmptyProject:boolean);
+var zf:TUnZipper;
+    unzip_temp_path:string;
+    //user_list:TStringList;
+    info_json:TFileStream;
+    project_info,jtmp,jtmp_2,jtmp_3,jtmp_4,jtmp_5:TJSONData;
+    import_project_id,AGN,AFN,KLS,TYP,PID,FN1,FN2:string;
+    SIZ:integer;
+    len,acc,len_2,acc_2,len_3,acc_3:integer;
+    tmpAG:TAttrsGroup;
+    tmpAF:TAttrsField;
+
+begin
+  //如果在是新建的工程，就复制全部字段和分类信息，否则查重，用户重新构建
+
+  //前期文件夹清理工作
+  unzip_temp_path:=CurrentPathFull+'import_temp';
+  if DirectoryExists(unzip_temp_path) then DeleteDirectory(unzip_temp_path,true);
+  ForceDirectories(unzip_temp_path);
+
+  zf:=TUnZipper.Create;
+  zf.FileName:=fullfilename;
+  //user_list:=TStringList.Create;
+  //暂时是单用户，不需要涉及用户归并
+  BeginUpdate;
+  try
+    zf.OutputPath:=unzip_temp_path;
+    zf.Examine;
+    zf.UnZipAllFiles;
+    for acc:=zf.Entries.Count-1 downto 0 do begin
+      //unzip文件名编码需要手动改名，真搞笑
+      {tmp}AFN:=zf.Entries.Entries[acc].ArchiveFileName;
+      {tmp}AGN:=WinCPToUTF8({tmp}AFN);
+      TRTFP.FileRename(unzip_temp_path+'/'+{tmp}AFN,unzip_temp_path+'/'+{tmp}AGN);
+    end;
+    project_info:=nil;
+    info_json:=TFileStream.Create(unzip_temp_path+'/'+'info.json',fmOpenRead);
+    try
+      info_json.Position:=0;
+      project_info:=GetJSON(info_json);
+
+      //基础信息部分
+      import_project_id:='';
+      jtmp:=TJSONObject(project_info).Objects['tags'];
+      if jtmp<>nil then begin
+        import_project_id:='';
+        jtmp_2:=TJSONObject(jtmp).Find('引注标识码');
+        if (jtmp_2<>nil) and (jtmp_2 is TJSONString) then begin
+          import_project_id:=jtmp_2.AsString;
+          if importToEmptyProject then Tag['引注标识码']:=import_project_id;
+        end;
+        if import_project_id='' then begin
+          jtmp_2:=TJSONObject(jtmp).Find('工程标题');
+          if (jtmp_2<>nil) and (jtmp_2 is TJSONString) then import_project_id:=jtmp_2.AsString;
+        end;
+      end;
+
+      //用户列表暂时不导入
+      //format部分暂时不导入
+
+      //属性组与字段部分
+      jtmp:=TJSONObject(project_info).Arrays['attributes'];
+      if jtmp<>nil then begin
+        len:=TJSONArray(jtmp).Count;
+        for acc:=0 to len-1 do begin
+          jtmp_2:=TJSONArray(jtmp).Items[acc];
+          if not (jtmp_2 is TJSONObject) then continue;
+          AGN:='';
+          jtmp_3:=TJSONObject(jtmp_2).Find('Name');
+          if (jtmp_3<>nil) and (jtmp_3 is TJSONString) then AGN:=jtmp_3.AsString;
+          if AGN='' then continue;
+          tmpAG:=FindAttrs(AGN);
+          if tmpAG=nil then begin
+            //新建属性组，同时也导入属性组设置
+            tmpAG:=AddAttrs(AGN);
+            if tmpAG<>nil then begin
+              jtmp_3:=TJSONObject(jtmp_2).Find('Shown');
+              if (jtmp_3<>nil) and (jtmp_2 is TJSONBoolean) then tmpAG.GroupShown:=jtmp_3.AsBoolean;
+              jtmp_3:=TJSONObject(jtmp_2).Find('DispName');
+              if (jtmp_3<>nil) and (jtmp_3 is TJSONString) then tmpAG.DisplayName:=jtmp_3.AsString;
+            end;
+          end;
+          if tmpAG<>nil then begin
+            jtmp_3:=TJSONObject(jtmp_2).Arrays['fields'];
+            if jtmp_3<>nil then begin
+              len_2:=TJSONArray(jtmp_3).Count;
+              for acc_2:=0 to len_2-1 do begin
+                jtmp_4:=TJSONArray(jtmp_3).Items[acc_2];
+                if not (jtmp_4 is TJSONObject) then continue;
+                AFN:='';
+                jtmp_5:=TJSONObject(jtmp_4).Find('Name');
+                if (jtmp_5<>nil) and (jtmp_5 is TJSONString) then AFN:=jtmp_5.AsString;
+                if AFN='' then continue;
+                tmpAF:=FindField(AFN,AGN);
+                if tmpAF=nil then begin
+                  //新建字段列，同时也导入字段列设置
+                  TYP:='Memo';
+                  jtmp_5:=TJSONObject(jtmp_4).Find('Type');
+                  if (jtmp_5<>nil) and (jtmp_5 is TJSONString) then TYP:=jtmp_5.AsString;
+                  SIZ:=0;
+                  jtmp_5:=TJSONObject(jtmp_4).Find('Size');
+                  if (jtmp_5<>nil) and (jtmp_5 is TJSONIntegerNumber) then SIZ:=jtmp_5.AsInteger;
+                  tmpAF:=AddField(AFN,AGN,StrToFieldType(TYP),SIZ);
+                  if tmpAF<>nil then begin
+                    jtmp_5:=TJSONObject(jtmp_4).Objects['display'];
+                    if jtmp_5<>nil then tmpAF.FFieldDisplayOption.LoadFromJSON(jtmp_5.AsJSON);
+                    jtmp_5:=TJSONObject(jtmp_4).Arrays['combo'];
+                    if jtmp_5<>nil then begin
+                      len_3:=TJSONArray(jtmp_5).Count;
+                      for acc_3:=0 to len_3-1 do tmpAF.ComboItem.Add(TJSONArray(jtmp_5).Items[acc_3].AsString);
+                    end;
+                  end;
+                end;
+              end;
+            end;
+          end;
+        end;
+      end;
+      //too ugly
+
+      //分类部分info json还没涉及，暂时先不写
+
+      //导入paper部分（images和notes部分基于papers一并导入）
+      jtmp:=TJSONObject(project_info).Arrays['papers'];
+      if jtmp<>nil then begin
+        len:=TJSONArray(jtmp).Count;
+        for acc:=0 to len-1 do begin
+          jtmp_2:=TJSONArray(jtmp).Items[acc];
+          if not (jtmp_2 is TJSONObject) then continue;
+
+          jtmp_3:=TJSONObject(jtmp_2).Find('sys.pid');
+          if (jtmp_3<>nil) and (jtmp_3 is TJSONString) then PID:=TJSONString(jtmp_3).AsString;
+          if PID='' then PID:='000000';
+
+          jtmp_3:=TJSONObject(jtmp_2).Find('paper.buf');
+          if jtmp_3=nil then jtmp_3:=TJSONObject(jtmp_2).Find('paper.dbf');
+          if (jtmp_3<>nil) and (jtmp_3 is TJSONObject) then begin
+            {tmp}AGN:='';
+            {tmp}AFN:='';
+            jtmp_4:=TJSONObject(jtmp_3).Find(_Col_Paper_Folder_);
+            if (jtmp_4<>nil) and (jtmp_4 is TJSONString) then {tmp}AGN:=jtmp_4.AsString;
+            jtmp_4:=TJSONObject(jtmp_3).Find(_Col_Paper_FileName_);
+            if (jtmp_4<>nil) and (jtmp_4 is TJSONString) then {tmp}AFN:=jtmp_4.AsString;
+
+            if importToEmptyProject then begin
+              MakeSurePaperID(PID);
+            end else begin
+              PID:=AddPaper('',apmReference);
+            end;
+            SetJSON_Paper(PID,jtmp_2,true);
+            case {tmp}AGN of '','weblnk','extern':; else begin
+              FN1:=unzip_temp_path+'/'+'paper'+'/'+{tmp}AGN+'/'+{tmp}AFN;
+              FN2:=TRTFP.FileNameUniq(CurrentPathFull+'paper'+'/'+{tmp}AGN,{tmp}AFN);
+              ForceDirectories(CurrentPathFull+'paper'+'/'+{tmp}AGN);
+              TRTFP.FileMove(FN1,CurrentPathFull+'paper'+'/'+{tmp}AGN+'/'+FN2,false);
+              EditBasicString(_Col_Paper_Folder_,PID,{tmp}AGN);
+              EditBasicString(_Col_Paper_FileName_,PID,FN2);
+            end;end;
+          end;
+
+        end;
+      end;
+      //too ugly
+
+
+    finally
+      if project_info<>nil then project_info.Free;
+      info_json.Free;
+    end;
+    DeleteDirectory(unzip_temp_path,false);
+
+  finally
+    EndUpdate;
+    FieldAndRecordChange;
+    //ClassChange;
+    //UsersChange;
+    //FormatListChange;
+    zf.Free;
+  end;
 end;
 
 procedure TRTFP.ZTFP_Exporter(fullfilename:string);
@@ -198,7 +415,7 @@ begin
   result:=jData;
 end;
 
-procedure TRTFP.SetJSON_Paper(PID:RTFP_ID;data:TJSONData);
+procedure TRTFP.SetJSON_Paper(PID:RTFP_ID;data:TJSONData;DoNotBackup:boolean=false);
 var root,attrs:TJSONObject;
     tmp:TJSONData;
     pi,pj:integer;
@@ -238,8 +455,15 @@ begin
           case objname of
             'paper.buf','paper.dbf':begin
               case key of
-                _Col_Paper_Folder_  : folder   := value;
-                _Col_Paper_FileName_: filename := value;
+                _Col_Paper_Folder_:
+                begin
+                  case value of
+                    '','extern','weblnk':folder:=value;
+                    else if (not DoNotBackup) then folder:=value;
+                  end;
+                  //额外备份需要新创建月份文件夹，所以跳过
+                end;
+                _Col_Paper_FileName_:filename:=value;
               end;
               EditFieldAsString(key,'',PID,value,[aeForceEditIfTypeDismatch,aeCreateIfNoField]);
             end;
@@ -263,14 +487,16 @@ begin
     end;
     inc(pi);
   end;
-  //复制备份文件 apmFullBackup;
-  case lowercase(folder) of
-    '','weblnk','extern':;
-    else begin
-      TRTFP.FileCopy(ori_path+'/paper/'+folder+'/'+filename,CurrentPathFull+'/paper/'+folder+'/'+filename,false);
-    end;
-  end;
 
+  //复制备份文件 apmFullBackup;
+  IF NOT DoNotBackup THEN BEGIN
+    case lowercase(folder) of
+      '','weblnk','extern':;
+      else begin
+        TRTFP.FileCopy(ori_path+'/paper/'+folder+'/'+filename,CurrentPathFull+'/paper/'+folder+'/'+filename,false);
+      end;
+    end;
+  END;
   //追加跨工程引用信息
   if (ori_ref<>'') and (ori_ref<>Cite_format) then begin
     {zan}objname:=ReadFieldAsString(_Col_notes_FurtherCmt_,_Attrs_Notes_,PID,[]);
@@ -305,50 +531,6 @@ begin
   jData.Booleans['Shown']:=attrs.GroupShown;
   jData.Strings['DispName']:=attrs.DisplayName;
   result:=jData;
-end;
-
-function FieldTypeToStr(ft:TFieldType):string;
-begin
-  case ft of
-    ftString:     result:='String';
-    ftSmallint:   result:='Smallint';
-    ftInteger:    result:='Integer';
-    ftWord:       result:='Word';
-    ftBoolean:    result:='Boolean';
-    ftFloat:      result:='Float';
-    ftDate:       result:='Date';
-    ftTime:       result:='Time';
-    ftDateTime:   result:='DateTime';
-    ftBlob:       result:='Blob';
-    ftMemo:       result:='Memo';
-    ftFmtMemo:    result:='FmtMemo';
-    ftWideString: result:='WideString';
-    ftLargeint:   result:='Largeint';
-    ftWideMemo:   result:='WideMemo';
-    else          result:='Unknown';
-  end;
-end;
-
-function StrToFieldType(str:string):TFieldType;
-begin
-  case str of
-    'String':     result:=ftString;
-    'Smallint':   result:=ftSmallint;
-    'Integer':    result:=ftInteger;
-    'Word':       result:=ftWord;
-    'Boolean':    result:=ftBoolean;
-    'Float':      result:=ftFloat;
-    'Date':       result:=ftDate;
-    'Time':       result:=ftTime;
-    'DateTime':   result:=ftDateTime;
-    'Blob':       result:=ftBlob;
-    'Memo':       result:=ftMemo;
-    'FmtMemo':    result:=ftFmtMemo;
-    'WideString': result:=ftWideString;
-    'Largeint':   result:=ftLargeint;
-    'WideMemo':   result:=ftWideMemo;
-    else          result:=ftUnknown;
-  end;
 end;
 
 function TRTFP.GetJSON_Field(field:TAttrsField):TJSONData;

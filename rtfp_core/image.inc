@@ -10,6 +10,11 @@ begin
   result:=TRTFP.NumToID(num);
 end;
 
+procedure TRTFP.MakeSureImageID(PID:RTFP_ID);
+begin
+
+end;
+
 function TRTFP.AddImage(fullfilename:string):RTFP_ID;//新增一个图片到工程
 begin
 

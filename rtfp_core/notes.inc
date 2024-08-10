@@ -10,6 +10,11 @@ begin
   result:=TRTFP.NumToID(num);
 end;
 
+procedure TRTFP.MakeSureNoteID(PID:RTFP_ID);
+begin
+
+end;
+
 function TRTFP.AddNote(fullfilename:string):RTFP_ID;//新增一个注解到工程
 begin
 
