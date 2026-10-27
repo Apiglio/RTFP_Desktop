@@ -8,7 +8,7 @@ end;
 
 procedure TRTFP.UpdatePIDExpr(PID:RTFP_ID;AufScpt:TAufScript);
 begin
-  AufScpt.Expression.Global.TryAddExp('CPID',narg('"',PID,'"'));
+  AufScpt.Expression.Global.TryAddExp('CPID',narg('"',PID,'"'), aeusDefinition);
 end;
 
 {

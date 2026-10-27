@@ -51,7 +51,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="62">
+    <Units Count="63">
       <Unit0>
         <Filename Value="RTFP_Desktop.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -351,6 +351,10 @@
         <Filename Value="rtfp_core\rtfp_cite.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit61>
+      <Unit62>
+        <Filename Value="..\AufScript\aufunc\aufunc_operator.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit62>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -361,7 +365,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir);rtfp_core"/>
-      <OtherUnitFiles Value="forms;sync;rtfp_core;rtfp_pdf;..\AufScript;..\AufScript\auftype;..\AufScript\aufkernel"/>
+      <OtherUnitFiles Value="forms;sync;rtfp_core;rtfp_pdf;..\AufScript;..\AufScript\auftype;..\AufScript\aufkernel;..\AufScript\aufunc"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>

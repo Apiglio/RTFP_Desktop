@@ -7,8 +7,9 @@ uses
   cthreads,
   {$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, RTFP_main, Apiglio_Useful, auf_ram_image, aufscript_frame, kernel,
+  Forms, RTFP_main, Apiglio_Useful, auf_ram_image, aufscript_frame,
   svo_tree,{ dbflaz, memdslaz,}
+  aufscript_https,
   form_new_project, form_cite_trans, form_import, lazcontrols,
   tachartlazaruspkg, form_classmanager, form_appearance, form_options,
   form_report_tool, form_repeated_checker, form_project_profile,
