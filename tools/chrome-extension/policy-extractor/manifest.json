@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "RTFP政策页面信息提取",
+  "version": "1.0",
+  "description": "提取当前页指定列表内容并弹窗显示",
+  "permissions": ["activeTab", "scripting"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "commands": {
+    "extract-policy-popup": {
+      "suggested_key": {
+        "default": "Alt+Shift+S",
+        "mac": "Alt+Shift+S"
+      },
+      "description": "提取当前页面中包含的政策摘要并与RTFP_Desktop协作"
+    }
+  }
+}

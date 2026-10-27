@@ -1,0 +1,127 @@
+function text_cleanup(node) {
+	let raw = "";
+	if (node.nodeType === Node.ELEMENT_NODE) {
+		raw = node.innerHTML;
+	} else if (node.nodeType === Node.TEXT_NODE) {
+		raw = node.textContent || "";
+	}
+	return raw.replace(/&nbsp;/g, '').replace(/\s+/g, '').trim();
+}
+
+function sequence_to_object(list_of_dom) {
+	if(list_of_dom.length % 2 == 1) return;
+	let obj = {};
+	for(let i=0; i<list_of_dom.length/2; i++) {
+		let key = text_cleanup(list_of_dom[2*i]).replace(/[:：]$/,'');
+		let val = text_cleanup(list_of_dom[2*i+1]);
+		obj[key] = val;
+	}
+	return obj;
+}
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+	if (message.action === "showPolicyPopup") {
+		try {
+			let sequence;
+			let items = document.querySelectorAll('.pchide.abstract.mxxgkabstract'); //www.gov.cn
+			if( items.length > 0) {
+				sequence = items[0].children;
+			} else {
+				items = document.querySelectorAll('.container div table tbody td'); //fujian.gov.cn
+				sequence = items;
+			}
+			let policy_info = sequence_to_object(sequence);
+			showPolicyPopup(JSON.stringify(policy_info, null, 2));
+		} catch (e) {
+			showPolicyPopup("提取出错: " + e.message, true);
+		}
+	}
+});
+
+function showPolicyPopup(content, isError = false) {
+	const old = document.getElementById("__rtfp_policy_extractor_popup__");
+	if (old) old.remove();
+	
+	const overlay = document.createElement("div");
+	overlay.id = "__rtfp_policy_extractor_popup__";
+	const box = document.createElement("div");
+	box.className = "pe-box";
+	const closeBtn = document.createElement("button");
+	closeBtn.textContent = "✕";
+	closeBtn.className = "pe-close";
+	closeBtn.onclick = () => overlay.remove();
+	const ta = document.createElement("textarea");
+	ta.value = content;
+	ta.readOnly = true;
+	ta.spellcheck = false;
+	ta.className = "pe-textarea" + (isError ? " pe-error" : "");
+	setTimeout(() => { ta.focus(); ta.select(); }, 0);
+	
+	const btnRow = document.createElement("div");
+	btnRow.className = "pe-btn-row";
+	const copyBtn = document.createElement("button");
+	copyBtn.textContent = "全选并复制";
+	copyBtn.className = "pe-copy-btn";
+	copyBtn.onclick = async () => {
+		ta.focus();
+		ta.select();
+		try {
+			await navigator.clipboard.writeText(ta.value);
+			copyBtn.textContent = "已复制 ✓";
+		} catch {
+			document.execCommand("copy");
+			copyBtn.textContent = "已复制 ✓";
+		}
+		setTimeout(() => { copyBtn.textContent = "全选并复制"; }, 1500);
+	};
+	
+	const rtfpBtn = document.createElement("button");
+	rtfpBtn.textContent = "复制为RTFP节点";
+	rtfpBtn.className = "pe-rtfp-btn";
+	rtfpBtn.onclick = async () => {
+		let raw;
+		try {
+			raw = JSON.parse(ta.value);
+		} catch {
+			rtfpBtn.textContent = "解析失败";
+			setTimeout(() => { rtfpBtn.textContent = "复制为RTFP节点"; }, 1500);
+			return;
+		}
+		const url = location.href;
+		const rtfp = {
+			"paper.buf": {
+				"是否备份": false,
+				"目录": "weblnk",
+				"文件名": url,
+				"文件大小": 0,
+				"文件哈希": ""
+			},
+			"文献基础信息": {
+				"类型": "",
+				"标题": raw["标题"] ?? raw["名称"] ?? "",
+				"作者": raw["发文机关"] ?? raw["发布机构"] ?? "",
+				"ISBN": raw["发文字号"] ?? raw["文号"] ?? "",
+				"链接": url
+			}
+		};
+		const text = JSON.stringify(rtfp, null, 2);
+		try {
+			await navigator.clipboard.writeText(text);
+			rtfpBtn.textContent = "已复制 ✓";
+		} catch {
+			document.execCommand("copy");
+			rtfpBtn.textContent = "已复制 ✓";
+		}
+		setTimeout(() => { rtfpBtn.textContent = "复制为RTFP节点"; }, 1500);
+	};
+	btnRow.appendChild(copyBtn);
+	btnRow.appendChild(rtfpBtn);
+	box.appendChild(closeBtn);
+	box.appendChild(ta);
+	box.appendChild(btnRow);
+	overlay.appendChild(box);
+	document.body.appendChild(overlay);
+	overlay.addEventListener("click", (e) => {
+		if (e.target === overlay) overlay.remove();
+	});
+}

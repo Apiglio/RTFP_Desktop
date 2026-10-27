@@ -1,0 +1,100 @@
+/* 遮罩 */
+#__rtfp_policy_extractor_popup__ {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* 弹窗盒子 */
+#__rtfp_policy_extractor_popup__ .pe-box {
+  position: relative;
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px 24px;
+  max-width: 80vw;
+  max-height: 80vh;
+  overflow: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* 关闭按钮 */
+#__rtfp_policy_extractor_popup__ .pe-close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #666;
+}
+
+/* 文本域 */
+#__rtfp_policy_extractor_popup__ .pe-textarea {
+  width: min(700px, 70vw);
+  height: min(400px, 60vh);
+  resize: both;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #0f172a;
+  outline: none;
+  box-sizing: border-box;
+}
+
+/* 错误态 */
+#__rtfp_policy_extractor_popup__ .pe-textarea.pe-error {
+  border-color: #fca5a5;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+/* 按钮行 */
+#__rtfp_policy_extractor_popup__ .pe-btn-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  justify-content: flex-end;
+}
+
+/* 复制按钮 */
+#__rtfp_policy_extractor_popup__ .pe-copy-btn {
+  padding: 8px 18px;
+  border: none;
+  border-radius: 8px;
+  background: #3b82f6;
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+#__rtfp_policy_extractor_popup__ .pe-copy-btn:hover {
+  background: #2563eb;
+}
+
+/* RTFP 按钮：次要样式，与主复制按钮区分 */
+#__rtfp_policy_extractor_popup__ .pe-rtfp-btn {
+  padding: 8px 18px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #1e293b;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+#__rtfp_policy_extractor_popup__ .pe-rtfp-btn:hover {
+  background: #f1f5f9;
+}
