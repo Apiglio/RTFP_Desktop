@@ -43,5 +43,40 @@ div.setting textarea
 div.setting select
 {
 	flex: none;
-	width: auto;
+	width: 5rem;
+}
+div.setting div.append,
+div.setting div.delete
+{
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex: none;
+	width: 2rem;
+	height: calc( 2rem - 0.2rem );
+	margin-inline-start: auto;
+	margin-inline-end: 0;
+	padding-block-start: 0;
+	padding-block-end: 0.2rem;
+	font-size: 1.2rem;
+	font-weight: 900;
+	color: white;
+	border-radius: 1.2rem;
+	cursor: pointer;
+}
+div.setting div.append
+{
+	background: #007f00;
+}
+div.setting div.delete
+{
+	background: #7f0000;
+}
+div.setting div.append:hover
+{
+	background: #005f00;
+}
+div.setting div.delete:hover
+{
+	background: #5f0000;
 }

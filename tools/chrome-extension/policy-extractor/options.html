@@ -4,6 +4,7 @@
 	<meta charset="utf-8" />
 	<title>RTFP 设置</title>
 	<link rel="stylesheet" type="text/css" href="options.css">
+	<script src="options.js"></script>
 </head>
 <body>
 	<h2>RTFP 政策提取设置</h2>
@@ -17,6 +18,10 @@
 			<option>段落</option>
 			<option>链接</option>
 		</select>
+		<div class="delete" onclick="onDeleteRule(this);">－</div>
+		</div>
+		<div class="setting">
+		<div class="append" onclick="onAppendRule();">＋</div>
 		</div>
 	</div>
 </body>
