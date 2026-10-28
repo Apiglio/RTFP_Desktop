@@ -1,0 +1,29 @@
+body
+{
+	margin: 0;
+	min-width: 220px;
+	font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+	font-size: 13px;
+	background: #fff;
+}
+.menu
+{
+	list-style: none;
+	margin: 0;
+	padding: 6px 0;
+}
+.menu li
+{
+	padding: 8px 14px;
+	cursor: pointer;
+	white-space: nowrap;
+	color: #1e293b;
+}
+.menu li:hover
+{
+	background: #f1f5f9;
+}
+.menu li + li
+{
+	border-top: 1px solid #f1f5f9;
+}

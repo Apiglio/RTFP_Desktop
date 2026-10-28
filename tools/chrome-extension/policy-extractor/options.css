@@ -1,0 +1,47 @@
+a.settings
+{
+	display: block;
+	font-size: 0.95rem;
+	font-weight: 600;
+	color: #1e293b;
+	margin-block-start: 1.25rem;
+	margin-block-end: 0.5rem;
+	text-decoration: none;
+	cursor: default;
+}
+div.settings
+{
+	background: #eee;
+	padding: 1rem;
+	max-width: 30rem;
+	border-radius: 0.5rem;
+}
+div.setting {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	margin: 8px 0;
+}
+div.setting textarea,
+div.setting select
+{
+	box-sizing: border-box;
+	height: 2rem;
+	padding: 0 6px;
+	border: 1px solid #cbd5e1;
+	border-radius: 6px;
+	font: inherit;
+	line-height: 1.5;
+	float: none; 
+}
+div.setting textarea
+{
+	flex: 1;
+	resize: vertical;
+	min-height: 2rem;
+}
+div.setting select
+{
+	flex: none;
+	width: auto;
+}
