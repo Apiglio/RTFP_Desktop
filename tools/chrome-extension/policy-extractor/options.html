@@ -4,25 +4,43 @@
 	<meta charset="utf-8" />
 	<title>RTFP 设置</title>
 	<link rel="stylesheet" type="text/css" href="options.css">
-	<script src="options.js"></script>
 </head>
 <body>
 	<h2>RTFP 政策提取设置</h2>
 	<a class="settings">提取规则</a>
-	<div class="settings">
-		<div class="setting">
-		<textarea></textarea>
-		<select>
-			<option>偶数列</option>
-			<option>键值对</option>
-			<option>段落</option>
-			<option>链接</option>
-		</select>
-		<div class="delete" onclick="onDeleteRule(this);">－</div>
-		</div>
-		<div class="setting">
-		<div class="append" onclick="onAppendRule();">＋</div>
+	<div class="tab_title">
+		<div class="col_title">
+			<div class="col_rule">搜索规则</div>
+			<div class="col_method">提取方法</div>
+			<div class="col_field">目标字段</div>
+			<div class="col_edit"></div>
 		</div>
 	</div>
+	<div class="settings">
+		<div class="setting" id="extractors">
+			<textarea></textarea>
+			<select>
+				<option>偶数列</option>
+				<option>键值对</option>
+				<option>段落</option>
+				<option>链接</option>
+			</select>
+			<select>
+				<option value="" style="font-style:italic;">自动</option>
+				<option>原文</option>
+				<option>附件</option>
+			</select>
+			<div class="delete">－</div>
+		</div>
+		<div class="setting">
+			<div class="append">＋</div>
+		</div>
+	</div>
+	<div class="actions">
+		<button id="btn-save">保存设置</button>
+		<button id="btn-discard">放弃修改</button>
+		<button id="btn-restore">恢复默认</button>
+	</div>
+	<script src="options.js" defer></script>
 </body>
 </html>

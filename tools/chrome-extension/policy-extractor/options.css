@@ -9,44 +9,67 @@ a.settings
 	text-decoration: none;
 	cursor: default;
 }
-div.settings
+div.settings,
+div.col_title
 {
 	background: #eee;
-	padding: 1rem;
+	padding: 0.25rem 1rem;
 	max-width: 30rem;
 	border-radius: 0.5rem;
 }
-div.setting {
+div.setting
+{
 	display: flex;
 	gap: 8px;
 	align-items: center;
 	margin: 8px 0;
 }
+div.col_title
+{
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	margin: 0;
+	margin-block-end: -12px;
+	padding-block: 0;
+}
 div.setting textarea,
-div.setting select
+div.setting select,
+div.setting div.tab_title
 {
 	box-sizing: border-box;
-	height: 2rem;
 	padding: 0 6px;
 	border: 1px solid #cbd5e1;
 	border-radius: 6px;
 	font: inherit;
 	line-height: 1.5;
-	float: none; 
+	float: none;
 }
-div.setting textarea
+div.col_title div
+{
+	display: flex;
+	align-items: center;
+	font-weight: 900;
+}
+div.setting textarea,
+div.col_title div.col_rule
 {
 	flex: 1;
 	resize: vertical;
 	min-height: 2rem;
+	height: 2rem;
 }
-div.setting select
+div.setting select,
+div.col_title div.col_method,
+div.col_title div.col_field
 {
 	flex: none;
 	width: 5rem;
+	height: 2rem;
 }
 div.setting div.append,
-div.setting div.delete
+div.setting div.delete,
+div.col_title div.col_edit
 {
 	display: flex;
 	align-items: center;
@@ -70,7 +93,7 @@ div.setting div.append
 }
 div.setting div.delete
 {
-	background: #7f0000;
+	background: #bf0000;
 }
 div.setting div.append:hover
 {
@@ -78,5 +101,41 @@ div.setting div.append:hover
 }
 div.setting div.delete:hover
 {
-	background: #5f0000;
+	background: #7f0000;
 }
+div.actions
+{
+	padding: 0.25rem 1rem;
+	max-width: 30rem;
+}
+div.actions
+{
+	display: flex;
+	gap: 12px;
+	margin-block-start: 1rem;
+	max-width: 30rem;
+}
+
+div.actions button
+{
+	flex: 1;
+	padding: 0.5rem 1rem;
+	border: 1px solid #cbd5e1;
+	border-radius: 6px;
+	background: #fff;
+	color: #1e293b;
+	font-size: 0.95rem;
+	font-weight: 600;
+	cursor: pointer;
+	font: inherit;
+}
+
+div.actions button:hover
+{
+	background: #f1f5f9;
+}
+#btn-save
+{
+	background: #3b82f6;
+	color: #fff;
+} 

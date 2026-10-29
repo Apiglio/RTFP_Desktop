@@ -1,3 +1,31 @@
+const DEFAULT_EXTRACTORS = [
+	//www.gov.cn
+	{ mtd: "偶数列", field: null, filter: '.pchide.abstract.mxxgkabstract td' },
+	{ mtd: "偶数列", field: null, filter: '.policyLibraryOverview_header td' },
+	{ mtd: "段落", field: "原文", filter: '#UCAP-CONTENT p' },
+	//fujian.gov.cn
+	{ mtd: "偶数列", field: null, filter: '[role="viewlist"] .xl_con1 span, [role="viewlist"] .xl_con1 text' },
+	{ mtd: "偶数列", field: null, filter: '.container div table tbody td' },
+	{ mtd: "段落", field: "原文", filter: '#detailCont p, #detailCont text' },
+	//www.fuzhou.gov.cn
+	{ mtd: "键值对", field: null, filter: '[role="viewlist"] div.index_box li' },
+	{ mtd: "段落", field: "原文", filter: '.word_con[avalonctrl="QzbView"] p' },
+	{ mtd: "链接", field: "附件", filter: '[download]' },
+	{}
+];
+const EXTRACTOR_MAP = {
+	"偶数列":sequence_to_object,
+	"键值对":kvp_to_object,
+	"段落":doms_to_paragraph,
+	"链接":doms_to_links
+}
+
+chrome.storage.local.get("customRules", (data) => {
+	if (!data.customRules) {
+		chrome.storage.local.set({ customRules: DEFAULT_EXTRACTORS });
+	}
+});
+
 function text_cleanup(node) {
 	let raw = "";
 	raw = node.textContent ?? "";
@@ -35,38 +63,32 @@ function doms_to_links(list_of_dom) {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 	if (message.action === "showPolicyPopup") {
-		try {
-			let items
-			let policy_info = {};
-			
-			//www.gov.cn
-			items = document.querySelectorAll('.pchide.abstract.mxxgkabstract');
-			if (items.length>0) policy_info = {...policy_info, ...sequence_to_object(items[0].children)};
-			items = document.querySelectorAll('.policyLibraryOverview_header td');
-			if (items.length>0) policy_info = {...policy_info, ...sequence_to_object(items)}
-			items = document.querySelectorAll('#UCAP-CONTENT p');
-			if (items.length>0) policy_info["原文"] = doms_to_paragraph(items);
-			
-			//fujian.gov.cn
-			items = document.querySelectorAll('[role="viewlist"] .xl_con1 span, [role="viewlist"] .xl_con1 text');
-			if (items.length>0) policy_info = {...policy_info, ...sequence_to_object(items)};
-			items = document.querySelectorAll('.container div table tbody td');
-			if (items.length>0) policy_info = {...policy_info, ...sequence_to_object(items)};
-			items = document.querySelectorAll('#detailCont p, #detailCont text');
-			if (items.length>0) policy_info["原文"] = doms_to_paragraph(items);
-			
-			//www.fuzhou.gov.cn
-			items = document.querySelectorAll('[role="viewlist"] div.index_box li');
-			if (items.length>0) policy_info = {...policy_info, ...kvp_to_object(items)};
-			items = document.querySelectorAll('.word_con[avalonctrl="QzbView"] p');
-			if (items.length>0) policy_info["原文"] = doms_to_paragraph(items);
-			items = document.querySelectorAll('[download]');
-			if (items.length>0) policy_info["附件"] = doms_to_links(items);
-			
-			showPolicyPopup(JSON.stringify(policy_info, null, 2));
-		} catch (e) {
-			showPolicyPopup("提取出错: " + e.message, true);
-		}
+		chrome.storage.local.get("customRules", (data) => {
+			try {
+				let policy_info = {};			
+				let extractors = data.customRules || DEFAULT_EXTRACTORS;
+				
+				for(exr of extractors) {
+					let func;
+					if (exr["mtd"]) {
+						func = EXTRACTOR_MAP[exr["mtd"]];
+					} else {
+						continue;
+					}
+					let items = document.querySelectorAll(exr["filter"]);
+					if (items.length==0) continue;
+					if (exr["field"]) {
+						policy_info[exr["field"]] = func(items);
+					} else {
+						policy_info = {...policy_info, ...func(items)};
+					}
+				}
+				
+				showPolicyPopup(JSON.stringify(policy_info, null, 2));
+			} catch (e) {
+				showPolicyPopup("提取出错: " + e.message, true);
+			}
+		});
 	}
 });
 
