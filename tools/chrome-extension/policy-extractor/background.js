@@ -1,3 +1,5 @@
+importScripts("defaults_options.js");
+
 function triggerPolicyExtraction() {
 	chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 		const tab = tabs[0];

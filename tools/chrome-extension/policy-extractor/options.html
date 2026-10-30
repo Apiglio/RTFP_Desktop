@@ -7,7 +7,7 @@
 </head>
 <body>
 	<h2>RTFP 政策提取设置</h2>
-	<a class="settings">提取规则</a>
+	<a class="bm">提取规则</a>
 	<div class="tab_title">
 		<div class="col_title">
 			<div class="col_rule">搜索规则</div>
@@ -16,17 +16,17 @@
 			<div class="col_edit"></div>
 		</div>
 	</div>
-	<div class="settings">
-		<div class="setting" id="extractors">
+	<div class="settings" id="extractors">
+		<div class="setting">
 			<textarea></textarea>
-			<select>
+			<select id="mtd">
 				<option>偶数列</option>
 				<option>键值对</option>
 				<option>段落</option>
 				<option>链接</option>
 			</select>
-			<select>
-				<option value="" style="font-style:italic;">自动</option>
+			<select id="field">
+				<option value=null style="font-style:italic;">自动</option>
 				<option>原文</option>
 				<option>附件</option>
 			</select>
@@ -41,6 +41,7 @@
 		<button id="btn-discard">放弃修改</button>
 		<button id="btn-restore">恢复默认</button>
 	</div>
+	<script src="defaults_options.js"></script>
 	<script src="options.js" defer></script>
 </body>
 </html>
