@@ -12,7 +12,7 @@ uses
   ComCtrls, ExtCtrls, StdCtrls, rtfp_dialog, sync_thread;
 
 const
-  AnimationStepLen = 50;
+  AnimationStepLen = 50000; //取消动画
 
 type
 
