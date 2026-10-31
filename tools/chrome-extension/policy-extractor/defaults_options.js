@@ -34,18 +34,15 @@ function doms_to_links(list_of_dom) {
 }
 
 const DEFAULT_EXTRACTORS = [
-	//www.gov.cn
-	{ mtd: "偶数列", field: null, filter: '.pchide.abstract.mxxgkabstract td' },
-	{ mtd: "偶数列", field: null, filter: '.policyLibraryOverview_header td' },
-	{ mtd: "段落", field: "原文", filter: '#UCAP-CONTENT p' },
-	//fujian.gov.cn
-	{ mtd: "偶数列", field: null, filter: '[role="viewlist"] .xl_con1 span, [role="viewlist"] .xl_con1 text' },
-	{ mtd: "偶数列", field: null, filter: '.container div table tbody td' },
-	{ mtd: "段落", field: "原文", filter: '#detailCont p, #detailCont text' },
-	//www.fuzhou.gov.cn
-	{ mtd: "键值对", field: null, filter: '[role="viewlist"] div.index_box li' },
-	{ mtd: "段落", field: "原文", filter: '.word_con[avalonctrl="QzbView"] p' },
-	{ mtd: "链接", field: "附件", filter: '[download]' }
+	{ mtd: "偶数列", field: null, filter: '.pchide.abstract.mxxgkabstract td', url:"www.gov.cn|." },
+	{ mtd: "偶数列", field: null, filter: '.policyLibraryOverview_header td', url:"www.gov.cn|." },
+	{ mtd: "段落", field: "原文", filter: '#UCAP-CONTENT p', url:"www.gov.cn|." },
+	{ mtd: "偶数列", field: null, filter: '[role="viewlist"] .xl_con1 span, [role="viewlist"] .xl_con1 text', url:"fujian.gov.cn|." },
+	{ mtd: "偶数列", field: null, filter: '.container div table tbody td', url:"fujian.gov.cn|." },
+	{ mtd: "段落", field: "原文", filter: '#detailCont p, #detailCont text', url:"fujian.gov.cn|." },
+	{ mtd: "键值对", field: null, filter: '[role="viewlist"] div.index_box li', url:"www.fuzhou.gov.cn|." },
+	{ mtd: "段落", field: "原文", filter: '.word_con[avalonctrl="QzbView"] p', url:"www.fuzhou.gov.cn|." },
+	{ mtd: "链接", field: "附件", filter: '[download]', url:"www.fuzhou.gov.cn|." }
 ];
 const EXTRACTOR_MAP = {
 	"偶数列":sequence_to_object,
@@ -54,8 +51,8 @@ const EXTRACTOR_MAP = {
 	"链接":doms_to_links
 }
 
-chrome.storage.local.get("customRules", (data) => {
-	if (!data.customRules) {
-		chrome.storage.local.set({ customRules: DEFAULT_EXTRACTORS });
+chrome.storage.local.get("extractors", (data) => {
+	if (!data.extractors) {
+		chrome.storage.local.set({ extractors: DEFAULT_EXTRACTORS });
 	}
 });

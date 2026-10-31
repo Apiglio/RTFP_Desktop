@@ -13,23 +13,25 @@
 			<div class="col_rule">搜索规则</div>
 			<div class="col_method">提取方法</div>
 			<div class="col_field">目标字段</div>
+			<div class="col_url">URL规则</div>
 			<div class="col_edit"></div>
 		</div>
 	</div>
 	<div class="settings" id="extractors">
 		<div class="setting">
-			<textarea></textarea>
+			<textarea id=rule></textarea>
 			<select id="mtd">
 				<option>偶数列</option>
 				<option>键值对</option>
 				<option>段落</option>
 				<option>链接</option>
 			</select>
-			<select id="field">
-				<option value=null style="font-style:italic;">自动</option>
+			<select id="field" required>
+				<option value="" style="font-style:italic;">自动</option>
 				<option>原文</option>
 				<option>附件</option>
 			</select>
+			<textarea id=url></textarea>
 			<div class="delete">－</div>
 		</div>
 		<div class="setting">
@@ -40,7 +42,10 @@
 		<button id="btn-save">保存设置</button>
 		<button id="btn-discard">放弃修改</button>
 		<button id="btn-restore">恢复默认</button>
+		<button id="btn-import">导入</button>
+		<button id="btn-export">导出</button>
 	</div>
+	<input type="file" id="file-import" accept=".json,application/json" style="display: none;">
 	<script src="defaults_options.js"></script>
 	<script src="options.js" defer></script>
 </body>

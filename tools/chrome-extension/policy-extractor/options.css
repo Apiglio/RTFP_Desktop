@@ -14,7 +14,7 @@ div.col_title
 {
 	background: #eee;
 	padding: 0.25rem 1rem;
-	max-width: 30rem;
+	max-width: 45rem;
 	border-radius: 0.5rem;
 }
 div.setting
@@ -51,12 +51,20 @@ div.col_title div
 	align-items: center;
 	font-weight: 900;
 }
-div.setting textarea,
+div.setting textarea#rule,
 div.col_title div.col_rule
+{
+	flex: 3;
+	resize: vertical;
+	min-height: 2rem;
+	height: 2rem;
+}
+div.setting textarea#url,
+div.col_title div.col_url
 {
 	flex: 1;
 	resize: vertical;
-	min-height: 2rem;
+	min-height: 1rem;
 	height: 2rem;
 }
 div.setting select,
@@ -67,6 +75,14 @@ div.col_title div.col_field
 	width: 5rem;
 	height: 2rem;
 }
+div.setting select
+{
+    color: #000;
+}
+div.setting select:invalid {
+    color: #888;
+    font-style: italic;
+}
 div.setting div.append,
 div.setting div.delete,
 div.col_title div.col_edit
@@ -75,13 +91,13 @@ div.col_title div.col_edit
 	align-items: center;
 	justify-content: center;
 	flex: none;
-	width: 2rem;
-	height: calc( 2rem - 0.2rem );
+	width: 1.2rem;
+	height: calc( 1.2rem - 0.2rem );
 	margin-inline-start: auto;
 	margin-inline-end: 0;
 	padding-block-start: 0;
 	padding-block-end: 0.2rem;
-	font-size: 1.2rem;
+	font-size: 1rem;
 	font-weight: 900;
 	color: white;
 	border-radius: 1.2rem;
@@ -90,6 +106,7 @@ div.col_title div.col_edit
 div.setting div.append
 {
 	background: #007f00;
+	margin-block-start: 0.4rem;
 }
 div.setting div.delete
 {
@@ -105,21 +122,17 @@ div.setting div.delete:hover
 }
 div.actions
 {
-	padding: 0.25rem 1rem;
-	max-width: 30rem;
-}
-div.actions
-{
 	display: flex;
 	gap: 12px;
 	margin-block-start: 1rem;
-	max-width: 30rem;
+	margin-block-end: 0;
+	max-width: 45rem;
+	padding: 0.25rem 1rem;
 }
-
 div.actions button
 {
 	flex: 1;
-	padding: 0.5rem 1rem;
+	padding: 0.5rem;
 	border: 1px solid #cbd5e1;
 	border-radius: 6px;
 	background: #fff;
@@ -129,7 +142,6 @@ div.actions button
 	cursor: pointer;
 	font: inherit;
 }
-
 div.actions button:hover
 {
 	background: #f1f5f9;
@@ -138,4 +150,10 @@ div.actions button:hover
 {
 	background: #3b82f6;
 	color: #fff;
-} 
+}
+#btn-import,
+#btn-export
+{
+	flex: 0.3;
+	background: #D3E3FD;
+}

@@ -1,13 +1,9 @@
-
-
-
-
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 	if (message.action === "showPolicyPopup") {
-		chrome.storage.local.get("customRules", (data) => {
+		chrome.storage.local.get("extractors", (data) => {
 			try {
-				let policy_info = {};			
-				let extractors = data.customRules || DEFAULT_EXTRACTORS;
+				let policy_info = {"链接":window.location.href};			
+				let extractors = data.extractors || DEFAULT_EXTRACTORS;
 				
 				for(exr of extractors) {
 					let func;
@@ -16,6 +12,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 					} else {
 						continue;
 					}
+					if (!window.location.href.match(exr["url"])) continue;
 					let items = document.querySelectorAll(exr["filter"]);
 					if (items.length==0) continue;
 					if (exr["field"]) {
